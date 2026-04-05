@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
+import { expect } from 'chai';
 import { beforeEach2, sequelize, setResetMode } from '../support';
 import { testSimpleInOut, testSimpleInOutRaw } from './data-types.test';
 
@@ -18,12 +18,15 @@ describe('DataTypes.ENUM', () => {
       declare attr: TestEnum;
     }
 
-    User.init({
-      attr: {
-        type: DataTypes.ENUM(Object.values(TestEnum)),
-        allowNull: false,
+    User.init(
+      {
+        attr: {
+          type: DataTypes.ENUM(Object.values(TestEnum)),
+          allowNull: false,
+        },
       },
-    }, { sequelize });
+      { sequelize },
+    );
 
     await User.sync();
 

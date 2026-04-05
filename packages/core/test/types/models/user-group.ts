@@ -1,8 +1,8 @@
 import type {
   CreationOptional,
-  HasMany,
   HasManyAddAssociationMixin,
   HasManyAddAssociationsMixin,
+  HasManyAssociation,
   HasManyCountAssociationsMixin,
   HasManyCreateAssociationMixin,
   HasManyGetAssociationsMixin,
@@ -25,7 +25,7 @@ export class UserGroup extends Model<
   InferCreationAttributes<UserGroup>
 > {
   static associations: {
-    users: HasMany<UserGroup, User>,
+    users: HasManyAssociation<UserGroup, User>;
   };
 
   declare id: CreationOptional<number>;
@@ -46,14 +46,17 @@ export class UserGroup extends Model<
 
 // attach all the metadata to the model
 // instead of this, you could also use decorators
-UserGroup.init({
-  name: DataTypes.STRING,
-  id: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    primaryKey: true,
-    autoIncrement: true,
+UserGroup.init(
+  {
+    name: DataTypes.STRING,
+    id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      autoIncrement: true,
+    },
   },
-}, { sequelize });
+  { sequelize },
+);
 
 export const Users = UserGroup.hasMany(User, { as: 'users', foreignKey: 'groupId' });

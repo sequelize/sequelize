@@ -1,10 +1,15 @@
-import { expect } from 'chai';
-import { describe } from 'mocha';
-import sinon from 'sinon';
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import { expect } from 'chai';
+import { describe } from 'mocha';
+import sinon from 'sinon';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 describe('Model#increment', () => {
   setResetMode('destroy');
@@ -174,7 +179,9 @@ describe('Model#increment', () => {
       await Foo.sync({ force: true });
 
       const instance = await Foo.create({});
-      await expect(instance.increment('id')).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+      await expect(instance.increment('id')).to.be.rejectedWith(
+        'but the model does not have a primary key attribute definition.',
+      );
     });
   });
 });

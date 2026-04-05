@@ -10,11 +10,15 @@ chai.should();
 
 describe(Support.getTestDialectTeaser('Vectors'), () => {
   it('should not allow insert backslash', async function () {
-    const Student = this.sequelize.define('student', {
-      name: DataTypes.STRING,
-    }, {
-      tableName: 'student',
-    });
+    const Student = this.sequelize.define(
+      'student',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        tableName: 'student',
+      },
+    );
 
     await Student.sync({ force: true });
 

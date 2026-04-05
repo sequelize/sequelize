@@ -1,6 +1,3 @@
-import { expect } from 'chai';
-import { describe } from 'mocha';
-import sinon from 'sinon';
 import type {
   CreationOptional,
   HasManyCreateAssociationMixin,
@@ -11,7 +8,15 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, InstanceError, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, HasMany, NotNull, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import { expect } from 'chai';
+import { describe } from 'mocha';
+import sinon from 'sinon';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 describe('Model#reload', () => {
   context('test-shared models', () => {
@@ -109,14 +114,17 @@ describe('Model#reload', () => {
         integer2: 1,
       });
 
-      await vars.Book.update({
-        integer1: 2,
-        integer2: 2,
-      }, {
-        where: {
-          id: book1.get('id'),
+      await vars.Book.update(
+        {
+          integer1: 2,
+          integer2: 2,
         },
-      });
+        {
+          where: {
+            id: book1.get('id'),
+          },
+        },
+      );
 
       const user = await book1.reload({
         attributes: ['integer1'],
@@ -211,13 +219,16 @@ describe('Model#reload', () => {
     it('should set an association to null after deletion, 1-1', async () => {
       const { Book, Page } = vars;
 
-      const page = await Page.create({
-        content: 'the brand',
-        // @ts-expect-error -- TODO: properly type this
-        book: {
-          title: 'hello',
+      const page = await Page.create(
+        {
+          content: 'the brand',
+          // @ts-expect-error -- TODO: properly type this
+          book: {
+            title: 'hello',
+          },
         },
-      }, { include: [Book] });
+        { include: [Book] },
+      );
 
       const reloadedPage = await Page.findOne({
         where: { id: page.id },
@@ -234,15 +245,21 @@ describe('Model#reload', () => {
     it('should set an association to empty after all deletion, 1-N', async () => {
       const { Book, Page } = vars;
 
-      const book = await Book.create({
-        title: 'title',
-        // @ts-expect-error -- TODO: properly type this
-        pages: [{
-          content: 'page 1',
-        }, {
-          content: 'page 2',
-        }],
-      }, { include: [Page] });
+      const book = await Book.create(
+        {
+          title: 'title',
+          // @ts-expect-error -- TODO: properly type this
+          pages: [
+            {
+              content: 'page 1',
+            },
+            {
+              content: 'page 2',
+            },
+          ],
+        },
+        { include: [Page] },
+      );
 
       const refetchedBook = await Book.findOne({
         where: { id: book.id },
@@ -271,7 +288,8 @@ describe('Model#reload', () => {
   context('test-specific models', () => {
     if (sequelize.dialect.supports.transactions) {
       it('supports transactions', async () => {
-        const transactionSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize);
+        const transactionSequelize =
+          await createSingleTransactionalTestSequelizeInstance(sequelize);
 
         class User extends Model<InferAttributes<User>> {
           @Attribute(DataTypes.STRING)
@@ -301,7 +319,9 @@ describe('Model#reload', () => {
       await Foo.sync({ force: true });
 
       const instance = await Foo.create({});
-      await expect(instance.reload()).to.be.rejectedWith('but the model does not have a primary key attribute definition.');
+      await expect(instance.reload()).to.be.rejectedWith(
+        'but the model does not have a primary key attribute definition.',
+      );
     });
 
     it('should inject default scope when reloading', async () => {

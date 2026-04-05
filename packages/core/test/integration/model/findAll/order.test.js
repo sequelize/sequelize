@@ -24,11 +24,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'ibmi') {
+        if (!['oracle', 'ibmi', 'mssql'].includes(current.dialect.name)) {
           const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function () {
             const users = await this.User.findAll({
-              order: this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`),
+              order: this.sequelize.literal(
+                `${email} = ${this.sequelize.escape('test@sequelizejs.com')}`,
+              ),
             });
 
             expect(users.length).to.equal(1);
@@ -39,7 +41,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('should work with order: [literal()]', async function () {
             const users = await this.User.findAll({
-              order: [this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)],
+              order: [
+                this.sequelize.literal(
+                  `${email} = ${this.sequelize.escape('test@sequelizejs.com')}`,
+                ),
+              ],
             });
 
             expect(users.length).to.equal(1);
@@ -51,7 +57,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('should work with order: [[literal()]]', async function () {
             const users = await this.User.findAll({
               order: [
-                [this.sequelize.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)],
+                [
+                  this.sequelize.literal(
+                    `${email} = ${this.sequelize.escape('test@sequelizejs.com')}`,
+                  ),
+                ],
               ],
             });
 
@@ -86,17 +96,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function () {
-          if (['db2', 'ibmi'].includes(current.dialect.name)) {
+          if (['db2', 'ibmi', 'oracle'].includes(current.dialect.name)) {
             await this.User.findAll({
-              order: [
-                ['id', this.sequelize.literal('ASC, "name" DESC')],
-              ],
+              order: [['id', this.sequelize.literal('ASC, "name" DESC')]],
             });
           } else {
             await this.User.findAll({
-              order: [
-                ['id', this.sequelize.literal('ASC, name DESC')],
-              ],
+              order: [['id', this.sequelize.literal('ASC, name DESC')]],
             });
           }
         });
@@ -104,9 +110,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not throw with include when last order argument is a field', async function () {
           await this.User.findAll({
             include: [this.Group],
-            order: [
-              [this.Group, 'id'],
-            ],
+            order: [[this.Group, 'id']],
           });
         });
       });

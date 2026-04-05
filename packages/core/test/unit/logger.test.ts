@@ -1,7 +1,10 @@
-import { inspect as nodeInspect } from 'node:util';
+import {
+  Logger,
+  logger as defaultLogger,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { expect } from 'chai';
+import { inspect as nodeInspect } from 'node:util';
 import sinon from 'sinon';
-import { Logger, logger as defaultLogger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 
 describe('logger', () => {
   let oldWarn: typeof console.warn;
@@ -20,18 +23,14 @@ describe('logger', () => {
   it('creates a default logger in the sequelize context', () => {
     defaultLogger.warn('abc');
 
-    expect(fakeWarn.calledOnceWithExactly('(sequelize) Warning: abc')).to.equal(
-      true,
-    );
+    expect(fakeWarn.calledOnceWithExactly('(sequelize) Warning: abc')).to.equal(true);
   });
 
-  it('defaults the context of new loggers to \'sequelize\'', () => {
+  it("defaults the context of new loggers to 'sequelize'", () => {
     const logger = new Logger();
 
     logger.warn('oh no');
-    expect(
-      fakeWarn.calledOnceWithExactly('(sequelize) Warning: oh no'),
-    ).to.equal(true);
+    expect(fakeWarn.calledOnceWithExactly('(sequelize) Warning: oh no')).to.equal(true);
   });
 
   it('respects specified context in new loggers', () => {
@@ -55,9 +54,7 @@ describe('logger', () => {
       },
     };
 
-    expect(defaultLogger.inspect(obj)).to.equal(
-      nodeInspect(obj, { showHidden: false, depth: 3 }),
-    );
+    expect(defaultLogger.inspect(obj)).to.equal(nodeInspect(obj, { showHidden: false, depth: 3 }));
   });
 
   it('creates a debugger in the correct namespace', () => {

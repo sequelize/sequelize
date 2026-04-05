@@ -25,9 +25,7 @@ export class ForeignKeyConstraintError extends DatabaseError {
   index: string | undefined;
   reltype: RelationshipType | undefined;
 
-  constructor(
-    options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions = {},
-  ) {
+  constructor(options: ForeignKeyConstraintErrorOptions & DatabaseErrorSubclassOptions = {}) {
     if ('parent' in options) {
       useErrorCause();
     }

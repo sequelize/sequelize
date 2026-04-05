@@ -1,10 +1,10 @@
+import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
+import { DataTypes, Model, Op } from '@sequelize/core';
 import { expect } from 'chai';
 import each from 'lodash/each';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import type { ForeignKey, HasManySetAssociationsMixin, InferAttributes } from '@sequelize/core';
-import { DataTypes, Model, Op } from '@sequelize/core';
-import { getTestDialectTeaser, sequelize } from '../../support';
+import { beforeAll2, getTestDialectTeaser, sequelize } from '../../support';
 
 describe(getTestDialectTeaser('hasMany'), () => {
   it('throws when invalid model is passed', () => {
@@ -13,7 +13,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
     expect(() => {
       // @ts-expect-error -- testing that invalid input results in error
       User.hasMany();
-    }).to.throw(`User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`);
+    }).to.throw(
+      `User.hasMany was called with undefined as the target model, but it is not a subclass of Sequelize's Model class`,
+    );
   });
 
   it('forbids alias inference in self-associations', () => {
@@ -21,7 +23,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
     expect(() => {
       User.hasMany(User);
-    }).to.throwWithCause('Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different');
+    }).to.throwWithCause(
+      'Both options "as" and "inverse.as" must be defined for hasMany self-associations, and their value must be different',
+    );
   });
 
   it('allows self-associations with explicit alias', () => {
@@ -50,31 +54,47 @@ describe(getTestDialectTeaser('hasMany'), () => {
     expect(User.associations.tasks).to.be.ok;
   });
 
-  describe('optimizations using bulk create, destroy and update', () => {
-    class User extends Model<InferAttributes<User>> {
-      declare setTasks: HasManySetAssociationsMixin<Task, number>;
-    }
+  it('generates a default association name', () => {
+    const User = sequelize.define('User', {});
+    const Task = sequelize.define('Task', {});
 
-    class Task extends Model<InferAttributes<Task>> {}
-
-    User.init({ username: DataTypes.STRING }, { sequelize });
-    Task.init({ title: DataTypes.STRING }, { sequelize });
     User.hasMany(Task);
 
-    const user = User.build({
-      id: 42,
-    });
-    const task1 = Task.build({
-      id: 15,
-    });
-    const task2 = Task.build({
-      id: 16,
+    expect(Object.keys(Task.associations)).to.deep.eq(['user']);
+    expect(Object.keys(User.associations)).to.deep.eq(['tasks']);
+  });
+
+  describe('optimizations using bulk create, destroy and update', () => {
+    const vars = beforeAll2(() => {
+      class User extends Model<InferAttributes<User>> {
+        declare setTasks: HasManySetAssociationsMixin<Task, number>;
+      }
+
+      class Task extends Model<InferAttributes<Task>> {}
+
+      User.init({ username: DataTypes.STRING }, { sequelize });
+      Task.init({ title: DataTypes.STRING }, { sequelize });
+      User.hasMany(Task);
+
+      const user = User.build({
+        id: 42,
+      });
+      const task1 = Task.build({
+        id: 15,
+      });
+      const task2 = Task.build({
+        id: 16,
+      });
+
+      return { User, Task, user, task1, task2 };
     });
 
     let findAll: SinonStub;
     let update: SinonStub;
 
     beforeEach(() => {
+      const { Task } = vars;
+
       findAll = sinon.stub(Task, 'findAll').resolves([]);
       update = sinon.stub(Task, 'update').resolves([0]);
     });
@@ -85,14 +105,19 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     it('uses one update statement for addition', async () => {
+      const { user, task1, task2 } = vars;
+
       await user.setTasks([task1, task2]);
       expect(findAll).to.have.been.calledOnce;
       expect(update).to.have.been.calledOnce;
     });
 
     it('uses one delete from statement', async () => {
+      const { user, task1, task2 } = vars;
+
       findAll
-        .onFirstCall().resolves([])
+        .onFirstCall()
+        .resolves([])
         .onSecondCall()
         .resolves([
           { userId: 42, taskId: 15 },
@@ -108,25 +133,60 @@ describe(getTestDialectTeaser('hasMany'), () => {
   });
 
   describe('mixin', () => {
-    const User = sequelize.define('User');
-    const Task = sequelize.define('Task');
+    const vars = beforeAll2(() => {
+      const User = sequelize.define('User');
+      const Task = sequelize.define('Task');
+
+      return { User, Task };
+    });
 
     it('should mixin association methods', () => {
+      const { User, Task } = vars;
+
       const as = Math.random().toString();
       const association = User.hasMany(Task, { as });
 
-      expect(User.prototype[association.accessors.get]).to.be.an('function');
-      expect(User.prototype[association.accessors.set]).to.be.an('function');
-      expect(User.prototype[association.accessors.addMultiple]).to.be.an('function');
-      expect(User.prototype[association.accessors.add]).to.be.an('function');
-      expect(User.prototype[association.accessors.remove]).to.be.an('function');
-      expect(User.prototype[association.accessors.removeMultiple]).to.be.an('function');
-      expect(User.prototype[association.accessors.hasSingle]).to.be.an('function');
-      expect(User.prototype[association.accessors.hasAll]).to.be.an('function');
-      expect(User.prototype[association.accessors.count]).to.be.an('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.get]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.set]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.addMultiple]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.add]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.remove]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.removeMultiple]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.hasSingle]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.hasAll]).to.be.a('function');
+      // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+      // @ts-ignore -- This only became invalid starting with TS 5.4
+      expect(User.prototype[association.accessors.count]).to.be.a('function');
     });
 
     it('should not override custom methods', () => {
+      const { User, Task } = vars;
+
       const methods = {
         getTasks: 'get',
         countTasks: 'count',
@@ -143,6 +203,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
       function originalMethod() {}
 
       each(methods, (alias, method) => {
+        // TODO: remove this eslint-disable once we drop support for TypeScript <= 5.3
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
+        // @ts-ignore -- This only became invalid starting with TS 5.4
         User.prototype[method] = originalMethod;
       });
 
@@ -157,13 +220,18 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     it('should not override attributes', () => {
+      const { Task } = vars;
+
       class Project extends Model<InferAttributes<Project>> {
         declare hasTasks: boolean | null;
       }
 
-      Project.init({
-        hasTasks: DataTypes.BOOLEAN,
-      }, { sequelize });
+      Project.init(
+        {
+          hasTasks: DataTypes.BOOLEAN,
+        },
+        { sequelize },
+      );
 
       Project.hasMany(Task);
 
@@ -181,12 +249,15 @@ describe(getTestDialectTeaser('hasMany'), () => {
         declare user_id: ForeignKey<string | null>;
       }
 
-      User.init({
-        id: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      User.init(
+        {
+          id: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
       Task.init({}, { sequelize });
 
       return { Task, User };
@@ -200,10 +271,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     it('should fetch associations for a single instance', async () => {
       const { Task, User } = getModels();
 
-      const findAll = sinon.stub(Task, 'findAll').resolves([
-        Task.build({}),
-        Task.build({}),
-      ]);
+      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({}), Task.build({})]);
 
       const UserTasks = User.hasMany(Task, { foreignKey });
       const actual = UserTasks.get(User.build({ id: idA }));
@@ -308,7 +376,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');
-        expect(beforeAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
 
       it('should not trigger association hooks', () => {
@@ -335,13 +403,14 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
         const firstArg = afterAssociateArgs[0];
 
-        expect(Object.keys(firstArg).join(',')).to.equal('source,target,type,association,sequelize');
+        expect(Object.keys(firstArg).join(',')).to.equal(
+          'source,target,type,association,sequelize',
+        );
         expect(firstArg.source).to.equal(Project);
         expect(firstArg.target).to.equal(Task);
         expect(firstArg.type.name).to.equal('HasMany');
         expect(firstArg.association.constructor.name).to.equal('HasMany');
-
-        expect(afterAssociateArgs[1].sequelize.constructor.name).to.equal('Sequelize');
+        expect(firstArg.sequelize.constructor.name).to.equal('Sequelize');
       });
       it('should not trigger association hooks', () => {
         const { Task, Project } = getModels();

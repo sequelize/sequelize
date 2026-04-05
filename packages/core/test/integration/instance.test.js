@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
@@ -26,8 +26,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   beforeEach(async function () {
     this.User = this.sequelize.define('User', {
       username: { type: DataTypes.STRING },
-      uuidv1: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV1 },
-      uuidv4: { type: DataTypes.UUID, defaultValue: DataTypes.UUIDV4 },
+      uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
+      uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
+      uuidv7: { type: DataTypes.UUID, defaultValue: sql.uuidV7 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },
@@ -88,6 +89,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('returns false for upserted objects', async function () {
+      if (!Support.sequelize.dialect.supports.upserts) {
+        return;
+      }
+
       // adding id here so MSSQL doesn't fail. It needs a primary key to upsert
       const [user] = await this.User.upsert({ id: 2, username: 'user' });
       expect(user.isNewRecord).to.not.be.ok;
@@ -117,44 +122,55 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('default values', () => {
     describe('uuid', () => {
-      it('should store a string in uuidv1 and uuidv4', function () {
+      it('should store a string in uuidv1, uuidv4 and uuidv7', function () {
         const user = this.User.build({ username: 'a user' });
         expect(user.uuidv1).to.be.a('string');
         expect(user.uuidv4).to.be.a('string');
+        expect(user.uuidv7).to.be.a('string');
       });
 
-      it('should store a string of length 36 in uuidv1 and uuidv4', function () {
+      it('should store a string of length 36 in uuidv1, uuidv4 and uuidv7', function () {
         const user = this.User.build({ username: 'a user' });
         expect(user.uuidv1).to.have.length(36);
         expect(user.uuidv4).to.have.length(36);
+        expect(user.uuidv7).to.have.length(36);
       });
 
-      it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function () {
+      it('should store a valid uuid in uuidv1, uuidv4 and uuidv7 that conforms to the UUID v1, v4 and v7 specifications', function () {
         const user = this.User.build({ username: 'a user' });
         expect(isUUID(user.uuidv1)).to.be.true;
         expect(isUUID(user.uuidv4, 4)).to.be.true;
+        expect(isUUID(user.uuidv7, 7)).to.be.true;
       });
 
       it('should store a valid uuid if the multiple primary key fields used', function () {
         const Person = this.sequelize.define('Person', {
-          id1: {
+          uuidV1: {
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV1,
+            defaultValue: sql.uuidV1,
             primaryKey: true,
           },
-          id2: {
+          uuidV4: {
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV1,
+            defaultValue: sql.uuidV4,
+            primaryKey: true,
+          },
+          uuidV7: {
+            type: DataTypes.UUID,
+            defaultValue: sql.uuidV7,
             primaryKey: true,
           },
         });
 
         const person = Person.build({});
-        expect(person.id1).to.be.ok;
-        expect(person.id1).to.have.length(36);
+        expect(person.uuidV1).to.be.ok;
+        expect(person.uuidV1).to.have.length(36);
 
-        expect(person.id2).to.be.ok;
-        expect(person.id2).to.have.length(36);
+        expect(person.uuidV4).to.be.ok;
+        expect(person.uuidV4).to.have.length(36);
+
+        expect(person.uuidV7).to.be.ok;
+        expect(person.uuidV7).to.have.length(36);
       });
     });
     describe('current date', () => {
@@ -190,8 +206,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('should default to false', async function () {
         await this.User.build({
           username: 'a user',
-        })
-          .save();
+        }).save();
 
         const user = await this.User.findOne({
           where: {
@@ -206,8 +221,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         await this.User.build({
           username: 'a user',
           isSuperUser: true,
-        })
-          .save();
+        }).save();
 
         const user = await this.User.findOne({
           where: {
@@ -225,8 +239,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           await this.User.build({
             username: 'a user',
             isSuperUser: 'INCORRECT_VALUE_TYPE',
-          })
-            .save();
+          }).save();
 
           callCount += 1;
         } catch (error) {
@@ -256,11 +269,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('findAll', () => {
     beforeEach(async function () {
-      this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: { type: DataTypes.STRING },
-      }, { paranoid: true });
+      this.ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: { type: DataTypes.STRING },
+        },
+        { paranoid: true },
+      );
 
-      this.ParanoidUser.hasOne(this.ParanoidUser, { as: 'paranoidParent', inverse: { as: 'paranoidChild' } });
+      this.ParanoidUser.hasOne(this.ParanoidUser, {
+        as: 'paranoidParent',
+        inverse: { as: 'paranoidChild' },
+      });
       await this.ParanoidUser.sync({ force: true });
     });
 
@@ -316,27 +336,25 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('escapes a single single quotes properly in where clauses', async function () {
-      await this.User
-        .create({ username: 'user\'name' });
+      await this.User.create({ username: "user'name" });
 
       const users = await this.User.findAll({
-        where: { username: 'user\'name' },
+        where: { username: "user'name" },
       });
 
       expect(users.length).to.equal(1);
-      expect(users[0].username).to.equal('user\'name');
+      expect(users[0].username).to.equal("user'name");
     });
 
     it('escapes two single quotes properly in where clauses', async function () {
-      await this.User
-        .create({ username: 'user\'\'name' });
+      await this.User.create({ username: "user''name" });
 
       const users = await this.User.findAll({
-        where: { username: 'user\'\'name' },
+        where: { username: "user''name" },
       });
 
       expect(users.length).to.equal(1);
-      expect(users[0].username).to.equal('user\'\'name');
+      expect(users[0].username).to.equal("user''name");
     });
 
     it('returns the timestamps if no attributes have been specified', async function () {
@@ -419,12 +437,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user0.username).to.equal('fnord');
     });
     it('returns null for null, undefined, and unset boolean values', async function () {
-      const Setting = this.sequelize.define('SettingHelper', {
-        setting_key: DataTypes.STRING,
-        bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
-        bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
-        bool_value3: { type: DataTypes.BOOLEAN, allowNull: true },
-      }, { timestamps: false, logging: false });
+      const Setting = this.sequelize.define(
+        'SettingHelper',
+        {
+          setting_key: DataTypes.STRING,
+          bool_value: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value2: { type: DataTypes.BOOLEAN, allowNull: true },
+          bool_value3: { type: DataTypes.BOOLEAN, allowNull: true },
+        },
+        { timestamps: false, logging: false },
+      );
 
       await Setting.sync({ force: true });
       await Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined });
@@ -443,25 +465,42 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('does not compare the existence of associations', async function () {
-      this.UserAssociationEqual = this.sequelize.define('UserAssociationEquals', {
-        username: DataTypes.STRING,
-        age: DataTypes.INTEGER,
-      }, { timestamps: false });
+      this.UserAssociationEqual = this.sequelize.define(
+        'UserAssociationEquals',
+        {
+          username: DataTypes.STRING,
+          age: DataTypes.INTEGER,
+        },
+        { timestamps: false },
+      );
 
-      this.ProjectAssociationEqual = this.sequelize.define('ProjectAssocationEquals', {
-        title: DataTypes.STRING,
-        overdue_days: DataTypes.INTEGER,
-      }, { timestamps: false });
+      this.ProjectAssociationEqual = this.sequelize.define(
+        'ProjectAssocationEquals',
+        {
+          title: DataTypes.STRING,
+          overdue_days: DataTypes.INTEGER,
+        },
+        { timestamps: false },
+      );
 
-      this.UserAssociationEqual.hasMany(this.ProjectAssociationEqual, { as: 'Projects', foreignKey: 'userId' });
-      this.ProjectAssociationEqual.belongsTo(this.UserAssociationEqual, { as: 'Users', foreignKey: 'userId' });
+      this.UserAssociationEqual.hasMany(this.ProjectAssociationEqual, {
+        as: 'Projects',
+        foreignKey: 'userId',
+      });
+      this.ProjectAssociationEqual.belongsTo(this.UserAssociationEqual, {
+        as: 'Users',
+        foreignKey: 'userId',
+      });
 
       await this.UserAssociationEqual.sync({ force: true });
       await this.ProjectAssociationEqual.sync({ force: true });
       const user1 = await this.UserAssociationEqual.create({ username: 'jimhalpert' });
       const project1 = await this.ProjectAssociationEqual.create({ title: 'A Cool Project' });
       await user1.setProjects([project1]);
-      const user2 = await this.UserAssociationEqual.findOne({ where: { username: 'jimhalpert' }, include: [{ model: this.ProjectAssociationEqual, as: 'Projects' }] });
+      const user2 = await this.UserAssociationEqual.findOne({
+        where: { username: 'jimhalpert' },
+        include: [{ model: this.ProjectAssociationEqual, as: 'Projects' }],
+      });
       const user3 = await this.UserAssociationEqual.create({ username: 'pambeesly' });
       expect(user1.get('Projects')).to.not.exist;
       expect(user2.get('Projects')).to.exist;
@@ -474,9 +513,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('values', () => {
     it('returns all values', async function () {
-      const User = this.sequelize.define('UserHelper', {
-        username: DataTypes.STRING,
-      }, { timestamps: false, logging: false });
+      const User = this.sequelize.define(
+        'UserHelper',
+        {
+          username: DataTypes.STRING,
+        },
+        { timestamps: false, logging: false },
+      );
 
       await User.sync();
       const user = User.build({ username: 'foo' });
@@ -486,9 +529,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('isSoftDeleted', () => {
     beforeEach(async function () {
-      this.ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: { type: DataTypes.STRING },
-      }, { paranoid: true });
+      this.ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: { type: DataTypes.STRING },
+        },
+        { paranoid: true },
+      );
 
       await this.ParanoidUser.sync({ force: true });
     });
@@ -515,12 +562,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('works with custom `deletedAt` field name', async function () {
-      this.ParanoidUserWithCustomDeletedAt = this.sequelize.define('ParanoidUserWithCustomDeletedAt', {
-        username: { type: DataTypes.STRING },
-      }, {
-        deletedAt: 'deletedAtThisTime',
-        paranoid: true,
-      });
+      this.ParanoidUserWithCustomDeletedAt = this.sequelize.define(
+        'ParanoidUserWithCustomDeletedAt',
+        {
+          username: { type: DataTypes.STRING },
+        },
+        {
+          deletedAt: 'deletedAtThisTime',
+          paranoid: true,
+        },
+      );
 
       this.ParanoidUserWithCustomDeletedAt.hasOne(this.ParanoidUser);
 
@@ -544,17 +595,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('restores a previously deleted model', async function () {
-      const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: DataTypes.STRING,
-        secretValue: DataTypes.STRING,
-        data: DataTypes.STRING,
-        intVal: { type: DataTypes.INTEGER, defaultValue: 1 },
-      }, {
-        paranoid: true,
-      });
-      const data = [{ username: 'Peter', secretValue: '42' },
+      const ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: DataTypes.STRING,
+          secretValue: DataTypes.STRING,
+          data: DataTypes.STRING,
+          intVal: { type: DataTypes.INTEGER, defaultValue: 1 },
+        },
+        {
+          paranoid: true,
+        },
+      );
+      const data = [
+        { username: 'Peter', secretValue: '42' },
         { username: 'Paul', secretValue: '43' },
-        { username: 'Bob', secretValue: '44' }];
+        { username: 'Bob', secretValue: '44' },
+      ];
 
       await ParanoidUser.sync({ force: true });
       await ParanoidUser.bulkCreate(data);
@@ -567,10 +624,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('supports custom deletedAt field', async function () {
-      const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: DataTypes.STRING,
-        destroyTime: DataTypes.DATE,
-      }, { paranoid: true, deletedAt: 'destroyTime' });
+      const ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: DataTypes.STRING,
+          destroyTime: DataTypes.DATE,
+        },
+        { paranoid: true, deletedAt: 'destroyTime' },
+      );
 
       await ParanoidUser.sync({ force: true });
 
@@ -590,10 +651,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('supports custom deletedAt field name', async function () {
-      const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: DataTypes.STRING,
-        deletedAt: { type: DataTypes.DATE, field: 'deleted_at' },
-      }, { paranoid: true });
+      const ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: DataTypes.STRING,
+          deletedAt: { type: DataTypes.DATE, field: 'deleted_at' },
+        },
+        { paranoid: true },
+      );
 
       await ParanoidUser.sync({ force: true });
 
@@ -614,10 +679,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('supports custom deletedAt field and database column', async function () {
-      const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: DataTypes.STRING,
-        destroyTime: { type: DataTypes.DATE, field: 'destroy_time' },
-      }, { paranoid: true, deletedAt: 'destroyTime' });
+      const ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: DataTypes.STRING,
+          destroyTime: { type: DataTypes.DATE, field: 'destroy_time' },
+        },
+        { paranoid: true, deletedAt: 'destroyTime' },
+      );
 
       await ParanoidUser.sync({ force: true });
 
@@ -639,10 +708,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('supports custom default value', async function () {
-      const ParanoidUser = this.sequelize.define('ParanoidUser', {
-        username: DataTypes.STRING,
-        deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) },
-      }, { paranoid: true });
+      const ParanoidUser = this.sequelize.define(
+        'ParanoidUser',
+        {
+          username: DataTypes.STRING,
+          deletedAt: { type: DataTypes.DATE, defaultValue: new Date(0) },
+        },
+        { paranoid: true },
+      );
 
       await ParanoidUser.sync({ force: true });
 

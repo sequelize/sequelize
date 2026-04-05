@@ -6,5 +6,7 @@ const sequelize = createSequelizeInstance();
   await sequelize.authenticate();
   await sequelize.close();
 
-  console.info(`Connected to ${sequelize.dialect.name} ${sequelize.getDatabaseVersion()} successfully`);
+  console.info(
+    `Connected to ${sequelize.dialect.name} ${sequelize.getDatabaseVersion()} successfully`,
+  );
 })();

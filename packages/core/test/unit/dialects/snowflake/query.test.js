@@ -1,6 +1,6 @@
 'use strict';
 
-const { SnowflakeQuery: Query } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/dialects/snowflake/query.js');
+const { SnowflakeQuery: Query } = require('@sequelize/snowflake');
 
 const Support = require('../../../support');
 const chai = require('chai');

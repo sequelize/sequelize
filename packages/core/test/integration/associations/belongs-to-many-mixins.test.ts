@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import type {
   BelongsToManyAddAssociationsMixin,
   BelongsToManyCountAssociationsMixin,
@@ -13,6 +12,7 @@ import type {
 } from '@sequelize/core';
 import { Model } from '@sequelize/core';
 import { BelongsToMany } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { beforeAll2, sequelize, setResetMode } from '../support';
 
 describe('belongsToMany Mixins', () => {
@@ -48,12 +48,11 @@ describe('belongsToMany Mixins', () => {
     it('associates target models to the source model', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
+      expect(article.id).to.be.a('number');
+      expect(user.id).to.be.a('number');
 
       await article.setAuthors([user]);
 
@@ -63,10 +62,7 @@ describe('belongsToMany Mixins', () => {
     it('supports any iterable', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
 
@@ -99,10 +95,7 @@ describe('belongsToMany Mixins', () => {
     it('clears associations when the parameter is null', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       await article.setAuthors([user]);
 
@@ -116,10 +109,7 @@ describe('belongsToMany Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
 
@@ -133,10 +123,7 @@ describe('belongsToMany Mixins', () => {
     it('associates target models to the source model', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
 
@@ -148,10 +135,7 @@ describe('belongsToMany Mixins', () => {
     it('supports any iterable', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
 
@@ -163,10 +147,7 @@ describe('belongsToMany Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       expect(await article.getAuthors()).to.be.empty;
 
@@ -199,10 +180,7 @@ describe('belongsToMany Mixins', () => {
     it('supports any iterable', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       await article.setAuthors([user]);
       await article.removeAuthors(new Set([user]));
@@ -213,10 +191,7 @@ describe('belongsToMany Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       await article.setAuthors([user]);
       await article.removeAuthors([user.id]);
@@ -245,10 +220,7 @@ describe('belongsToMany Mixins', () => {
     it('supports any iterable', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       await article.setAuthors([user]);
 
@@ -258,10 +230,7 @@ describe('belongsToMany Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { User, Article } = vars;
 
-      const [article, user] = await Promise.all([
-        Article.create(),
-        User.create(),
-      ]);
+      const [article, user] = await Promise.all([Article.create(), User.create()]);
 
       await article.setAuthors([user]);
 

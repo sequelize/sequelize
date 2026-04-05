@@ -1,6 +1,10 @@
 import { DataTypes, Model, Sequelize } from '@sequelize/core';
+import { MySqlDialect } from '@sequelize/mysql';
 
-const sequelize = new Sequelize('mysql://root:asd123@localhost:3306/mydb');
+const sequelize = new Sequelize({
+  dialect: MySqlDialect,
+  url: 'mysql://root:asd123@localhost:3306/mydb',
+});
 
 class User extends Model {
   declare id: number;

@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -8,28 +8,31 @@ const dialectName = dialect.name;
 
 describe('DataTypes.TINYINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the TINYINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the TINYINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     const cases = [
       {
         title: 'TINYINT',
         dataType: DataTypes.TINYINT,
         expect: {
-        // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
+          // TINYINT in mssql is UNSIGNED. For the signed version, we fallback to TINYINT + check constraint
           'mssql postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
+          oracle: 'NUMBER(3)',
         },
       },
       {
-      // This option (length) is ignored when unavailable.
+        // This option (length) is ignored when unavailable.
         title: 'TINYINT(2)',
         dataType: DataTypes.TINYINT(2),
         expect: {
           'mssql postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2)',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
+          oracle: 'NUMBER(3)',
         },
       },
       {
@@ -38,20 +41,22 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expect: {
           'mssql postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2)',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
+          oracle: 'NUMBER(3)',
         },
       },
       {
         title: 'TINYINT.UNSIGNED',
         dataType: DataTypes.TINYINT.UNSIGNED,
         expect: {
-        // Fallback to bigger type + check constraint
+          // Fallback to bigger type + check constraint
           'postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT UNSIGNED',
-          // sqlite & snowflake only supports INTEGER as a column type
-          'sqlite snowflake': 'INTEGER',
+          // sqlite3 & snowflake only supports INTEGER as a column type
+          'sqlite3 snowflake': 'INTEGER',
           // TINYINT is unsigned in mssql
           mssql: 'TINYINT',
+          oracle: 'NUMBER(3)',
         },
       },
       {
@@ -60,8 +65,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expect: {
           'postgres db2 ibmi': 'SMALLINT',
           'mysql mariadb': 'TINYINT(2) UNSIGNED',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
           mssql: 'TINYINT',
+          oracle: 'NUMBER(3)',
         },
       },
       {
@@ -143,8 +149,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.SMALLINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the SMALLINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the SMALLINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     const cases = [
       {
@@ -152,7 +159,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.SMALLINT,
         expect: {
           default: 'SMALLINT',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
         },
       },
       {
@@ -160,8 +167,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.SMALLINT(4),
         expect: {
           default: 'SMALLINT',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
           'mysql mariadb': 'SMALLINT(4)',
+          oracle: 'NUMBER(4,0)',
         },
       },
       {
@@ -169,8 +177,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.SMALLINT({ length: 4 }),
         expect: {
           default: 'SMALLINT',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
           'mysql mariadb': 'SMALLINT(4)',
+          oracle: 'NUMBER(4,0)',
         },
       },
       {
@@ -178,10 +187,11 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.SMALLINT.UNSIGNED,
         expect: {
           'mysql mariadb': 'SMALLINT UNSIGNED',
-          // sqlite & snowflake only supports INTEGER as a column type
-          'sqlite snowflake': 'INTEGER',
+          // sqlite3 & snowflake only supports INTEGER as a column type
+          'sqlite3 snowflake': 'INTEGER',
           'postgres db2 ibmi': 'INTEGER',
           mssql: 'INT',
+          oracle: 'SMALLINT',
         },
       },
       {
@@ -189,9 +199,10 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.SMALLINT(4).UNSIGNED,
         expect: {
           'mysql mariadb': 'SMALLINT(4) UNSIGNED',
-          'sqlite snowflake': 'INTEGER',
+          'sqlite3 snowflake': 'INTEGER',
           'postgres db2 ibmi': 'INTEGER',
           mssql: 'INT',
+          oracle: 'NUMBER(4,0)',
         },
       },
       {
@@ -273,8 +284,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.MEDIUMINT', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the MEDIUMINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the MEDIUMINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     const cases = [
       {
@@ -283,7 +295,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         expect: {
           'mariadb mysql': 'MEDIUMINT',
           // falls back to larger type + CHECK constraint
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite3': 'INTEGER',
+          oracle: 'NUMBER(8)',
         },
       },
       {
@@ -291,7 +304,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT(2),
         expect: {
           'mariadb mysql': 'MEDIUMINT(2)',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite3': 'INTEGER',
+          oracle: 'NUMBER(8)',
         },
       },
       {
@@ -299,7 +313,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT({ length: 2 }),
         expect: {
           'mariadb mysql': 'MEDIUMINT(2)',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite3': 'INTEGER',
+          oracle: 'NUMBER(8)',
         },
       },
       {
@@ -307,7 +322,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT.UNSIGNED,
         expect: {
           'mariadb mysql': 'MEDIUMINT UNSIGNED',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite3': 'INTEGER',
+          oracle: 'NUMBER(8)',
         },
       },
       {
@@ -315,7 +331,8 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
         dataType: DataTypes.MEDIUMINT(2).UNSIGNED,
         expect: {
           'mariadb mysql': 'MEDIUMINT(2) UNSIGNED',
-          'db2 ibmi mssql postgres snowflake sqlite': 'INTEGER',
+          'db2 ibmi mssql postgres snowflake sqlite3': 'INTEGER',
+          oracle: 'NUMBER(8)',
         },
       },
       {
@@ -397,8 +414,9 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
 describe('DataTypes.INTEGER', () => {
   describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the INTEGER.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+    const zeroFillUnsupportedError =
+      new Error(`${dialectName} does not support the INTEGER.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
     testDataTypeSql('INTEGER', DataTypes.INTEGER, {
       default: 'INTEGER',
@@ -406,7 +424,7 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
 
     testDataTypeSql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
       // sqlite & snowflake are both 64 bits integers (actually snowflake accepts up to 99999999999999999999999999999999999999)
-      'sqlite snowflake': 'INTEGER',
+      'sqlite3 oracle snowflake': 'INTEGER',
       'mysql mariadb': 'INTEGER UNSIGNED',
       'ibmi postgres db2 mssql': 'BIGINT',
     });
@@ -419,17 +437,20 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
     testDataTypeSql('INTEGER(11)', DataTypes.INTEGER(11), {
       default: 'INTEGER',
       'mysql mariadb': 'INTEGER(11)',
+      oracle: 'NUMBER(11,0)',
     });
 
     testDataTypeSql('INTEGER({ length: 11 })', DataTypes.INTEGER({ length: 11 }), {
       default: 'INTEGER',
       'mysql mariadb': 'INTEGER(11)',
+      oracle: 'NUMBER(11,0)',
     });
 
     testDataTypeSql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
       'mysql mariadb': 'INTEGER(11) UNSIGNED',
-      'sqlite snowflake': 'INTEGER',
+      'sqlite3 snowflake': 'INTEGER',
       'ibmi postgres db2 mssql': 'BIGINT',
+      oracle: 'NUMBER(11,0)',
     });
 
     testDataTypeSql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
@@ -475,82 +496,94 @@ See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of s
   });
 });
 
-describe('DataTypes.BIGINT', () => {
-  describe('toSql', () => {
-    const zeroFillUnsupportedError = new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
-    const unsignedUnsupportedError = new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+if (dialect.supports.dataTypes.BIGINT) {
+  describe('DataTypes.BIGINT', () => {
+    describe('toSql', () => {
+      const zeroFillUnsupportedError =
+        new Error(`${dialectName} does not support the BIGINT.ZEROFILL data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
+      const unsignedUnsupportedError =
+        new Error(`${dialectName} does not support the BIGINT.UNSIGNED data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`);
 
-    testDataTypeSql('BIGINT', DataTypes.BIGINT, {
-      default: 'BIGINT',
-      'sqlite snowflake': 'INTEGER',
+      testDataTypeSql('BIGINT', DataTypes.BIGINT, {
+        default: 'BIGINT',
+        'sqlite3 snowflake': 'INTEGER',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT UNSIGNED',
+        // INTEGER in snowflake goes up to 99999999999999999999999999999999999999, which is enough to store an unsigned 64-bit integer.
+        snowflake: 'INTEGER',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT UNSIGNED ZEROFILL',
+      });
+
+      testDataTypeSql('BIGINT(11)', DataTypes.BIGINT(11), {
+        default: 'BIGINT',
+        'sqlite3 snowflake': 'INTEGER',
+        'mysql mariadb': 'BIGINT(11)',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
+        default: 'BIGINT',
+        'sqlite3 snowflake': 'INTEGER',
+        'mysql mariadb': 'BIGINT(11)',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
+        // There is no type big enough to hold values between 0 & 2^32-1
+        default: unsignedUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED',
+        snowflake: 'INTEGER',
+        oracle: 'NUMBER(19, 0)',
+      });
+
+      testDataTypeSql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+      });
+
+      testDataTypeSql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) ZEROFILL',
+      });
+
+      testDataTypeSql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
+        default: zeroFillUnsupportedError,
+        'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+      });
     });
 
-    testDataTypeSql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
-      default: unsignedUnsupportedError,
-      'mysql mariadb': 'BIGINT UNSIGNED',
-      // INTEGER in snowflake goes up to 99999999999999999999999999999999999999, which is enough to store an unsigned 64-bit integer.
-      snowflake: 'INTEGER',
-    });
+    describe('validate', () => {
+      it('should throw an error if `value` is invalid', () => {
+        const type = DataTypes.BIGINT().toDialectDataType(dialect);
 
-    testDataTypeSql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT UNSIGNED ZEROFILL',
-    });
+        expect(() => {
+          type.validate('foobar');
+        }).to.throw(
+          ValidationErrorItem,
+          `'foobar' is not a valid ${type.toString().toLowerCase()}`,
+        );
 
-    testDataTypeSql('BIGINT(11)', DataTypes.BIGINT(11), {
-      default: 'BIGINT',
-      'sqlite snowflake': 'INTEGER',
-      'mysql mariadb': 'BIGINT(11)',
-    });
+        expect(() => {
+          type.validate(123.45);
+        }).to.throw(ValidationErrorItem, `123.45 is not a valid ${type.toString().toLowerCase()}`);
+      });
 
-    testDataTypeSql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
-      default: 'BIGINT',
-      'sqlite snowflake': 'INTEGER',
-      'mysql mariadb': 'BIGINT(11)',
-    });
+      it('should not throw if `value` is an integer', () => {
+        const type = DataTypes.BIGINT();
 
-    testDataTypeSql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
-      // There is no type big enough to hold values between 0 & 2^32-1
-      default: unsignedUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) UNSIGNED',
-      snowflake: 'INTEGER',
-    });
-
-    testDataTypeSql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
-    });
-
-    testDataTypeSql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) ZEROFILL',
-    });
-
-    testDataTypeSql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
-      default: zeroFillUnsupportedError,
-      'mysql mariadb': 'BIGINT(11) UNSIGNED ZEROFILL',
+        expect(() => type.validate('9223372036854775807')).not.to.throw();
+      });
     });
   });
-
-  describe('validate', () => {
-    it('should throw an error if `value` is invalid', () => {
-      const type = DataTypes.BIGINT().toDialectDataType(dialect);
-
-      expect(() => {
-        type.validate('foobar');
-      }).to.throw(ValidationErrorItem, `'foobar' is not a valid ${type.toString().toLowerCase()}`);
-
-      expect(() => {
-        type.validate(123.45);
-      }).to.throw(ValidationErrorItem, `123.45 is not a valid ${type.toString().toLowerCase()}`);
-    });
-
-    it('should not throw if `value` is an integer', () => {
-      const type = DataTypes.BIGINT();
-
-      expect(() => type.validate('9223372036854775807')).not.to.throw();
-    });
-  });
-});
+}

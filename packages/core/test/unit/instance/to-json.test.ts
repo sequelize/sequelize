@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import type { InferAttributes, InferCreationAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -30,15 +30,18 @@ describe('Model#toJSON', () => {
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
       declare name: string;
       declare permissions: {
-        admin: boolean,
-        special: string,
+        admin: boolean;
+        special: string;
       };
     }
 
-    User.init({
-      name: DataTypes.STRING,
-      permissions: DataTypes.JSON,
-    }, { sequelize });
+    User.init(
+      {
+        name: DataTypes.STRING,
+        permissions: DataTypes.JSON,
+      },
+      { sequelize },
+    );
 
     const user = User.build({ name: 'my-name', permissions: { admin: true, special: 'foobar' } });
     const json = user.toJSON();

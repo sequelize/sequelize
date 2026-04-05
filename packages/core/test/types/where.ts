@@ -1,6 +1,6 @@
-import { expectTypeOf } from 'expect-type';
 import type { Attributes, InferAttributes, WhereOptions } from '@sequelize/core';
 import { Model, Op, Sequelize, Transaction, and, or } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 
 // NOTE: most typing tests for WhereOptions are located in test/unit/sql/where.test.ts
 
@@ -12,7 +12,7 @@ class MyModel extends Model<InferAttributes<MyModel>> {
 }
 
 // Optional values
-expectTypeOf<{ needed: number, optional?: number }>().toMatchTypeOf<WhereOptions>();
+expectTypeOf<{ needed: number; optional?: number }>().toMatchTypeOf<WhereOptions>();
 
 {
   // @ts-expect-error -- cannot use column references in Op.any

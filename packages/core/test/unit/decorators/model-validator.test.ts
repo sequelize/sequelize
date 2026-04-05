@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import { Model } from '@sequelize/core';
 import { ModelValidator } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 describe('@ModelValidator legacy decorator', () => {
@@ -68,7 +68,10 @@ describe('@ModelValidator legacy decorator', () => {
 
     sequelize.addModels([User]);
 
-    expect(Object.getOwnPropertySymbols(User.options.validate)).to.deep.eq([instanceKey, staticKey]);
+    expect(Object.getOwnPropertySymbols(User.options.validate)).to.deep.eq([
+      instanceKey,
+      staticKey,
+    ]);
 
     const user = User.build();
     await expect(user.validate()).to.be.rejectedWith('test error');

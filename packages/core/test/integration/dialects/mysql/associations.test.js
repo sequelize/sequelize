@@ -20,7 +20,7 @@ if (dialect === 'mysql') {
           Table2.belongsToMany(Table1, { through: 'wp_table1swp_table2s' });
           await Table1.sync({ force: true });
           await Table2.sync({ force: true });
-          expect(this.sequelize.modelManager.getModel('wp_table1swp_table2s')).to.exist;
+          expect(this.sequelize.models.get('wp_table1swp_table2s')).to.exist;
         });
       });
 
@@ -36,8 +36,8 @@ if (dialect === 'mysql') {
         });
 
         it('should not use only a specified name', function () {
-          expect(this.sequelize.modelManager.getModel('ms_table1sms_table2s')).not.to.exist;
-          expect(this.sequelize.modelManager.getModel('table1_to_table2')).to.exist;
+          expect(this.sequelize.models.get('ms_table1sms_table2s')).not.to.exist;
+          expect(this.sequelize.models.get('table1_to_table2')).to.exist;
         });
       });
     });
@@ -45,8 +45,12 @@ if (dialect === 'mysql') {
     describe('HasMany', () => {
       beforeEach(async function () {
         // prevent periods from occurring in the table name since they are used to delimit (table.column)
-        this.User = this.sequelize.define(`User${Math.ceil(Math.random() * 10_000_000)}`, { name: DataTypes.STRING });
-        this.Task = this.sequelize.define(`Task${Math.ceil(Math.random() * 10_000_000)}`, { name: DataTypes.STRING });
+        this.User = this.sequelize.define(`User${Math.ceil(Math.random() * 10_000_000)}`, {
+          name: DataTypes.STRING,
+        });
+        this.Task = this.sequelize.define(`Task${Math.ceil(Math.random() * 10_000_000)}`, {
+          name: DataTypes.STRING,
+        });
         this.users = null;
         this.tasks = null;
 

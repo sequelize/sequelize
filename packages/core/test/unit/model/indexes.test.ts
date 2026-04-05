@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -27,18 +27,22 @@ describe('Model indexes', () => {
   }
 
   it('should set the unique property when type is unique', () => {
-    const Model = sequelize.define('m', {}, {
-      indexes: [
-        {
-          type: 'unique',
-          fields: ['firstName'],
-        },
-        {
-          type: 'UNIQUE',
-          fields: ['lastName'],
-        },
-      ],
-    });
+    const Model = sequelize.define(
+      'm',
+      {},
+      {
+        indexes: [
+          {
+            type: 'unique',
+            fields: ['firstName'],
+          },
+          {
+            type: 'UNIQUE',
+            fields: ['lastName'],
+          },
+        ],
+      },
+    );
 
     expect(Model.getIndexes()).to.deep.eq([
       {
@@ -56,14 +60,20 @@ describe('Model indexes', () => {
 
   // Model.getIndexes() is the only source of truth for indexes
   it('does not copy model-level indexes to individual attributes', () => {
-    const User = sequelize.define('User', {
-      username: DataTypes.STRING,
-    }, {
-      indexes: [{
-        unique: true,
-        fields: ['username'],
-      }],
-    });
+    const User = sequelize.define(
+      'User',
+      {
+        username: DataTypes.STRING,
+      },
+      {
+        indexes: [
+          {
+            unique: true,
+            fields: ['username'],
+          },
+        ],
+      },
+    );
 
     // @ts-expect-error -- "unique" gets removed from built attributes
     expect(User.getAttributes().username.unique).to.be.undefined;
@@ -87,27 +97,33 @@ describe('Model indexes', () => {
   });
 
   it('merges indexes with the same name', () => {
-    const User = sequelize.define('User', {
-      firstName: {
-        type: DataTypes.STRING,
-        index: 'name',
-      },
-      middleName: {
-        type: DataTypes.STRING,
-        index: {
-          name: 'name',
+    const User = sequelize.define(
+      'User',
+      {
+        firstName: {
+          type: DataTypes.STRING,
+          index: 'name',
+        },
+        middleName: {
+          type: DataTypes.STRING,
+          index: {
+            name: 'name',
+          },
+        },
+        lastName: {
+          type: DataTypes.STRING,
+          index: 'name',
         },
       },
-      lastName: {
-        type: DataTypes.STRING,
-        index: 'name',
+      {
+        indexes: [
+          {
+            name: 'name',
+            fields: ['nickname'],
+          },
+        ],
       },
-    }, {
-      indexes: [{
-        name: 'name',
-        fields: ['nickname'],
-      }],
-    });
+    );
 
     expect(User.getIndexes()).to.deep.eq([
       {
@@ -135,7 +151,9 @@ describe('Model indexes', () => {
           },
         },
       });
-    }).to.throw('Index "name" has conflicting options: "unique" was defined with different values true and false.');
+    }).to.throw(
+      'Index "name" has conflicting options: "unique" was defined with different values true and false.',
+    );
   });
 
   it('supports using index & unique at the same time', () => {

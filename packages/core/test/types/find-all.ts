@@ -1,6 +1,6 @@
-import { expectTypeOf } from 'expect-type';
 import type { Attributes } from '@sequelize/core';
 import { cast, col } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 import { User } from './models/user';
 
 (async () => {

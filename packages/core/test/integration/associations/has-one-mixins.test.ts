@@ -1,8 +1,18 @@
-import { expect } from 'chai';
-import type { CreationOptional, HasOneSetAssociationMixin, InferAttributes, InferCreationAttributes } from '@sequelize/core';
+import type {
+  CreationOptional,
+  HasOneSetAssociationMixin,
+  InferAttributes,
+  InferCreationAttributes,
+} from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { AllowNull, Attribute, HasOne, NotNull } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createMultiTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import { expect } from 'chai';
+import {
+  beforeAll2,
+  createMultiTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 const dialect = sequelize.dialect;
 
@@ -32,7 +42,10 @@ describe('hasOne Mixins', () => {
       declare articleId: number | null;
     }
 
-    class NonNullLabel extends Model<InferAttributes<NonNullLabel>, InferCreationAttributes<NonNullLabel>> {
+    class NonNullLabel extends Model<
+      InferAttributes<NonNullLabel>,
+      InferCreationAttributes<NonNullLabel>
+    > {
       declare id: CreationOptional<number>;
 
       @NotNull
@@ -50,10 +63,7 @@ describe('hasOne Mixins', () => {
     it('associates target model to the source model', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       // TODO: this should be null - https://github.com/sequelize/sequelize/issues/14671
       expect(label.articleId).to.beNullish();
@@ -121,10 +131,7 @@ describe('hasOne Mixins', () => {
     it('supports passing the primary key instead of an object', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       await article.setLabel(label.id);
       await label.reload();
@@ -134,10 +141,7 @@ describe('hasOne Mixins', () => {
     it('supports setting same association twice', async () => {
       const { Label, Article } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       await article.setLabel(label);
       await article.setLabel(label);
@@ -189,14 +193,14 @@ describe('hasOne Mixins + transaction', () => {
     it('supports transactions', async () => {
       const { Label, Article, transactionSequelize } = vars;
 
-      const [article, label] = await Promise.all([
-        Article.create(),
-        Label.create(),
-      ]);
+      const [article, label] = await Promise.all([Article.create(), Label.create()]);
 
       await transactionSequelize.transaction(async transaction => {
         await article.setLabel(label, { transaction });
-        const labels0 = await Label.findAll({ where: { articleId: article.id }, transaction: null });
+        const labels0 = await Label.findAll({
+          where: { articleId: article.id },
+          transaction: null,
+        });
         expect(labels0.length).to.equal(0);
 
         const labels = await Label.findAll({ where: { articleId: article.id }, transaction });
@@ -232,8 +236,12 @@ describe('hasOne Mixins + transaction', () => {
       await Label.create({ articleId: article.id });
 
       await article.setLabel(null, { transaction: t });
-      expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(article.id);
-      expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(null);
+      expect((await Label.findOne({ rejectOnEmpty: true, transaction: null })).articleId).to.equal(
+        article.id,
+      );
+      expect((await Label.findOne({ rejectOnEmpty: true, transaction: t })).articleId).to.equal(
+        null,
+      );
 
       await t.rollback();
     });

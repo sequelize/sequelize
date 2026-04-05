@@ -30,13 +30,17 @@ export function Table(arg: any): undefined | ClassDecorator {
 
   // @ts-expect-error -- making sure the option is not provided.
   if (options.abstract) {
-    throw new Error('`abstract` is not a valid option for @Table. Did you mean to use @Table.Abstract?');
+    throw new Error(
+      '`abstract` is not a valid option for @Table. Did you mean to use @Table.Abstract?',
+    );
   }
 
   return (target: any) => annotate(target, options);
 }
 
-function AbstractTable<M extends Model = Model>(options: Omit<ModelOptions<M>, 'tableName' | 'name'>): ClassDecorator;
+function AbstractTable<M extends Model = Model>(
+  options: Omit<ModelOptions<M>, 'tableName' | 'name'>,
+): ClassDecorator;
 function AbstractTable(target: ModelStatic): void;
 function AbstractTable(arg: any): undefined | ClassDecorator {
   if (typeof arg === 'function') {

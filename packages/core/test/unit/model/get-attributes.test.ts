@@ -1,6 +1,6 @@
-import { expect } from 'chai';
-import { DataTypes } from '@sequelize/core';
 import type { DataType, NormalizedAttributeOptions } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { getTestDialectTeaser, sequelize } from '../../support';
 
 function assertDataType(property: NormalizedAttributeOptions, dataType: DataType) {
@@ -10,11 +10,7 @@ function assertDataType(property: NormalizedAttributeOptions, dataType: DataType
 describe(getTestDialectTeaser('Model'), () => {
   describe('getAttributes', () => {
     it(`returns the model's attributes`, () => {
-      const Model = sequelize.define(
-        'User',
-        { username: DataTypes.STRING },
-        { timestamps: false },
-      );
+      const Model = sequelize.define('User', { username: DataTypes.STRING }, { timestamps: false });
       const attributes = Model.getAttributes();
 
       expect(Object.keys(attributes)).to.eql(['id', 'username']);
@@ -45,10 +41,7 @@ describe(getTestDialectTeaser('Model'), () => {
       const Model = sequelize.define('User', { username: DataTypes.STRING });
       const attributes = Model.getAttributes();
 
-      expect(Object.keys(attributes)).to.include.members([
-        'createdAt',
-        'updatedAt',
-      ]);
+      expect(Object.keys(attributes)).to.include.members(['createdAt', 'updatedAt']);
 
       // Type must be casted or it will cause circular references errors
       assertDataType(attributes.createdAt, DataTypes.DATE);

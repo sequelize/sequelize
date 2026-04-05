@@ -16,9 +16,7 @@ export class UnknownConstraintError extends DatabaseError {
   fields: Record<string, string | number> | undefined;
   table: string | undefined;
 
-  constructor(
-    options: UnknownConstraintErrorOptions & DatabaseErrorSubclassOptions = {},
-  ) {
+  constructor(options: UnknownConstraintErrorOptions & DatabaseErrorSubclassOptions = {}) {
     if ('parent' in options) {
       useErrorCause();
     }

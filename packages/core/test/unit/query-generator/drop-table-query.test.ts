@@ -10,6 +10,7 @@ describe('QueryGenerator#dropTableQuery', () => {
   it('produces a query that drops a table', () => {
     expectsql(() => queryGenerator.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [myTable]`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -17,6 +18,7 @@ describe('QueryGenerator#dropTableQuery', () => {
     expectsql(() => queryGenerator.dropTableQuery('myTable', { cascade: true }), {
       default: buildInvalidOptionReceivedError('dropTableQuery', dialectName, ['cascade']),
       'postgres snowflake': `DROP TABLE IF EXISTS "myTable" CASCADE`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -25,20 +27,37 @@ describe('QueryGenerator#dropTableQuery', () => {
 
     expectsql(() => queryGenerator.dropTableQuery(MyModel), {
       default: `DROP TABLE IF EXISTS [MyModels]`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+    });
+  });
+
+  it('produces a query that drops a table from a model definition', () => {
+    const MyModel = sequelize.define('MyModel', {});
+    const myDefinition = MyModel.modelDefinition;
+
+    expectsql(() => queryGenerator.dropTableQuery(myDefinition), {
+      default: `DROP TABLE IF EXISTS [MyModels]`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
 
   it('produces a query that drops a table with schema', () => {
     expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema' }), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
-      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "mySchema"."myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
 
   it('produces a query that drops a table with default schema', () => {
-    expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }), {
-      default: `DROP TABLE IF EXISTS [myTable]`,
-    });
+    expectsql(
+      () =>
+        queryGenerator.dropTableQuery({ tableName: 'myTable', schema: dialect.getDefaultSchema() }),
+      {
+        default: `DROP TABLE IF EXISTS [myTable]`,
+        oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      },
+    );
   });
 
   it('produces a query that drops a table from a table and globally set schema', () => {
@@ -47,7 +66,8 @@ describe('QueryGenerator#dropTableQuery', () => {
 
     expectsql(() => queryGeneratorSchema.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
-      sqlite: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
+      oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "mySchema"."myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -57,8 +77,16 @@ describe('QueryGenerator#dropTableQuery', () => {
       return;
     }
 
-    expectsql(() => queryGenerator.dropTableQuery({ tableName: 'myTable', schema: 'mySchema', delimiter: 'custom' }), {
-      sqlite: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
-    });
+    expectsql(
+      () =>
+        queryGenerator.dropTableQuery({
+          tableName: 'myTable',
+          schema: 'mySchema',
+          delimiter: 'custom',
+        }),
+      {
+        sqlite3: 'DROP TABLE IF EXISTS `mySchemacustommyTable`',
+      },
+    );
   });
 });

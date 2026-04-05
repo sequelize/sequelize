@@ -16,7 +16,6 @@ export function legacyBuildRunHook<HookConfig extends {}>(
   // added for typing purposes
   _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
 ): LegacyRunHookFunction<HookConfig, void> {
-
   return async function runHooks<HookName extends keyof HookConfig>(
     this: { hooks: HookHandler<HookConfig> },
     hookName: HookName,
@@ -34,7 +33,11 @@ export interface LegacyAddAnyHookFunction<HookConfig extends {}> {
   /**
    * Adds a hook listener
    */
-  <This, HookName extends keyof HookConfig>(this: This, hookName: HookName, hook: HookConfig[HookName]): This;
+  <This, HookName extends keyof HookConfig>(
+    this: This,
+    hookName: HookName,
+    hook: HookConfig[HookName],
+  ): This;
 
   /**
    * Adds a hook listener
@@ -42,10 +45,10 @@ export interface LegacyAddAnyHookFunction<HookConfig extends {}> {
    * @param listenerName Provide a name for the hook function. It can be used to remove the hook later.
    */
   <This, HookName extends keyof HookConfig>(
-      this: This,
-      hookName: HookName,
-      listenerName: string,
-      hook: HookConfig[HookName]
+    this: This,
+    hookName: HookName,
+    listenerName: string,
+    hook: HookConfig[HookName],
   ): This;
 }
 
@@ -53,8 +56,10 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
   // added for typing purposes
   _hookHandlerBuilder: HookHandlerBuilder<HookConfig>,
 ): LegacyAddAnyHookFunction<HookConfig> {
-
-  return function addHook<This extends { hooks: HookHandler<HookConfig> }, HookName extends keyof HookConfig>(
+  return function addHook<
+    This extends { hooks: HookHandler<HookConfig> },
+    HookName extends keyof HookConfig,
+  >(
     this: This,
     hookName: HookName,
     listenerNameOrHook: HookConfig[HookName] | string,
@@ -63,9 +68,9 @@ export function legacyBuildAddAnyHook<HookConfig extends {}>(
     hooksReworked();
 
     if (hook) {
-      // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+      // TODO: remove this eslint-disable once we drop support for TypeScript 5.1
       // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-      // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript struggled with the multiple possible signatures of addListener
+      // @ts-ignore -- In TypeScript 5.1, this is valid. In all other versions, this is not.
       this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener
@@ -102,9 +107,9 @@ export function legacyBuildAddHook<HookConfig extends {}, HookName extends keyof
     hooksReworked();
 
     if (hook) {
-      // TODO [>=8.0.0]: remove this ignore once we drop support for TypeScript <= 5.0
+      // TODO: remove this eslint-disable once we drop support for TypeScript 5.1
       // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-      // @ts-ignore -- Up to TypeScript 5.0 (including), TypeScript struggled with the multiple possible signatures of addListener
+      // @ts-ignore -- In TypeScript 5.1, this is valid. In all other versions, this is not.
       this.hooks.addListener(hookName, hook, listenerNameOrHook);
     } else {
       // @ts-expect-error -- TypeScript struggles with the multiple possible signatures of addListener

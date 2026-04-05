@@ -17,16 +17,16 @@ describe(Support.getTestDialectTeaser('Schema'), () => {
     await this.sequelize.createSchema('testschema');
   });
 
-  afterEach(async function () {
-    await this.sequelize.dropSchema('testschema');
-  });
-
   beforeEach(async function () {
-    this.User = this.sequelize.define('User', {
-      aNumber: { type: DataTypes.INTEGER },
-    }, {
-      schema: 'testschema',
-    });
+    this.User = this.sequelize.define(
+      'User',
+      {
+        aNumber: { type: DataTypes.INTEGER },
+      },
+      {
+        schema: 'testschema',
+      },
+    );
 
     await this.User.sync({ force: true });
   });

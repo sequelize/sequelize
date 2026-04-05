@@ -1,5 +1,3 @@
-import { expect } from 'chai';
-import omit from 'lodash/omit';
 import type { InferAttributes } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import {
@@ -16,6 +14,8 @@ import {
   Unique,
   createIndexDecorator,
 } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
+import omit from 'lodash/omit';
 import { sequelize } from '../../support';
 
 describe(`@Attribute legacy decorator`, () => {
@@ -34,25 +34,46 @@ describe(`@Attribute legacy decorator`, () => {
       declare id: bigint;
     }
 
-    expect(() => Test.init({}, { sequelize })).to.throw(/pass your model to the Sequelize constructor/);
+    expect(() => Test.init({}, { sequelize })).to.throw(
+      /pass your model to the Sequelize constructor/,
+    );
   });
 
-  it('registers an attribute when sequelize.addModels is called', () => {
-    class BigIntModel extends Model<InferAttributes<BigIntModel>> {
-      @Attribute({ type: DataTypes.BIGINT, primaryKey: true })
-      declare id: bigint;
+  if (sequelize.dialect.supports.dataTypes.BIGINT) {
+    it('registers an attribute when sequelize.addModels is called', () => {
+      class BigIntModel extends Model<InferAttributes<BigIntModel>> {
+        @Attribute({ type: DataTypes.BIGINT, primaryKey: true })
+        declare id: bigint;
 
-      @Attribute(DataTypes.STRING)
-      declare name: string;
-    }
+        @Attribute(DataTypes.STRING)
+        declare name: string;
+      }
 
-    sequelize.addModels([BigIntModel]);
+      sequelize.addModels([BigIntModel]);
 
-    expect(BigIntModel.getAttributes()).to.have.keys(['id', 'createdAt', 'updatedAt', 'name']);
-    expect(BigIntModel.getAttributes().id.type).to.be.instanceof(DataTypes.BIGINT);
-    expect(BigIntModel.getAttributes().id.primaryKey).to.eq(true);
-    expect(BigIntModel.getAttributes().name.type).to.be.instanceof(DataTypes.STRING);
-  });
+      expect(BigIntModel.getAttributes()).to.have.keys(['id', 'createdAt', 'updatedAt', 'name']);
+      expect(BigIntModel.getAttributes().id.type).to.be.instanceof(DataTypes.BIGINT);
+      expect(BigIntModel.getAttributes().id.primaryKey).to.eq(true);
+      expect(BigIntModel.getAttributes().name.type).to.be.instanceof(DataTypes.STRING);
+    });
+  } else {
+    it('registers an attribute when sequelize.addModels is called', () => {
+      class IntModel extends Model<InferAttributes<IntModel>> {
+        @Attribute({ type: DataTypes.INTEGER, primaryKey: true })
+        declare id: number;
+
+        @Attribute(DataTypes.STRING)
+        declare name: string;
+      }
+
+      sequelize.addModels([IntModel]);
+
+      expect(IntModel.getAttributes()).to.have.keys(['id', 'createdAt', 'updatedAt', 'name']);
+      expect(IntModel.getAttributes().id.type).to.be.instanceof(DataTypes.INTEGER);
+      expect(IntModel.getAttributes().id.primaryKey).to.eq(true);
+      expect(IntModel.getAttributes().name.type).to.be.instanceof(DataTypes.STRING);
+    });
+  }
 
   it('works on getters', () => {
     class User extends Model {
@@ -326,6 +347,94 @@ describe(`@Attribute legacy decorator`, () => {
     // @ts-expect-error -- typing is broad, not worth checking
     expect(descendantPrimaryKey.references.model).to.equal(parentPrimaryKey.references.model);
     expect(descendantPrimaryKey.validate).to.not.equal(parentPrimaryKey.validate);
+  });
+
+  it('inherits attributes from multiple levels', () => {
+    abstract class RootUser extends Model<InferAttributes<RootUser>> {
+      @Attribute(DataTypes.STRING)
+      declare name: string;
+
+      @Attribute(DataTypes.STRING)
+      declare age: number;
+    }
+
+    abstract class BaseUser extends RootUser {
+      @Attribute(DataTypes.STRING)
+      declare username: string;
+
+      @Attribute(DataTypes.STRING)
+      declare password: string;
+    }
+
+    class User extends BaseUser {
+      @Attribute(DataTypes.STRING)
+      declare email: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect([...User.modelDefinition.attributes.keys()]).to.deep.equal([
+      'id',
+      'email',
+      'username',
+      'password',
+      'name',
+      'age',
+      'createdAt',
+      'updatedAt',
+    ]);
+  });
+
+  it('respects position of inherited attributes', () => {
+    abstract class RootUser extends Model<InferAttributes<RootUser>> {
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertBefore: true })
+      declare name: string;
+
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertAfter: true })
+      declare age: number;
+    }
+
+    abstract class BaseUser extends RootUser {
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertBefore: true })
+      declare username: string;
+
+      @Attribute(DataTypes.STRING)
+      @Attribute({ insertAfter: true })
+      declare password: string;
+    }
+
+    class User extends BaseUser {
+      @Attribute(DataTypes.STRING)
+      declare email: string;
+    }
+
+    sequelize.addModels([User]);
+
+    expect([...User.modelDefinition.attributes.keys()]).to.deep.equal([
+      'id',
+      'name',
+      'username',
+      'email',
+      'password',
+      'age',
+      'createdAt',
+      'updatedAt',
+    ]);
+  });
+
+  it('throws if an attribute is set to be inserted before and after', () => {
+    expect(() => {
+      class User extends Model {
+        @Attribute(DataTypes.STRING)
+        @Attribute({ insertBefore: true, insertAfter: true })
+        declare name: string;
+      }
+
+      return User;
+    }).to.throw(`Cannot set both 'insertBefore' and 'insertAfter' to true on the same attribute`);
   });
 });
 

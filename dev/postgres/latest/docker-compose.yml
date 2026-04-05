@@ -1,7 +1,7 @@
 services:
   postgres-latest:
     container_name: sequelize-postgres-latest
-    image: postgis/postgis:15-3.3
+    image: postgis/postgis:17-3.5
     environment:
       POSTGRES_USER: sequelize_test
       POSTGRES_PASSWORD: sequelize_test
@@ -11,7 +11,7 @@ services:
     volumes:
       - postgres-latest:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "sequelize_test"]
+      test: ['CMD', 'pg_isready', '-U', 'sequelize_test']
       interval: 3s
       timeout: 1s
       retries: 10

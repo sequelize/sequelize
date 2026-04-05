@@ -11,31 +11,39 @@ const { DataTypes } = require('@sequelize/core');
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', async () => {
-      const sequelize = Support.createSingleTestSequelizeInstance({ dialectOptions: { flags: '' } });
+      const sequelize = Support.createSingleTestSequelizeInstance({
+        flags: '',
+      });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
       await User.sync({ force: true });
       await User.create({ id: 1, username: 'jozef' });
 
-      const [affectedCount] = await User.update({ username: 'jozef' }, {
-        where: {
-          id: 1,
+      const [affectedCount] = await User.update(
+        { username: 'jozef' },
+        {
+          where: {
+            id: 1,
+          },
         },
-      });
+      );
 
       // https://github.com/sequelize/sequelize/issues/7184
       await affectedCount.should.equal(1);
     });
 
     it('should acquire a valid connection when keepDefaultTimezone is true', async () => {
-      const sequelize = Support.createSingleTestSequelizeInstance({ keepDefaultTimezone: true, pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 } });
-      const cm = sequelize.connectionManager;
+      const sequelize = Support.createSingleTestSequelizeInstance({
+        keepDefaultTimezone: true,
+        pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 },
+      });
+      const pool = sequelize.pool;
 
       await sequelize.sync();
 
-      const connection = await cm.getConnection();
-      expect(cm.validate(connection)).to.be.ok;
-      await cm.releaseConnection(connection);
+      const connection = await pool.acquire();
+      expect(sequelize.dialect.connectionManager.validate(connection)).to.be.ok;
+      pool.release(connection);
     });
   });
 }

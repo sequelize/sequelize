@@ -22,9 +22,7 @@ if (dialect.startsWith('postgres')) {
        * We are testing that OID refresh keep base type intact
        */
       const Media = this.sequelize.define('Media', {
-        type: DataTypes.ENUM([
-          'image', 'video', 'audio',
-        ]),
+        type: DataTypes.ENUM(['image', 'video', 'audio']),
       });
 
       User.hasMany(Media);

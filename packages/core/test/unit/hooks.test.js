@@ -17,7 +17,18 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   it('does not expose non-model hooks', function () {
-    for (const badHook of ['beforeDefine', 'afterDefine', 'beforeConnect', 'afterConnect', 'beforePoolAcquire', 'afterPoolAcquire', 'beforeDisconnect', 'afterDisconnect', 'beforeInit', 'afterInit']) {
+    for (const badHook of [
+      'beforeDefine',
+      'afterDefine',
+      'beforeConnect',
+      'afterConnect',
+      'beforePoolAcquire',
+      'afterPoolAcquire',
+      'beforeDisconnect',
+      'afterDisconnect',
+      'beforeInit',
+      'afterInit',
+    ]) {
       expect(this.Model).to.not.have.property(badHook);
     }
   });
@@ -36,10 +47,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('proxies', () => {
     beforeEach(() => {
-      sinon.stub(sequelize, 'queryRaw').resolves([{
-        _previousDataValues: {},
-        dataValues: { id: 1, name: 'abc' },
-      }]);
+      sinon.stub(sequelize, 'queryRaw').resolves([
+        {
+          _previousDataValues: {},
+          dataValues: { id: 1, name: 'abc' },
+        },
+      ]);
     });
 
     afterEach(() => {
@@ -52,15 +65,19 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.afterSaveHook = sinon.spy();
         this.afterCreateHook = sinon.spy();
 
-        this.Model = sequelize.define('m', {
-          name: DataTypes.STRING,
-        }, {
-          hooks: {
-            beforeSave: this.beforeSaveHook,
-            afterSave: this.afterSaveHook,
-            afterCreate: this.afterCreateHook,
+        this.Model = sequelize.define(
+          'm',
+          {
+            name: DataTypes.STRING,
           },
-        });
+          {
+            hooks: {
+              beforeSave: this.beforeSaveHook,
+              afterSave: this.afterSaveHook,
+              afterCreate: this.afterCreateHook,
+            },
+          },
+        );
       });
 
       it('calls beforeSave/afterSave', async function () {
@@ -143,19 +160,29 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       });
 
       it('using define', async function () {
-        await sequelize.define('M', {}, {
-          hooks: {
-            beforeCreate: [this.hook1, this.hook2, this.hook3],
-          },
-        }).runHooks('beforeCreate');
+        await sequelize
+          .define(
+            'M',
+            {},
+            {
+              hooks: {
+                beforeCreate: [this.hook1, this.hook2, this.hook3],
+              },
+            },
+          )
+          .runHooks('beforeCreate');
       });
 
       it('using a mixture', async function () {
-        const Model = sequelize.define('M', {}, {
-          hooks: {
-            beforeCreate: this.hook1,
+        const Model = sequelize.define(
+          'M',
+          {},
+          {
+            hooks: {
+              beforeCreate: this.hook1,
+            },
           },
-        });
+        );
         Model.beforeCreate(this.hook2);
         Model.addHook('beforeCreate', this.hook3);
 
@@ -192,7 +219,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('global hooks', () => {
     describe('using addHook', () => {
-
       it('invokes the global hook', async function () {
         const globalHook = sinon.spy();
 
@@ -209,11 +235,15 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         sequelize.addHook('beforeUpdate', globalHookBefore);
 
-        const Model = sequelize.define('m', {}, {
-          hooks: {
-            beforeUpdate: localHook,
+        const Model = sequelize.define(
+          'm',
+          {},
+          {
+            hooks: {
+              beforeUpdate: localHook,
+            },
           },
-        });
+        );
 
         sequelize.addHook('beforeUpdate', globalHookAfter);
 
@@ -239,12 +269,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       const localHook = sinon.spy();
 
-      const Model = sequelize.define('M', {}, {
-        hooks: {
-          beforeUpdate: noop, // Just to make sure we can define other hooks without overwriting the global one
-          beforeCreate: localHook,
+      const Model = sequelize.define(
+        'M',
+        {},
+        {
+          hooks: {
+            beforeUpdate: noop, // Just to make sure we can define other hooks without overwriting the global one
+            beforeCreate: localHook,
+          },
         },
-      });
+      );
 
       await Model.runHooks('beforeCreate');
       expect(globalHook).to.have.been.calledOnce;
@@ -312,9 +346,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const hook1 = sinon.spy();
       const hook2 = sinon.spy();
 
-      const Model = this.sequelize.define('Model', {}, {
-        hooks: { beforeCreate: hook1 },
-      });
+      const Model = this.sequelize.define(
+        'Model',
+        {},
+        {
+          hooks: { beforeCreate: hook1 },
+        },
+      );
 
       Model.addHook('beforeCreate', hook2);
 
@@ -410,10 +448,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('#removal', () => {
     before(() => {
-      sinon.stub(sequelize, 'queryRaw').resolves([{
-        _previousDataValues: {},
-        dataValues: { id: 1, name: 'abc' },
-      }]);
+      sinon.stub(sequelize, 'queryRaw').resolves([
+        {
+          _previousDataValues: {},
+          dataValues: { id: 1, name: 'abc' },
+        },
+      ]);
     });
 
     after(() => {

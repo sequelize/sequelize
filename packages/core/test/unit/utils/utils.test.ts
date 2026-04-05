@@ -1,6 +1,4 @@
-import { expect } from 'chai';
-import { DataTypes, Where, col, sql } from '@sequelize/core';
-import { canTreatArrayAsAnd } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { DataTypes, sql } from '@sequelize/core';
 import { toDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { mapFinderOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import {
@@ -10,13 +8,12 @@ import {
   merge,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import {
-  camelizeIf,
   pluralize,
   singularize,
   underscoredIf,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { parseConnectionString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/url.js';
-import { sequelize } from '../../support';
+import { expect } from 'chai';
+import { allowDeprecationsInSuite, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -31,22 +28,8 @@ describe('Utils', () => {
         expect(underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
 
-      it('doesn\'t underscore if second param is false', () => {
+      it("doesn't underscore if second param is false", () => {
         expect(underscoredIf('fooBar', false)).to.equal('fooBar');
-      });
-    });
-
-    describe('camelizeIf', () => {
-      it('is defined', () => {
-        expect(camelizeIf).to.be.ok;
-      });
-
-      it('camelizes if second param is true', () => {
-        expect(camelizeIf('foo_bar', true)).to.equal('fooBar');
-      });
-
-      it('doesn\'t camelize if second param is false', () => {
-        expect(underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
     });
   });
@@ -152,18 +135,6 @@ describe('Utils', () => {
     });
   });
 
-  describe('url', () => {
-    it('should return the correct options after parsed', () => {
-      const options = parseConnectionString('pg://wpx%20ss:wpx%20ss@104.129.90.48:4001/database ss');
-      expect(options.dialect).to.equal('pg');
-      expect(options.host).to.equal('104.129.90.48');
-      expect(options.port).to.equal('4001');
-      expect(options.database).to.equal('database ss');
-      expect(options.username).to.equal('wpx ss');
-      expect(options.password).to.equal('wpx ss');
-    });
-  });
-
   describe('merge', () => {
     it('does not clone sequelize models', () => {
       const User = sequelize.define('user');
@@ -177,29 +148,29 @@ describe('Utils', () => {
     });
   });
 
-  describe('canTreatArrayAsAnd', () => {
-    it('Array can be treated as and', () => {
-      expect(canTreatArrayAsAnd([{ uuid: 1 }])).to.equal(true);
-      expect(canTreatArrayAsAnd([{ uuid: 1 }, { uuid: 2 }, 1])).to.equal(true);
-      expect(canTreatArrayAsAnd([new Where(col('uuid'), 1)])).to.equal(true);
-      expect(canTreatArrayAsAnd([new Where(col('uuid'), 1), new Where(col('uuid'), 2)])).to.equal(true);
-      expect(canTreatArrayAsAnd([new Where(col('uuid'), 1), { uuid: 2 }, 1])).to.equal(true);
-    });
-    it('Array cannot be treated as and', () => {
-      expect(canTreatArrayAsAnd([1, 'uuid'])).to.equal(false);
-      expect(canTreatArrayAsAnd([1])).to.equal(false);
-    });
-  });
-
   describe('toDefaultValue', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0026']);
+
     it('return uuid v1', () => {
-      expect(/^[\da-z-]{36}$/.test(toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string)).to.equal(true);
+      expect(
+        /^[\da-z-]{36}$/.test(
+          toDefaultValue(new DataTypes.UUIDV1().toDialectDataType(dialect)) as string,
+        ),
+      ).to.equal(true);
     });
     it('return uuid v4', () => {
-      expect(/^[\da-z-]{36}/.test(toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string)).to.equal(true);
+      expect(
+        /^[\da-z-]{36}/.test(
+          toDefaultValue(new DataTypes.UUIDV4().toDialectDataType(dialect)) as string,
+        ),
+      ).to.equal(true);
     });
     it('return now', () => {
-      expect(Object.prototype.toString.call(toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)))).to.equal('[object Date]');
+      expect(
+        Object.prototype.toString.call(
+          toDefaultValue(new DataTypes.NOW().toDialectDataType(dialect)),
+        ),
+      ).to.equal('[object Date]');
     });
     it('return plain string', () => {
       expect(toDefaultValue('Test')).to.equal('Test');
@@ -211,11 +182,7 @@ describe('Utils', () => {
 
   describe('defaults', () => {
     it('defaults normal object', () => {
-      expect(defaults(
-        { a: 1, c: 3 },
-        { b: 2 },
-        { c: 4, d: 4 },
-      )).to.eql({
+      expect(defaults({ a: 1, c: 3 }, { b: 2 }, { c: 4, d: 4 })).to.eql({
         a: 1,
         b: 2,
         c: 3,
@@ -224,11 +191,13 @@ describe('Utils', () => {
     });
 
     it('defaults symbol keys', () => {
-      expect(defaults(
-        { a: 1, [Symbol.for('eq')]: 3 },
-        { b: 2 },
-        { [Symbol.for('eq')]: 4, [Symbol.for('ne')]: 4 },
-      )).to.eql({
+      expect(
+        defaults(
+          { a: 1, [Symbol.for('eq')]: 3 },
+          { b: 2 },
+          { [Symbol.for('eq')]: 4, [Symbol.for('ne')]: 4 },
+        ),
+      ).to.eql({
         a: 1,
         b: 2,
         [Symbol.for('eq')]: 3,
@@ -249,13 +218,8 @@ describe('Utils', () => {
         },
       });
 
-      expect(
-        mapFinderOptions({ attributes: ['active'] }, User).attributes,
-      ).to.eql([
-        [
-          'created_at',
-          'createdAt',
-        ],
+      expect(mapFinderOptions({ attributes: ['active'] }, User).attributes).to.eql([
+        ['created_at', 'createdAt'],
       ]);
     });
 
@@ -273,16 +237,15 @@ describe('Utils', () => {
       expect(
         mapFinderOptions(
           // @ts-expect-error -- TODO: improve mapFinderOptions typing
-          mapFinderOptions({
-            attributes: [
-              'active',
-            ],
-          }, User),
+          mapFinderOptions(
+            {
+              attributes: ['active'],
+            },
+            User,
+          ),
           User,
         ).attributes,
-      ).to.eql([
-        ['created_at', 'createdAt'],
-      ]);
+      ).to.eql([['created_at', 'createdAt']]);
     });
   });
 });

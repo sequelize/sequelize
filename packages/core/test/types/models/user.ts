@@ -1,5 +1,5 @@
 import type {
-  BelongsTo,
+  BelongsToAssociation,
   BelongsToCreateAssociationMixin,
   BelongsToGetAssociationMixin,
   BelongsToSetAssociationMixin,
@@ -10,6 +10,7 @@ import type {
   ModelStatic,
 } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
+import type { WritableDeep } from 'type-fest';
 import { sequelize } from '../connection';
 import { UserGroup } from './user-group';
 import { UserPost } from './user-post';
@@ -21,7 +22,7 @@ export class User extends Model<
   InferCreationAttributes<User, { omit: NonUserAttributes }>
 > {
   static associations: {
-    group: BelongsTo<User, UserGroup>,
+    group: BelongsToAssociation<User, UserGroup>;
   };
 
   declare id: CreationOptional<number>;
@@ -70,12 +71,14 @@ User.init(
         return {};
       },
     },
-    indexes: [{
-      fields: ['firstName'],
-      using: 'BTREE',
-      name: 'firstNameIdx',
-      concurrently: true,
-    }],
+    indexes: [
+      {
+        fields: ['firstName'],
+        using: 'BTREE',
+        name: 'firstNameIdx',
+        concurrently: true,
+      },
+    ],
     sequelize,
   },
 );
@@ -95,7 +98,11 @@ User.afterFind((users, options) => {
 });
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
-User.addHook('beforeFind', 'test', (options: FindOptions<InferAttributes<User>>) => {});
+User.addHook(
+  'beforeFind',
+  'test',
+  (options: WritableDeep<FindOptions<InferAttributes<User>>>) => {},
+);
 
 User.addHook('afterDestroy', async (instance, options) => {
   // `options` from `afterDestroy` should be passable to `sequelize.transaction`
@@ -111,12 +118,9 @@ User.addScope('withoutLastName', {
   },
 });
 
-User.addScope(
-  'withFirstName',
-  (firstName: string) => ({
-    where: { firstName },
-  }),
-);
+User.addScope('withFirstName', (firstName: string) => ({
+  where: { firstName },
+}));
 
 // associate with a class-based model
 export const Group = User.belongsTo(UserGroup, { as: 'group', foreignKey: 'groupId' });
@@ -136,10 +140,8 @@ const groupType: ModelStatic<UserGroup> = User.associations.group.target;
 User.findOne({ include: [{ model: UserGroup }] });
 User.findOne({ include: [{ model: UserPost }] });
 
-User.scope([
-  'custom2',
-  { method: ['custom', 32] },
-]);
+User.scope(['custom2', { method: ['custom', 32] }]);
+User.withScope(['custom2', { method: ['custom', 32] }]);
 
 const instance = new User({ username: 'foo', firstName: 'bar', lastName: 'baz' });
 instance.isSoftDeleted();

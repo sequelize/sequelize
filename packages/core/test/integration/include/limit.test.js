@@ -7,7 +7,6 @@ const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
-
   describe('LIMIT', () => {
     /*
      * shortcut for building simple {name: 'foo'} seed data
@@ -33,33 +32,49 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      *                        [Footnote]
      */
     beforeEach(function () {
-      this.Project = this.sequelize.define('Project', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Project = this.sequelize.define(
+        'Project',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.User = this.sequelize.define('User', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.User = this.sequelize.define(
+        'User',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.Task = this.sequelize.define('Task', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Task = this.sequelize.define(
+        'Task',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.Hobby = this.sequelize.define('Hobby', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Hobby = this.sequelize.define(
+        'Hobby',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
       this.User.belongsToMany(this.Project, { through: 'user_project' });
       this.Project.belongsToMany(this.User, { through: 'user_project' });
@@ -70,40 +85,60 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       this.User.belongsToMany(this.Hobby, { through: 'user_hobby' });
       this.Hobby.belongsToMany(this.User, { through: 'user_hobby' });
 
-      this.Post = this.sequelize.define('Post', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Post = this.sequelize.define(
+        'Post',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.Comment = this.sequelize.define('Comment', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Comment = this.sequelize.define(
+        'Comment',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.Tag = this.sequelize.define('Tag', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Tag = this.sequelize.define(
+        'Tag',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.Color = this.sequelize.define('Color', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Color = this.sequelize.define(
+        'Color',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
-      this.Footnote = this.sequelize.define('Footnote', {
-        name: {
-          type: DataTypes.STRING,
-          primaryKey: true,
+      this.Footnote = this.sequelize.define(
+        'Footnote',
+        {
+          name: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
         },
-      }, { timestamps: false });
+        { timestamps: false },
+      );
 
       this.Post.hasMany(this.Comment);
       this.Comment.belongsTo(this.Post);
@@ -139,12 +174,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          where: {
-            name: 'Alice',
+        include: [
+          {
+            model: this.User,
+            where: {
+              name: 'Alice',
+            },
           },
-        }],
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -171,14 +208,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-          include: [{
-            model: this.Hobby,
+        include: [
+          {
+            model: this.User,
             required: true,
-          }],
-        }],
+            include: [
+              {
+                model: this.Hobby,
+                required: true,
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -206,16 +247,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-          include: [{
-            model: this.Hobby,
-            where: {
-              name: 'archery',
-            },
-          }],
-        }],
+        include: [
+          {
+            model: this.User,
+            required: true,
+            include: [
+              {
+                model: this.Hobby,
+                where: {
+                  name: 'archery',
+                },
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -243,19 +288,23 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-          include: [{
-            model: this.Hobby,
+        include: [
+          {
+            model: this.User,
             required: true,
-            through: {
-              where: {
-                HobbyName: 'archery',
+            include: [
+              {
+                model: this.Hobby,
+                required: true,
+                through: {
+                  where: {
+                    hobbyName: 'archery',
+                  },
+                },
               },
-            },
-          }],
-        }],
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -287,20 +336,26 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Task.findAll({
-        include: [{
-          model: this.Project,
-          required: true,
-          include: [{
-            model: this.User,
+        include: [
+          {
+            model: this.Project,
             required: true,
-            include: [{
-              model: this.Hobby,
-              where: {
-                name: 'archery',
+            include: [
+              {
+                model: this.User,
+                required: true,
+                include: [
+                  {
+                    model: this.Hobby,
+                    where: {
+                      name: 'archery',
+                    },
+                  },
+                ],
               },
-            }],
-          }],
-        }],
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -318,15 +373,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         this.User.bulkCreate(build('Alice', 'Bob')),
       ]);
 
-      await Promise.all([// alpha
+      await Promise.all([
+        // alpha
         projects[0].addUser(users[0]), // charlie
-        projects[2].addUser(users[0])]);
+        projects[2].addUser(users[0]),
+      ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-        }],
+        include: [
+          {
+            model: this.User,
+            required: true,
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -355,13 +414,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-        }, {
-          model: this.Task,
-          required: true,
-        }],
+        include: [
+          {
+            model: this.User,
+            required: true,
+          },
+          {
+            model: this.Task,
+            required: true,
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -385,10 +447,12 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await Promise.all([posts[0].addComment(comments[0]), posts[2].addComment(comments[1])]);
 
       const result = await this.Post.findAll({
-        include: [{
-          model: this.Comment,
-          required: true,
-        }],
+        include: [
+          {
+            model: this.Comment,
+            required: true,
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -413,17 +477,22 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Post.findAll({
-        include: [{
-          model: this.Comment,
-          required: true,
-          where: {
-            [Op.or]: [{
-              name: 'comment0',
-            }, {
-              name: 'comment2',
-            }],
+        include: [
+          {
+            model: this.Comment,
+            required: true,
+            where: {
+              [Op.or]: [
+                {
+                  name: 'comment0',
+                },
+                {
+                  name: 'comment2',
+                },
+              ],
+            },
           },
-        }],
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -448,13 +517,15 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const post = await this.Post.findOne({
-        include: [{
-          model: this.Comment,
-          required: true,
-          where: {
-            name: 'comment2',
+        include: [
+          {
+            model: this.Comment,
+            required: true,
+            where: {
+              name: 'comment2',
+            },
           },
-        }],
+        ],
       });
 
       expect(post.name).to.equal('charlie');
@@ -478,14 +549,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.User.findAll({
-        include: [{
-          model: this.Post,
-          required: true,
-          include: [{
-            model: this.Comment,
+        include: [
+          {
+            model: this.Post,
             required: true,
-          }],
-        }],
+            include: [
+              {
+                model: this.Comment,
+                required: true,
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -516,14 +591,18 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.User.findAll({
-        include: [{
-          model: this.Post,
-          required: true,
-          include: [{
-            model: this.Tag,
+        include: [
+          {
+            model: this.Post,
             required: true,
-          }],
-        }],
+            include: [
+              {
+                model: this.Tag,
+                required: true,
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -551,15 +630,19 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Project.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-          include: [{
-            model: this.Post,
+        include: [
+          {
+            model: this.User,
             required: true,
-            duplicating: true,
-          }],
-        }],
+            include: [
+              {
+                model: this.Post,
+                required: true,
+                duplicating: true,
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -588,16 +671,20 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Post.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-          include: [{
-            model: this.Hobby,
-            where: {
-              name: 'archery',
-            },
-          }],
-        }],
+        include: [
+          {
+            model: this.User,
+            required: true,
+            include: [
+              {
+                model: this.Hobby,
+                where: {
+                  name: 'archery',
+                },
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -626,19 +713,23 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Post.findAll({
-        include: [{
-          model: this.User,
-          required: true,
-          include: [{
-            model: this.Hobby,
+        include: [
+          {
+            model: this.User,
             required: true,
-            through: {
-              where: {
-                HobbyName: 'archery',
+            include: [
+              {
+                model: this.Hobby,
+                required: true,
+                through: {
+                  where: {
+                    hobbyName: 'archery',
+                  },
+                },
               },
-            },
-          }],
-        }],
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -652,7 +743,9 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       await this.sequelize.sync({ force: true });
 
       const [comments, posts, users, tags] = await Promise.all([
-        this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2', 'comment3', 'comment4', 'comment5')),
+        this.Comment.bulkCreate(
+          build('comment0', 'comment1', 'comment2', 'comment3', 'comment4', 'comment5'),
+        ),
         this.Post.bulkCreate(build('post0', 'post1', 'post2', 'post3', 'post4')),
         this.User.bulkCreate(build('Alice', 'Bob')),
         this.Tag.bulkCreate(build('tag0', 'tag1')),
@@ -675,21 +768,26 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Comment.findAll({
-        include: [{
-          model: this.Post,
-          required: true,
-          include: [{
-            model: this.User,
-            where: {
-              name: 'Alice',
-            },
-          }, {
-            model: this.Tag,
-            where: {
-              name: 'tag0',
-            },
-          }],
-        }],
+        include: [
+          {
+            model: this.Post,
+            required: true,
+            include: [
+              {
+                model: this.User,
+                where: {
+                  name: 'Alice',
+                },
+              },
+              {
+                model: this.Tag,
+                where: {
+                  name: 'tag0',
+                },
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,
@@ -718,20 +816,27 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       ]);
 
       const result = await this.Comment.findAll({
-        include: [{
-          model: this.Post,
-          required: true,
-          include: [{
-            model: this.Footnote,
-            where: {
-              [Op.or]: [{
-                name: 'footnote0',
-              }, {
-                name: 'footnote2',
-              }],
-            },
-          }],
-        }],
+        include: [
+          {
+            model: this.Post,
+            required: true,
+            include: [
+              {
+                model: this.Footnote,
+                where: {
+                  [Op.or]: [
+                    {
+                      name: 'footnote0',
+                    },
+                    {
+                      name: 'footnote2',
+                    },
+                  ],
+                },
+              },
+            ],
+          },
+        ],
         order: ['name'],
         limit: 1,
         offset: 1,

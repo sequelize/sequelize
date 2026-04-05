@@ -1,17 +1,6 @@
-import { isDecoratedModel } from './decorators/shared/model.js';
-import {
-  legacyBuildAddAnyHook,
-  legacyBuildAddHook,
-  legacyBuildHasHook,
-  legacyBuildRemoveHook,
-  legacyBuildRunHook,
-} from './hooks-legacy.js';
-import { ModelDefinition, getModelDefinition, hasModelDefinition, registerModelDefinition } from './model-definition.js';
-import { staticModelHooks } from './model-hooks.js';
-import type { Model } from './model.js';
-import { noModelTableName } from './utils/deprecations.js';
-import { getObjectFromMap } from './utils/object.js';
-import type { PartialBy } from './utils/types.js';
+import type { PartialBy } from '@sequelize/utils';
+import { isPlainObject } from '@sequelize/utils';
+import { inspect } from 'node:util';
 import type {
   AbstractQueryGenerator,
   AbstractQueryInterface,
@@ -20,15 +9,39 @@ import type {
   Attributes,
   BrandedKeysOf,
   BuiltModelOptions,
+  FindByPkOptions,
   ForeignKeyBrand,
   IndexOptions,
   InitOptions,
   ModelAttributes,
   ModelStatic,
+  NonNullFindByPkOptions,
   NormalizedAttributeOptions,
   Sequelize,
   TableNameWithSchema,
 } from '.';
+import { isDecoratedModel } from './decorators/shared/model.js';
+import {
+  legacyBuildAddAnyHook,
+  legacyBuildAddHook,
+  legacyBuildHasHook,
+  legacyBuildRemoveHook,
+  legacyBuildRunHook,
+} from './hooks-legacy.js';
+import {
+  ModelDefinition,
+  getModelDefinition,
+  hasModelDefinition,
+  registerModelDefinition,
+} from './model-definition.js';
+import { staticModelHooks } from './model-hooks.js';
+import type { ModelRepository } from './model-repository.js';
+import { getModelRepository } from './model-repository.js';
+import type { DestroyOptions } from './model.js';
+import { Model } from './model.js';
+import { and } from './sequelize.js';
+import { noModelTableName } from './utils/deprecations.js';
+import { getObjectFromMap } from './utils/object.js';
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -69,8 +82,20 @@ export class ModelTypeScript {
     return getModelDefinition(this);
   }
 
+  get modelDefinition(): ModelDefinition {
+    return (this.constructor as ModelStatic).modelDefinition;
+  }
+
+  static get modelRepository(): ModelRepository {
+    return getModelRepository(this.modelDefinition);
+  }
+
+  get modelRepository(): ModelRepository {
+    return (this.constructor as ModelStatic).modelRepository;
+  }
+
   /**
-   * An object hash from alias to association object
+   * An object hash from alias to the association object
    */
   static get associations(): { [associationName: string]: Association } {
     return this.modelDefinition.associations;
@@ -239,7 +264,11 @@ export class ModelTypeScript {
   static beforeCount = legacyBuildAddHook(staticModelHooks, 'beforeCount');
 
   static beforeFind = legacyBuildAddHook(staticModelHooks, 'beforeFind');
-  static beforeFindAfterExpandIncludeAll = legacyBuildAddHook(staticModelHooks, 'beforeFindAfterExpandIncludeAll');
+  static beforeFindAfterExpandIncludeAll = legacyBuildAddHook(
+    staticModelHooks,
+    'beforeFindAfterExpandIncludeAll',
+  );
+
   static beforeFindAfterOptions = legacyBuildAddHook(staticModelHooks, 'beforeFindAfterOptions');
   static afterFind = legacyBuildAddHook(staticModelHooks, 'afterFind');
 
@@ -259,7 +288,7 @@ export class ModelTypeScript {
    * ```javascript
    * Project.init({
    *   columnA: {
-   *     type: Sequelize.BOOLEAN,
+   *     type: DataTypes.BOOLEAN,
    *     validate: {
    *       is: ['[a-z]','i'],        // will only allow letters
    *       max: 23,                  // only allow values <= 23
@@ -271,7 +300,7 @@ export class ModelTypeScript {
    *     field: 'column_a'
    *     // Other attributes here
    *   },
-   *   columnB: Sequelize.STRING,
+   *   columnB: DataTypes.STRING,
    *   columnC: 'MY VERY OWN COLUMN TYPE'
    * }, {sequelize})
    * ```
@@ -295,11 +324,15 @@ export class ModelTypeScript {
     options: InitOptions<M>,
   ): MS {
     if (isDecoratedModel(this)) {
-      throw new Error(`Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`);
+      throw new Error(
+        `Model.init cannot be used if the model uses one of Sequelize's decorators. You must pass your model to the Sequelize constructor using the "models" option instead.`,
+      );
     }
 
     if (!options.sequelize) {
-      throw new Error('Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.');
+      throw new Error(
+        'Model.init expects a Sequelize instance to be passed through the option bag, which is the second parameter.',
+      );
     }
 
     initModel(this, attributes, options);
@@ -366,7 +399,9 @@ export class ModelTypeScript {
 
   static assertIsInitialized(): void {
     if (!this.isInitialized()) {
-      throw new Error(`Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`);
+      throw new Error(
+        `Model "${this.name}" has not been initialized yet. You can check whether a model has been initialized by calling its isInitialized method.`,
+      );
     }
   }
 
@@ -381,8 +416,7 @@ export class ModelTypeScript {
    * @deprecated use {@link modelDefinition} or {@link table}.
    */
   static getTableName(): TableNameWithSchema {
-    // TODO no deprecation warning is issued here, as this is still used internally.
-    //  Start emitting a warning once we have removed all internal usages.
+    noModelTableName();
 
     const queryGenerator = this.sequelize.queryGenerator;
 
@@ -397,6 +431,107 @@ export class ModelTypeScript {
       },
     };
   }
+
+  /**
+   * Works like the {@link Model#destroy} instance method, but is capable of deleting multiple instances in one query.
+   * Unlike {@link Model.destroy}, this method takes instances, not a `where` option.
+   *
+   * @param instances The instances to delete.
+   * @param options Options.
+   */
+  static async _UNSTABLE_destroyMany<M extends Model>(
+    this: ModelStatic<M>,
+    instances: M | M[],
+    options?: DestroyOptions<Attributes<M>>,
+  ): Promise<number> {
+    return this.modelRepository._UNSTABLE_destroy(instances, options);
+  }
+
+  /**
+   * Search for a single instance by its primary key.
+   *
+   * This applies LIMIT 1, only a single instance will be returned.
+   *
+   * Returns the model with the matching primary key.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
+   */
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty?: false },
+  ): Promise<R | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options: NonNullFindByPkOptions<M> & { raw: true },
+  ): Promise<R>;
+  static findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options: NonNullFindByPkOptions<M>,
+  ): Promise<M>;
+  static findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<M>,
+  ): Promise<M | null>;
+
+  /**
+   * Search for a single instance by its primary key.
+   *
+   * This applies LIMIT 1, only a single instance will be returned.
+   *
+   * Returns the model with the matching primary key.
+   * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
+   *
+   * If the model has a composite primary key, pass an object with the primary key attributes.
+   *
+   * @param identifier The value of the desired instance's primary key.
+   * @param options find options
+   */
+  static async findByPk<M extends Model>(
+    this: ModelStatic<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<Attributes<M>>,
+  ): Promise<Model | null> {
+    if (identifier == null) {
+      throw new Error(`${identifier} is not a valid primary key`);
+    }
+
+    const primaryKeyAttributeNames = this.modelDefinition.primaryKeysAttributeNames;
+    if (primaryKeyAttributeNames.size === 0) {
+      throw new Error(
+        `Model ${this.name} does not have a primary key attribute, so findByPk cannot be used`,
+      );
+    }
+
+    const pkWhere = Object.create(null);
+    if (primaryKeyAttributeNames.size === 1) {
+      pkWhere[primaryKeyAttributeNames.firstValue()!] = identifier;
+    } else {
+      if (!isPlainObject(identifier)) {
+        throw new TypeError(
+          `Model ${this.name} has a composite primary key. Please pass all primary keys in an object like { pk1: value1, pk2: value2 }. Received: ${inspect(identifier)}`,
+        );
+      }
+
+      for (const attributeName of primaryKeyAttributeNames) {
+        if (identifier[attributeName] === undefined) {
+          throw new TypeError(
+            `Part of the composite primary key, ${attributeName}, is missing. Please pass all primary key attributes. Received: ${inspect(identifier)}`,
+          );
+        }
+
+        pkWhere[attributeName] = identifier[attributeName];
+      }
+    }
+
+    // Bypass a possible overloaded findOne
+    return Model.findOne.call(this, {
+      ...options,
+      where: options?.where ? and(options?.where, pkWhere) : pkWhere,
+    });
+  }
 }
 
 export function initModel<M extends Model>(
@@ -406,22 +541,17 @@ export function initModel<M extends Model>(
 ): void {
   options.modelName ||= model.name;
 
-  const modelDefinition = new ModelDefinition(
-    attributes,
-    options,
-    model,
-  );
-
-  registerModelDefinition(model, modelDefinition);
+  const modelDefinition = new ModelDefinition(attributes, options, model);
 
   Object.defineProperty(model, 'name', { value: modelDefinition.modelName });
+
+  registerModelDefinition(model, modelDefinition);
 
   // @ts-expect-error -- TODO: type
   model._scope = model.options.defaultScope;
   // @ts-expect-error -- TODO: type
   model._scopeNames = ['defaultScope'];
 
-  model.sequelize.modelManager.addModel(model);
   model.sequelize.hooks.runSync('afterDefine', model);
 
   addAttributeGetterAndSetters(model);
@@ -441,8 +571,9 @@ function addAttributeGetterAndSetters(model: ModelStatic) {
     const attributeName = attribute.attributeName;
 
     if (attributeName in TmpModel.prototype) {
-      // @ts-expect-error -- TODO: type sequelize.log
-      model.sequelize.log(`Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`);
+      model.sequelize.log(
+        `Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`,
+      );
 
       continue;
     }

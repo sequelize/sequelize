@@ -1,14 +1,17 @@
 import type { AttributeOptions, ModelStatic } from '../../model.js';
 import { Model } from '../../model.js';
 import { registerModelAttributeOptions } from '../shared/model.js';
+import type {
+  OptionalParameterizedPropertyDecorator,
+  RequiredParameterizedPropertyDecorator,
+} from './decorator-utils.js';
 import {
   DECORATOR_NO_DEFAULT,
   createOptionallyParameterizedPropertyDecorator,
   throwMustBeAttribute,
   throwMustBeInstanceProperty,
-  throwMustBeMethod,
+  throwMustBeModel,
 } from './decorator-utils.js';
-import type { OptionalParameterizedPropertyDecorator, RequiredParameterizedPropertyDecorator } from './decorator-utils.js';
 
 /**
  * Creates a decorator that registers Attribute Options. Parameters are mandatory.
@@ -72,7 +75,7 @@ function annotate(
   }
 
   if (!(target instanceof Model)) {
-    throwMustBeMethod(decoratorName, target, propertyName);
+    throwMustBeModel(decoratorName, target, propertyName);
   }
 
   options = { ...options };

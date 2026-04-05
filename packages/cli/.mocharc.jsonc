@@ -1,0 +1,11 @@
+{
+  // Ideally this file should extend the root one and only set "check-leaks" to false
+  // but extends is broken: https://github.com/mochajs/mocha/issues/3916
+  "require": "ts-node/register",
+  "loader": "ts-node/esm",
+  "extensions": ["js", "ts"],
+  "watch-files": ["src"],
+  "timeout": 30000,
+  "reporter": "spec",
+  "exit": true
+}

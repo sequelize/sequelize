@@ -1,4 +1,3 @@
-import type { ErrorOptions } from './base-error';
 import { BaseError } from './base-error';
 
 /**

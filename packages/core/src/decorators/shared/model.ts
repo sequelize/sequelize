@@ -1,11 +1,13 @@
-import { cloneDataType } from '../../dialects/abstract/data-types-utils.js';
+import { EMPTY_OBJECT } from '@sequelize/utils';
+import { cloneDataType } from '../../abstract-dialect/data-types-utils.js';
 import { BaseError } from '../../errors/base-error.js';
 import { mergeModelOptions } from '../../model-definition.js';
 import { initModel } from '../../model-typescript.js';
 import type { AttributeOptions, ModelAttributes, ModelOptions, ModelStatic } from '../../model.js';
 import type { Sequelize } from '../../sequelize.js';
 import { isModelStatic } from '../../utils/model-utils.js';
-import { EMPTY_OBJECT, cloneDeep, getAllOwnEntries } from '../../utils/object.js';
+import { cloneDeep, getAllOwnEntries } from '../../utils/object.js';
+import type { InheritedAttributeOptions } from '../legacy/attribute.js';
 
 export interface RegisteredModelOptions extends ModelOptions {
   /**
@@ -16,7 +18,7 @@ export interface RegisteredModelOptions extends ModelOptions {
 }
 
 export interface RegisteredAttributeOptions {
-  [key: string]: Partial<AttributeOptions>;
+  [key: string]: InheritedAttributeOptions;
 }
 
 interface RegisteredOptions {
@@ -34,10 +36,7 @@ const registeredOptions = new WeakMap<ModelStatic, RegisteredOptions>();
  * @param model
  * @param options
  */
-export function registerModelOptions(
-  model: ModelStatic,
-  options: RegisteredModelOptions,
-): void {
+export function registerModelOptions(model: ModelStatic, options: RegisteredModelOptions): void {
   if (!registeredOptions.has(model)) {
     registeredOptions.set(model, { model: options, attributes: {} });
 
@@ -50,7 +49,10 @@ export function registerModelOptions(
   try {
     mergeModelOptions(existingModelOptions, options, false);
   } catch (error) {
-    throw new BaseError(`Multiple decorators are trying to register conflicting options on model ${model.name}`, { cause: error });
+    throw new BaseError(
+      `Multiple decorators are trying to register conflicting options on model ${model.name}`,
+      { cause: error },
+    );
   }
 }
 
@@ -85,7 +87,7 @@ export function registerModelAttributeOptions(
     return;
   }
 
-  const existingOptions = existingAttributesOptions[attributeName]!;
+  const existingOptions = existingAttributesOptions[attributeName];
 
   mergeAttributeOptions(attributeName, model, existingOptions, options, false);
 }
@@ -97,8 +99,12 @@ export function mergeAttributeOptions(
   options: Partial<AttributeOptions>,
   overrideOnConflict: boolean,
 ): Partial<AttributeOptions> {
-  for (const [optionName, optionValue] of Object.entries(options) as Array<[keyof AttributeOptions, any]>) {
+  for (const [optionName, optionValue] of Object.entries(options) as Array<
+    [keyof AttributeOptions, any]
+  >) {
     if (existingOptions[optionName] === undefined) {
+      // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- This error only occurs on TS 5.3+
+      // @ts-ignore -- this function is very fuzzy in terms of typing due to how generic it is.
       existingOptions[optionName] = optionValue;
       continue;
     }
@@ -106,8 +112,10 @@ export function mergeAttributeOptions(
     // These are objects. We merge their properties, unless the same key is used in both values.
     if (optionName === 'validate') {
       for (const [subOptionName, subOptionValue] of getAllOwnEntries(optionValue)) {
-        if ((subOptionName in existingOptions[optionName]!) && !overrideOnConflict) {
-          throw new Error(`Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`);
+        if (subOptionName in existingOptions[optionName] && !overrideOnConflict) {
+          throw new Error(
+            `Multiple decorators are attempting to register option ${optionName}[${JSON.stringify(subOptionName)}] of attribute ${attributeName} on model ${model.name}.`,
+          );
         }
 
         // @ts-expect-error -- runtime type checking is enforced by model
@@ -126,7 +134,8 @@ export function mergeAttributeOptions(
       }
 
       if (Array.isArray(optionValue)) {
-        // @ts-expect-error -- runtime type checking is enforced by model
+        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- became valid in TS 5.8
+        // @ts-ignore -- runtime type checking is enforced by model
         existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
       } else {
         existingOptions[optionName] = [...existingOptions[optionName], optionValue];
@@ -139,7 +148,9 @@ export function mergeAttributeOptions(
       continue;
     }
 
-    throw new Error(`Multiple decorators are attempting to set different values for the option ${optionName} of attribute ${attributeName} on model ${model.name}.`);
+    throw new Error(
+      `Multiple decorators are attempting to set different values for the option ${optionName} of attribute ${attributeName} on model ${model.name}.`,
+    );
   }
 
   return existingOptions;
@@ -163,14 +174,10 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): bo
   return true;
 }
 
-const NON_INHERITABLE_MODEL_OPTIONS = [
-  'modelName',
-  'name',
-  'tableName',
-] as const;
+const NON_INHERITABLE_MODEL_OPTIONS = ['modelName', 'name', 'tableName'] as const;
 
 function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
-  const modelOptions = (registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions));
+  const modelOptions = registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions);
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {
@@ -194,17 +201,23 @@ function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
 }
 
 function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeOptions {
-  const descendantAttributes = {
-    ...(registeredOptions.get(model)?.attributes ?? (EMPTY_OBJECT as RegisteredAttributeOptions)),
+  const descendantAttributes: RegisteredAttributeOptions = {
+    ...(registeredOptions.get(model)?.attributes ?? EMPTY_OBJECT),
   };
+  const insertAfterAttributes: RegisteredAttributeOptions = {};
+  const insertBeforeAttributes: RegisteredAttributeOptions = {};
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {
     const parentAttributes: RegisteredAttributeOptions = getRegisteredAttributeOptions(parentModel);
 
     for (const attributeName of Object.keys(parentAttributes)) {
-      const descendantAttribute = descendantAttributes[attributeName];
       const parentAttribute = { ...parentAttributes[attributeName] };
+      if (parentAttribute.insertBefore && parentAttribute.insertAfter) {
+        throw new Error(
+          `Attribute ${attributeName} on model ${model.name} cannot have both 'insertBefore' and 'insertAfter' set to true.`,
+        );
+      }
 
       if (parentAttribute.type) {
         if (typeof parentAttribute.type === 'function') {
@@ -220,9 +233,8 @@ function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeO
       parentAttribute.references = cloneDeep(parentAttribute.references);
       parentAttribute.validate = cloneDeep(parentAttribute.validate);
 
-      if (!descendantAttribute) {
-        descendantAttributes[attributeName] = parentAttribute;
-      } else {
+      const descendantAttribute = descendantAttributes[attributeName];
+      if (descendantAttribute) {
         descendantAttributes[attributeName] = mergeAttributeOptions(
           attributeName,
           model,
@@ -230,11 +242,19 @@ function getRegisteredAttributeOptions(model: ModelStatic): RegisteredAttributeO
           descendantAttribute,
           true,
         );
+      } else if (parentAttribute.insertBefore) {
+        insertBeforeAttributes[attributeName] = parentAttribute;
+      } else {
+        insertAfterAttributes[attributeName] = parentAttribute;
       }
     }
   }
 
-  return descendantAttributes;
+  return {
+    ...insertBeforeAttributes,
+    ...descendantAttributes,
+    ...insertAfterAttributes,
+  };
 }
 
 export function isDecoratedModel(model: ModelStatic): boolean {

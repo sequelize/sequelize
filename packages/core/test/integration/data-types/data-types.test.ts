@@ -1,10 +1,3 @@
-import { Blob } from 'node:buffer';
-import { expect } from 'chai';
-import dayjs from 'dayjs';
-import DayjsTimezone from 'dayjs/plugin/timezone';
-import pick from 'lodash/pick';
-import moment from 'moment';
-import type { Moment } from 'moment-timezone';
 import type {
   CreationAttributes,
   CreationOptional,
@@ -12,9 +5,22 @@ import type {
   InferCreationAttributes,
   ModelStatic,
 } from '@sequelize/core';
-import { DataTypes, Model, QueryTypes, ValidationError, fn } from '@sequelize/core';
-import { beforeAll2, sequelize, setResetMode } from '../support';
+import { DataTypes, Model, QueryTypes, ValidationError, fn, sql } from '@sequelize/core';
+import { expect } from 'chai';
+import dayjs from 'dayjs';
+import DayjsTimezone from 'dayjs/plugin/timezone';
+import pick from 'lodash/pick';
+import moment from 'moment';
 import 'moment-timezone';
+import type { Moment } from 'moment-timezone';
+import { Blob } from 'node:buffer';
+import {
+  allowDeprecationsInSuite,
+  beforeAll2,
+  isOracleJSONConstraintsSupported,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 dayjs.extend(DayjsTimezone);
 
@@ -38,12 +44,15 @@ describe('DataTypes', () => {
         declare stringAttr: string;
       }
 
-      User.init({
-        stringAttr: {
-          type: DataTypes.STRING(5),
-          allowNull: false,
+      User.init(
+        {
+          stringAttr: {
+            type: DataTypes.STRING(5),
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -55,24 +64,36 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite') {
+    if (dialect.name !== 'sqlite3') {
       it('throws if the string is too long', async () => {
-        await expect(vars.User.create({
-          stringAttr: '123456',
-        })).to.be.rejected;
+        await expect(
+          vars.User.create({
+            stringAttr: '123456',
+          }),
+        ).to.be.rejected;
       });
     }
 
     it('rejects non-string values', async () => {
-      await expect(vars.User.create({
-        // @ts-expect-error -- testing that this throws
-        stringAttr: 12,
-      })).to.be.rejectedWith(ValidationError, 'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.');
+      await expect(
+        vars.User.create({
+          // @ts-expect-error -- testing that this throws
+          stringAttr: 12,
+        }),
+      ).to.be.rejectedWith(
+        ValidationError,
+        'Validation error: 12 is not a valid string. Only the string type is accepted for non-binary strings.',
+      );
 
-      await expect(vars.User.create({
-        // @ts-expect-error -- testing that this throws
-        stringAttr: Buffer.from('abc'),
-      })).to.be.rejectedWith(ValidationError, 'Validation error: <Buffer 61 62 63> is not a valid string. Only the string type is accepted for non-binary strings.');
+      await expect(
+        vars.User.create({
+          // @ts-expect-error -- testing that this throws
+          stringAttr: Buffer.from('abc'),
+        }),
+      ).to.be.rejectedWith(
+        ValidationError,
+        'Validation error: <Buffer 61 62 63> is not a valid string. Only the string type is accepted for non-binary strings.',
+      );
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
@@ -98,12 +119,15 @@ describe('DataTypes', () => {
         declare binaryStringAttr: ArrayBuffer | string | Blob;
       }
 
-      User.init({
-        binaryStringAttr: {
-          type: DataTypes.STRING.BINARY,
-          allowNull: false,
+      User.init(
+        {
+          binaryStringAttr: {
+            type: DataTypes.STRING.BINARY,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -111,11 +135,21 @@ describe('DataTypes', () => {
     });
 
     it('accepts strings', async () => {
-      await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
+      if (dialect.name === 'oracle') {
+        const expected = await getRawBytesForOracle(vars.User, 'binaryStringAttr', 'abc');
+        await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', expected as any);
+      } else {
+        await testSimpleInOut(vars.User, 'binaryStringAttr', 'abc', 'abc');
+      }
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
-      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', 'abc');
+      const expected =
+        dialect.name === 'oracle'
+          ? await getRawBytesForOracle(vars.User, 'binaryStringAttr', 'abc')
+          : 'abc';
+
+      await testSimpleInOutRaw(vars.User, 'binaryStringAttr', 'abc', expected);
     });
   });
 
@@ -130,12 +164,15 @@ describe('DataTypes', () => {
         declare binaryStringAttr: string;
       }
 
-      User.init({
-        binaryStringAttr: {
-          type: DataTypes.STRING(5).BINARY,
-          allowNull: false,
+      User.init(
+        {
+          binaryStringAttr: {
+            type: DataTypes.STRING(5).BINARY,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -143,11 +180,18 @@ describe('DataTypes', () => {
     });
 
     // TODO: add length check constraint in sqlite
-    if (dialect.name !== 'sqlite') {
+    if (dialect.name !== 'sqlite3') {
+      const maxValue =
+        dialect.name === 'oracle'
+          ? '10000000000' // too long for RAW(5), max is 0xFFFFFFFFFF
+          : '123456'; // too long for other dialects
+
       it('throws if the string is too long', async () => {
-        await expect(vars.User.create({
-          binaryStringAttr: '123456',
-        })).to.be.rejected;
+        await expect(
+          vars.User.create({
+            binaryStringAttr: maxValue,
+          }),
+        ).to.be.rejected;
       });
     }
   });
@@ -158,12 +202,15 @@ describe('DataTypes', () => {
         declare textAttr: string;
       }
 
-      User.init({
-        textAttr: {
-          type: DataTypes.TEXT,
-          allowNull: false,
+      User.init(
+        {
+          textAttr: {
+            type: DataTypes.TEXT,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -187,20 +234,23 @@ describe('DataTypes', () => {
         declare longText: string;
       }
 
-      User.init({
-        tinyText: {
-          type: DataTypes.TEXT('tiny'),
-          allowNull: false,
+      User.init(
+        {
+          tinyText: {
+            type: DataTypes.TEXT('tiny'),
+            allowNull: false,
+          },
+          mediumText: {
+            type: DataTypes.TEXT('medium'),
+            allowNull: false,
+          },
+          longText: {
+            type: DataTypes.TEXT('long'),
+            allowNull: false,
+          },
         },
-        mediumText: {
-          type: DataTypes.TEXT('medium'),
-          allowNull: false,
-        },
-        longText: {
-          type: DataTypes.TEXT('long'),
-          allowNull: false,
-        },
-      }, { sequelize, timestamps: false });
+        { sequelize, timestamps: false },
+      );
 
       await User.sync({ force: true });
 
@@ -237,12 +287,15 @@ describe('DataTypes', () => {
         declare charAttr: string;
       }
 
-      User.init({
-        charAttr: {
-          type: DataTypes.CHAR(20),
-          allowNull: false,
+      User.init(
+        {
+          charAttr: {
+            type: DataTypes.CHAR(20),
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -260,9 +313,11 @@ describe('DataTypes', () => {
     });
 
     it('throws if the string is too long', async () => {
-      await expect(vars.User.create({
-        charAttr: '1'.repeat(21),
-      })).to.be.rejected;
+      await expect(
+        vars.User.create({
+          charAttr: '1'.repeat(21),
+        }),
+      ).to.be.rejected;
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
@@ -306,36 +361,65 @@ describe('DataTypes', () => {
         declare binaryCharAttr: string | ArrayBuffer | Uint8Array | Blob;
       }
 
-      User.init({
-        binaryCharAttr: {
-          type: DataTypes.CHAR(5).BINARY,
-          allowNull: false,
+      User.init(
+        {
+          binaryCharAttr: {
+            type: DataTypes.CHAR(5).BINARY,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
       return { User };
     });
 
-    it('is serialized/deserialized as strings', async () => {
-      // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
-      if (dialect.name === 'db2') {
-        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234 ');
-      } else {
-        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
-      }
-    });
+    if (dialect.name === 'oracle') {
+      // When string is inserted to CHAR.BINARY(internally RAW column is used), it is stored as binary.
+      // For 'abc', We see it is written as [0x0A, 0xBC] but not [0x61, 0x62, 0x63].
+      // ' 1234' -> [0x20, 0x31, 0x32, 0x33, 0x34].
+      // Having a converter to convert to string causes issues especially with non-printable characters.
+      // So we write a string and verify it by reading through getRawBytesForOracle which uses raw sql 'select' .
+      it('is serialized as string and deserialized as Buffer', async () => {
+        const expected = await getRawBytesForOracle(vars.User, 'binaryCharAttr', '1234');
 
-    it('is deserialized as a string when DataType is not specified', async () => {
-      // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
-      // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
-      if (dialect.name === 'db2') {
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234 ');
-      } else {
-        await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
-      }
-    });
+        await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', expected);
+      });
+
+      it('is serialized as Buffer and deserialized as Buffer', async () => {
+        await testSimpleInOut(vars.User, 'binaryCharAttr', Buffer.from('abc'), Buffer.from('abc'));
+      });
+
+      it('is serialized as Buffer and deserialized as a Buffer when DataType is not specified', async () => {
+        await testSimpleInOutRaw(
+          vars.User,
+          'binaryCharAttr',
+          Buffer.from(' 234'),
+          Buffer.from(' 234'),
+        );
+      });
+    } else {
+      it('is serialized/deserialized as strings', async () => {
+        // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
+        if (dialect.name === 'db2') {
+          await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234 ');
+        } else {
+          await testSimpleInOut(vars.User, 'binaryCharAttr', '1234', '1234');
+        }
+      });
+
+      it('is deserialized as a string when DataType is not specified', async () => {
+        // mysql does not pad columns, unless PAD_CHAR_TO_FULL_LENGTH is true
+        // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
+        if (dialect.name === 'db2') {
+          await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234 ');
+        } else {
+          await testSimpleInOutRaw(vars.User, 'binaryCharAttr', Buffer.from(' 234'), ' 234');
+        }
+      });
+    }
   });
 
   describe('CITEXT', () => {
@@ -345,7 +429,9 @@ describe('DataTypes', () => {
           sequelize.define('User', {
             ciTextAttr: DataTypes.CITEXT,
           });
-        }).to.throwWithCause(`${dialect.name} does not support the case-insensitive text (CITEXT) data type.`);
+        }).to.throwWithCause(
+          `${dialect.name} does not support the case-insensitive text (CITEXT) data type.`,
+        );
       });
     } else {
       const vars = beforeAll2(async () => {
@@ -353,12 +439,15 @@ describe('DataTypes', () => {
           declare ciTextAttr: string;
         }
 
-        User.init({
-          ciTextAttr: {
-            type: DataTypes.CITEXT,
-            allowNull: false,
+        User.init(
+          {
+            ciTextAttr: {
+              type: DataTypes.CITEXT,
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -370,7 +459,10 @@ describe('DataTypes', () => {
           ciTextAttr: 'ABCdef',
         });
 
-        const user = await vars.User.findOne({ rejectOnEmpty: true, where: { ciTextAttr: 'abcDEF' } });
+        const user = await vars.User.findOne({
+          rejectOnEmpty: true,
+          where: { ciTextAttr: 'abcDEF' },
+        });
         expect(user.ciTextAttr).to.eq('ABCdef');
       });
 
@@ -395,12 +487,15 @@ describe('DataTypes', () => {
           declare tsvectorAttr: string;
         }
 
-        User.init({
-          tsvectorAttr: {
-            type: DataTypes.TSVECTOR,
-            allowNull: false,
+        User.init(
+          {
+            tsvectorAttr: {
+              type: DataTypes.TSVECTOR,
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -408,7 +503,12 @@ describe('DataTypes', () => {
       });
 
       it('converts strings to TSVector', async () => {
-        await testSimpleInOut(vars.User, 'tsvectorAttr', 'a:1A fat:2B,4C cat:5D', `'a':1A 'cat':5 'fat':2B,4C`);
+        await testSimpleInOut(
+          vars.User,
+          'tsvectorAttr',
+          'a:1A fat:2B,4C cat:5D',
+          `'a':1A 'cat':5 'fat':2B,4C`,
+        );
       });
 
       it('accepts ts_tsvector() functions', async () => {
@@ -422,7 +522,12 @@ describe('DataTypes', () => {
       });
 
       it('is deserialized as a string when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'tsvectorAttr', 'a:1A fat:2B,4C cat:5D', `'a':1A 'cat':5 'fat':2B,4C`);
+        await testSimpleInOutRaw(
+          vars.User,
+          'tsvectorAttr',
+          'a:1A fat:2B,4C cat:5D',
+          `'a':1A 'cat':5 'fat':2B,4C`,
+        );
       });
     }
   });
@@ -433,12 +538,15 @@ describe('DataTypes', () => {
         declare booleanAttr: boolean | string | number | bigint | Buffer;
       }
 
-      User.init({
-        booleanAttr: {
-          type: DataTypes.BOOLEAN,
-          allowNull: false,
+      User.init(
+        {
+          booleanAttr: {
+            type: DataTypes.BOOLEAN,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -478,12 +586,18 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ booleanAttr: Buffer.from([]) })).to.be.rejected;
     });
 
-    if (dialect.name === 'mysql' || dialect.name === 'sqlite' || dialect.name === 'mariadb') {
+    if (dialect.name === 'mysql' || dialect.name === 'sqlite3' || dialect.name === 'mariadb') {
       // MySQL uses TINYINT(1). We can't know if the value is a boolean if the DataType is not specified.
       // SQLite: sqlite3 does not tell us which type a column is, so we can't know if the value is a boolean.
       it('is deserialized as a number when DataType is not specified', async () => {
         await testSimpleInOutRaw(vars.User, 'booleanAttr', true, 1);
         await testSimpleInOutRaw(vars.User, 'booleanAttr', false, 0);
+      });
+    } else if (dialect.name === 'oracle') {
+      // Oracle uses CHAR(1).
+      it('is deserialized as a char string when DataType is not specified', async () => {
+        await testSimpleInOutRaw(vars.User, 'booleanAttr', true, '1');
+        await testSimpleInOutRaw(vars.User, 'booleanAttr', false, '0');
       });
     } else {
       it('is deserialized as a boolean when DataType is not specified', async () => {
@@ -521,12 +635,15 @@ describe('DataTypes', () => {
           declare intAttr: number | bigint | string;
         }
 
-        User.init({
-          intAttr: {
-            type: DataTypes[intTypeName],
-            allowNull: false,
+        User.init(
+          {
+            intAttr: {
+              type: DataTypes[intTypeName],
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -538,14 +655,26 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
-        await testSimpleInOut(vars.User, 'intAttr', maxIntValueSigned[intTypeName], maxIntValueSigned[intTypeName]);
-        await testSimpleInOut(vars.User, 'intAttr', minIntValueSigned[intTypeName], minIntValueSigned[intTypeName]);
+        await testSimpleInOut(
+          vars.User,
+          'intAttr',
+          maxIntValueSigned[intTypeName],
+          maxIntValueSigned[intTypeName],
+        );
+        await testSimpleInOut(
+          vars.User,
+          'intAttr',
+          minIntValueSigned[intTypeName],
+          minIntValueSigned[intTypeName],
+        );
       });
 
       // TODO: add check constraints on types that overflow
       it.skip('rejects out-of-range numbers', async () => {
-        await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be.rejected;
-        await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be.rejected;
+        await expect(vars.User.create({ intAttr: maxIntValueSigned[intTypeName] + 1 })).to.be
+          .rejected;
+        await expect(vars.User.create({ intAttr: minIntValueSigned[intTypeName] - 1 })).to.be
+          .rejected;
       });
 
       it('rejects non-integer numbers', async () => {
@@ -572,12 +701,15 @@ describe('DataTypes', () => {
           declare intAttr: number | bigint | string;
         }
 
-        User.init({
-          intAttr: {
-            type: DataTypes[intTypeName].UNSIGNED,
-            allowNull: false,
+        User.init(
+          {
+            intAttr: {
+              type: DataTypes[intTypeName].UNSIGNED,
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -589,125 +721,140 @@ describe('DataTypes', () => {
         await testSimpleInOut(vars.User, 'intAttr', 123n, 123);
         await testSimpleInOut(vars.User, 'intAttr', '123', 123);
 
-        await testSimpleInOut(vars.User, 'intAttr', maxIntValueUnsigned[intTypeName], maxIntValueUnsigned[intTypeName]);
+        await testSimpleInOut(
+          vars.User,
+          'intAttr',
+          maxIntValueUnsigned[intTypeName],
+          maxIntValueUnsigned[intTypeName],
+        );
         await testSimpleInOut(vars.User, 'intAttr', 0, 0);
       });
 
       // TODO: re-enable once CHECK constraints have been implemented for all dialects
       it.skip('rejects out-of-range numbers', async () => {
-        await expect(vars.User.create({ intAttr: maxIntValueUnsigned[intTypeName] + 1 })).to.be.rejected;
+        await expect(vars.User.create({ intAttr: maxIntValueUnsigned[intTypeName] + 1 })).to.be
+          .rejected;
         await expect(vars.User.create({ intAttr: -1 })).to.be.rejected;
       });
     });
   }
 
-  describe('BIGINT', () => {
-    const vars = beforeAll2(async () => {
-      class User extends Model<InferAttributes<User>> {
-        declare bigintAttr: number | bigint | string;
-      }
+  if (dialect.supports.dataTypes.BIGINT) {
+    describe('BIGINT', () => {
+      const vars = beforeAll2(async () => {
+        class User extends Model<InferAttributes<User>> {
+          declare bigintAttr: number | bigint | string;
+        }
 
-      User.init({
-        bigintAttr: {
-          type: DataTypes.BIGINT,
-          allowNull: false,
-        },
-      }, { sequelize });
+        User.init(
+          {
+            bigintAttr: {
+              type: DataTypes.BIGINT,
+              allowNull: false,
+            },
+          },
+          { sequelize },
+        );
 
-      await User.sync({ force: true });
+        await User.sync({ force: true });
 
-      return { User };
-    });
+        return { User };
+      });
 
-    it('accepts numbers, bigints, strings', async () => {
-      await testSimpleInOut(vars.User, 'bigintAttr', 123, '123');
-      await testSimpleInOut(vars.User, 'bigintAttr', 123n, '123');
-      await testSimpleInOut(vars.User, 'bigintAttr', '123', '123');
+      it('accepts numbers, bigints, strings', async () => {
+        await testSimpleInOut(vars.User, 'bigintAttr', 123, '123');
+        await testSimpleInOut(vars.User, 'bigintAttr', 123n, '123');
+        await testSimpleInOut(vars.User, 'bigintAttr', '123', '123');
 
-      await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_991n, '9007199254740991');
-    });
+        await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_991n, '9007199254740991');
+      });
 
-    // sqlite3 loses precision for bigints because it parses them as JS numbers.
-    // issue: https://github.com/TryGhost/node-sqlite3/issues/922
-    // better-sqlite3 supports it: https://github.com/sequelize/sequelize/issues/11400
-    if (dialect.name !== 'sqlite') {
       it('does not lose precision', async () => {
         await testSimpleInOut(vars.User, 'bigintAttr', 9_007_199_254_740_993n, '9007199254740993');
-        await testSimpleInOut(vars.User, 'bigintAttr', -9_007_199_254_740_993n, '-9007199254740993');
+        await testSimpleInOut(
+          vars.User,
+          'bigintAttr',
+          -9_007_199_254_740_993n,
+          '-9007199254740993',
+        );
         await testSimpleInOut(vars.User, 'bigintAttr', '9007199254740993', '9007199254740993');
         await testSimpleInOut(vars.User, 'bigintAttr', '-9007199254740993', '-9007199254740993');
       });
-    }
 
-    it('rejects unsafe integers', async () => {
-      await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
+      it('rejects unsafe integers', async () => {
+        await expect(vars.User.create({ bigintAttr: 9_007_199_254_740_992 })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: -9_007_199_254_740_992 })).to.be.rejected;
 
-      await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
-    });
-
-    it('rejects non-integer strings', async () => {
-      await expect(vars.User.create({ bigintAttr: '' })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: 'abc' })).to.be.rejected;
-      await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
-    });
-
-    if (dialect.name === 'sqlite') {
-      // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
-      // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
-      it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
-        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, 123);
+        await expect(vars.User.create({ bigintAttr: 123.4 })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: Number.NaN })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: Number.NEGATIVE_INFINITY })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: Number.POSITIVE_INFINITY })).to.be.rejected;
       });
-    } else {
-      // This is the desired behavior
+
+      it('rejects non-integer strings', async () => {
+        await expect(vars.User.create({ bigintAttr: '' })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: 'abc' })).to.be.rejected;
+        await expect(vars.User.create({ bigintAttr: '123.4' })).to.be.rejected;
+      });
+
       it('is deserialized as a string when DataType is not specified', async () => {
-        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, '123');
+        // oracle dialect returns BigInt as JS number by default in raw sql mode
+        // unless its overwritten by fetchTypeHandler.
+        const expected = dialect.name === 'oracle' ? 123 : '123';
+
+        await testSimpleInOutRaw(vars.User, 'bigintAttr', 123n, expected);
       });
-    }
 
-    if (dialect.supports.dataTypes.INTS.unsigned) {
-      describe(`BIGINT.UNSIGNED`, () => {
-        const vars2 = beforeAll2(async () => {
-          class User extends Model<InferAttributes<User>> {
-            declare intAttr: number | bigint | string;
-          }
+      if (dialect.supports.dataTypes.INTS.unsigned) {
+        describe(`BIGINT.UNSIGNED`, () => {
+          const vars2 = beforeAll2(async () => {
+            class User extends Model<InferAttributes<User>> {
+              declare intAttr: number | bigint | string;
+            }
 
-          User.init({
-            intAttr: {
-              type: DataTypes.BIGINT.UNSIGNED,
-              allowNull: false,
-            },
-          }, { sequelize });
+            User.init(
+              {
+                intAttr: {
+                  type: DataTypes.BIGINT.UNSIGNED,
+                  allowNull: false,
+                },
+              },
+              { sequelize },
+            );
 
-          await User.sync({ force: true });
+            await User.sync({ force: true });
 
-          return { User };
+            return { User };
+          });
+
+          it('rejects out-of-range numbers', async () => {
+            await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be
+              .rejected;
+            await expect(vars2.User.create({ intAttr: -1 })).to.be.rejected;
+          });
         });
-
-        it('rejects out-of-range numbers', async () => {
-          await expect(vars2.User.create({ intAttr: 18_446_744_073_709_551_615n + 1n })).to.be.rejected;
-          await expect(vars2.User.create({ intAttr: -1 })).to.be.rejected;
-        });
-      });
-    }
-  });
+      }
+    });
+  }
 
   for (const attrType of ['REAL', 'DOUBLE', 'FLOAT'] as const) {
     describe(`${attrType}`, () => {
+      allowDeprecationsInSuite(['SEQUELIZE0014']);
+
       const vars = beforeAll2(async () => {
         class User extends Model<InferAttributes<User>> {
           declare attr: number | bigint | string;
         }
 
-        User.init({
-          attr: {
-            type: DataTypes[attrType],
-            allowNull: false,
+        User.init(
+          {
+            attr: {
+              type: DataTypes[attrType],
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -738,8 +885,18 @@ describe('DataTypes', () => {
 
       if (dialect.supports.dataTypes[attrType].infinity) {
         it(`accepts +-Infinity`, async () => {
-          await testSimpleInOut(vars.User, 'attr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-          await testSimpleInOut(vars.User, 'attr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+          await testSimpleInOut(
+            vars.User,
+            'attr',
+            Number.POSITIVE_INFINITY,
+            Number.POSITIVE_INFINITY,
+          );
+          await testSimpleInOut(
+            vars.User,
+            'attr',
+            Number.NEGATIVE_INFINITY,
+            Number.NEGATIVE_INFINITY,
+          );
         });
       } else {
         it(`rejects +-Infinity`, async () => {
@@ -762,8 +919,18 @@ describe('DataTypes', () => {
         }
 
         if (dialect.supports.dataTypes[attrType].infinity) {
-          await testSimpleInOutRaw(vars.User, 'attr', Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
-          await testSimpleInOutRaw(vars.User, 'attr', Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+          await testSimpleInOutRaw(
+            vars.User,
+            'attr',
+            Number.POSITIVE_INFINITY,
+            Number.POSITIVE_INFINITY,
+          );
+          await testSimpleInOutRaw(
+            vars.User,
+            'attr',
+            Number.NEGATIVE_INFINITY,
+            Number.NEGATIVE_INFINITY,
+          );
         }
       });
     });
@@ -775,12 +942,15 @@ describe('DataTypes', () => {
           declare attr: number | bigint | string;
         }
 
-        User.init({
-          attr: {
-            type: DataTypes[attrType].UNSIGNED,
-            allowNull: false,
+        User.init(
+          {
+            attr: {
+              type: DataTypes[attrType].UNSIGNED,
+              allowNull: false,
+            },
           },
-        }, { sequelize });
+          { sequelize },
+        );
 
         await User.sync({ force: true });
 
@@ -824,12 +994,15 @@ describe('DataTypes', () => {
         declare decimalAttr: number | bigint | string;
       }
 
-      User.init({
-        decimalAttr: {
-          type: DataTypes.DECIMAL,
-          allowNull: false,
+      User.init(
+        {
+          decimalAttr: {
+            type: DataTypes.DECIMAL,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -864,9 +1037,11 @@ describe('DataTypes', () => {
       await expect(vars.User.create({ decimalAttr: 'abc' })).to.be.rejected;
     });
 
-    if (dialect.name === 'sqlite') {
+    if (dialect.name === 'sqlite3' || dialect.name === 'oracle') {
       // sqlite3 doesn't give us a way to do sql type-based parsing, *and* returns bigints as js numbers.
       // this behavior is undesired but is still tested against to ensure we update this test when this is finally fixed.
+      //
+      // Oracle returns the NUMBER column (internally used for DECIMAL ) type as js number for raw sql by default.
       it('is deserialized as a number when DataType is not specified (undesired sqlite limitation)', async () => {
         await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, 123);
       });
@@ -889,12 +1064,15 @@ describe('DataTypes', () => {
         declare decimalAttr: number | bigint | string;
       }
 
-      User.init({
-        decimalAttr: {
-          type: DataTypes.DECIMAL(18, 2),
-          allowNull: false,
+      User.init(
+        {
+          decimalAttr: {
+            type: DataTypes.DECIMAL(18, 2),
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -902,9 +1080,24 @@ describe('DataTypes', () => {
     });
 
     it('accepts numbers, bigints, strings', async () => {
-      await testSimpleInOut(vars.User, 'decimalAttr', 123.4, dialect.name === 'mssql' ? '123.4' : '123.40');
-      await testSimpleInOut(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
-      await testSimpleInOut(vars.User, 'decimalAttr', '123.4', dialect.name === 'mssql' ? '123.4' : '123.40');
+      await testSimpleInOut(
+        vars.User,
+        'decimalAttr',
+        123.4,
+        dialect.name === 'mssql' ? '123.4' : '123.40',
+      );
+      await testSimpleInOut(
+        vars.User,
+        'decimalAttr',
+        123n,
+        dialect.name === 'mssql' ? '123' : '123.00',
+      );
+      await testSimpleInOut(
+        vars.User,
+        'decimalAttr',
+        '123.4',
+        dialect.name === 'mssql' ? '123.4' : '123.40',
+      );
       await testSimpleInOut(vars.User, 'decimalAttr', '123.451', '123.45');
     });
 
@@ -927,10 +1120,25 @@ describe('DataTypes', () => {
 
       // This ensures the value is not accidentally parsed as a JS number.
       // 9007199254740993 is not representable as a JS number, and gets rounded to 9007199254740992
-      await testSimpleInOut(vars.User, 'decimalAttr', 9_007_199_254_740_993n, '9007199254740993.00');
-      await testSimpleInOut(vars.User, 'decimalAttr', -9_007_199_254_740_993n, '-9007199254740993.00');
+      await testSimpleInOut(
+        vars.User,
+        'decimalAttr',
+        9_007_199_254_740_993n,
+        '9007199254740993.00',
+      );
+      await testSimpleInOut(
+        vars.User,
+        'decimalAttr',
+        -9_007_199_254_740_993n,
+        '-9007199254740993.00',
+      );
       await testSimpleInOut(vars.User, 'decimalAttr', '9007199254740993.12', '9007199254740993.12');
-      await testSimpleInOut(vars.User, 'decimalAttr', '-9007199254740993.12', '-9007199254740993.12');
+      await testSimpleInOut(
+        vars.User,
+        'decimalAttr',
+        '-9007199254740993.12',
+        '-9007199254740993.12',
+      );
     });
 
     it('rejects unsafe integers', async () => {
@@ -946,7 +1154,12 @@ describe('DataTypes', () => {
     });
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'decimalAttr', 123n, dialect.name === 'mssql' ? '123' : '123.00');
+      await testSimpleInOutRaw(
+        vars.User,
+        'decimalAttr',
+        123n,
+        dialect.name === 'mssql' ? '123' : '123.00',
+      );
     });
   });
 
@@ -957,12 +1170,15 @@ describe('DataTypes', () => {
         declare decimalAttr: number | bigint | string;
       }
 
-      User.init({
-        decimalAttr: {
-          type: DataTypes.DECIMAL(10, 2).UNSIGNED,
-          allowNull: false,
+      User.init(
+        {
+          decimalAttr: {
+            type: DataTypes.DECIMAL(10, 2).UNSIGNED,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -980,12 +1196,15 @@ describe('DataTypes', () => {
         declare dateAttr: Date | string | number | Moment | dayjs.Dayjs;
       }
 
-      User.init({
-        dateAttr: {
-          type: DataTypes.DATE,
-          allowNull: false,
+      User.init(
+        {
+          dateAttr: {
+            type: DataTypes.DATE,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1028,11 +1247,16 @@ describe('DataTypes', () => {
         vars.User,
         'dateAttr',
         '2022-01-01T00:00:00Z',
-        dialect.name === 'mssql' ? '2022-01-01 00:00:00.000+00'
-          // sqlite decided to have a weird format that is not ISO 8601 compliant
-          : dialect.name === 'sqlite' ? '2022-01-01 00:00:00.000 +00:00'
-          : dialect.name === 'db2' ? '2022-01-01 00:00:00.000000+00'
-          : '2022-01-01 00:00:00+00',
+        dialect.name === 'mssql'
+          ? '2022-01-01 00:00:00.000+00'
+          : // sqlite decided to have a weird format that is not ISO 8601 compliant
+            dialect.name === 'sqlite3'
+            ? '2022-01-01 00:00:00.000 +00:00'
+            : dialect.name === 'db2'
+              ? '2022-01-01 00:00:00.000000+00'
+              : dialect.name === 'oracle'
+                ? new Date('2022-01-01T00:00:00Z') // For oracle, DATE columns are fetched as js dates for raw sql.
+                : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1045,20 +1269,23 @@ describe('DataTypes', () => {
         declare dateMaxPrecisionAttr: Date | string | null;
       }
 
-      User.init({
-        dateMinPrecisionAttr: {
-          type: DataTypes.DATE(0),
-          allowNull: true,
+      User.init(
+        {
+          dateMinPrecisionAttr: {
+            type: DataTypes.DATE(0),
+            allowNull: true,
+          },
+          dateTwoPrecisionAttr: {
+            type: DataTypes.DATE(2),
+            allowNull: true,
+          },
+          dateMaxPrecisionAttr: {
+            type: DataTypes.DATE(6),
+            allowNull: true,
+          },
         },
-        dateTwoPrecisionAttr: {
-          type: DataTypes.DATE(2),
-          allowNull: true,
-        },
-        dateMaxPrecisionAttr: {
-          type: DataTypes.DATE(6),
-          allowNull: true,
-        },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1066,21 +1293,46 @@ describe('DataTypes', () => {
     });
 
     it('clamps to specified precision', async () => {
-      // sqlite does not support restricting the precision
-      if (dialect.name !== 'sqlite') {
-        await testSimpleInOut(vars.User, 'dateMinPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.000Z'));
-        await testSimpleInOut(vars.User, 'dateTwoPrecisionAttr', '2022-01-01T12:13:14.123Z', new Date('2022-01-01T12:13:14.120Z'));
+      // sqlite and oracle do not support restricting the precision
+      if (dialect.name !== 'sqlite3' && dialect.name !== 'oracle') {
+        await testSimpleInOut(
+          vars.User,
+          'dateMinPrecisionAttr',
+          '2022-01-01T12:13:14.123Z',
+          new Date('2022-01-01T12:13:14.000Z'),
+        );
+        await testSimpleInOut(
+          vars.User,
+          'dateTwoPrecisionAttr',
+          '2022-01-01T12:13:14.123Z',
+          new Date('2022-01-01T12:13:14.120Z'),
+        );
 
         // Date is also used for inserting, so we also lose precision during insert.
         if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'db2') {
-          await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123000+00');
+          await testSimpleInOutRaw(
+            vars.User,
+            'dateMaxPrecisionAttr',
+            '2022-01-01T12:13:14.123456Z',
+            '2022-01-01 12:13:14.123000+00',
+          );
         } else {
-          await testSimpleInOutRaw(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', '2022-01-01 12:13:14.123+00');
+          await testSimpleInOutRaw(
+            vars.User,
+            'dateMaxPrecisionAttr',
+            '2022-01-01T12:13:14.123456Z',
+            '2022-01-01 12:13:14.123+00',
+          );
         }
       }
 
       // The Date object doesn't go further than milliseconds.
-      await testSimpleInOut(vars.User, 'dateMaxPrecisionAttr', '2022-01-01T12:13:14.123456Z', new Date('2022-01-01T12:13:14.123Z'));
+      await testSimpleInOut(
+        vars.User,
+        'dateMaxPrecisionAttr',
+        '2022-01-01T12:13:14.123456Z',
+        new Date('2022-01-01T12:13:14.123Z'),
+      );
     });
   });
 
@@ -1091,14 +1343,17 @@ describe('DataTypes', () => {
         declare id: CreationOptional<number>;
       }
 
-      User.init({
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
+      User.init(
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          dateAttr: DataTypes.DATEONLY,
         },
-        dateAttr: DataTypes.DATEONLY,
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1139,9 +1394,21 @@ describe('DataTypes', () => {
       }
     });
 
-    it(`is deserialized as a string when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
-    });
+    if (dialect.name === 'oracle') {
+      // Date columns are always fetched as js dates for raw sql.
+      it(`is deserialized as a date when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(
+          vars.User,
+          'dateAttr',
+          '2022-01-01',
+          new Date('2022-01-01T00:00:00.000Z'),
+        );
+      });
+    } else {
+      it(`is deserialized as a string when DataType is not specified`, async () => {
+        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', '2022-01-01');
+      });
+    }
   });
 
   describe('TIME(precision)', () => {
@@ -1164,11 +1431,14 @@ describe('DataTypes', () => {
         declare timeMaxPrecisionAttr: string | null;
       }
 
-      User.init({
-        timeMinPrecisionAttr: DataTypes.TIME(0),
-        timeTwoPrecisionAttr: DataTypes.TIME(2),
-        timeMaxPrecisionAttr: DataTypes.TIME(6),
-      }, { sequelize });
+      User.init(
+        {
+          timeMinPrecisionAttr: DataTypes.TIME(0),
+          timeTwoPrecisionAttr: DataTypes.TIME(2),
+          timeMaxPrecisionAttr: DataTypes.TIME(6),
+        },
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1176,21 +1446,38 @@ describe('DataTypes', () => {
     });
 
     it('accepts strings', async () => {
-      await testSimpleInOut(vars.User, 'timeMinPrecisionAttr', '04:05:06.123456',
-        dialect.name === 'mssql' ? '04:05:06.000'
-          // sqlite3 does not support restricting the precision of TIME
-          : dialect.name === 'sqlite' ? '04:05:06.123456'
-          : '04:05:06');
+      await testSimpleInOut(
+        vars.User,
+        'timeMinPrecisionAttr',
+        '04:05:06.123456',
+        dialect.name === 'mssql'
+          ? '04:05:06.000'
+          : // sqlite3 does not support restricting the precision of TIME
+            dialect.name === 'sqlite3'
+            ? '04:05:06.123456'
+            : '04:05:06',
+      );
 
-      await testSimpleInOut(vars.User, 'timeTwoPrecisionAttr', '04:05:06.123456',
-        dialect.name === 'mssql' ? '04:05:06.120'
-          // sqlite3 does not support restricting the precision of TIME
-          : dialect.name === 'sqlite' ? '04:05:06.123456'
-          : '04:05:06.12');
+      await testSimpleInOut(
+        vars.User,
+        'timeTwoPrecisionAttr',
+        '04:05:06.123456',
+        dialect.name === 'mssql'
+          ? '04:05:06.120'
+          : // sqlite3 does not support restricting the precision of TIME
+            dialect.name === 'sqlite3'
+            ? '04:05:06.123456'
+            : '04:05:06.12',
+      );
 
       // FIXME: Tedious loses precision because it pre-parses TIME as a JS Date object
       //  https://github.com/tediousjs/tedious/issues/678
-      await testSimpleInOut(vars.User, 'timeMaxPrecisionAttr', '04:05:06.123456', dialect.name === 'mssql' ? '04:05:06.123' : '04:05:06.123456');
+      await testSimpleInOut(
+        vars.User,
+        'timeMaxPrecisionAttr',
+        '04:05:06.123456',
+        dialect.name === 'mssql' ? '04:05:06.123' : '04:05:06.123456',
+      );
     });
   });
 
@@ -1200,12 +1487,15 @@ describe('DataTypes', () => {
         declare attr: string;
       }
 
-      User.init({
-        attr: {
-          type: DataTypes.UUID,
-          allowNull: false,
+      User.init(
+        {
+          attr: {
+            type: DataTypes.UUID,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1229,18 +1519,117 @@ describe('DataTypes', () => {
     });
   });
 
+  describe('UUID default values', () => {
+    beforeAll2(async () => {
+      if (dialect.name === 'postgres') {
+        await sequelize.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp"');
+      }
+    });
+
+    it('supports sql.uuidV1', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init(
+        {
+          attr: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: sql.uuidV1,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV1.asJavaScript', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init(
+        {
+          attr: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: sql.uuidV1.asJavaScript,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV4', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init(
+        {
+          attr: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: sql.uuidV4,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+
+    it('supports sql.uuidV4.asJavaScript', async () => {
+      class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+        declare attr: CreationOptional<string>;
+      }
+
+      User.init(
+        {
+          attr: {
+            type: DataTypes.UUID,
+            allowNull: false,
+            defaultValue: sql.uuidV4.asJavaScript,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      const user = await User.create({});
+      expect(user.attr).to.not.be.empty;
+    });
+  });
+
   describe('BLOB', () => {
     const vars = beforeAll2(async () => {
       class User extends Model<InferAttributes<User>> {
-        declare attr: ArrayBuffer | string | Blob;
+        declare attr: ArrayBuffer | string | Buffer | Uint8Array;
       }
 
-      User.init({
-        attr: {
-          type: DataTypes.BLOB,
-          allowNull: false,
+      User.init(
+        {
+          attr: {
+            type: DataTypes.BLOB,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1253,21 +1642,45 @@ describe('DataTypes', () => {
 
     it('accepts ArrayBuffers & Uint8Arrays', async () => {
       // Uint8Arrays
-      await testSimpleInOut(vars.User, 'attr', new Uint8Array([49, 50, 51, 52]), Buffer.from([49, 50, 51, 52]));
+      await testSimpleInOut(
+        vars.User,
+        'attr',
+        new Uint8Array([49, 50, 51, 52]),
+        Buffer.from([49, 50, 51, 52]),
+      );
       // ArrayBuffer
-      await testSimpleInOut(vars.User, 'attr', new Uint8Array([49, 50, 51, 52]).buffer, Buffer.from([49, 50, 51, 52]));
+      await testSimpleInOut(
+        vars.User,
+        'attr',
+        new Uint8Array([49, 50, 51, 52]).buffer,
+        Buffer.from([49, 50, 51, 52]),
+      );
     });
 
     // Node 14 doesn't support Blob
     if (Blob) {
       it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
-        await expect(vars.User.create({
-          attr: new Blob(['abcd']),
-        })).to.be.rejectedWith(ValidationError, 'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.');
+        await expect(
+          vars.User.create({
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
+            // @ts-ignore -- intentionally testing invalid input
+            attr: new Blob(['abcd']),
+          }),
+        ).to.be.rejectedWith(
+          ValidationError,
+          'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.',
+        );
 
-        await expect(vars.User.create({
-          attr: new Uint16Array([49, 50, 51, 52]),
-        })).to.be.rejectedWith(ValidationError, 'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.');
+        await expect(
+          vars.User.create({
+            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
+            // @ts-ignore -- intentionally testing invalid input
+            attr: new Uint16Array([49, 50, 51, 52]),
+          }),
+        ).to.be.rejectedWith(
+          ValidationError,
+          'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.',
+        );
       });
     }
 
@@ -1276,13 +1689,28 @@ describe('DataTypes', () => {
     });
 
     it(`is deserialized as a Buffer when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'attr', new Uint8Array([49, 50, 51, 52]), Buffer.from([49, 50, 51, 52]));
+      await testSimpleInOutRaw(
+        vars.User,
+        'attr',
+        new Uint8Array([49, 50, 51, 52]),
+        Buffer.from([49, 50, 51, 52]),
+      );
     });
   });
 
   for (const jsonTypeName of ['JSON', 'JSONB'] as const) {
     const JsonType = DataTypes[jsonTypeName];
     describe(`DataTypes.${jsonTypeName}`, () => {
+      if (dialect.name === 'oracle') {
+        before(async function checkOracleVersionForJSONSupport(this: Mocha.Context) {
+          return (async () => {
+            if (!(await isOracleJSONConstraintsSupported())) {
+              this.skip();
+            }
+          })();
+        });
+      }
+
       if (!dialect.supports.dataTypes[jsonTypeName]) {
         it('throws, as it is not supported', async () => {
           expect(() => {
@@ -1305,38 +1733,41 @@ describe('DataTypes', () => {
           declare jsonNull: any;
         }
 
-        User.init({
-          // test default values are properly serialized
-          jsonStr: {
-            type: JsonType,
-            allowNull: false,
-            defaultValue: 'abc',
+        User.init(
+          {
+            // test default values are properly serialized
+            jsonStr: {
+              type: JsonType,
+              allowNull: false,
+              defaultValue: 'abc',
+            },
+            jsonBoolean: {
+              type: JsonType,
+              allowNull: false,
+              defaultValue: true,
+            },
+            jsonNumber: {
+              type: JsonType,
+              allowNull: false,
+              defaultValue: 1,
+            },
+            jsonArray: {
+              type: JsonType,
+              allowNull: false,
+              defaultValue: ['a', 'b'],
+            },
+            jsonObject: {
+              type: JsonType,
+              allowNull: false,
+              defaultValue: { key: 'abc' },
+            },
+            jsonNull: {
+              type: JsonType,
+              allowNull: true,
+            },
           },
-          jsonBoolean: {
-            type: JsonType,
-            allowNull: false,
-            defaultValue: true,
-          },
-          jsonNumber: {
-            type: JsonType,
-            allowNull: false,
-            defaultValue: 1,
-          },
-          jsonArray: {
-            type: JsonType,
-            allowNull: false,
-            defaultValue: ['a', 'b'],
-          },
-          jsonObject: {
-            type: JsonType,
-            allowNull: false,
-            defaultValue: { key: 'abc' },
-          },
-          jsonNull: {
-            type: JsonType,
-            allowNull: true,
-          },
-        }, { sequelize, timestamps: false });
+          { sequelize, timestamps: false },
+        );
 
         await User.sync({ force: true });
 
@@ -1350,12 +1781,15 @@ describe('DataTypes', () => {
           case 'mssql':
             expect(table.jsonStr.type).to.equal('NVARCHAR(MAX)');
             break;
-          case 'sqlite':
+          case 'sqlite3':
             expect(table.jsonStr.type).to.equal('TEXT');
             break;
           case 'mariadb':
             // TODO: expected for mariadb 10.4 : https://jira.mariadb.org/browse/MDEV-15558
             expect(table.jsonStr.type).to.equal('LONGTEXT');
+            break;
+          case 'oracle':
+            expect(table.jsonStr.type).to.equal('BLOB');
             break;
           default:
             expect(table.jsonStr.type).to.equal(jsonTypeName);
@@ -1390,8 +1824,11 @@ describe('DataTypes', () => {
       // - MariaDB 10.5 says it's a JSON col, on which we enabled automatic JSON parsing.
       // - MariaDB 10.4 says it's a string, so we can't parse it based on the type.
       // TODO [2024-06-18]: Re-enable this test when we drop support for MariaDB < 10.5
-      if (dialect.name !== 'mariadb') {
-        if (dialect.name === 'mssql' || dialect.name === 'sqlite') {
+      //
+      // Oracle JSON is BLOB column and it returns Buffer for raw sql.
+      // When native JSON support is added, this can be removed.
+      if (dialect.name !== 'mariadb' && dialect.name !== 'oracle') {
+        if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
           // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
           it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
@@ -1437,12 +1874,15 @@ describe('DataTypes', () => {
         declare attr: Record<string, string> | string;
       }
 
-      User.init({
-        attr: {
-          type: DataTypes.HSTORE,
-          allowNull: false,
+      User.init(
+        {
+          attr: {
+            type: DataTypes.HSTORE,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1460,10 +1900,12 @@ describe('DataTypes', () => {
     });
 
     it('rejects hstores that contain non-string values', async () => {
-      await expect(vars.User.create({
-        // @ts-expect-error -- key2 cannot be an int in a hstore.
-        attr: { key1: 'value1', key2: 1 },
-      })).to.be.rejected;
+      await expect(
+        vars.User.create({
+          // @ts-expect-error -- key2 cannot be an int in a hstore.
+          attr: { key1: 'value1', key2: 1 },
+        }),
+      ).to.be.rejected;
     });
   });
 
@@ -1491,15 +1933,18 @@ describe('DataTypes', () => {
         declare arrayOfArrayOfStrings: string[][];
       }
 
-      User.init({
-        enumArray: DataTypes.ARRAY(DataTypes.ENUM(Object.values(TestEnum))),
-        intArray: DataTypes.ARRAY(DataTypes.INTEGER),
-        bigintArray: DataTypes.ARRAY(DataTypes.BIGINT),
-        booleanArray: DataTypes.ARRAY(DataTypes.BOOLEAN),
-        dateArray: DataTypes.ARRAY(DataTypes.DATE),
-        stringArray: DataTypes.ARRAY(DataTypes.TEXT),
-        arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)),
-      }, { sequelize });
+      User.init(
+        {
+          enumArray: DataTypes.ARRAY(DataTypes.ENUM(Object.values(TestEnum))),
+          intArray: DataTypes.ARRAY(DataTypes.INTEGER),
+          bigintArray: DataTypes.ARRAY(DataTypes.BIGINT),
+          booleanArray: DataTypes.ARRAY(DataTypes.BOOLEAN),
+          dateArray: DataTypes.ARRAY(DataTypes.DATE),
+          stringArray: DataTypes.ARRAY(DataTypes.TEXT),
+          arrayOfArrayOfStrings: DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.TEXT)),
+        },
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1507,30 +1952,74 @@ describe('DataTypes', () => {
     });
 
     it('serialize/deserializes arrays', async () => {
-      await testSimpleInOut(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
+      await testSimpleInOut(
+        vars.User,
+        'enumArray',
+        [TestEnum.A, TestEnum.B, TestEnum['D,E']],
+        [TestEnum.A, TestEnum.B, TestEnum['D,E']],
+      );
       await testSimpleInOut(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
       await testSimpleInOut(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
       await testSimpleInOut(vars.User, 'booleanArray', [true, false], [true, false]);
-      await testSimpleInOut(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], [new Date('2022-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')]);
+      await testSimpleInOut(
+        vars.User,
+        'dateArray',
+        ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')],
+        [new Date('2022-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')],
+      );
       await testSimpleInOut(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
-      await testSimpleInOut(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      await testSimpleInOut(
+        vars.User,
+        'arrayOfArrayOfStrings',
+        [
+          ['a', 'b,c'],
+          ['c', 'd'],
+        ],
+        [
+          ['a', 'b,c'],
+          ['c', 'd'],
+        ],
+      );
     });
 
     it(`is deserialized as a parsed array when DataType is not specified`, async () => {
-      await testSimpleInOutRaw(vars.User, 'enumArray', [TestEnum.A, TestEnum.B, TestEnum['D,E']], [TestEnum.A, TestEnum.B, TestEnum['D,E']]);
+      await testSimpleInOutRaw(
+        vars.User,
+        'enumArray',
+        [TestEnum.A, TestEnum.B, TestEnum['D,E']],
+        [TestEnum.A, TestEnum.B, TestEnum['D,E']],
+      );
       await testSimpleInOutRaw(vars.User, 'intArray', [1n, 2, '3'], [1, 2, 3]);
       await testSimpleInOutRaw(vars.User, 'bigintArray', [1n, 2, '3'], ['1', '2', '3']);
       await testSimpleInOutRaw(vars.User, 'booleanArray', [true, false], [true, false]);
-      await testSimpleInOutRaw(vars.User, 'dateArray', ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')], ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00']);
+      await testSimpleInOutRaw(
+        vars.User,
+        'dateArray',
+        ['2022-01-01T00:00:00Z', new Date('2022-01-01T00:00:00Z')],
+        ['2022-01-01 00:00:00+00', '2022-01-01 00:00:00+00'],
+      );
       await testSimpleInOutRaw(vars.User, 'stringArray', ['a,b,c', 'd,e,f'], ['a,b,c', 'd,e,f']);
-      await testSimpleInOutRaw(vars.User, 'arrayOfArrayOfStrings', [['a', 'b,c'], ['c', 'd']], [['a', 'b,c'], ['c', 'd']]);
+      await testSimpleInOutRaw(
+        vars.User,
+        'arrayOfArrayOfStrings',
+        [
+          ['a', 'b,c'],
+          ['c', 'd'],
+        ],
+        [
+          ['a', 'b,c'],
+          ['c', 'd'],
+        ],
+      );
     });
 
     it('rejects non-array values', async () => {
-      await expect(vars.User.create({
-        // @ts-expect-error -- we're voluntarily going against the typing to test that it fails.
-        booleanArray: 1,
-      })).to.be.rejected;
+      await expect(
+        vars.User.create({
+          // @ts-expect-error -- we're voluntarily going against the typing to test that it fails.
+          booleanArray: 1,
+        }),
+      ).to.be.rejected;
     });
   });
 
@@ -1552,12 +2041,15 @@ describe('DataTypes', () => {
         declare attr: string;
       }
 
-      User.init({
-        attr: {
-          type: DataTypes.CIDR,
-          allowNull: false,
+      User.init(
+        {
+          attr: {
+            type: DataTypes.CIDR,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1591,12 +2083,15 @@ describe('DataTypes', () => {
         declare attr: string;
       }
 
-      User.init({
-        attr: {
-          type: DataTypes.INET,
-          allowNull: false,
+      User.init(
+        {
+          attr: {
+            type: DataTypes.INET,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1630,12 +2125,15 @@ describe('DataTypes', () => {
         declare attr: string;
       }
 
-      User.init({
-        attr: {
-          type: DataTypes.MACADDR,
-          allowNull: false,
+      User.init(
+        {
+          attr: {
+            type: DataTypes.MACADDR,
+            allowNull: false,
+          },
         },
-      }, { sequelize });
+        { sequelize },
+      );
 
       await User.sync({ force: true });
 
@@ -1648,6 +2146,58 @@ describe('DataTypes', () => {
 
     it(`is deserialized as a string when DataType is not specified`, async () => {
       await testSimpleInOutRaw(vars.User, 'attr', '01:23:45:67:89:ab', '01:23:45:67:89:ab');
+    });
+  });
+
+  describe('MACADDR8', () => {
+    if (!dialect.supports.dataTypes.MACADDR8) {
+      it('throws, as it is not supported', async () => {
+        expect(() => {
+          sequelize.define('User', {
+            attr: DataTypes.MACADDR8,
+          });
+        }).to.throwWithCause(`${dialect.name} does not support the MACADDR8 data type.`);
+      });
+
+      return;
+    }
+
+    const vars = beforeAll2(async () => {
+      class User extends Model<InferAttributes<User>> {
+        declare attr: string;
+      }
+
+      User.init(
+        {
+          attr: {
+            type: DataTypes.MACADDR8,
+            allowNull: false,
+          },
+        },
+        { sequelize },
+      );
+
+      await User.sync({ force: true });
+
+      return { User };
+    });
+
+    it('accepts strings', async () => {
+      await testSimpleInOut(
+        vars.User,
+        'attr',
+        '01:23:45:67:89:ab:cd:ef',
+        '01:23:45:67:89:ab:cd:ef',
+      );
+    });
+
+    it(`is deserialized as a string when DataType is not specified`, async () => {
+      await testSimpleInOutRaw(
+        vars.User,
+        'attr',
+        '01:23:45:67:89:ab:cd:ef',
+        '01:23:45:67:89:ab:cd:ef',
+      );
     });
   });
 });
@@ -1683,13 +2233,46 @@ export async function testSimpleInOutRaw<M extends Model, Key extends keyof Crea
 
   const quotedTableName = model.queryGenerator.quoteIdentifier(model.tableName);
   const quotedId = model.queryGenerator.quoteIdentifier('id');
-  const fetchedUser = await model.sequelize.query<any>(`SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`, {
-    type: QueryTypes.SELECT,
-    replacements: {
-      // @ts-expect-error -- it's not worth it to type .id for these internal tests.
-      id: createdUser.id,
+  const fetchedUser = await model.sequelize.query<any>(
+    `SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`,
+    {
+      type: QueryTypes.SELECT,
+      replacements: {
+        // @ts-expect-error -- it's not worth it to type .id for these internal tests.
+        id: createdUser.id,
+      },
     },
-  });
+  );
 
   expect(fetchedUser[0][attributeName]).to.deep.eq(outVal, message);
+}
+
+/*
+ * Oracle stores the input string in its internal representation based on the charset encoding.
+ * The RAW column is fetched as Buffer by default.
+ * This function fetches the RAW bytes stored in the database for verification against the input string.
+ */
+async function getRawBytesForOracle<M extends Model, Key extends keyof CreationAttributes<M>>(
+  model: ModelStatic<M>,
+  attributeName: Key,
+  inVal: CreationAttributes<M>[Key],
+): Promise<Buffer> {
+  // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
+  const createdUser = await model.create({ [attributeName]: inVal });
+
+  const quotedTableName = model.queryGenerator.quoteIdentifier(model.tableName);
+  const quotedId = model.queryGenerator.quoteIdentifier('id');
+  const fetchedUser = await model.sequelize.query<any>(
+    `SELECT * FROM ${quotedTableName} WHERE ${quotedId} = :id`,
+    {
+      type: QueryTypes.SELECT,
+      replacements: {
+        // @ts-expect-error -- it's not worth it to type .id for these internal tests.
+        id: createdUser.id,
+      },
+    },
+  );
+
+  // Return the RAW bytes stored for the specified attribute
+  return fetchedUser[0][attributeName];
 }

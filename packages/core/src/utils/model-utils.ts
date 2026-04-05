@@ -1,4 +1,8 @@
+import { isString } from '@sequelize/utils';
+import type { TableOrModel } from '../abstract-dialect/query-generator.types.js';
+import type { TableNameWithSchema } from '../abstract-dialect/query-interface.js';
 import type { Model, ModelStatic } from '../model';
+import { ModelDefinition } from '../model-definition.js';
 
 /**
  * Returns true if the value is a model subclass.
@@ -25,6 +29,25 @@ export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> 
  * @param b
  */
 export function isSameInitialModel(a: ModelStatic<any>, b: ModelStatic<any>): boolean {
-  return isModelStatic(a) && isModelStatic(b)
-    && (a.getInitialModel() === b.getInitialModel());
+  return isModelStatic(a) && isModelStatic(b) && a.getInitialModel() === b.getInitialModel();
+}
+
+export function extractModelDefinition(tableOrModel: TableOrModel): ModelDefinition | null {
+  if (tableOrModel instanceof ModelDefinition) {
+    return tableOrModel;
+  }
+
+  if (isModelStatic(tableOrModel)) {
+    return tableOrModel.modelDefinition;
+  }
+
+  return null;
+}
+
+export function extractTableIdentifier(tableOrModel: TableOrModel): TableNameWithSchema {
+  if (isString(tableOrModel)) {
+    return { tableName: tableOrModel };
+  }
+
+  return extractModelDefinition(tableOrModel)?.table ?? (tableOrModel as TableNameWithSchema);
 }

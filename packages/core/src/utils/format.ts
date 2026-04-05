@@ -1,15 +1,15 @@
-import assert from 'node:assert';
 import forIn from 'lodash/forIn';
+import assert from 'node:assert';
 import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
 
 export type FinderOptions<TAttributes> = {
-  attributes?: string[],
-  where?: WhereOptions<TAttributes>,
+  attributes?: string[];
+  where?: WhereOptions<TAttributes>;
 };
 
 export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 'attributes'> & {
   // an array of attribute-column mapping, or just attributes
-  attributes?: Array<[columnName: string, attributeName: string] | string>,
+  attributes?: Array<[columnName: string, attributeName: string] | string>;
 };
 
 /**
@@ -24,9 +24,7 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
   Model: ModelStatic<M>,
 ): MappedFinderOptions<Attributes<M>> {
   if (Array.isArray(options.attributes)) {
-    options.attributes = Model._injectDependentVirtualAttributes(
-      options.attributes,
-    );
+    options.attributes = Model._injectDependentVirtualAttributes(options.attributes);
 
     const modelDefinition = Model.modelDefinition;
     options.attributes = options.attributes.filter(
@@ -53,7 +51,6 @@ export function mapOptionFieldNames<M extends Model>(
   options: FinderOptions<Attributes<M>>,
   Model: ModelStatic,
 ): MappedFinderOptions<Attributes<M>> {
-
   // note: parts of Sequelize rely on this function mutating its inputs.
   //  be aware that these places need to be fixed before trying to make this a pure function.
   //  - ephys
@@ -96,7 +93,10 @@ export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames
   const modelDefinition = ModelClass.modelDefinition;
 
   for (const attributeName of attributeNames) {
-    if (dataValues[attributeName] !== undefined && !modelDefinition.virtualAttributeNames.has(attributeName)) {
+    if (
+      dataValues[attributeName] !== undefined &&
+      !modelDefinition.virtualAttributeNames.has(attributeName)
+    ) {
       // Field name mapping
       const columnName = modelDefinition.getColumnNameLoose(attributeName);
 
@@ -133,11 +133,7 @@ export function removeNullishValuesFromHash(
   const _hash: { [key: string]: any } = Object.create(null);
 
   forIn(hash, (val: any, key: string) => {
-    if (
-      allowNull.includes(key)
-        || key.endsWith('Id')
-        || val !== null && val !== undefined
-    ) {
+    if (allowNull.includes(key) || key.endsWith('Id') || (val !== null && val !== undefined)) {
       _hash[key] = val;
     }
   });
@@ -156,5 +152,8 @@ export function getColumnName(attribute: NormalizedAttributeOptions): string {
 }
 
 export function getAttributeName(model: ModelStatic, columnName: string): string | null {
-  return Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)?.fieldName ?? null;
+  return (
+    Object.values(model.getAttributes()).find(attribute => attribute.field === columnName)
+      ?.fieldName ?? null
+  );
 }

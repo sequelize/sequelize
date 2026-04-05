@@ -1,6 +1,7 @@
 import isEmpty from 'lodash/isEmpty.js';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import * as DataTypes from '../data-types';
-import type { DataType } from '../dialects/abstract/data-types.js';
+import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { getOperators } from './where.js';
 
 /**
@@ -8,11 +9,16 @@ import { getOperators } from './where.js';
  * in a db schema using the DEFAULT directive.
  *
  * @param value Any default value.
+ * @param dialect
  * @private
  */
-export function defaultValueSchemable(value: DataType): boolean {
+export function defaultValueSchemable(value: unknown, dialect: AbstractDialect): boolean {
   if (value === undefined) {
     return false;
+  }
+
+  if (value instanceof DialectAwareFn) {
+    return value.supportsDialect(dialect);
   }
 
   // TODO this will be schemable when all supported db

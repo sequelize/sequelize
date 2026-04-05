@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../support';
 
 const queryInterface = sequelize.queryInterface;
@@ -36,17 +36,20 @@ describe('QueryInterface#tableExists', () => {
       beforeEach(async () => {
         await queryInterface.createSchema('archive');
 
-        await queryInterface.createTable({ tableName: 'levels', schema: 'archive' }, {
-          id: {
-            type: DataTypes.INTEGER,
-            primaryKey: true,
-            autoIncrement: true,
+        await queryInterface.createTable(
+          { tableName: 'levels', schema: 'archive' },
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: {
+              type: DataTypes.STRING,
+              allowNull: false,
+            },
           },
-          name: {
-            type: DataTypes.STRING,
-            allowNull: false,
-          },
-        });
+        );
       });
 
       it('should return true if table exists', async () => {

@@ -1,27 +1,29 @@
-import { Multimap } from './utils/multimap.js';
-import type { AllowArray, Nullish } from './utils/types.js';
+import type { AllowArray, Nullish } from '@sequelize/utils';
+import { MultiMap } from '@sequelize/utils';
 
 export type AsyncHookReturn = Promise<void> | void;
 
-type HookParameters<Hook> = Hook extends (...args2: any) => any
-  ? Parameters<Hook>
-  : never;
+type HookParameters<Hook> = Hook extends (...args2: any) => any ? Parameters<Hook> : never;
 
 type OnRunHook<HookConfig extends {}> = <HookName extends keyof HookConfig>(
   eventTarget: object,
   isAsync: boolean,
   hookName: HookName,
-  args: HookParameters<HookConfig[HookName]>
+  args: HookParameters<HookConfig[HookName]>,
 ) => AsyncHookReturn;
 
 /**
  * @private
  */
 export class HookHandler<HookConfig extends {}> {
-  #validHookNames: Array<keyof HookConfig>;
-  #eventTarget: object;
-  #listeners = new Multimap<PropertyKey, { listenerName: Nullish<string>, callback: HookConfig[keyof HookConfig] }>();
-  #onRunHook: OnRunHook<HookConfig> | undefined;
+  readonly #validHookNames: Array<keyof HookConfig>;
+  readonly #eventTarget: object;
+  readonly #listeners = new MultiMap<
+    PropertyKey,
+    { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] }
+  >();
+
+  readonly #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(
     eventTarget: object,
@@ -42,13 +44,13 @@ export class HookHandler<HookConfig extends {}> {
     if (typeof listenerOrListenerName === 'string') {
       const listener = this.#getNamedListener(hookName, listenerOrListenerName);
       if (listener) {
-        this.#listeners.delete(hookName, listener);
+        this.#listeners.deleteValue(hookName, listener);
       }
     } else {
-      const listeners = this.#listeners.getAll(hookName);
+      const listeners = this.#listeners.get(hookName);
       for (const listener of listeners) {
         if (listener.callback === listenerOrListenerName) {
-          this.#listeners.delete(hookName, listener);
+          this.#listeners.deleteValue(hookName, listener);
         }
       }
     }
@@ -61,8 +63,8 @@ export class HookHandler<HookConfig extends {}> {
   #getNamedListener<HookName extends keyof HookConfig>(
     hookName: HookName,
     listenerName: string,
-  ): { listenerName: Nullish<string>, callback: HookConfig[keyof HookConfig] } | null {
-    const listeners = this.#listeners.getAll(hookName);
+  ): { listenerName: string | Nullish; callback: HookConfig[keyof HookConfig] } | null {
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       if (listener.listenerName === listenerName) {
         return listener;
@@ -92,13 +94,15 @@ export class HookHandler<HookConfig extends {}> {
   ): void {
     this.#assertValidHookName(hookName);
 
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
       const out = listener.callback(...args);
 
       if (out && 'then' in out) {
-        throw new Error(`${listener.listenerName ? `Listener ${listener.listenerName}` : `An unnamed listener`} of hook ${String(hookName)} on ${getName(this.#eventTarget)} returned a Promise, but the hook is synchronous.`);
+        throw new Error(
+          `${listener.listenerName ? `Listener ${listener.listenerName}` : `An unnamed listener`} of hook ${String(hookName)} on ${getName(this.#eventTarget)} returned a Promise, but the hook is synchronous.`,
+        );
       }
     }
 
@@ -115,7 +119,7 @@ export class HookHandler<HookConfig extends {}> {
   ): Promise<void> {
     this.#assertValidHookName(hookName);
 
-    const listeners = this.#listeners.getAll(hookName);
+    const listeners = this.#listeners.get(hookName);
     for (const listener of listeners) {
       /* eslint-disable no-await-in-loop */
       // @ts-expect-error -- callback can by any hook type (due to coming from the map), args is the args of a specific hook. Too hard to type properly.
@@ -148,7 +152,9 @@ export class HookHandler<HookConfig extends {}> {
       const existingListener = this.#getNamedListener(hookName, listenerName);
 
       if (existingListener) {
-        throw new Error(`Named listener ${listenerName} already exists for hook ${String(hookName)} on ${getName(this.#eventTarget)}.`);
+        throw new Error(
+          `Named listener ${listenerName} already exists for hook ${String(hookName)} on ${getName(this.#eventTarget)}.`,
+        );
       }
     }
 
@@ -160,7 +166,9 @@ export class HookHandler<HookConfig extends {}> {
   }
 
   addListeners(listeners: {
-    [Key in keyof HookConfig]?: AllowArray<HookConfig[Key] | { name: string | symbol, callback: HookConfig[Key] }>
+    [Key in keyof HookConfig]?: AllowArray<
+      HookConfig[Key] | { name: string | symbol; callback: HookConfig[Key] }
+    >;
   }) {
     for (const hookName of this.#validHookNames) {
       const hookListeners = listeners[hookName];
@@ -181,15 +189,17 @@ export class HookHandler<HookConfig extends {}> {
 
   #assertValidHookName(hookName: any) {
     if (!this.#validHookNames.includes(hookName)) {
-      throw new Error(`Target ${getName(this.#eventTarget)} does not support a hook named "${String(hookName)}".`);
+      throw new Error(
+        `Target ${getName(this.#eventTarget)} does not support a hook named "${String(hookName)}".`,
+      );
     }
   }
 }
 
 export class HookHandlerBuilder<HookConfig extends {}> {
-  #validHookNames: Array<keyof HookConfig>;
-  #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
-  #onRunHook: OnRunHook<HookConfig> | undefined;
+  readonly #validHookNames: Array<keyof HookConfig>;
+  readonly #hookHandlers = new WeakMap<object, HookHandler<HookConfig>>();
+  readonly #onRunHook: OnRunHook<HookConfig> | undefined;
 
   constructor(validHookNames: Array<keyof HookConfig>, onRunHook?: OnRunHook<HookConfig>) {
     this.#validHookNames = validHookNames;
@@ -213,4 +223,36 @@ function getName(obj: object) {
   }
 
   return `[instance ${obj.constructor.name}]`;
+}
+
+export interface NewHookable<HookNames extends string> {
+  /**
+   * Controls which hooks should be run.
+   *
+   * Possible values:
+   * - false: All hooks will be run. (default)
+   * - true: No hooks will be run.
+   * - An array of strings: The hooks listed in the array will not be run.
+   * - An object with the "except" property: Only the hooks listed in the array will be run.
+   */
+  noHooks?: boolean | undefined | readonly HookNames[] | { except: readonly HookNames[] };
+}
+
+export function mayRunHook<HookName extends string>(
+  hookName: HookName,
+  noHooksConfig: NewHookable<HookName>['noHooks'],
+): boolean {
+  if (!noHooksConfig) {
+    return true;
+  }
+
+  if (noHooksConfig === true) {
+    return false;
+  }
+
+  if ('except' in noHooksConfig) {
+    return noHooksConfig.except.includes(hookName);
+  }
+
+  return !noHooksConfig.includes(hookName);
 }

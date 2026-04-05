@@ -1,5 +1,8 @@
-import { expect } from 'chai';
 import { DataTypes } from '@sequelize/core';
+import type { MsSqlDialect } from '@sequelize/mssql';
+import type { PostgresDialect } from '@sequelize/postgres';
+import type { SnowflakeDialect } from '@sequelize/snowflake';
+import { expect } from 'chai';
 import { createSequelizeInstance, sequelize } from '../support';
 
 const dialectName = sequelize.dialect.name;
@@ -19,25 +22,47 @@ describe('QueryInterface#listTables', () => {
     it('should not contain views', async () => {
       async function cleanup() {
         if (dialectName === 'db2') {
-        // DB2 does not support DROP VIEW IF EXISTS
+          // DB2 does not support DROP VIEW IF EXISTS
           try {
             await sequelize.queryRaw('DROP VIEW V_Fail;');
           } catch (error) {
-          // -204 means V_Fail does not exist
-          // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
-          // @ts-expect-error -- TODO: type error
+            // -204 means V_Fail does not exist
+            // https://www.ibm.com/docs/en/db2-for-zos/11?topic=sec-204
+            // @ts-expect-error -- TODO: type error
             if (error.cause.sqlcode !== -204) {
               throw error;
             }
           }
+        } else if (dialectName === 'oracle') {
+          const plsql = [
+            'BEGIN',
+            'EXECUTE IMMEDIATE',
+            "'DROP VIEW V_Fail';",
+            'EXCEPTION WHEN OTHERS THEN',
+            '  IF SQLCODE != -942 THEN',
+            '    RAISE;',
+            '  END IF;',
+            'END;',
+          ].join(' ');
+          await sequelize.query(plsql);
         } else {
           await sequelize.queryRaw('DROP VIEW IF EXISTS V_Fail;');
         }
       }
 
+      const fromQuery = () => {
+        if (['db2', 'ibmi'].includes(dialectName)) {
+          return 'FROM SYSIBM.SYSDUMMY1';
+        } else if (dialectName === 'oracle') {
+          return 'FROM DUAL';
+        }
+
+        return '';
+      };
+
       await queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup();
-      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id${['db2', 'ibmi'].includes(dialectName) ? ' FROM SYSIBM.SYSDUMMY1' : ''};`;
+      const sql = `CREATE VIEW V_Fail AS SELECT 1 Id ${fromQuery()};`;
       await sequelize.queryRaw(sql);
       const allTables = await queryInterface.listTables();
       const tableNames = allTables.map(v => v.tableName);
@@ -51,7 +76,9 @@ describe('QueryInterface#listTables', () => {
         await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await queryInterface.createDatabase('dummy_db');
 
-        const testSequelize = createSequelizeInstance({ database: 'dummy_db' });
+        const testSequelize = createSequelizeInstance<
+          PostgresDialect | MsSqlDialect | SnowflakeDialect
+        >({ database: 'dummy_db' });
         await testSequelize.queryInterface.createTable('my_test_table2', { id: DataTypes.INTEGER });
         await testSequelize.close();
 
@@ -68,7 +95,10 @@ describe('QueryInterface#listTables', () => {
         await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         // In MariaDB and MySQL, schema and database are the same thing
         await queryInterface.createSchema('dummy_db');
-        await queryInterface.createTable({ tableName: 'my_test_table2', schema: 'dummy_db' }, { name: DataTypes.STRING });
+        await queryInterface.createTable(
+          { tableName: 'my_test_table2', schema: 'dummy_db' },
+          { name: DataTypes.STRING },
+        );
         const allTables = await queryInterface.listTables();
 
         expect(allTables).to.deep.equal([
@@ -84,8 +114,14 @@ describe('QueryInterface#listTables', () => {
       it('should show all tables in the specified schema', async () => {
         await queryInterface.createTable('my_test_table1', { name: DataTypes.STRING });
         await queryInterface.createSchema('my_test_schema');
-        await queryInterface.createTable({ tableName: 'my_test_table2', schema: 'my_test_schema' }, { name: DataTypes.STRING });
-        await queryInterface.createTable({ tableName: 'my_test_table3', schema: 'my_test_schema' }, { name: DataTypes.STRING });
+        await queryInterface.createTable(
+          { tableName: 'my_test_table2', schema: 'my_test_schema' },
+          { name: DataTypes.STRING },
+        );
+        await queryInterface.createTable(
+          { tableName: 'my_test_table3', schema: 'my_test_schema' },
+          { name: DataTypes.STRING },
+        );
         const allTables = await queryInterface.listTables({ schema: 'my_test_schema' });
 
         expect(allTables).to.deep.equal([

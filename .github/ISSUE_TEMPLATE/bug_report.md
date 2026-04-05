@@ -1,9 +1,10 @@
 ---
 name: 🐛 Bug report
 about: Create a bug report to help us improve
-title: ""
-labels: ["type: bug", "pending-approval"]
-assignees: ""
+title: ''
+labels: ['pending-approval']
+type: Bug
+assignees: ''
 ---
 
 <!--
@@ -83,4 +84,4 @@ To find the version numbers for the three systems below use the following comman
 
 <!-- do not delete this footer -->
 
-*Indicate your interest in the resolution of this issue by adding the 👍 reaction. Comments such as "+1" will be removed.*
+_Indicate your interest in the resolution of this issue by adding the 👍 reaction. Comments such as "+1" will be removed._

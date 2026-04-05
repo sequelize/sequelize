@@ -1,5 +1,5 @@
-import { expect } from 'chai';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
@@ -16,7 +16,8 @@ describe('DataTypes.DATE', () => {
       postgres: 'TIMESTAMP WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET',
       'mariadb mysql': 'DATETIME',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
+      oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
     });
 
     testDataTypeSql('DATE(0)', DataTypes.DATE(0), {
@@ -24,7 +25,8 @@ describe('DataTypes.DATE', () => {
       mssql: 'DATETIMEOFFSET(0)',
       'mariadb mysql': 'DATETIME(0)',
       'db2 ibmi snowflake': 'TIMESTAMP(0)',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
+      oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
     });
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
@@ -33,7 +35,8 @@ describe('DataTypes.DATE', () => {
       mssql: 'DATETIMEOFFSET(6)',
       mariadb: 'DATETIME(6)',
       mysql: 'DATETIME(6)',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
+      oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
     });
   });
 
@@ -91,7 +94,7 @@ describe('DataTypes.DATEONLY', () => {
   describe('toSql', () => {
     testDataTypeSql('DATEONLY', DataTypes.DATEONLY, {
       default: 'DATE',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
     });
   });
 
@@ -129,14 +132,16 @@ describe('DataTypes.TIME', () => {
   describe('toSql', () => {
     testDataTypeSql('TIME', DataTypes.TIME, {
       default: 'TIME',
-      sqlite: 'TEXT',
+      sqlite3: 'TEXT',
     });
 
     testDataTypeSql('TIME(6)', DataTypes.TIME(6), {
       default: 'TIME(6)',
       db2: new Error(`db2 does not support the TIME(precision) data type.
-See https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`),
-      sqlite: 'TEXT',
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
+      sqlite3: 'TEXT',
+      oracle: new Error(`oracle does not support the TIME(precision) data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
     });
   });
 });
@@ -147,6 +152,7 @@ describe('DataTypes.NOW', () => {
       default: 'NOW',
       db2: 'CURRENT TIME',
       mssql: 'GETDATE()',
+      oracle: 'SYSDATE',
     });
   });
 });

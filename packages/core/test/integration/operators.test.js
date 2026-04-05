@@ -11,22 +11,26 @@ const dialect = Support.getTestDialect();
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {
     beforeEach(async function () {
-      this.User = this.sequelize.define('user', {
-        id: {
-          type: DataTypes.INTEGER,
-          allowNull: false,
-          primaryKey: true,
-          autoIncrement: true,
-          field: 'userId',
+      this.User = this.sequelize.define(
+        'user',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            primaryKey: true,
+            autoIncrement: true,
+            field: 'userId',
+          },
+          name: {
+            type: DataTypes.STRING,
+            field: 'full_name',
+          },
         },
-        name: {
-          type: DataTypes.STRING,
-          field: 'full_name',
+        {
+          tableName: 'users',
+          timestamps: false,
         },
-      }, {
-        tableName: 'users',
-        timestamps: false,
-      });
+      );
 
       await this.sequelize.queryInterface.createTable('users', {
         userId: {
@@ -67,12 +71,12 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           await this.User.bulkCreate([{ name: 'John' }, { name: 'Bob' }]);
           await this.User.findAll({
             where: {
-              name: { [Op.notRegexp]: 'Bob\'; drop table users --' },
+              name: { [Op.notRegexp]: "Bob'; drop table users --" },
             },
           });
           await this.User.findAll({
             where: {
-              name: { [Op.regexp]: 'Bob\'; drop table users --' },
+              name: { [Op.regexp]: "Bob'; drop table users --" },
             },
           });
           expect(await this.User.findAll()).to.have.length(2);
@@ -106,12 +110,12 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
           await this.User.bulkCreate([{ name: 'John' }, { name: 'Bob' }]);
           await this.User.findAll({
             where: {
-              name: { [Op.iRegexp]: 'Bob\'; drop table users --' },
+              name: { [Op.iRegexp]: "Bob'; drop table users --" },
             },
           });
           await this.User.findAll({
             where: {
-              name: { [Op.notIRegexp]: 'Bob\'; drop table users --' },
+              name: { [Op.notIRegexp]: "Bob'; drop table users --" },
             },
           });
           expect(await this.User.findAll()).to.have.length(2);

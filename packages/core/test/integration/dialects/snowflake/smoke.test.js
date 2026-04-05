@@ -26,8 +26,16 @@ if (dialect === 'snowflake') {
         });
 
         await User.sync({ force: true });
-        await User.create({ id: 1, username: 'jozef', lastActivity: new Date(Date.UTC(2021, 5, 21)) });
-        await User.create({ id: 2, username: 'jeff', lastActivity: dayjs(Date.UTC(2021, 5, 22)).format('YYYY-MM-DD HH:mm:ss Z') });
+        await User.create({
+          id: 1,
+          username: 'jozef',
+          lastActivity: new Date(Date.UTC(2021, 5, 21)),
+        });
+        await User.create({
+          id: 2,
+          username: 'jeff',
+          lastActivity: dayjs(Date.UTC(2021, 5, 22)).format('YYYY-MM-DD HH:mm:ss Z'),
+        });
       });
 
       after(async () => {
@@ -36,8 +44,7 @@ if (dialect === 'snowflake') {
 
       it('findOne with where', async () => {
         const user = await User.findOne({
-          where:
-          {
+          where: {
             username: 'jeff',
           },
         });
@@ -46,8 +53,7 @@ if (dialect === 'snowflake') {
 
       it('findOne with date attribute', async () => {
         const user = await User.findOne({
-          where:
-          {
+          where: {
             username: 'jeff',
           },
         });
@@ -65,11 +71,14 @@ if (dialect === 'snowflake') {
       });
 
       it('Update', async () => {
-        const res = await User.update({ username: 'jozef1' }, {
-          where: {
-            id: 1,
+        const res = await User.update(
+          { username: 'jozef1' },
+          {
+            where: {
+              id: 1,
+            },
           },
-        });
+        );
         // https://github.com/sequelize/sequelize/issues/7184
         await res[0].should.equal(1);
       });
@@ -100,14 +109,12 @@ if (dialect === 'snowflake') {
 
       it('findOne with where', async () => {
         const user = await vars.Task.findOne({
-          where:
-          {
+          where: {
             taskName: 'task2',
           },
         });
         user.id.should.equal(2);
       });
-
     });
   });
 }

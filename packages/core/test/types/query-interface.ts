@@ -58,11 +58,20 @@ async function test() {
   await queryInterface.dropTable('nameOfTheExistingTable');
   await queryInterface.dropTable({ schema: '<schema>', tableName: 'nameOfTheExistingTable' });
 
-  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' }, {}, {});
+  await queryInterface.bulkDelete({ tableName: 'foo', schema: 'bar' });
 
-  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert({ tableName: 'foo' }, [{}], {});
+  const bulkInsertRes: Promise<number | object> = queryInterface.bulkInsert(
+    { tableName: 'foo' },
+    [{}],
+    {},
+  );
 
-  const bulkInsertResWithAttrs: Promise<number | object> = queryInterface.bulkInsert('foo', [{}], {}, { bar: { type: DataTypes.JSON } });
+  const bulkInsertResWithAttrs: Promise<number | object> = queryInterface.bulkInsert(
+    'foo',
+    [{}],
+    {},
+    { bar: { type: DataTypes.JSON } },
+  );
 
   await queryInterface.bulkUpdate({ tableName: 'foo', delimiter: 'bar' }, {}, {});
 
@@ -100,7 +109,11 @@ async function test() {
   */
   const attributes = await queryInterface.describeTable('Person');
 
-  await queryInterface.addColumn('nameOfAnExistingTable', 'nameOfTheNewAttribute', DataTypes.STRING);
+  await queryInterface.addColumn(
+    'nameOfAnExistingTable',
+    'nameOfTheNewAttribute',
+    DataTypes.STRING,
+  );
 
   // or
 
@@ -142,11 +155,18 @@ async function test() {
   );
 
   await queryInterface.renameColumn('Person', 'signature', 'sig');
-  await queryInterface.renameColumn({ schema: '<schema>', tableName: 'Person' }, 'signature', 'sig');
+  await queryInterface.renameColumn(
+    { schema: '<schema>', tableName: 'Person' },
+    'signature',
+    'sig',
+  );
 
   // This example will create the index person_firstname_lastname
   await queryInterface.addIndex('Person', ['firstname', 'lastname']);
-  await queryInterface.addIndex({ schema: '<schema>', tableName: 'Person' }, ['firstname', 'lastname']);
+  await queryInterface.addIndex({ schema: '<schema>', tableName: 'Person' }, [
+    'firstname',
+    'lastname',
+  ]);
 
   // This example will create a unique index with the name SuperDuperIndex using the optional 'options' field.
   // Possible options:
@@ -170,16 +190,12 @@ async function test() {
 
   await queryInterface.addIndex('Foo', {
     name: 'foo_b_lower',
-    fields: [
-      fn('lower', col('foo_b')),
-    ],
+    fields: [fn('lower', col('foo_b'))],
   });
 
   await queryInterface.addIndex('Foo', {
     name: 'foo_c_lower',
-    fields: [
-      literal('LOWER(foo_c)'),
-    ],
+    fields: [literal('LOWER(foo_c)')],
   });
 
   await queryInterface.addIndex('Foo', {
@@ -202,7 +218,9 @@ async function test() {
 
   await queryInterface.removeIndex('Person', 'SuperDuperIndex');
   await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex');
-  await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex', { ifExists: true });
+  await queryInterface.removeIndex({ schema: '<schema>', tableName: 'Person' }, 'SuperDuperIndex', {
+    ifExists: true,
+  });
 
   const indexes = await queryInterface.showIndex('Person');
   indexes.map(index => ({
@@ -218,32 +236,35 @@ async function test() {
 
   await queryInterface.removeIndex('Person', ['firstname', 'lastname']);
 
-  await queryInterface.sequelize.transaction(async trx => queryInterface.addConstraint('Person', {
-    name: 'firstnamexlastname',
-    fields: ['firstname', 'lastname'],
-    type: 'UNIQUE',
-    transaction: trx,
-  }));
+  await queryInterface.sequelize.transaction(async trx =>
+    queryInterface.addConstraint('Person', {
+      name: 'firstnamexlastname',
+      fields: ['firstname', 'lastname'],
+      type: 'UNIQUE',
+      transaction: trx,
+    }),
+  );
 
   await queryInterface.removeConstraint('Person', 'firstnamexlastname');
-  await queryInterface.removeConstraint({ schema: '<schema>', tableName: 'Person' }, 'firstnamexlastname');
+  await queryInterface.removeConstraint(
+    { schema: '<schema>', tableName: 'Person' },
+    'firstnamexlastname',
+  );
 
   await queryInterface.select(null, 'Person', {
     where: {
       a: 1,
     },
   });
-  await queryInterface.select(null, { schema: '<schema>', tableName: 'Person' }, {
-    where: {
-      a: 1,
+  await queryInterface.select(
+    null,
+    { schema: '<schema>', tableName: 'Person' },
+    {
+      where: {
+        a: 1,
+      },
     },
-  });
-
-  await queryInterface.delete(null, 'Person', {
-    where: {
-      a: 1,
-    },
-  });
+  );
 
   class TestModel extends Model {}
 

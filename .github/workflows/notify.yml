@@ -19,7 +19,7 @@ jobs:
           releaseId: ${{ github.event.client_payload.release-id }}
       - uses: ethomson/send-tweet-action@288f9339e0412e3038dce350e0da5ecdf12133a6 # v1.0.0
         with:
-          status: "We have just released ${{ steps.releaseInfo.outputs.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.releaseInfo.outputs.name }}"
+          status: 'We have just released ${{ steps.releaseInfo.outputs.name }} of Sequelize. https://github.com/sequelize/sequelize/releases/tag/${{ steps.releaseInfo.outputs.name }}'
           consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
           consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
           access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
@@ -34,4 +34,4 @@ jobs:
           projectSlug: sequelize/sequelize
           ocSlug: sequelize
           ocApiKey: ${{ secrets.OPEN_COLLECTIVE_KEY }}
-          githubToken: ${{ secrets.GH_TOKEN }} 
+          githubToken: ${{ secrets.GH_TOKEN }}

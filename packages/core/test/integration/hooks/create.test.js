@@ -106,10 +106,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       await this.sequelize.sync({ force: true });
 
-      const [a, b] = await Promise.all([
-        A.create({ name: 'a' }),
-        B.create({ name: 'b' }),
-      ]);
+      const [a, b] = await Promise.all([A.create({ name: 'a' }), B.create({ name: 'b' })]);
 
       await a.addB(b);
       expect(hookCalled).to.equal(1);

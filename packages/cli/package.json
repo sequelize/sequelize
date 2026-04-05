@@ -1,0 +1,79 @@
+{
+  "bin": {
+    "sequelize": "./bin/run.js"
+  },
+  "bugs": "https://github.com/sequelize/sequelize/issues",
+  "dependencies": {
+    "@inquirer/checkbox": "^4.3.2",
+    "@inquirer/confirm": "^5.1.21",
+    "@inquirer/input": "^4.3.1",
+    "@inquirer/select": "^4.4.2",
+    "@oclif/core": "^4.10.5",
+    "@oclif/plugin-help": "^6.2.43",
+    "@sequelize/utils": "workspace:*",
+    "ansis": "^3.17.0",
+    "cosmiconfig": "^9.0.1",
+    "zod": "^4.3.6"
+  },
+  "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
+  "devDependencies": {
+    "@oclif/test": "4.1.18",
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.10",
+    "chai": "4.5.0",
+    "concurrently": "9.2.1",
+    "mocha": "11.7.5",
+    "oclif": "4.22.96",
+    "rimraf": "5.0.10"
+  },
+  "engines": {
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
+  },
+  "exports": "./lib/index.js",
+  "files": [
+    "/bin",
+    "/lib",
+    "/static",
+    "/oclif.manifest.json"
+  ],
+  "homepage": "https://sequelize.org/docs/v7/cli/",
+  "keywords": [],
+  "license": "MIT",
+  "main": "lib/index.js",
+  "name": "@sequelize/cli",
+  "oclif": {
+    "bin": "sequelize",
+    "dirname": "sequelize",
+    "commands": "./lib/commands",
+    "plugins": [
+      "@oclif/plugin-help"
+    ],
+    "topicSeparator": " ",
+    "topics": {
+      "migration": {
+        "description": "Commands for managing database migrations"
+      },
+      "seed": {
+        "description": "Commands for managing database seeding"
+      }
+    }
+  },
+  "repository": "https://github.com/sequelize/sequelize",
+  "scripts": {
+    "build": "rimraf lib && tsc --project tsconfig.build.json",
+    "postpack": "rimraf oclif.manifest.json",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "prepare": "yarn build",
+    "test": "concurrently \"npm:test-*\"",
+    "test-unit": "mocha ./**/*.test.ts",
+    "test-typings": "tsc --noEmit",
+    "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
+    "sync-exports": "../../dev/sync-exports.mjs ./src"
+  },
+  "type": "module",
+  "types": "lib/index.d.ts",
+  "version": "7.0.0-alpha.48",
+  "publishConfig": {
+    "access": "public"
+  }
+}

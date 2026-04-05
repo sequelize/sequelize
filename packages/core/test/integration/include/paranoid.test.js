@@ -8,15 +8,14 @@ const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Paranoid'), () => {
-
   beforeEach(async function () {
     const S = this.sequelize;
     const DT = DataTypes;
 
-    const A = this.A = S.define('A', { name: DT.STRING }, { paranoid: true });
-    const B = this.B = S.define('B', { name: DT.STRING }, { paranoid: true });
-    const C = this.C = S.define('C', { name: DT.STRING }, { paranoid: true });
-    const D = this.D = S.define('D', { name: DT.STRING }, { paranoid: true });
+    const A = (this.A = S.define('A', { name: DT.STRING }, { paranoid: true }));
+    const B = (this.B = S.define('B', { name: DT.STRING }, { paranoid: true }));
+    const C = (this.C = S.define('C', { name: DT.STRING }, { paranoid: true }));
+    const D = (this.D = S.define('D', { name: DT.STRING }, { paranoid: true }));
 
     A.belongsTo(B);
     A.belongsToMany(D, { through: 'a_d' });
@@ -43,12 +42,16 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
   it('paranoid with timestamps: false should be ignored / not crash', async function () {
     const S = this.sequelize;
-    const Test = S.define('Test', {
-      name: DataTypes.STRING,
-    }, {
-      timestamps: false,
-      paranoid: true,
-    });
+    const Test = S.define(
+      'Test',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        timestamps: false,
+        paranoid: true,
+      },
+    );
 
     await S.sync({ force: true });
 
@@ -88,27 +91,32 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
   });
 
   it('should not load paranoid, destroyed instances, with a non-paranoid parent', async function () {
-    const X = this.sequelize.define('x', {
-      name: DataTypes.STRING,
-    }, {
-      paranoid: false,
-    });
+    const X = this.sequelize.define(
+      'x',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        paranoid: false,
+      },
+    );
 
-    const Y = this.sequelize.define('y', {
-      name: DataTypes.STRING,
-    }, {
-      timestamps: true,
-      paranoid: true,
-    });
+    const Y = this.sequelize.define(
+      'y',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        timestamps: true,
+        paranoid: true,
+      },
+    );
 
     X.hasMany(Y);
 
     await this.sequelize.sync({ force: true });
 
-    const [x0, y] = await Promise.all([
-      X.create(),
-      Y.create(),
-    ]);
+    const [x0, y] = await Promise.all([X.create(), Y.create()]);
 
     this.x = x0;
     this.y = y;

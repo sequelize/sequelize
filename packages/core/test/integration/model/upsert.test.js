@@ -1,16 +1,13 @@
 'use strict';
 
-const chai = require('chai');
+const { expect } = require('chai');
 const sinon = require('sinon');
+const { beforeEach2, sequelize } = require('../support');
+const { DataTypes, Sequelize, sql } = require('@sequelize/core');
 
-const expect = chai.expect;
-const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const dialectName = sequelize.dialect.name;
 
-const dialect = Support.getTestDialect();
-const current = Support.sequelize;
-
-describe(Support.getTestDialectTeaser('Model'), () => {
+describe('Model', () => {
   before(function () {
     this.clock = sinon.useFakeTimers();
   });
@@ -62,24 +59,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     await this.sequelize.sync({ force: true });
   });
 
-  if (current.dialect.supports.upserts) {
+  if (sequelize.dialect.supports.upserts) {
     describe('upsert', () => {
       it('works with upsert on id', async function () {
         const [, created0] = await this.User.upsert({ id: 42, username: 'john' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.true;
         }
 
         this.clock.tick(1000);
         const [, created] = await this.User.upsert({ id: 42, username: 'doe' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -92,20 +85,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with upsert on a composite key', async function () {
         const [, created0] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'john' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.true;
         }
 
         this.clock.tick(1000);
         const [, created] = await this.User.upsert({ foo: 'baz', bar: 19, username: 'doe' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -123,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             allowNull: false,
             unique: true,
             type: DataTypes.UUID,
-            defaultValue: DataTypes.UUIDV4,
+            defaultValue: sql.uuidV4,
           },
           name: {
             type: DataTypes.STRING,
@@ -155,12 +144,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           User.upsert({ a: 'a', b: 'a', username: 'curt' }),
         ]);
 
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created1[1]).to.be.null;
           expect(created2[1]).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created1[1]).to.be.undefined;
-          expect(created2[1]).to.be.undefined;
         } else {
           expect(created1[1]).to.be.true;
           expect(created2[1]).to.be.true;
@@ -169,10 +155,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.clock.tick(1000);
         // Update the first one
         const [, created] = await User.upsert({ a: 'a', b: 'b', username: 'doe' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -199,7 +183,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
 
-        await expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(Sequelize.ValidationError);
+        await expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(
+          Sequelize.ValidationError,
+        );
       });
 
       it('supports skipping validations', async function () {
@@ -216,31 +202,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
         const [, created] = await User.upsert({ id: 1, email: 'notanemail' }, options);
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.true;
         }
       });
 
       it('works with BLOBs', async function () {
-        const [, created0] = await this.User.upsert({ id: 42, username: 'john', blob: Buffer.from('kaj') });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created0] = await this.User.upsert({
+          id: 42,
+          username: 'john',
+          blob: Buffer.from('kaj'),
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
         this.clock.tick(1000);
-        const [, created] = await this.User.upsert({ id: 42, username: 'doe', blob: Buffer.from('andrea') });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created] = await this.User.upsert({
+          id: 42,
+          username: 'doe',
+          blob: Buffer.from('andrea'),
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -254,19 +242,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with .field', async function () {
         const [, created0] = await this.User.upsert({ id: 42, baz: 'foo' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
         const [, created] = await this.User.upsert({ id: 42, baz: 'oof' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -277,20 +261,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('works with primary key using .field', async function () {
         const [, created0] = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'first' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
         this.clock.tick(1000);
         const [, created] = await this.ModelWithFieldPK.upsert({ userId: 42, foo: 'second' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -300,21 +280,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('works with database functions', async function () {
-        const [, created0] = await this.User.upsert({ id: 42, username: 'john', foo: this.sequelize.fn('upper', 'mixedCase1') });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created0] = await this.User.upsert({
+          id: 42,
+          username: 'john',
+          foo: this.sequelize.fn('upper', 'mixedCase1'),
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
         this.clock.tick(1000);
-        const [, created] = await this.User.upsert({ id: 42, username: 'doe', foo: this.sequelize.fn('upper', 'mixedCase2') });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created] = await this.User.upsert({
+          id: 42,
+          username: 'doe',
+          foo: this.sequelize.fn('upper', 'mixedCase2'),
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
@@ -340,25 +324,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('does not overwrite createdAt when supplied as an explicit insert value when using fields', async function () {
         const originalCreatedAt = new Date('2010-01-01T12:00:00.000Z');
-        await this.User.upsert({ id: 42, username: 'john', createdAt: originalCreatedAt }, { fields: ['id', 'username'] });
+        await this.User.upsert(
+          { id: 42, username: 'john', createdAt: originalCreatedAt },
+          { fields: ['id', 'username'] },
+        );
         const user = await this.User.findByPk(42);
         expect(user.createdAt).to.deep.equal(originalCreatedAt);
         this.clock.restore();
       });
 
       it('falls back to a noop if no update values are found in the upsert data', async function () {
-        const User = this.sequelize.define('user', {
-          username: DataTypes.STRING,
-          email: {
-            type: DataTypes.STRING,
-            field: 'email_address',
-            defaultValue: 'xxx@yyy.zzz',
+        const User = this.sequelize.define(
+          'user',
+          {
+            username: DataTypes.STRING,
+            email: {
+              type: DataTypes.STRING,
+              field: 'email_address',
+              defaultValue: 'xxx@yyy.zzz',
+            },
           },
-        }, {
-          // note, timestamps: false is important here because this test is attempting to see what happens
-          // if there are NO updatable fields (including timestamp values).
-          timestamps: false,
-        });
+          {
+            // note, timestamps: false is important here because this test is attempting to see what happens
+            // if there are NO updatable fields (including timestamp values).
+            timestamps: false,
+          },
+        );
 
         await User.sync({ force: true });
         // notice how the data does not actually have the update fields.
@@ -367,7 +358,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const user = await User.findByPk(42);
         // just making sure the user exists, i.e. the insert happened.
         expect(user).to.be.ok;
-        expect(user.username).to.equal('jack');  // second upsert should not have updated username.
+        expect(user.username).to.equal('jack'); // second upsert should not have updated username.
       });
 
       it('does not update using default values', async function () {
@@ -389,10 +380,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.create({ id: 42, username: 'john' });
         const user = await this.User.findByPk(42);
         const [, created] = await this.User.upsert({ id: user.id, username: user.username });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           // After set node-mysql flags = '-FOUND_ROWS' / foundRows=false
           // result from upsert should be false when upsert a row to its current value
@@ -416,95 +405,120 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
         await User.sync({ force: true });
-        const [, created0] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created0] = await User.upsert({
+          username: 'user1',
+          email: 'user1@domain.ext',
+          city: 'City',
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
-        const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created] = await User.upsert({
+          username: 'user1',
+          email: 'user1@domain.ext',
+          city: 'New City',
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        }  else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
 
-        const user = await User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
+        const user = await User.findOne({
+          where: { username: 'user1', email: 'user1@domain.ext' },
+        });
         expect(user.createdAt).to.be.ok;
         expect(user.city).to.equal('New City');
       });
 
       it('works when indexes are created via indexes array', async function () {
-        const User = this.sequelize.define('User', {
-          username: DataTypes.STRING,
-          email: DataTypes.STRING,
-          city: DataTypes.STRING,
-        }, {
-          indexes: [{
-            unique: true,
-            fields: ['username'],
-          }, {
-            unique: true,
-            fields: ['email'],
-          }],
-        });
+        const User = this.sequelize.define(
+          'User',
+          {
+            username: DataTypes.STRING,
+            email: DataTypes.STRING,
+            city: DataTypes.STRING,
+          },
+          {
+            indexes: [
+              {
+                unique: true,
+                fields: ['username'],
+              },
+              {
+                unique: true,
+                fields: ['email'],
+              },
+            ],
+          },
+        );
 
         await User.sync({ force: true });
-        const [, created0] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created0] = await User.upsert({
+          username: 'user1',
+          email: 'user1@domain.ext',
+          city: 'City',
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
-        const [, created] = await User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created] = await User.upsert({
+          username: 'user1',
+          email: 'user1@domain.ext',
+          city: 'New City',
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        }  else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).to.be.false;
         }
 
-        const user = await User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
+        const user = await User.findOne({
+          where: { username: 'user1', email: 'user1@domain.ext' },
+        });
         expect(user.createdAt).to.be.ok;
         expect(user.city).to.equal('New City');
       });
 
       it('works when composite indexes are created via indexes array', async () => {
-        const User = current.define('User', {
-          name: DataTypes.STRING,
-          address: DataTypes.STRING,
-          city: DataTypes.STRING,
-        }, {
-          indexes: [{
-            unique: 'users_name_address',
-            fields: ['name', 'address'],
-          }],
-        });
+        const User = sequelize.define(
+          'User',
+          {
+            name: DataTypes.STRING,
+            address: DataTypes.STRING,
+            city: DataTypes.STRING,
+          },
+          {
+            indexes: [
+              {
+                unique: 'users_name_address',
+                fields: ['name', 'address'],
+              },
+            ],
+          },
+        );
 
         await User.sync({ force: true });
         const [, created0] = await User.upsert({ name: 'user1', address: 'address', city: 'City' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created0).to.be.undefined;
         } else {
           expect(created0).to.be.ok;
         }
 
-        const [, created] = await User.upsert({ name: 'user1', address: 'address', city: 'New City' });
-        if (['sqlite', 'postgres'].includes(dialect)) {
+        const [, created] = await User.upsert({
+          name: 'user1',
+          address: 'address',
+          city: 'New City',
+        });
+        if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
-        } else if (dialect === 'db2') {
-          expect(created).to.be.undefined;
         } else {
           expect(created).not.to.be.ok;
         }
@@ -514,7 +528,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(user.city).to.equal('New City');
       });
 
-      if (dialect === 'mssql') {
+      if (dialectName === 'mssql') {
         it('Should throw foreignKey violation for MERGE statement as ForeignKeyConstraintError', async function () {
           const User = this.sequelize.define('User', {
             username: {
@@ -532,27 +546,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           Posts.belongsTo(User, { foreignKey: 'username' });
           await this.sequelize.sync({ force: true });
           await User.create({ username: 'user1' });
-          await expect(Posts.upsert({ title: 'Title', username: 'user2' })).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+          await expect(
+            Posts.upsert({ title: 'Title', username: 'user2' }),
+          ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
         });
       }
 
-      if (dialect.startsWith('postgres')) {
+      if (dialectName.startsWith('postgres')) {
         it('works when deletedAt is Infinity and part of primary key', async function () {
-          const User = this.sequelize.define('User', {
-            name: {
-              type: DataTypes.STRING,
-              primaryKey: true,
+          const User = this.sequelize.define(
+            'User',
+            {
+              name: {
+                type: DataTypes.STRING,
+                primaryKey: true,
+              },
+              address: DataTypes.STRING,
+              deletedAt: {
+                type: DataTypes.DATE,
+                primaryKey: true,
+                allowNull: true,
+                defaultValue: Number.POSITIVE_INFINITY,
+              },
             },
-            address: DataTypes.STRING,
-            deletedAt: {
-              type: DataTypes.DATE,
-              primaryKey: true,
-              allowNull: true,
-              defaultValue: Number.POSITIVE_INFINITY,
+            {
+              paranoid: true,
             },
-          }, {
-            paranoid: true,
-          });
+          );
 
           await User.sync({ force: true });
 
@@ -574,7 +594,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      if (dialect === 'mysql' || dialect === 'mariadb') {
+      if (dialectName === 'mysql' || dialectName === 'mariadb') {
         it('should allow to use calculated values on duplicate', async function () {
           await this.User.upsert({
             id: 1,
@@ -589,22 +609,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      if (current.dialect.supports.returnValues) {
+      if (sequelize.dialect.supports.returnValues) {
         describe('returns values', () => {
           it('works with upsert on id', async function () {
-            const [user0, created0] = await this.User.upsert({ id: 42, username: 'john' }, { returning: true });
+            const [user0, created0] = await this.User.upsert(
+              { id: 42, username: 'john' },
+              { returning: true },
+            );
             expect(user0.get('id')).to.equal(42);
             expect(user0.get('username')).to.equal('john');
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
             }
 
-            const [user, created] = await this.User.upsert({ id: 42, username: 'doe' }, { returning: true });
+            const [user, created] = await this.User.upsert(
+              { id: 42, username: 'doe' },
+              { returning: true },
+            );
             expect(user.get('id')).to.equal(42);
             expect(user.get('username')).to.equal('doe');
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -625,19 +651,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             await User.sync({ force: true });
-            const [user0, created0] = await User.upsert({ id: 42, username: 'john' }, { returning: true });
+            const [user0, created0] = await User.upsert(
+              { id: 42, username: 'john' },
+              { returning: true },
+            );
             expect(user0.get('id')).to.equal(42);
             expect(user0.get('username')).to.equal('john');
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
             }
 
-            const [user, created] = await User.upsert({ id: 42, username: 'doe' }, { returning: true });
+            const [user, created] = await User.upsert(
+              { id: 42, username: 'doe' },
+              { returning: true },
+            );
             expect(user.get('id')).to.equal(42);
             expect(user.get('username')).to.equal('doe');
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -657,19 +689,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
 
             await User.sync({ force: true });
-            const [user0, created0] = await User.upsert({ id: 'surya', username: 'john' }, { returning: true });
+            const [user0, created0] = await User.upsert(
+              { id: 'surya', username: 'john' },
+              { returning: true },
+            );
             expect(user0.get('id')).to.equal('surya');
             expect(user0.get('username')).to.equal('john');
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created0).to.be.null;
             } else {
               expect(created0).to.be.true;
             }
 
-            const [user, created] = await User.upsert({ id: 'surya', username: 'doe' }, { returning: true });
+            const [user, created] = await User.upsert(
+              { id: 'surya', username: 'doe' },
+              { returning: true },
+            );
             expect(user.get('id')).to.equal('surya');
             expect(user.get('username')).to.equal('doe');
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
             } else {
               expect(created).to.be.false;
@@ -684,15 +722,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             await User.sync({ force: true });
 
-            const [user, created] = await User.upsert({ name: 'Test default value' }, { returning: true });
+            const [user, created] = await User.upsert(
+              { name: 'Test default value' },
+              { returning: true },
+            );
 
             expect(user.name).to.equal('Test default value');
             expect(user.code).to.equal(2020);
 
-            if (['sqlite', 'postgres'].includes(dialect)) {
+            if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
               expect(created).to.be.null;
-            } else if (dialect === 'db2') {
-              expect(created).to.be.undefined;
             } else {
               expect(created).to.be.true;
             }
@@ -700,26 +739,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      if (current.dialect.supports.inserts.conflictFields) {
+      if (sequelize.dialect.supports.inserts.conflictFields) {
         describe('conflictFields', () => {
-          // An Abstract joiner table.  Unique constraint deliberately removed
-          // to ensure that `conflictFields` is actually respected, not inferred.
-          const Memberships = current.define('memberships', {
-            user_id: DataTypes.INTEGER,
-            group_id: DataTypes.INTEGER,
-            permissions: DataTypes.ENUM('admin', 'member'),
-          });
+          const vars = beforeEach2(async () => {
+            // An Abstract joiner table. Unique constraint deliberately removed
+            // to ensure that `conflictFields` is actually respected, not inferred.
+            const Memberships = sequelize.define('memberships', {
+              user_id: DataTypes.INTEGER,
+              group_id: DataTypes.INTEGER,
+              permissions: DataTypes.ENUM('admin', 'member'),
+            });
 
-          beforeEach(async () => {
             await Memberships.sync({ force: true });
 
-            await current.queryInterface.addConstraint('memberships', {
+            await sequelize.queryInterface.addConstraint('memberships', {
               type: 'UNIQUE',
               fields: ['user_id', 'group_id'],
             });
+
+            return { Memberships };
           });
 
           it('should insert with no other rows', async () => {
+            const { Memberships } = vars;
+
             const [newRow] = await Memberships.upsert(
               {
                 user_id: 1,
@@ -736,6 +779,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('should use conflictFields as upsertKeys', async () => {
+            const { Memberships } = vars;
+
             const [originalMembership] = await Memberships.upsert(
               {
                 user_id: 1,
@@ -780,33 +825,104 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(otherMembership.permissions).to.eq('member');
             expect(otherMembership.id).to.not.eq(originalMembership.id);
           });
+
+          it('should map conflictFields to column names', async () => {
+            const Employees = sequelize.define('employees', {
+              employeeId: {
+                type: DataTypes.INTEGER,
+                field: 'Employee_ID',
+              },
+              departmentId: {
+                type: DataTypes.INTEGER,
+                field: 'Department_ID',
+              },
+              position: DataTypes.ENUM('junior', 'senior'),
+            });
+
+            await Employees.sync({ force: true });
+
+            await sequelize.queryInterface.addConstraint('employees', {
+              type: 'UNIQUE',
+              fields: ['Employee_ID', 'Department_ID'],
+            });
+
+            const [originalEmployee] = await Employees.upsert(
+              {
+                employeeId: 1,
+                departmentId: 1,
+                position: 'junior',
+              },
+              {
+                conflictFields: ['employeeId', 'departmentId'],
+              },
+            );
+
+            expect(originalEmployee).to.not.eq(null);
+            expect(originalEmployee.position).to.eq('junior');
+
+            const [updatedEmployee] = await Employees.upsert(
+              {
+                employeeId: 1,
+                departmentId: 1,
+                position: 'senior',
+              },
+              {
+                conflictFields: ['employeeId', 'departmentId'],
+              },
+            );
+
+            expect(updatedEmployee).to.not.eq(null);
+            expect(updatedEmployee.position).to.eq('senior');
+            expect(updatedEmployee.id).to.eq(originalEmployee.id);
+
+            const [otherEmployee] = await Employees.upsert(
+              {
+                employeeId: 2,
+                departmentId: 1,
+                position: 'senior',
+              },
+              {
+                conflictFields: ['employeeId', 'departmentId'],
+              },
+            );
+
+            expect(otherEmployee).to.not.eq(null);
+            expect(otherEmployee.position).to.eq('senior');
+            expect(otherEmployee.id).to.not.eq(originalEmployee.id);
+          });
         });
       }
 
-      if (current.dialect.supports.inserts.onConflictWhere) {
+      if (sequelize.dialect.supports.inserts.onConflictWhere) {
         describe('conflictWhere', () => {
-          const Users = current.define(
-            'users',
-            {
-              name: DataTypes.STRING,
-              bio: DataTypes.STRING,
-              isUnique: DataTypes.BOOLEAN,
-            },
-            {
-              indexes: [
-                {
-                  unique: true,
-                  fields: ['name'],
-                  where: { isUnique: true },
-                },
-              ],
-            },
-          );
+          const vars = beforeEach2(async () => {
+            const User = sequelize.define(
+              'users',
+              {
+                name: DataTypes.STRING,
+                bio: DataTypes.STRING,
+                isUnique: DataTypes.BOOLEAN,
+              },
+              {
+                indexes: [
+                  {
+                    unique: true,
+                    fields: ['name'],
+                    where: { isUnique: true },
+                  },
+                ],
+              },
+            );
 
-          beforeEach(() => Users.sync({ force: true }));
+            await User.sync({ force: true });
+
+            return { User };
+          });
 
           it('should insert with no other rows', async () => {
-            const [newRow] = await Users.upsert(
+            const { User } = vars;
+
+            const [newRow] = await User.upsert(
               {
                 name: 'John',
                 isUnique: true,
@@ -823,7 +939,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           it('should update with another unique user', async () => {
-            let [newRow] = await Users.upsert(
+            const { User } = vars;
+
+            let [newRow] = await User.upsert(
               {
                 name: 'John',
                 isUnique: true,
@@ -840,7 +958,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(newRow.name).to.eq('John');
             expect(newRow.bio).to.eq('before');
 
-            [newRow] = await Users.upsert(
+            [newRow] = await User.upsert(
               {
                 name: 'John',
                 isUnique: true,
@@ -857,13 +975,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(newRow.name).to.eq('John');
             expect(newRow.bio).to.eq('after');
 
-            const rowCount = await Users.count();
+            const rowCount = await User.count();
 
             expect(rowCount).to.eq(1);
           });
 
           it('allows both unique and non-unique users with the same name', async () => {
-            let [newRow] = await Users.upsert(
+            const { User } = vars;
+
+            let [newRow] = await User.upsert(
               {
                 name: 'John',
                 isUnique: true,
@@ -880,7 +1000,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(newRow.name).to.eq('John');
             expect(newRow.bio).to.eq('first');
 
-            [newRow] = await Users.upsert(
+            [newRow] = await User.upsert(
               {
                 name: 'John',
                 isUnique: false,
@@ -897,13 +1017,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(newRow.name).to.eq('John');
             expect(newRow.bio).to.eq('second');
 
-            const rowCount = await Users.count();
+            const rowCount = await User.count();
 
             expect(rowCount).to.eq(2);
           });
 
           it('allows for multiple unique users with different names', async () => {
-            let [newRow] = await Users.upsert(
+            const { User } = vars;
+
+            let [newRow] = await User.upsert(
               {
                 name: 'John',
                 isUnique: true,
@@ -920,7 +1042,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(newRow.name).to.eq('John');
             expect(newRow.bio).to.eq('first');
 
-            [newRow] = await Users.upsert(
+            [newRow] = await User.upsert(
               {
                 name: 'Bob',
                 isUnique: false,
@@ -937,7 +1059,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(newRow.name).to.eq('Bob');
             expect(newRow.bio).to.eq('second');
 
-            const rowCount = await Users.count();
+            const rowCount = await User.count();
 
             expect(rowCount).to.eq(2);
           });

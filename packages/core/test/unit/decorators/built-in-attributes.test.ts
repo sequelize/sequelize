@@ -1,6 +1,6 @@
-import { expect } from 'chai';
 import { Model } from '@sequelize/core';
 import { CreatedAt, DeletedAt, UpdatedAt, Version } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 describe('@CreatedAt', () => {

@@ -1,4 +1,3 @@
-import { expect } from 'chai';
 import { Model } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import {
@@ -10,6 +9,7 @@ import {
   AfterCreate,
   AfterDefinitionRefresh,
   AfterDestroy,
+  AfterDestroyMany,
   AfterFind,
   AfterRestore,
   AfterSave,
@@ -26,6 +26,7 @@ import {
   BeforeCreate,
   BeforeDefinitionRefresh,
   BeforeDestroy,
+  BeforeDestroyMany,
   BeforeFind,
   BeforeFindAfterExpandIncludeAll,
   BeforeFindAfterOptions,
@@ -37,6 +38,7 @@ import {
   BeforeValidate,
   ValidationFailed,
 } from '@sequelize/core/decorators-legacy';
+import { expect } from 'chai';
 import { sequelize } from '../../support';
 
 // map of hook name to hook decorator
@@ -47,7 +49,9 @@ const hookMap: Partial<Record<keyof ModelHooks, Function>> = {
   afterBulkRestore: AfterBulkRestore,
   afterBulkUpdate: AfterBulkUpdate,
   afterCreate: AfterCreate,
+  afterDefinitionRefresh: AfterDefinitionRefresh,
   afterDestroy: AfterDestroy,
+  afterDestroyMany: AfterDestroyMany,
   afterFind: AfterFind,
   afterRestore: AfterRestore,
   afterSave: AfterSave,
@@ -62,7 +66,9 @@ const hookMap: Partial<Record<keyof ModelHooks, Function>> = {
   beforeBulkUpdate: BeforeBulkUpdate,
   beforeCount: BeforeCount,
   beforeCreate: BeforeCreate,
+  beforeDefinitionRefresh: BeforeDefinitionRefresh,
   beforeDestroy: BeforeDestroy,
+  beforeDestroyMany: BeforeDestroyMany,
   beforeFind: BeforeFind,
   beforeFindAfterExpandIncludeAll: BeforeFindAfterExpandIncludeAll,
   beforeFindAfterOptions: BeforeFindAfterOptions,
@@ -73,8 +79,6 @@ const hookMap: Partial<Record<keyof ModelHooks, Function>> = {
   beforeUpsert: BeforeUpsert,
   beforeValidate: BeforeValidate,
   validationFailed: ValidationFailed,
-  beforeDefinitionRefresh: BeforeDefinitionRefresh,
-  afterDefinitionRefresh: AfterDefinitionRefresh,
 };
 
 for (const [hookName, decorator] of Object.entries(hookMap)) {
@@ -87,7 +91,10 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
 
       sequelize.addModels([MyModel]);
 
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(
+        true,
+        `hook ${hookName} incorrectly registered its hook`,
+      );
     });
 
     it('supports a "name" option', () => {
@@ -98,14 +105,20 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
 
       sequelize.addModels([MyModel]);
 
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(
+        true,
+        `hook ${hookName} incorrectly registered its hook`,
+      );
       const hookCount = MyModel.hooks.getListenerCount(hookName as keyof ModelHooks);
 
       MyModel.removeHook(hookName as keyof ModelHooks, 'my-hook');
 
       const newHookCount = MyModel.hooks.getListenerCount(hookName as keyof ModelHooks);
 
-      expect(newHookCount).to.eq(hookCount - 1, `hook ${hookName} should be possible to remove by name`);
+      expect(newHookCount).to.eq(
+        hookCount - 1,
+        `hook ${hookName} should be possible to remove by name`,
+      );
     });
 
     it('supports symbol methods', () => {
@@ -116,7 +129,10 @@ for (const [hookName, decorator] of Object.entries(hookMap)) {
 
       sequelize.addModels([MyModel]);
 
-      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(true, `hook ${hookName} incorrectly registered its hook`);
+      expect(MyModel.hasHooks(hookName as keyof ModelHooks)).to.eq(
+        true,
+        `hook ${hookName} incorrectly registered its hook`,
+      );
     });
 
     it('throws on non-static hooks', () => {

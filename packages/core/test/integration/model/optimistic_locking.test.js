@@ -10,13 +10,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('optimistic locking', () => {
     let Account;
     beforeEach(async function () {
-      Account = this.sequelize.define('Account', {
-        number: {
-          type: DataTypes.INTEGER,
+      Account = this.sequelize.define(
+        'Account',
+        {
+          number: {
+            type: DataTypes.INTEGER,
+          },
         },
-      }, {
-        version: true,
-      });
+        {
+          version: true,
+        },
+      );
       await Account.sync({ force: true });
     });
 
@@ -40,16 +44,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('prevents stale instances from being saved', async () => {
-      await expect((async () => {
-        const accountA = await Account.create({ number: 1 });
-        const accountB0 = await Account.findByPk(accountA.id);
-        accountA.number += 1;
-        await accountA.save();
-        const accountB = await accountB0;
-        accountB.number += 1;
+      await expect(
+        (async () => {
+          const accountA = await Account.create({ number: 1 });
+          const accountB0 = await Account.findByPk(accountA.id);
+          accountA.number += 1;
+          await accountA.save();
+          const accountB = await accountB0;
+          accountB.number += 1;
 
-        return await accountB.save();
-      })()).to.eventually.be.rejectedWith(OptimisticLockError);
+          return await accountB.save();
+        })(),
+      ).to.eventually.be.rejectedWith(OptimisticLockError);
     });
 
     it('increment() also increments the version', async () => {

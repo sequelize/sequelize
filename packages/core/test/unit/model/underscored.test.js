@@ -9,25 +9,33 @@ const { DataTypes } = require('@sequelize/core');
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('options.underscored', () => {
     beforeEach(function () {
-      this.N = this.sequelize.define('N', {
-        id: {
-          type: DataTypes.STRING(10),
-          primaryKey: true,
-          field: 'n_id',
+      this.N = this.sequelize.define(
+        'N',
+        {
+          id: {
+            type: DataTypes.STRING(10),
+            primaryKey: true,
+            field: 'n_id',
+          },
         },
-      }, {
-        underscored: true,
-      });
+        {
+          underscored: true,
+        },
+      );
 
-      this.M = this.sequelize.define('M', {
-        id: {
-          type: DataTypes.STRING(20),
-          primaryKey: true,
-          field: 'm_id',
+      this.M = this.sequelize.define(
+        'M',
+        {
+          id: {
+            type: DataTypes.STRING(20),
+            primaryKey: true,
+            field: 'm_id',
+          },
         },
-      }, {
-        underscored: true,
-      });
+        {
+          underscored: true,
+        },
+      );
       this.NM = this.sequelize.define('NM', {});
     });
 
@@ -89,18 +97,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('belongsToMany does not override already defined field', function () {
-      this.NM = this.sequelize.define('NM', {
-        n_id: {
-          type: DataTypes.STRING(10),
-          field: 'nana_id',
+      this.NM = this.sequelize.define(
+        'NM',
+        {
+          n_id: {
+            type: DataTypes.STRING(10),
+            field: 'nana_id',
+          },
+          m_id: {
+            type: DataTypes.STRING(20),
+            field: 'mama_id',
+          },
         },
-        m_id: {
-          type: DataTypes.STRING(20),
-          field: 'mama_id',
+        {
+          underscored: true,
         },
-      }, {
-        underscored: true,
-      });
+      );
 
       this.N.belongsToMany(this.M, { through: this.NM, foreignKey: 'n_id', otherKey: 'm_id' });
 

@@ -1,9 +1,3 @@
-import assert from 'node:assert';
-import { IsInt, Len } from '@sequelize/validator.js';
-import { expect } from 'chai';
-import { describe } from 'mocha';
-import sinon from 'sinon';
-import { DataTypes, Model, ValidationError, sql } from '@sequelize/core';
 import type {
   CreationOptional,
   HasManySetAssociationsMixin,
@@ -11,8 +5,26 @@ import type {
   InferCreationAttributes,
   NonAttribute,
 } from '@sequelize/core';
-import { Attribute, BelongsTo, ColumnName, Default, PrimaryKey, Table } from '@sequelize/core/decorators-legacy';
-import { beforeAll2, createSingleTransactionalTestSequelizeInstance, sequelize, setResetMode } from '../support';
+import { DataTypes, Model, ValidationError, sql } from '@sequelize/core';
+import {
+  Attribute,
+  BelongsTo,
+  ColumnName,
+  Default,
+  PrimaryKey,
+  Table,
+} from '@sequelize/core/decorators-legacy';
+import { IsInt, Len } from '@sequelize/validator.js';
+import { expect } from 'chai';
+import { describe } from 'mocha';
+import assert from 'node:assert';
+import sinon from 'sinon';
+import {
+  beforeAll2,
+  createSingleTransactionalTestSequelizeInstance,
+  sequelize,
+  setResetMode,
+} from '../support';
 
 describe('Model#save', () => {
   context('test-shared models', () => {
@@ -216,8 +228,7 @@ describe('Model#save', () => {
     });
 
     it('supports nullish values', async () => {
-      const user = await vars.Book.build({ integer1: 0 })
-        .save({ fields: ['integer1'] });
+      const user = await vars.Book.build({ integer1: 0 }).save({ fields: ['integer1'] });
 
       expect(user.integer1).to.equal(0);
     });
@@ -242,14 +253,14 @@ describe('Model#save', () => {
       expect(book1.pages).to.exist;
       expect(book1.pages!.length).to.equal(2);
 
-        book1.integer1! += 1;
+      book1.integer1! += 1;
 
-        await book1.save();
+      await book1.save();
 
-        expect(book1.title).to.equal('title');
-        expect(book1.integer1).to.equal(2);
-        expect(book1.pages).to.exist;
-        expect(book1.pages!.length).to.equal(2);
+      expect(book1.title).to.equal('title');
+      expect(book1.integer1).to.equal(2);
+      expect(book1.pages).to.exist;
+      expect(book1.pages!.length).to.equal(2);
     });
 
     describe('hooks', () => {
@@ -266,9 +277,11 @@ describe('Model#save', () => {
             integer1: 1,
           });
 
-          await book0.set({
-            integer1: 2,
-          }).save();
+          await book0
+            .set({
+              integer1: 2,
+            })
+            .save();
 
           const book = await Book.findOne({ rejectOnEmpty: true });
           expect(book.get('title')).to.equal('B');
@@ -291,10 +304,12 @@ describe('Model#save', () => {
             integer1: 1,
           });
 
-          await book0.set({
-            title: 'B',
-            integer1: 2,
-          }).save();
+          await book0
+            .set({
+              title: 'B',
+              integer1: 2,
+            })
+            .save();
 
           const book = await Book.findOne({ rejectOnEmpty: true });
           expect(book.get('title')).to.equal('B');
@@ -317,9 +332,13 @@ describe('Model#save', () => {
             validateTest: 1,
           });
 
-          await expect(book0.set({
-            title: 'new title',
-          }).save()).to.be.rejectedWith(ValidationError);
+          await expect(
+            book0
+              .set({
+                title: 'new title',
+              })
+              .save(),
+          ).to.be.rejectedWith(ValidationError);
 
           const book = await Book.findOne({ rejectOnEmpty: true });
           expect(book.get('validateTest')).to.equal(1);
@@ -333,7 +352,8 @@ describe('Model#save', () => {
   context('test-specific models', () => {
     if (sequelize.dialect.supports.transactions) {
       it('supports transactions', async () => {
-        const transactionSequelize = await createSingleTransactionalTestSequelizeInstance(sequelize);
+        const transactionSequelize =
+          await createSingleTransactionalTestSequelizeInstance(sequelize);
         const User = transactionSequelize.define('User', { username: DataTypes.STRING });
         await User.sync({ force: true });
         const transaction = await transactionSequelize.startUnmanagedTransaction();
@@ -354,19 +374,25 @@ describe('Model#save', () => {
       await Foo.sync({ force: true });
 
       const instance = await Foo.build({}, { isNewRecord: false });
-      await expect(instance.save()).to.be.rejectedWith('You attempted to save an instance with no primary key');
+      await expect(instance.save()).to.be.rejectedWith(
+        'You attempted to save an instance with no primary key',
+      );
     });
 
     it('should not throw ER_EMPTY_QUERY if changed only virtual fields', async () => {
-      const User = sequelize.define(`User`, {
-        name: DataTypes.STRING,
-        bio: {
-          type: DataTypes.VIRTUAL,
-          get: () => 'swag',
+      const User = sequelize.define(
+        `User`,
+        {
+          name: DataTypes.STRING,
+          bio: {
+            type: DataTypes.VIRTUAL,
+            get: () => 'swag',
+          },
         },
-      }, {
-        timestamps: false,
-      });
+        {
+          timestamps: false,
+        },
+      );
 
       await User.sync({ force: true });
 

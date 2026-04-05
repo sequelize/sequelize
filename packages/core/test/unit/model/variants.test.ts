@@ -1,17 +1,21 @@
-import { expect } from 'chai';
 import { literal } from '@sequelize/core';
-import { getTestDialectTeaser, sequelize } from '../../support';
+import { expect } from 'chai';
+import { sequelize } from '../../support';
 
-describe(getTestDialectTeaser('Model.getInitialModel'), () => {
-  const User = sequelize.define('user', {}, {
-    scopes: {
-      scope1: {
-        where: literal(''),
-      },
-    },
-  });
-
+describe('Model.getInitialModel', () => {
   it('always returns the initial model', () => {
+    const User = sequelize.define(
+      'User',
+      {},
+      {
+        scopes: {
+          scope1: {
+            where: literal(''),
+          },
+        },
+      },
+    );
+
     expect(User.withSchema('abc').getInitialModel()).to.eq(User);
     expect(User.withSchema('abc').withScope('scope1').getInitialModel()).to.eq(User);
     expect(User.withScope('scope1').getInitialModel()).to.eq(User);

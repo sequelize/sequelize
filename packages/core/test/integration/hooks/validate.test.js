@@ -43,11 +43,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('fields modified in hooks are saved', async function () {
         this.User.afterValidate(user => {
           // if username is defined and has more than 5 char
-          user.username = user.username
-            ? user.username.length < 5 ? null : user.username
-            : null;
+          user.username = user.username ? (user.username.length < 5 ? null : user.username) : null;
           user.username = user.username || 'Samorost 3';
-
         });
 
         this.User.beforeValidate(user => {
@@ -104,7 +101,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Whoops! Changed user.mood!');
         });
 
-        await expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith('Whoops! Changed user.mood!');
+        await expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejectedWith(
+          'Whoops! Changed user.mood!',
+        );
       });
 
       it('should call validationFailed hook', async function () {

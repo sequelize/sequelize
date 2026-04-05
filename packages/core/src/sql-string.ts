@@ -1,6 +1,6 @@
+import type { AbstractDataType } from './abstract-dialect/data-types.js';
+import type { AbstractDialect } from './abstract-dialect/dialect.js';
 import * as DataTypes from './data-types';
-import type { AbstractDataType } from './dialects/abstract/data-types.js';
-import type { AbstractDialect } from './dialects/abstract/index.js';
 import { logger } from './utils/logger';
 
 const textDataTypeMap = new Map<string, AbstractDataType<any>>();
@@ -14,7 +14,10 @@ export function getTextDataTypeForDialect(dialect: AbstractDialect): AbstractDat
   return type;
 }
 
-export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): AbstractDataType<any> {
+export function bestGuessDataTypeOfVal(
+  val: unknown,
+  dialect: AbstractDialect,
+): AbstractDataType<any> {
   // TODO: cache simple types
   switch (typeof val) {
     case 'bigint':
@@ -25,7 +28,7 @@ export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): 
         return new DataTypes.INTEGER().toDialectDataType(dialect);
       }
 
-      return new DataTypes.REAL().toDialectDataType(dialect);
+      return new DataTypes.FLOAT().toDialectDataType(dialect);
     }
 
     case 'boolean':
@@ -34,10 +37,14 @@ export function bestGuessDataTypeOfVal(val: unknown, dialect: AbstractDialect): 
     case 'object':
       if (Array.isArray(val)) {
         if (val.length === 0) {
-          throw new Error(`Could not guess type of value ${logger.inspect(val)} because it is an empty array`);
+          throw new Error(
+            `Could not guess type of value ${logger.inspect(val)} because it is an empty array`,
+          );
         }
 
-        return new DataTypes.ARRAY(bestGuessDataTypeOfVal(val[0], dialect)).toDialectDataType(dialect);
+        return new DataTypes.ARRAY(bestGuessDataTypeOfVal(val[0], dialect)).toDialectDataType(
+          dialect,
+        );
       }
 
       if (val instanceof Date) {

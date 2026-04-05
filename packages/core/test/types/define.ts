@@ -1,7 +1,7 @@
-import { expectTypeOf } from 'expect-type';
-import type { SetOptional } from 'type-fest';
 import type { BuildOptions, Model } from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
+import type { SetOptional } from 'type-fest';
 import { sequelize } from './connection';
 
 // I really wouldn't recommend this, but if you want you can still use define() and interfaces
@@ -46,8 +46,8 @@ async function test() {
 interface UntypedUserModel extends Model, UserAttributes {}
 
 type UntypedUserModelStatic = typeof Model & {
-  new (values?: keyof any, options?: BuildOptions): UntypedUserModel,
-  customStaticMethod(): unknown,
+  new (values?: keyof any, options?: BuildOptions): UntypedUserModel;
+  customStaticMethod(): unknown;
 };
 const UntypedUser = sequelize.define<UntypedUserModel>(
   'User',

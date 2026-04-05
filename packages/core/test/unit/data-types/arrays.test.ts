@@ -1,12 +1,16 @@
-import { expect } from 'chai';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
-import { expectsql, sequelize } from '../../support';
+import { expect } from 'chai';
+import { allowDeprecationsInSuite, expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const { dialect, queryGenerator } = sequelize;
 
 describe('DataTypes.ARRAY', () => {
-  const unsupportedError = new Error(`${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/other-topics/other-data-types/ for a list of supported data types.`);
+  allowDeprecationsInSuite(['SEQUELIZE0014']);
+
+  const unsupportedError = new Error(
+    `${dialect.name} does not support the ARRAY data type.\nSee https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`,
+  );
 
   testDataTypeSql('ARRAY(VARCHAR)', DataTypes.ARRAY(DataTypes.STRING), {
     default: unsupportedError,
@@ -28,10 +32,14 @@ describe('DataTypes.ARRAY', () => {
     postgres: 'HSTORE[]',
   });
 
-  testDataTypeSql('ARRAY(ARRAY(VARCHAR(255)))', DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.STRING)), {
-    default: unsupportedError,
-    postgres: 'VARCHAR(255)[][]',
-  });
+  testDataTypeSql(
+    'ARRAY(ARRAY(VARCHAR(255)))',
+    DataTypes.ARRAY(DataTypes.ARRAY(DataTypes.STRING)),
+    {
+      default: unsupportedError,
+      postgres: 'VARCHAR(255)[][]',
+    },
+  );
 
   testDataTypeSql('ARRAY(TEXT)', DataTypes.ARRAY(DataTypes.TEXT), {
     default: unsupportedError,
@@ -83,6 +91,11 @@ describe('DataTypes.ARRAY', () => {
     postgres: 'CITEXT[]',
   });
 
+  testDataTypeSql('ARRAY(UUID)', DataTypes.ARRAY(DataTypes.UUID), {
+    default: unsupportedError,
+    postgres: 'UUID[]',
+  });
+
   it('raises an error if no values are defined', () => {
     expect(() => {
       sequelize.define('omnomnom', {
@@ -119,47 +132,43 @@ describe('DataTypes.ARRAY', () => {
     }
 
     it('does not not add cast to array of TEXT', () => {
-      expectsql(queryGenerator.escape([
-        'foo',
-        'bar',
-      ], { type: DataTypes.ARRAY(DataTypes.TEXT) }), {
+      expectsql(queryGenerator.escape(['foo', 'bar'], { type: DataTypes.ARRAY(DataTypes.TEXT) }), {
         postgres: `ARRAY['foo','bar']`,
       });
     });
 
     // Regression test for https://github.com/sequelize/sequelize/issues/16391
     it('adds cast to array of VARCHAR', () => {
-      expectsql(queryGenerator.escape([
-        'foo',
-        'bar',
-      ], { type: DataTypes.ARRAY(DataTypes.STRING(64)) }), {
-        postgres: `ARRAY['foo','bar']::VARCHAR(64)[]`,
-      });
+      expectsql(
+        queryGenerator.escape(['foo', 'bar'], { type: DataTypes.ARRAY(DataTypes.STRING(64)) }),
+        {
+          postgres: `ARRAY['foo','bar']::VARCHAR(64)[]`,
+        },
+      );
     });
 
     it('escapes array of JSON', () => {
-      expectsql(queryGenerator.escape([
-        { some: 'nested', more: { nested: true }, answer: 42 },
-        43,
-        'joe',
-      ], { type: DataTypes.ARRAY(DataTypes.JSON) }), {
-        postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
-      });
+      expectsql(
+        queryGenerator.escape([{ some: 'nested', more: { nested: true }, answer: 42 }, 43, 'joe'], {
+          type: DataTypes.ARRAY(DataTypes.JSON),
+        }),
+        {
+          postgres:
+            'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSON[]',
+        },
+      );
     });
 
     if (dialect.supports.dataTypes.JSONB) {
       it('escapes array of JSONB', () => {
         expectsql(
           queryGenerator.escape(
-            [
-              { some: 'nested', more: { nested: true }, answer: 42 },
-              43,
-              'joe',
-            ],
+            [{ some: 'nested', more: { nested: true }, answer: 42 }, 43, 'joe'],
             { type: DataTypes.ARRAY(DataTypes.JSONB) },
           ),
           {
-            postgres: 'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
+            postgres:
+              'ARRAY[\'{"some":"nested","more":{"nested":true},"answer":42}\',\'43\',\'"joe"\']::JSONB[]',
           },
         );
       });

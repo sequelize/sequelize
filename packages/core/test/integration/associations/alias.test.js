@@ -1,6 +1,6 @@
 'use strict';
 
-const  chai = require('chai');
+const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -69,12 +69,16 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
 
   it('should allow me to define plural and singular forms on the model', async function () {
     const User = this.sequelize.define('user', {});
-    const Task = this.sequelize.define('task', {}, {
-      name: {
-        singular: 'assignment',
-        plural: 'assignments',
+    const Task = this.sequelize.define(
+      'task',
+      {},
+      {
+        name: {
+          singular: 'assignment',
+          plural: 'assignments',
+        },
       },
-    });
+    );
 
     User.hasMany(Task);
 
