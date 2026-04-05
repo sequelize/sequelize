@@ -8,8 +8,8 @@
     "@inquirer/confirm": "^5.1.21",
     "@inquirer/input": "^4.3.1",
     "@inquirer/select": "^4.4.2",
-    "@oclif/core": "^4.10.2",
-    "@oclif/plugin-help": "^6.2.40",
+    "@oclif/core": "^4.10.5",
+    "@oclif/plugin-help": "^6.2.43",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.1",
@@ -27,7 +27,7 @@
     "rimraf": "5.0.10"
   },
   "engines": {
-    "node": ">=18.20.8"
+    "node": "^20.19.0 || ^22.13.0 || >=24.0.0"
   },
   "exports": "./lib/index.js",
   "files": [

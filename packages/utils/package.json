@@ -2,7 +2,7 @@
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "description": "Sequelize Utility Library",
   "engines": {
-    "node": ">=18.20.8"
+    "node": "^20.9.0 || ^22.11.0 || >=24.0.0"
   },
   "types": "./lib/common/index.d.ts",
   "exports": {
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@types/lodash": "^4.17.24",
-    "lodash": "^4.17.23"
+    "lodash": "^4.18.1"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
