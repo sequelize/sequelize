@@ -122,7 +122,7 @@ jobs:
       matrix:
         node-version: [20, 22, 24]
     name: Build and test on Windows (Node ${{ matrix.node-version }})
-    runs-on: windows-latest
+    runs-on: windows-2022
     needs: lint # don't bother running if lint tests fail
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
