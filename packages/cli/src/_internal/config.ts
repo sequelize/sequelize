@@ -86,10 +86,10 @@ export type Config<Dialect extends AbstractDialect = AbstractDialect> = {
    *
    * The `dialect` field must be either a dialect class (e.g. `PostgresDialect`) or an
    * import-path string (e.g. `"@sequelize/postgres#PostgresDialect"`).
+   *
+   * Only required if using commands that need to connect to the database.
    */
-  database: Omit<SequelizeOptions<Dialect>, 'dialect'> & {
-    dialect: new (...args: any[]) => Dialect;
-  };
+  database?: SequelizeOptions<Dialect>;
 };
 
 const rawConfig = configSchema.parse(result?.config || {});

@@ -1,4 +1,3 @@
-import type { Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import { isFunction, isNotNullish } from '@sequelize/utils';
 import { checkFileExists } from '@sequelize/utils/node';
@@ -21,9 +20,7 @@ export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'log
     );
   }
 
-  const sequelize = new Sequelize(
-    config.database as Options<typeof config.database.dialect.prototype>,
-  );
+  const sequelize = new Sequelize(config.database);
 
   const umzug = new Umzug({
     ...options,
