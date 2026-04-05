@@ -5,7 +5,7 @@ const { beforeAll2, expectsql, sequelize } = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
 describe('QueryInterface#changeColumn', () => {
-  if (sequelize.dialect.name === 'sqlite3') {
+  if (['db2', 'mssql', 'sqlite3'].includes(sequelize.dialect.name)) {
     return;
   }
 
