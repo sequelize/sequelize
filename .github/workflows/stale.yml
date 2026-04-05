@@ -15,8 +15,10 @@ jobs:
       checks: read # For draft-unfinished-prs to check if PRs are failing CI checks
     runs-on: ubuntu-latest
     steps:
-      - uses: sequelize/draft-unfinished-prs@dcded35052048b01a1c925cfd8fb7cda473f9b96
-      - uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+      - name: Draft unfinished PRs
+        uses: sequelize/draft-unfinished-prs@dcded35052048b01a1c925cfd8fb7cda473f9b96
+      - name: Mark stale bugs
+        uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
         id: stale-bug
         with:
           stale-issue-label: 'stale'
@@ -28,7 +30,8 @@ jobs:
           days-before-pr-close: -1
           only-issue-labels: 'type: bug'
           any-of-issue-labels: 'pending-approval'
-      - uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+      - name: Mark stale features & PRs
+        uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
         id: stale-feature
         with:
           stale-issue-label: 'stale'
@@ -42,7 +45,8 @@ jobs:
           only-issue-labels: 'type: feature'
           any-of-issue-labels: 'pending-approval'
           any-of-pr-labels: 'maybe-abandoned'
-      - uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+      - name: Mark stale invalid issues/PRs
+        uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
         id: invalid
         with:
           stale-issue-label: 'stale'
