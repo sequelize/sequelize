@@ -20,6 +20,10 @@ export interface RunMigrationsOptions {
 export async function runMigrations(options?: RunMigrationsOptions): Promise<MigrationMeta[]> {
   const { umzug, sequelize } = await createUmzug({ logger: options?.logger });
 
+  if (options?.to != null && options?.step != null) {
+    throw new Error('Invalid options: "to" and "step" cannot both be specified.');
+  }
+
   try {
     return await umzug.up(
       options?.to != null

@@ -100,13 +100,13 @@ function createSqlMigration(
       await sequelize.query(fileContents);
     },
     down: async migrationParams => {
-      if (downFilename && (await checkFileExists(downFilename))) {
-        const sequelize = migrationParams.context.sequelize;
-
-        const fileContents = await fs.readFile(downFilename, 'utf-8');
-
-        await sequelize.query(fileContents);
+      if (!downFilename || !(await checkFileExists(downFilename))) {
+        throw new Error(`Migration ${inspect(migrationName)} does not have a down migration file.`);
       }
+
+      const sequelize = migrationParams.context.sequelize;
+      const fileContents = await fs.readFile(downFilename, 'utf-8');
+      await sequelize.query(fileContents);
     },
   };
 }

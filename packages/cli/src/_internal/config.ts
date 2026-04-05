@@ -40,6 +40,13 @@ async function resolveDialectClass(input: DialectClass | string): Promise<Dialec
     );
   }
 
+  if (!(dialectClass.prototype instanceof AbstractDialect)) {
+    const ref = exportName != null ? `named export "${exportName}"` : 'default export';
+    throw new Error(
+      `Failed to resolve dialect from "${input}": the ${ref} of "${modulePath}" does not extend AbstractDialect.`,
+    );
+  }
+
   return dialectClass as DialectClass;
 }
 

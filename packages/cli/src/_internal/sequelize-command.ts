@@ -86,7 +86,7 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       return;
     }
 
-    // In interactive mode, we want to prompt the user for all flags that are not provided.
+    // In interactive mode, we want to prompt the user for all required flags that are not provided.
     // Mark all flags as optional and remove their default value before parsing,
     // then prompt all missing flags
 
