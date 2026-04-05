@@ -27,11 +27,11 @@ export interface UndoMigrationsOptions {
  * @returns The list of migrations that were reverted.
  */
 export async function undoMigrations(options?: UndoMigrationsOptions): Promise<MigrationMeta[]> {
-  const { umzug, sequelize } = await createUmzug({ logger: options?.logger });
-
   if (options?.to != null && options?.step != null) {
     throw new Error('Invalid options: "to" and "step" cannot both be specified.');
   }
+
+  const { umzug, sequelize } = await createUmzug({ logger: options?.logger });
 
   try {
     if (options?.to != null) {
