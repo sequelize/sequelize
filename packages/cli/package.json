@@ -47,7 +47,7 @@
   "oclif": {
     "bin": "sequelize",
     "dirname": "sequelize",
-    "commands": "./lib/commands",
+    "commands": "./lib/_commands",
     "plugins": [
       "@oclif/plugin-help"
     ],

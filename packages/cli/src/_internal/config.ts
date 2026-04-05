@@ -49,7 +49,7 @@ const dialectInputSchema = z.union([
     val => typeof val === 'function' && val.prototype instanceof AbstractDialect,
     'dialect must be a dialect class (e.g. PostgresDialect) or an import path string (e.g. "@sequelize/postgres#PostgresDialect")',
   ),
-  // An import path string (e.g. "@sequelize/postgres" or "@sequelize/postgres#PostgresDialect")
+  // An import path string (e.g. "@sequelize/postgres" (default export) or "@sequelize/postgres#PostgresDialect")
   z.string().min(1),
 ]);
 

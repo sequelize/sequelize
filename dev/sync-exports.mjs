@@ -54,8 +54,8 @@ await parallelForEach(folders, async folder => {
         !pathname.startsWith('.DS_Store') &&
         !pathname.endsWith('.spec.js') &&
         !pathname.endsWith('.test.js') &&
-        !pathname.includes('__tests__/') &&
-        !pathname.includes('_internal/') &&
+        !pathname.includes('/_') &&
+        !pathname.startsWith('_') &&
         !pathname.includes('.internal') &&
         !pathname.endsWith('.d.js')
       );

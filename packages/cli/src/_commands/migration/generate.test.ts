@@ -8,8 +8,7 @@ import { pathToFileURL } from 'node:url';
 const __dirname = fileUrlToDirname(import.meta.url);
 const packageRoot = join(__dirname, '..', '..', '..');
 
-describe('migration:generate', function () {
-  this.timeout(15_000);
+describe('migration:generate', () => {
   it('generates an SQL migration', async () => {
     const { stdout } = await runCommand(
       ['migration:generate', '--format=sql', '--name=test-migration', '--json'],
