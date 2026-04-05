@@ -1618,7 +1618,7 @@ export interface ColumnValidateOptions {
   /**
    * only allow uuids
    */
-  isUUID?: number | { msg: string; args: number };
+  isUUID?: number | 'all' | { msg: string; args: number | 'all' };
 
   /**
    * only allow date strings
