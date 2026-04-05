@@ -34,17 +34,14 @@ chai.use(sinonChai);
  * that is also checks whether the message is present in the error cause.
  */
 chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
 });
 
 chai.Assertion.addMethod('beNullish', function nullish() {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(this._obj).to.not.exist;
 });
 
 chai.Assertion.addMethod('notBeNullish', function nullish() {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(this._obj).to.exist;
 });
 
@@ -511,7 +508,6 @@ export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize)
 if (typeof before !== 'undefined') {
   before(function onBefore() {
     // legacy, remove once all tests have been migrated to not use "this" anymore
-    // eslint-disable-next-line @typescript-eslint/no-invalid-this
     Object.defineProperty(this, 'sequelize', {
       value: sequelize,
       writable: false,
