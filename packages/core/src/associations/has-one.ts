@@ -34,11 +34,11 @@ import {
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasOne(Project)` the getter will be `user.getProject()`.
  *
- * @typeParam S The model on which {@link Model.hasOne} has been called, on which the association methods will be added.
- * @typeParam T The model passed to {@link Model.hasOne}. This model will receive the Foreign Key attribute.
- * @typeParam SourceKey The name of the attribute that the foreign key in the target model will reference.
- * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
- * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasOneSetAssociationMixin}.
+ * @template S The model on which {@link Model.hasOne} has been called, on which the association methods will be added.
+ * @template T The model passed to {@link Model.hasOne}. This model will receive the Foreign Key attribute.
+ * @template SourceKey The name of the attribute that the foreign key in the target model will reference.
+ * @template TargetKey The name of the Foreign Key attribute on the Target model.
+ * @template TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasOneSetAssociationMixin}.
  */
 // Note: this class is named HasOneAssociation instead of HasOne to prevent naming conflicts with the HasOne decorator
 export class HasOneAssociation<
