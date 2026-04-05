@@ -137,17 +137,21 @@ function createJsMigration(
       const migration = await import(migrationPath);
       const down = migration.down ?? migration.default?.down;
 
-      if (down !== undefined && !isFunction(down)) {
+      if (!down) {
+        throw new Error(
+          'Migration ${inspect(migrationName)} is missing the "down" export, so cannot be reverted.',
+        );
+      }
+
+      if (!isFunction(down)) {
         throw new Error(
           `Migration ${inspect(migrationName)} has an invalid "down" export: It must be a function, but it is ${inspect(down)}`,
         );
       }
 
-      if (down) {
-        const sequelize = migrationParams.context.sequelize;
+      const sequelize = migrationParams.context.sequelize;
 
-        await down(sequelize.queryInterface, sequelize, migrationParams);
-      }
+      await down(sequelize.queryInterface, sequelize, migrationParams);
     },
   };
 }
