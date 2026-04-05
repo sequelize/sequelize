@@ -274,6 +274,10 @@ export class Db2Query extends AbstractQuery {
   }
 
   formatError(err, conn, parameters) {
+    if (!(err instanceof Error)) {
+      err = Object.assign(new Error(err.message), err);
+    }
+
     let match;
 
     if (!(err && err.message)) {

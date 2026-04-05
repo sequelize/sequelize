@@ -31,5 +31,29 @@ if (dialect === 'db2') {
       expect(parsedErr.errors).to.deep.equal([]);
       expect(parsedErr.fields).to.deep.equal({});
     });
+
+    it('wraps plain driver errors in Error instances', () => {
+      const query = Object.create(queryProto);
+      query.options = {};
+
+      const fakeErr = {
+        message:
+          '[IBM][CLI Driver][DB2/LINUXX8664] SQL0803N  An error or warning occurred.  One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.  SQLSTATE=23505',
+        sqlcode: -803,
+        sqlstate: '23505',
+      };
+
+      const parsedErr = query.formatError(fakeErr, {
+        querySync() {
+          return [];
+        },
+      });
+
+      expect(parsedErr).to.be.instanceOf(Sequelize.UniqueConstraintError);
+      expect(parsedErr.cause).to.be.instanceOf(Error);
+      expect(parsedErr.cause.message).to.equal(fakeErr.message);
+      expect(parsedErr.cause.sqlcode).to.equal(-803);
+      expect(parsedErr.cause.sqlstate).to.equal('23505');
+    });
   });
 }
