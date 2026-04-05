@@ -23,6 +23,7 @@ describe('json', () => {
       sqlite3: `(json_extract(\`metadata\`,'$.language') = '"icelandic"' AND json_extract(\`metadata\`,'$.pg_rating.dk') = '"G"') AND json_extract(\`another_json_field\`,'$.x') = '1'`,
       mariadb: `(json_compact(json_extract(\`metadata\`,'$.language')) = '"icelandic"' AND json_compact(json_extract(\`metadata\`,'$.pg_rating.dk')) = '"G"') AND json_compact(json_extract(\`another_json_field\`,'$.x')) = '1'`,
       mysql: `(json_extract(\`metadata\`,'$.language') = CAST('"icelandic"' AS JSON) AND json_extract(\`metadata\`,'$.pg_rating.dk') = CAST('"G"' AS JSON)) AND json_extract(\`another_json_field\`,'$.x') = CAST('1' AS JSON)`,
+      oracle: `(json_value("metadata",'$."language"') = 'icelandic' AND json_value("metadata",'$."pg_rating"."dk"') = 'G') AND json_value("another_json_field",'$."x"') = '1'`,
     });
   });
 
@@ -33,6 +34,7 @@ describe('json', () => {
       postgres: `"metadata"#>ARRAY['pg_rating','dk']::VARCHAR(255)[]`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.dk'))`,
       'sqlite3 mysql': `json_extract(\`metadata\`,'$.pg_rating.dk')`,
+      oracle: `json_value("metadata",'$."pg_rating"."dk"')`,
     });
   });
 
@@ -41,6 +43,7 @@ describe('json', () => {
       postgres: `"profile"#>ARRAY['id','0','1']::VARCHAR(255)[]`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id."0"."1"'))`,
       'sqlite3 mysql': `json_extract(\`profile\`,'$.id."0"."1"')`,
+      oracle: `json_value("profile",'$."id"[0][1]')`,
     });
   });
 
@@ -53,6 +56,7 @@ describe('json', () => {
       sqlite3: `json_extract(\`metadata\`,'$.pg_rating.is') = '"U"'`,
       mariadb: `json_compact(json_extract(\`metadata\`,'$.pg_rating.is')) = '"U"'`,
       mysql: `json_extract(\`metadata\`,'$.pg_rating.is') = CAST('"U"' AS JSON)`,
+      oracle: `json_value("metadata",'$."pg_rating"."is"') = 'U'`,
     });
   });
 
@@ -75,6 +79,7 @@ describe('json', () => {
       sqlite3: `json_extract(\`profile\`,'$.id') = '1'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '1'`,
       mysql: `json_extract(\`profile\`,'$.id') = CAST('1' AS JSON)`,
+      oracle: `json_value("profile",'$."id"') = '1'`,
     });
   });
 
@@ -86,6 +91,7 @@ describe('json', () => {
         sqlite3: `json_extract(\`property\`,'$.value') = '1' AND json_extract(\`another\`,'$.value') = '"string"'`,
         mariadb: `json_compact(json_extract(\`property\`,'$.value')) = '1' AND json_compact(json_extract(\`another\`,'$.value')) = '"string"'`,
         mysql: `json_extract(\`property\`,'$.value') = CAST('1' AS JSON) AND json_extract(\`another\`,'$.value') = CAST('"string"' AS JSON)`,
+        oracle: `json_value("property",'$."value"') = '1' AND json_value("another",'$."value"') = 'string'`,
       },
     );
   });
@@ -96,6 +102,7 @@ describe('json', () => {
       sqlite3: `json_extract(\`profile\`,'$.id') = '"1"'`,
       mariadb: `json_compact(json_extract(\`profile\`,'$.id')) = '"1"'`,
       mysql: `json_extract(\`profile\`,'$.id') = CAST('"1"' AS JSON)`,
+      oracle: `json_value("profile",'$."id"') = '1'`,
     });
   });
 });
@@ -154,6 +161,7 @@ describe('fn', () => {
       mssql: `concat(N'user', 1, 1, N'2011-03-27 10:01:55.000 +00:00', lower(N'user'))`,
       sqlite3: `concat('user', 1, 1, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       ibmi: `concat('user', 1, 1, '2011-03-27 10:01:55.000', lower('user'))`,
+      oracle: `concat('user', 1, 1, TO_TIMESTAMP_TZ('2011-03-27 10:01:55.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'), lower('user'))`,
       default: `concat('user', 1, true, '2011-03-27 10:01:55.000', lower('user'))`,
     });
   });

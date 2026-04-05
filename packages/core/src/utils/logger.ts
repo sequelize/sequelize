@@ -48,10 +48,7 @@ export class Logger {
    * @returns The string of the inspected value.
    */
   inspect(value: unknown): string {
-    return util.inspect(value, {
-      showHidden: false,
-      depth: 1,
-    });
+    return util.inspect(value, { depth: 1 });
   }
 
   /**

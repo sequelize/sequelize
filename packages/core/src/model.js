@@ -1,7 +1,6 @@
 'use strict';
 
 import { EMPTY_OBJECT, every, find } from '@sequelize/utils';
-import Dottie from 'dottie';
 import assignWith from 'lodash/assignWith';
 import cloneDeepLodash from 'lodash/cloneDeep';
 import defaultsLodash from 'lodash/defaults';
@@ -38,6 +37,7 @@ import {
 } from './associations';
 import { AssociationSecret } from './associations/helpers';
 import * as DataTypes from './data-types';
+import { QueryTypes } from './enums.js';
 import * as SequelizeErrors from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { InstanceValidator } from './instance-validator';
@@ -50,7 +50,6 @@ import {
 } from './model-internals';
 import { ModelTypeScript } from './model-typescript';
 import { Op } from './operators';
-import { QueryTypes } from './query-types';
 import { intersects } from './utils/array';
 import {
   noDoubleNestedGroup,
@@ -72,6 +71,7 @@ import {
 } from './utils/object';
 import { isWhereEmpty } from './utils/query-builder-utils';
 import { removeTrailingSemicolon } from './utils/string.js';
+import { getByPathArray, setByPathArray, tokenizePath } from './utils/undot.js';
 import { getComplexKeys } from './utils/where.js';
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1691,7 +1691,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (options.group && options.countGroupedRows) {
       const query = removeTrailingSemicolon(this.queryGenerator.selectQuery(this.table, options));
 
-      const queryCountAll = `Select COUNT(*) AS count FROM (${query}) AS Z`;
+      const queryCountAll = this.queryGenerator.generateCountAllQuery(query);
 
       const result = await this.sequelize.query(queryCountAll);
 
@@ -2176,6 +2176,13 @@ ${associationOwner._getAssociationDebugList()}`);
       await instance.validate(options);
     }
 
+    // Map conflict fields to column names
+    if (options.conflictFields) {
+      options.conflictFields = options.conflictFields.map(attrName => {
+        return modelDefinition.getColumnName(attrName);
+      });
+    }
+
     // Map field names
     const updatedDataValues = pick(instance.dataValues, changed);
     const insertValues = mapValueFieldNames(
@@ -2305,18 +2312,21 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.ignoreDuplicates && ['mssql', 'db2', 'ibmi'].includes(dialect)) {
+      const model = options.model;
+      if (
+        options.ignoreDuplicates &&
+        model.sequelize.dialect.supports.inserts.ignoreDuplicates === false
+      ) {
         throw new Error(`${dialect} does not support the ignoreDuplicates option.`);
       }
 
       if (
         options.updateOnDuplicate &&
-        !['mysql', 'mariadb', 'sqlite3', 'postgres', 'ibmi'].includes(dialect)
+        !model.sequelize.dialect.supports.inserts.updateOnDuplicate
       ) {
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
-      const model = options.model;
       const modelDefinition = model.modelDefinition;
 
       options.fields = options.fields || Array.from(modelDefinition.attributes.keys());
@@ -3664,9 +3674,10 @@ Instead of specifying a Model, either:
           const jsonAttributeNames = modelDefinition.jsonAttributeNames;
 
           if (key.includes('.') && jsonAttributeNames.has(key.split('.')[0])) {
-            const previousNestedValue = Dottie.get(this.dataValues, key);
+            const path = tokenizePath(key);
+            const previousNestedValue = getByPathArray(this.dataValues, path);
             if (!isEqual(previousNestedValue, value)) {
-              Dottie.set(this.dataValues, key, value);
+              setByPathArray(this.dataValues, path, value);
               this.changed(key.split('.')[0], true);
             }
           }
@@ -4503,12 +4514,11 @@ Instead of specifying a Model, either:
       return false;
     }
 
-    const modelDefinition = this.modelDefinition;
-    const otherModelDefinition = this.modelDefinition;
-
-    if (modelDefinition !== otherModelDefinition) {
+    if (!isSameInitialModel(this.constructor, other.constructor)) {
       return false;
     }
+
+    const modelDefinition = this.modelDefinition;
 
     return every(modelDefinition.primaryKeysAttributeNames, attribute => {
       return this.get(attribute, { raw: true }) === other.get(attribute, { raw: true });
