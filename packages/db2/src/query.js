@@ -275,7 +275,8 @@ export class Db2Query extends AbstractQuery {
 
   formatError(err, conn, parameters) {
     if (!(err instanceof Error)) {
-      err = Object.assign(new Error(err.message), err);
+      const message = err && err.message ? err.message : String(err);
+      err = Object.assign(new Error(message), err || {});
     }
 
     let match;
