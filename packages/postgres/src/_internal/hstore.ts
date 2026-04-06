@@ -1,4 +1,5 @@
 import type { HstoreRecord } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import { pojo } from '@sequelize/utils';
 
 // PostgreSQL hstore format: "key"=>"value","key2"=>NULL
 // Spec: https://www.postgresql.org/docs/current/hstore.html
@@ -10,11 +11,11 @@ function sanitize(input: string): string {
 }
 
 function valueToString(value: string | number | boolean | object | null): string {
-  if (typeof value === 'string') {
-    return sanitize(value);
+  if (typeof value !== 'string') {
+    value = String(value);
   }
 
-  return String(value);
+  return sanitize(value);
 }
 
 export function stringifyHstore(data: HstoreRecord): string {
@@ -38,7 +39,7 @@ function unescapeHstoreValue(value: string): string {
 }
 
 export function parseHstore(value: string): HstoreRecord {
-  const result = Object.create(null) as HstoreRecord;
+  const result = pojo<HstoreRecord>();
   const matches = value.match(HSTORE_PAIR_REGEX);
 
   if (!matches) {
