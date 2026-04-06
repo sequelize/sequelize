@@ -3,6 +3,10 @@ import { expect } from 'chai';
 import { sequelize } from '../support';
 
 describe('sql.random', () => {
+  if (!sequelize.dialect.supports.randomFloatGeneration) {
+    return;
+  }
+
   it('generates a value between 0 and 1', async () => {
     const dummyTableName = sequelize.dialect.supports.select.dummyTable;
     const fromClause = dummyTableName
