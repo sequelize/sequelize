@@ -630,9 +630,9 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0022',
 ];
 
-const ignoredDeprecationMessages: readonly string[] = [
+const ignoredDeprecationMessages: readonly RegExp[] = [
   // TODO: remove once Sequelize serializes shared postgres client queries without relying on pg's deprecated internal queue.
-  'Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use asycn/await or an external async flow control mechanism instead.',
+  /^Calling client\.query\(\) when the client is already executing a query is deprecated and will be removed in pg@9\.0\./,
 ];
 
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
@@ -651,7 +651,7 @@ process.on('warning', (warning: NodeJS.ErrnoException) => {
   if (
     warning.name === 'DeprecationWarning' &&
     !allowedDeprecations.includes(warning.code!) &&
-    !ignoredDeprecationMessages.includes(warning.message)
+    !ignoredDeprecationMessages.some(pattern => pattern.test(warning.message))
   ) {
     throw warning;
   }
