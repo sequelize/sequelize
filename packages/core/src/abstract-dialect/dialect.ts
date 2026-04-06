@@ -248,7 +248,7 @@ export type DialectSupports = {
   /** Whether this dialect provides a native way to generate UUID v7 values */
   uuidV7Generation: boolean;
   /** Whether this dialect provides a native way to generate random values between 0 and 1 */
-  randomGeneration: boolean;
+  randomFloatGeneration: boolean;
 
   select: {
     /**
@@ -487,7 +487,7 @@ export abstract class AbstractDialect<
     uuidV1Generation: false,
     uuidV4Generation: false,
     uuidV7Generation: false,
-    randomGeneration: true,
+    randomFloatGeneration: true,
     select: {
       dummyTable: null,
     },

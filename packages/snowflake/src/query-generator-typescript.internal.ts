@@ -180,7 +180,7 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       : 'START TRANSACTION';
   }
 
-  getRandomFunctionCall(): string {
+  getRandomFloatFunctionCall(): string {
     return 'RANDOM()';
   }
 }

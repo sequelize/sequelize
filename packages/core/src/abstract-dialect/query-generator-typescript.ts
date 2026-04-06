@@ -917,12 +917,12 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     throw new Error(`getUuidV7FunctionCall has not been implemented in ${this.dialect.name}.`);
   }
 
-  getRandomFunctionCall(): string {
-    if (!this.dialect.supports.randomGeneration) {
-      throw new Error(`Random function is not supported by ${this.dialect.name} dialect.`);
+  getRandomFloatFunctionCall(): string {
+    if (!this.dialect.supports.randomFloatGeneration) {
+      throw new Error(`Random float generation is not supported by ${this.dialect.name} dialect.`);
     }
 
-    throw new Error(`getRandomFunctionCall has not been implemented in ${this.dialect.name}.`);
+    throw new Error(`getRandomFloatFunctionCall has not been implemented in ${this.dialect.name}.`);
   }
 
   getToggleForeignKeyChecksQuery(_enable: boolean): string {

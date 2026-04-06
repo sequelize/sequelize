@@ -357,7 +357,8 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
         postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
         snowflake: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
-        sqlite3: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();',
+        sqlite3:
+          'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY ((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0);',
         oracle: `SELECT "id", "name" FROM "subtask" "Subtask" ORDER BY DBMS_RANDOM.VALUE();`,
       },
     );

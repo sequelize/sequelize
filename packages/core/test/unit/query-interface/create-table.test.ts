@@ -26,7 +26,8 @@ describe('QueryInterface#createTable', () => {
       mysql: 'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT (RAND())) ENGINE=InnoDB;',
       mariadb: 'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT RAND()) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([value] REAL DEFAULT RAND());`,
-      sqlite3: 'CREATE TABLE IF NOT EXISTS `table` (`value` REAL DEFAULT RANDOM());',
+      sqlite3:
+        'CREATE TABLE IF NOT EXISTS `table` (`value` REAL DEFAULT ((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0));',
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("value" FLOAT DEFAULT RANDOM());',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("value" REAL DEFAULT RAND());',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("value" REAL DEFAULT RAND()); END`,

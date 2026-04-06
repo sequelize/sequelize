@@ -346,7 +346,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     return `${sql}; SELECT @@ROWCOUNT AS AFFECTEDROWS;`;
   }
 
-  getRandomFunctionCall(): string {
+  getRandomFloatFunctionCall(): string {
     return 'RAND()';
   }
 }

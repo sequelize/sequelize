@@ -22,10 +22,10 @@ export class Random extends DialectAwareFn {
   }
 
   supportsDialect(dialect: AbstractDialect): boolean {
-    return dialect.supports.randomGeneration;
+    return dialect.supports.randomFloatGeneration;
   }
 
   applyForDialect(dialect: AbstractDialect): string {
-    return dialect.queryGenerator.getRandomFunctionCall();
+    return dialect.queryGenerator.getRandomFloatFunctionCall();
   }
 }

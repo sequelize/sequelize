@@ -284,7 +284,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'gen_random_uuid()';
   }
 
-  getRandomFunctionCall(): string {
+  getRandomFloatFunctionCall(): string {
     return 'RANDOM()';
   }
 

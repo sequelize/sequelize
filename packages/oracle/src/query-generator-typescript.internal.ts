@@ -407,7 +407,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     return 'ROLLBACK TRANSACTION';
   }
 
-  getRandomFunctionCall(): string {
+  getRandomFloatFunctionCall(): string {
     return 'DBMS_RANDOM.VALUE()';
   }
 }
