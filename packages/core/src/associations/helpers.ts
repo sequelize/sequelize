@@ -1,6 +1,5 @@
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject.js';
-import lowerFirst from 'lodash/lowerFirst';
 import omit from 'lodash/omit';
 import assert from 'node:assert';
 import NodeUtils from 'node:util';
@@ -11,7 +10,7 @@ import type { Sequelize } from '../sequelize';
 import * as deprecations from '../utils/deprecations.js';
 import { isModelStatic, isSameInitialModel } from '../utils/model-utils.js';
 import { removeUndefined } from '../utils/object.js';
-import { pluralize, singularize } from '../utils/string.js';
+import { lowerFirst, pluralize, singularize } from '../utils/string.js';
 import type { OmitConstructors } from '../utils/types.js';
 import type {
   Association,

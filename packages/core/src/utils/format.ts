@@ -1,4 +1,3 @@
-import forIn from 'lodash/forIn';
 import assert from 'node:assert';
 import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
 
@@ -132,11 +131,11 @@ export function removeNullishValuesFromHash(
 
   const _hash: { [key: string]: any } = Object.create(null);
 
-  forIn(hash, (val: any, key: string) => {
+  for (const [key, val] of Object.entries(hash)) {
     if (allowNull.includes(key) || key.endsWith('Id') || (val !== null && val !== undefined)) {
       _hash[key] = val;
     }
-  });
+  }
 
   result = _hash;
 

@@ -1,4 +1,3 @@
-import isEmpty from 'lodash/isEmpty.js';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import * as DataTypes from '../data-types';
 import { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
@@ -40,5 +39,5 @@ export function defaultValueSchemable(value: unknown, dialect: AbstractDialect):
  * @param obj
  */
 export function isWhereEmpty(obj: object): boolean {
-  return Boolean(obj) && isEmpty(obj) && getOperators(obj).length === 0;
+  return Boolean(obj) && Object.keys(obj).length === 0 && getOperators(obj).length === 0;
 }
