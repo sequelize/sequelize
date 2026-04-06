@@ -25,7 +25,10 @@ export async function getMigrationStatus(
   const { umzug, sequelize } = await createUmzug({ logger: options?.logger });
 
   try {
-    const [executed, pending] = await Promise.all([umzug.executed(), umzug.pending()]);
+    // Run sequentially to avoid a race where two concurrent model.sync() calls both
+    // attempt to CREATE UNIQUE INDEX on a brand-new SequelizeMeta table and one fails.
+    const executed = await umzug.executed();
+    const pending = await umzug.pending();
 
     return { executed, pending };
   } finally {

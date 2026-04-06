@@ -36,9 +36,6 @@ describe('migration:status', function () {
       root: packageRoot,
     });
 
-    // eslint-disable-next-line no-console -- temporary for workflow debug
-    console.dir({ stdout, stderr });
-
     expect(stderr).to.equal('');
     const result = JSON.parse(stdout);
     expect(result.executed).to.deep.equal([]);
