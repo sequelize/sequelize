@@ -20,22 +20,23 @@ const debug = logger.debugContext('connection:snowflake');
 
 export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
 
-export interface SnowflakeConnectionOptions extends Omit<
-  SnowflakeSdk.ConnectionOptions,
-  // "region" is not used by the Snowflake SDK anymore (deprecated option)
-  | 'region'
-  // ensures that the dialect produces values that Sequelize expects
-  | 'fetchAsString'
-  | 'jsTreatIntegerAsBigInt'
-  | 'representNullAsStringNull'
-  | 'rowMode'
-  // conflicts with Sequelize's schema option. That option will be taken from Sequelize's options instead.
-  | 'schema'
-  // sequelize does not support result streaming https://github.com/sequelize/sequelize/issues/10347
-  | 'streamResult'
-  // "oauthHttpAllowed" is deprecated in the Snowflake SDK (for testing only; use oauthRedirectUri instead)
-  | 'oauthHttpAllowed'
-> {}
+export interface SnowflakeConnectionOptions
+  extends Omit<
+    SnowflakeSdk.ConnectionOptions,
+    // "region" is not used by the Snowflake SDK anymore (deprecated option)
+    | 'region'
+    // ensures that the dialect produces values that Sequelize expects
+    | 'fetchAsString'
+    | 'jsTreatIntegerAsBigInt'
+    | 'representNullAsStringNull'
+    | 'rowMode'
+    // conflicts with Sequelize's schema option. That option will be taken from Sequelize's options instead.
+    | 'schema'
+    // sequelize does not support result streaming https://github.com/sequelize/sequelize/issues/10347
+    | 'streamResult'
+    // "oauthHttpAllowed" is deprecated in the Snowflake SDK (for testing only; use oauthRedirectUri instead)
+    | 'oauthHttpAllowed'
+  > {}
 
 export class SnowflakeConnectionManager extends AbstractConnectionManager<
   SnowflakeDialect,
