@@ -31,7 +31,11 @@ describe('migration:status', function () {
   beforeEach(async () => resetMigrations(FIXTURES));
 
   it('shows all as pending before any run', async () => {
-    const { stdout } = await runCommand(['migration:status', '--json'], { root: packageRoot });
+    const { stdout, stderr } = await runCommand(['migration:status', '--json'], {
+      root: packageRoot,
+    });
+
+    expect(stderr).to.equal('');
     const result = JSON.parse(stdout);
     expect(result.executed).to.deep.equal([]);
     expect(result.pending).to.deep.equal(NAMES);
