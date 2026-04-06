@@ -1,12 +1,11 @@
 'use strict';
 
-import cloneDeep from 'lodash/cloneDeep';
-import forEach from 'lodash/forEach';
+import dayjs from 'dayjs';
+import baseValidator from 'validator';
 
-const validator = cloneDeep(require('validator'));
-const dayjs = require('dayjs');
+export const validator = {
+  ...baseValidator,
 
-export const extensions = {
   extend(name, fn) {
     this[name] = fn;
 
@@ -67,35 +66,31 @@ export const extensions = {
   is(str, pattern, modifiers) {
     return this.regex(str, pattern, modifiers);
   },
+
+  // instance based validators
+  isImmutable(value, validatorArgs, field, modelInstance) {
+    return (
+      modelInstance.isNewRecord ||
+      modelInstance.dataValues[field] === modelInstance._previousDataValues[field]
+    );
+  },
+
+  // extra validators
+  // TODO: rename to isNotNullish, add "isNotNull" for null-only
+  notNull(val) {
+    return val !== null && val !== undefined;
+  },
+
+  // TODO: remove, as empty strings / arrays are not null
+  // https://github.com/chriso/validator.js/commit/e33d38a26ee2f9666b319adb67c7fc0d3dea7125
+  isNull: validator.isEmpty,
+
+  // isDate removed in 7.0.0
+  // https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
+  // TODO: isDate has been added back https://github.com/validatorjs/validator.js/pull/1270
+  isDate(dateString) {
+    return dayjs(dateString).isValid();
+  },
 };
 
-// instance based validators
-validator.isImmutable = function (value, validatorArgs, field, modelInstance) {
-  return (
-    modelInstance.isNewRecord ||
-    modelInstance.dataValues[field] === modelInstance._previousDataValues[field]
-  );
-};
-
-// extra validators
-validator.notNull = function (val) {
-  return val !== null && val !== undefined;
-};
-
-// https://github.com/chriso/validator.js/blob/6.2.0/validator.js
-forEach(extensions, (extend, key) => {
-  validator[key] = extend;
-});
-
-// map isNull to isEmpty
-// https://github.com/chriso/validator.js/commit/e33d38a26ee2f9666b319adb67c7fc0d3dea7125
-validator.isNull = validator.isEmpty;
-
-// isDate removed in 7.0.0
-// https://github.com/chriso/validator.js/commit/095509fc707a4dc0e99f85131df1176ad6389fc9
-// TODO: isDate has been added back https://github.com/validatorjs/validator.js/pull/1270
-validator.isDate = function (dateString) {
-  return dayjs(dateString).isValid();
-};
-
-export { validator };
+validator.notNull();

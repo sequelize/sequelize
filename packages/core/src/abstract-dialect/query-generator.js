@@ -11,16 +11,20 @@ import isPlainObject from 'lodash/isPlainObject';
 import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
+import crypto from 'node:crypto';
 import NodeUtil from 'node:util';
 import { Association } from '../associations/base';
 import { BelongsToAssociation } from '../associations/belongs-to';
 import { BelongsToManyAssociation } from '../associations/belongs-to-many';
 import { HasManyAssociation } from '../associations/has-many';
+import * as DataTypes from '../data-types';
 import { ParameterStyle } from '../enums.js';
+import * as sequelizeError from '../errors';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import { Col } from '../expression-builders/col.js';
 import { Literal } from '../expression-builders/literal.js';
-import { conformIndex } from '../model-internals';
+import { _validateIncludedElements, conformIndex } from '../model-internals';
+import { Op } from '../operators';
 import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
@@ -31,14 +35,6 @@ import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
-
-const util = require('node:util');
-const crypto = require('node:crypto');
-
-const DataTypes = require('../data-types');
-const { Op } = require('../operators');
-const sequelizeError = require('../errors');
-const { _validateIncludedElements } = require('../model-internals');
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
@@ -710,7 +706,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (!field.name) {
-        throw new Error(`The following index field has no name: ${util.inspect(field)}`);
+        throw new Error(`The following index field has no name: ${NodeUtil.inspect(field)}`);
       }
 
       result += this.quoteIdentifier(field.name);
@@ -1002,7 +998,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       );
     }
 
-    throw new Error(`Unknown structure passed to order / group: ${util.inspect(collection)}`);
+    throw new Error(`Unknown structure passed to order / group: ${NodeUtil.inspect(collection)}`);
   }
 
   /**

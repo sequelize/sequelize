@@ -1,4 +1,4 @@
-import type { AbstractDialect, BoundQuery, DialectName, Options } from '@sequelize/core';
+import type { AbstractDialect, BoundQuery, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString } from '@sequelize/utils';
@@ -18,6 +18,17 @@ import type { Class } from 'type-fest';
 import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
 
 export { getSqliteDatabasePath } from './config/config';
+
+export type DialectName =
+  | 'mysql'
+  | 'postgres'
+  | 'sqlite3'
+  | 'mariadb'
+  | 'mssql'
+  | 'db2'
+  | 'snowflake'
+  | 'ibmi'
+  | 'oracle';
 
 const expect = chai.expect;
 
