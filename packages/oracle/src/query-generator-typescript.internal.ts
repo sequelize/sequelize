@@ -408,6 +408,6 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   getRandomFunctionCall(): string {
-    return 'DBMS_RANDOM.VALUE';
+    return 'DBMS_RANDOM.VALUE()';
   }
 }
