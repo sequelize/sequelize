@@ -5,7 +5,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const queryGenerator = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         returning: false,
       };
       expectsql(
-        sql.updateQuery(
+        queryGenerator.updateQuery(
           User.table,
           { user_name: 'triggertest' },
           { id: 2 },
@@ -69,7 +69,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasTrigger: true,
       };
       expectsql(
-        sql.updateQuery(
+        queryGenerator.updateQuery(
           User.table,
           { user_name: 'triggertest' },
           { id: 2 },
@@ -114,7 +114,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       expectsql(
-        sql.updateQuery(
+        queryGenerator.updateQuery(
           User.table,
           { username: 'new.username' },
           { username: 'username' },
