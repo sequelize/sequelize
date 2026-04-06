@@ -24,6 +24,7 @@ const FIXTURES = [
     down: 'DROP TABLE comments;',
   },
 ];
+
 const NAMES = FIXTURES.map(f => f.name);
 
 describe('migration:status', function () {
@@ -34,6 +35,9 @@ describe('migration:status', function () {
     const { stdout, stderr } = await runCommand(['migration:status', '--json'], {
       root: packageRoot,
     });
+
+    // eslint-disable-next-line no-console -- temporary for workflow debug
+    console.dir({ stdout, stderr });
 
     expect(stderr).to.equal('');
     const result = JSON.parse(stdout);

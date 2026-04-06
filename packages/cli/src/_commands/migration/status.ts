@@ -18,7 +18,13 @@ export class MigrationStatusCommand extends SequelizeCommand<
   ];
 
   async run(): Promise<{ executed: string[]; pending: string[] }> {
+    // eslint-disable-next-line no-console -- temporary for workflow debug
+    console.dir('running migration:status command');
+
     const status: MigrationStatus = await getMigrationStatus({ logger: makeUmzugLogger(this) });
+
+    // eslint-disable-next-line no-console -- temporary for workflow debug
+    console.dir({ status }, { depth: null });
 
     if (status.executed.length === 0 && status.pending.length === 0) {
       this.log('No migrations found.');
@@ -41,6 +47,19 @@ export class MigrationStatusCommand extends SequelizeCommand<
         this.log(dim('\nNo pending migrations.'));
       }
     }
+
+    // eslint-disable-next-line no-console -- temporary for workflow debug
+    console.dir('finished command');
+    // eslint-disable-next-line no-console -- temporary for workflow debug
+    console.dir(
+      {
+        output: {
+          executed: status.executed.map(m => m.name),
+          pending: status.pending.map(m => m.name),
+        },
+      },
+      { depth: null },
+    );
 
     return {
       executed: status.executed.map(m => m.name),
