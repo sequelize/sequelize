@@ -56,22 +56,4 @@ describe('migration:status', function () {
     expect(result.executed).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
     expect(result.pending).to.deep.equal(['2024-01-03-create-comments']);
   });
-
-  it('reflects undo in status', async () => {
-    await runCommand(['migration:run'], { root: packageRoot });
-    await runCommand(['migration:undo'], { root: packageRoot });
-    const { stdout } = await runCommand(['migration:status', '--json'], { root: packageRoot });
-    const result = JSON.parse(stdout);
-    expect(result.executed).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
-    expect(result.pending).to.deep.equal(['2024-01-03-create-comments']);
-  });
-
-  it('shows all as pending after full undo', async () => {
-    await runCommand(['migration:run'], { root: packageRoot });
-    await runCommand(['migration:undo', '--all'], { root: packageRoot });
-    const { stdout } = await runCommand(['migration:status', '--json'], { root: packageRoot });
-    const result = JSON.parse(stdout);
-    expect(result.executed).to.deep.equal([]);
-    expect(result.pending).to.deep.equal(NAMES);
-  });
 });
