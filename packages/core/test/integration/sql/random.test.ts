@@ -14,7 +14,7 @@ describe('sql.random', () => {
       : '';
 
     const [result] = await sequelize.query<{ val: number }>(
-      sql`SELECT ${sql.random} AS val ${sql.literal(fromClause)}`,
+      sql`SELECT ${sql.random} AS ${sql.identifier('val')} ${sql.literal(fromClause)}`,
       { type: QueryTypes.SELECT },
     );
 
