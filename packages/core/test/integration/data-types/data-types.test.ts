@@ -1855,14 +1855,9 @@ describe('DataTypes', () => {
       }
 
       it('is not vulnerable to prototype pollution when round-tripping through the database', async () => {
-        await testSimpleInOut(
-          vars.User,
-          'jsonObject',
-          { __proto__: 'polluted' } as any,
-          {
-            __proto__: 'polluted',
-          } as any,
-        );
+        const polluted = { ['__proto__']: 'polluted' } as any;
+
+        await testSimpleInOut(vars.User, 'jsonObject', polluted, polluted);
         // eslint-disable-next-line no-proto -- intentionally checking that Object.prototype is not polluted
         expect(({} as any).__proto__).to.equal(Object.prototype);
       });
@@ -1913,14 +1908,9 @@ describe('DataTypes', () => {
     });
 
     it('is not vulnerable to prototype pollution when round-tripping through the database', async () => {
-      await testSimpleInOut(
-        vars.User,
-        'attr',
-        { __proto__: 'polluted' } as any,
-        {
-          __proto__: 'polluted',
-        } as any,
-      );
+      const polluted = { ['__proto__']: 'polluted' } as any;
+
+      await testSimpleInOut(vars.User, 'attr', polluted, polluted);
       // eslint-disable-next-line no-proto -- intentionally checking that Object.prototype is not polluted
       expect(({} as any).__proto__).to.equal(Object.prototype);
     });

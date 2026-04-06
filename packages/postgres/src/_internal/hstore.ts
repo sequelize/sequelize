@@ -31,7 +31,7 @@ export function stringifyHstore(data: HstoreRecord): string {
 
 const HSTORE_PAIR_REGEX = /NULL|"(?:[^"\\]|\\.)*"/g;
 
-function unescape(value: string): string {
+function unescapeHstoreValue(value: string): string {
   return value
     .slice(1, -1) // strip surrounding quotes
     .replaceAll(/\\(["\\])/g, '$1'); // unescape \" and \\ in one pass
@@ -49,7 +49,8 @@ export function parseHstore(value: string): HstoreRecord {
     const rawKey = matches[i];
     const rawValue = matches[i + 1];
     if (rawKey && rawValue) {
-      result[unescape(rawKey)] = rawValue === 'NULL' ? null : unescape(rawValue);
+      result[unescapeHstoreValue(rawKey)] =
+        rawValue === 'NULL' ? null : unescapeHstoreValue(rawValue);
     }
   }
 
