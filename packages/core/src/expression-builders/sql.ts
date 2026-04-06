@@ -9,7 +9,7 @@ import { identifier } from './identifier.js';
 import { jsonPath } from './json-path.js';
 import { list } from './list.js';
 import { Literal, literal } from './literal.js';
-import { Random } from './random';
+import { Random } from './random.js';
 import { SqlUuidV1, SqlUuidV4, SqlUuidV7 } from './uuid.js';
 import { Value } from './value.js';
 import { where } from './where.js';

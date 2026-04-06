@@ -255,4 +255,8 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   generateTransactionId(): string {
     return randomBytes(10).toString('hex');
   }
+
+  getRandomFunctionCall(): string {
+    return 'RAND()';
+  }
 }

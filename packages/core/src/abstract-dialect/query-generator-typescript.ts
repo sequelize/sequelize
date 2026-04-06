@@ -922,7 +922,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       throw new Error(`Random function is not supported by ${this.dialect.name} dialect.`);
     }
 
-    return `RAND()`;
+    throw new Error(`getRandomFunctionCall has not been implemented in ${this.dialect.name}.`);
   }
 
   getToggleForeignKeyChecksQuery(_enable: boolean): string {

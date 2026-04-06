@@ -767,7 +767,15 @@ type OrderItemAssociation =
   | { model: ModelStatic; as: AssociationName }
   | AssociationName;
 type OrderItemColumn = string | BaseSqlExpression;
-type OrderDirection = 'ASC' | 'DESC';
+type OrderDirection =
+  | 'ASC'
+  | 'DESC'
+  | 'ASC NULLS LAST'
+  | 'DESC NULLS LAST'
+  | 'ASC NULLS FIRST'
+  | 'DESC NULLS FIRST'
+  | 'NULLS FIRST'
+  | 'NULLS LAST';
 export type OrderItem =
   | OrderItemColumn
   | [...OrderItemAssociation[], OrderItemColumn]

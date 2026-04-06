@@ -179,4 +179,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   getUuidV1FunctionCall(): string {
     return 'UUID()';
   }
+
+  getRandomFunctionCall(): string {
+    return 'RAND()';
+  }
 }

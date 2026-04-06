@@ -230,4 +230,8 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   createSavepointQuery(savepointName: string): string {
     return `SAVEPOINT ${this.quoteIdentifier(savepointName)} ON ROLLBACK RETAIN CURSORS`;
   }
+
+  getRandomFunctionCall(): string {
+    return 'RAND()';
+  }
 }
