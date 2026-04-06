@@ -11,19 +11,12 @@ import {
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import type * as SnowflakeSdk from 'snowflake-sdk';
+import * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
 
 export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
-
-function loadSnowflakeSdk(): SnowflakeSdkModule {
-  // snowflake-sdk pulls in AWS helpers that install a global "awslambda" object at import time.
-  process.env.AWS_LAMBDA_NODEJS_NO_GLOBAL_AWSLAMBDA ??= '1';
-
-  return require('snowflake-sdk') as SnowflakeSdkModule;
-}
 
 export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
 
@@ -53,7 +46,7 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
 
   constructor(dialect: SnowflakeDialect) {
     super(dialect);
-    this.#lib = this.dialect.options.snowflakeSdkModule ?? loadSnowflakeSdk();
+    this.#lib = this.dialect.options.snowflakeSdkModule ?? SnowflakeSdk;
   }
 
   /**

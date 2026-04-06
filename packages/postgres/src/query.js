@@ -22,7 +22,6 @@ import toPairs from 'lodash/toPairs';
 import zipObject from 'lodash/zipObject';
 
 const debug = logger.debugContext('sql:pg');
-const connectionQueryQueues = new WeakMap();
 
 export class PostgresQuery extends AbstractQuery {
   async run(sql, parameters, options) {
@@ -44,32 +43,22 @@ export class PostgresQuery extends AbstractQuery {
 
     this.sql = sql;
 
-    const runQuery = () =>
-      new Promise((resolve, reject) => {
-        if (parameters && parameters.length > 0) {
-          connection.query(sql, parameters, (error, result) => {
-            error ? reject(error) : resolve(result);
-          });
-        } else {
-          connection.query(sql, (error, result) => (error ? reject(error) : resolve(result)));
-        }
-      });
-
-    const queuedQuery = (connectionQueryQueues.get(connection) ?? Promise.resolve()).then(
-      runQuery,
-      runQuery,
-    );
-    connectionQueryQueues.set(
-      connection,
-      queuedQuery.catch(() => {}),
-    );
+    const query = new Promise((resolve, reject) => {
+      if (parameters && parameters.length > 0) {
+        connection.query(sql, parameters, (error, result) => {
+          error ? reject(error) : resolve(result);
+        });
+      } else {
+        connection.query(sql, (error, result) => (error ? reject(error) : resolve(result)));
+      }
+    });
 
     const complete = this._logQuery(sql, debug, parameters);
 
     let queryResult;
 
     try {
-      queryResult = await queuedQuery;
+      queryResult = await query;
     } catch (error) {
       // set the client so that it will be reaped if the connection resets while executing
       if (

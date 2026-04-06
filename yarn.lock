@@ -3433,7 +3433,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     dayjs: "npm:^1.11.20"
-    ibm_db: "npm:^4.0.0"
+    ibm_db: "npm:^3.3.5"
     lodash: "npm:^4.18.1"
   languageName: unknown
   linkType: soft
@@ -9598,9 +9598,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "ibm_db@npm:4.0.0"
+"ibm_db@npm:^3.3.5":
+  version: 3.3.5
+  resolution: "ibm_db@npm:3.3.5"
   dependencies:
     adm-zip: "npm:^0.5.16"
     axios: "npm:^1.12.0"
@@ -9608,9 +9608,10 @@ __metadata:
     bindings: "npm:^1.5.0"
     fs-extra: "npm:^11.1.1"
     lodash: "npm:^4.17.21"
-    node-addon-api: "npm:^7.1.1"
+    nan: "npm:^2.25.0"
+    q: "npm:^1.5.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/2e240cca7f0ea021b0862fefa162d44fbcbbb6be9b54bd7aedb9b59d9abfedc762adf7e97736365b735d8e8aa3df038e6b0bcd6b72555287c112f89cdb3f40b7
+  checksum: 10c0/ffb041cd8c75b7e4523942e25c0e01dbef38baaf8bfab578102ab7e685763f1cca7028531bea730453ed146da280e224e86c1bec3ff050dbb1b2530dd18cd871
   languageName: node
   linkType: hard
 
@@ -12363,6 +12364,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"nan@npm:^2.25.0":
+  version: 2.26.2
+  resolution: "nan@npm:2.26.2"
+  dependencies:
+    node-gyp: "npm:latest"
+  checksum: 10c0/ff204c964729279cf3abb8b170c77753ed36092e2235f11bfb0204dfd3e8cc2d5a3bcfdfd3b677f06a0743d7f835d873dce59f23a2dbf6fb671d9351cc655d73
+  languageName: node
+  linkType: hard
+
 "napi-build-utils@npm:^2.0.0":
   version: 2.0.0
   resolution: "napi-build-utils@npm:2.0.0"
@@ -12466,15 +12476,6 @@ __metadata:
   dependencies:
     node-gyp: "npm:latest"
   checksum: 10c0/41f21c9d12318875a2c429befd06070ce367065a3ef02952cfd4ea17ef69fa14012732f510b82b226e99c254da8d671847ea018cad785f839a5366e02dd56302
-  languageName: node
-  linkType: hard
-
-"node-addon-api@npm:^7.1.1":
-  version: 7.1.1
-  resolution: "node-addon-api@npm:7.1.1"
-  dependencies:
-    node-gyp: "npm:latest"
-  checksum: 10c0/fb32a206276d608037fa1bcd7e9921e177fe992fc610d098aa3128baca3c0050fc1e014fa007e9b3874cf865ddb4f5bd9f43ccb7cbbbe4efaff6a83e920b17e9
   languageName: node
   linkType: hard
 
@@ -14315,6 +14316,13 @@ __metadata:
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10c0/14f76a8206bc3464f794fb2e3d3cc665ae416c01893ad7a02b23766eb07159144ee612ad67af5e84fa4479ccfe67678c4feb126b0485651b302babf66f04f9e9
+  languageName: node
+  linkType: hard
+
+"q@npm:^1.5.1":
+  version: 1.5.1
+  resolution: "q@npm:1.5.1"
+  checksum: 10c0/7855fbdba126cb7e92ef3a16b47ba998c0786ec7fface236e3eb0135b65df36429d91a86b1fff3ab0927b4ac4ee88a2c44527c7c3b8e2a37efbec9fe34803df4
   languageName: node
   linkType: hard
 
