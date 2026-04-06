@@ -75,6 +75,7 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
       cascade: true,
       ifExists: true,
     },
+    select: { dummyTable: 'SYSIBM.SYSDUMMY1' },
   });
 
   readonly connectionManager: IBMiConnectionManager;

@@ -320,6 +320,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   getRandomFunctionCall(): string {
-    return 'RANDOM()';
+    // sqlite's RANDOM generates a value between -9223372036854775808 and +9223372036854775807, so we need to transform it to be between 0 and 1
+    return '((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0)';
   }
 }

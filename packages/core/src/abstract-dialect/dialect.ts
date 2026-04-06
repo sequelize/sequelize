@@ -65,27 +65,27 @@ export type DialectSupports = {
   skipLocked: boolean;
   finalTable: boolean;
 
-  /* does the dialect support returning values for inserted/updated fields */
+  /** does the dialect support returning values for inserted/updated fields */
   returnValues: false | 'output' | 'returning';
 
-  /* does the dialect support returning values for inserted/updated fields in outBinds */
+  /** does the dialect support returning values for inserted/updated fields in outBinds */
   returnIntoValues: boolean;
 
-  /* does the dialect support topLevelOrderBy (ORDER BY clause) to get desired results */
+  /** does the dialect support topLevelOrderBy (ORDER BY clause) to get desired results */
   topLevelOrderByRequired: boolean;
 
-  /* features specific to autoIncrement values */
+  /** features specific to autoIncrement values */
   autoIncrement: {
-    /* does the dialect require modification of insert queries when inserting auto increment fields */
+    /** does the dialect require modification of insert queries when inserting auto increment fields */
     identityInsert: boolean;
 
-    /* does the dialect support inserting default/null values for autoincrement fields */
+    /** does the dialect support inserting default/null values for autoincrement fields */
     defaultValue: boolean;
 
-    /* does the dialect support updating autoincrement fields */
+    /** does the dialect support updating autoincrement fields */
     update: boolean;
   };
-  /* Do we need to say DEFAULT for bulk insert */
+  /** Do we need to say DEFAULT for bulk insert */
   bulkDefault: boolean;
   /**
    * Whether this dialect has native support for schemas.
@@ -116,10 +116,14 @@ export type DialectSupports = {
     ignoreDuplicates:
       | false /* Not supported */
       | string /* dialect specific words for INSERT IGNORE or DO NOTHING */;
-    updateOnDuplicate: boolean | string /* whether dialect supports ON DUPLICATE KEY UPDATE */;
-    onConflictDoNothing: string /* dialect specific words for ON CONFLICT DO NOTHING */;
-    onConflictWhere: boolean /* whether dialect supports ON CONFLICT WHERE */;
-    conflictFields: boolean /* whether the dialect supports specifying conflict fields or not */;
+    /** whether dialect supports ON DUPLICATE KEY UPDATE */
+    updateOnDuplicate: boolean | string;
+    /** dialect specific words for ON CONFLICT DO NOTHING */
+    onConflictDoNothing: string;
+    /** whether dialect supports ON CONFLICT WHERE */
+    onConflictWhere: boolean;
+    /** whether the dialect supports specifying conflict fields or not */
+    conflictFields: boolean;
   };
   constraints: {
     restrict: boolean;
@@ -245,6 +249,16 @@ export type DialectSupports = {
   uuidV7Generation: boolean;
   /** Whether this dialect provides a native way to generate random values between 0 and 1 */
   randomGeneration: boolean;
+
+  select: {
+    /**
+     * The dummy table to use when we do not care about the source of the data, e.g. when selecting the result of a function or a literal value.
+     *
+     * If null, not specifying the FROM clause is supported.
+     * If a string, the name of the dummy table to use, e.g. `DUAL` (Oracle) or `SYSIBM.SYSDUMMY1` (IBMi).
+     */
+    dummyTable: null | string;
+  };
   dropTable: {
     cascade: boolean;
     concurrentDropConstraints: boolean; // If Constraints on same table can be dropped concurrently.
@@ -474,6 +488,9 @@ export abstract class AbstractDialect<
     uuidV4Generation: false,
     uuidV7Generation: false,
     randomGeneration: true,
+    select: {
+      dummyTable: null,
+    },
     dropTable: {
       cascade: false,
       concurrentDropConstraints: true,
