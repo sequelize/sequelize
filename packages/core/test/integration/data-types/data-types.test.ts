@@ -1855,11 +1855,22 @@ describe('DataTypes', () => {
       }
 
       it('is not vulnerable to prototype pollution when round-tripping through the database', async () => {
-        const polluted = { ['__proto__']: 'polluted' } as any;
+        const pollutedPrototype = { polluted: true };
+        const polluted = { ['__proto__']: pollutedPrototype } as any;
 
-        await testSimpleInOut(vars.User, 'jsonObject', polluted, polluted);
-        // eslint-disable-next-line no-proto -- intentionally checking that Object.prototype is not polluted
-        expect(({} as any).__proto__).to.equal(Object.prototype);
+        const roundTripped = (await roundTripAttributeValue(
+          vars.User,
+          'jsonObject',
+          polluted,
+        )) as Record<string, unknown>;
+
+        expect(roundTripped).to.deep.equal(polluted);
+        expect(Object.hasOwn(roundTripped, '__proto__')).to.equal(true);
+        expect(Object.getOwnPropertyDescriptor(roundTripped, '__proto__')?.value).to.deep.equal(
+          pollutedPrototype,
+        );
+        expect(Object.getPrototypeOf(roundTripped)).not.to.equal(pollutedPrototype);
+        expect(({} as { polluted?: boolean }).polluted).to.equal(undefined);
       });
     });
   }
@@ -2225,6 +2236,15 @@ export async function testSimpleInOut<M extends Model, Key extends keyof Creatio
   outVal: CreationAttributes<M>[Key],
   message?: string,
 ): Promise<void> {
+  const roundTrippedValue = await roundTripAttributeValue(model, attributeName, inVal);
+  expect(roundTrippedValue).to.deep.eq(outVal, message);
+}
+
+async function roundTripAttributeValue<M extends Model, Key extends keyof CreationAttributes<M>>(
+  model: ModelStatic<M>,
+  attributeName: Key,
+  inVal: CreationAttributes<M>[Key],
+): Promise<unknown> {
   // @ts-expect-error -- we can't guarantee that this model doesn't expect more than one property, but it's just a test util.
   const createdUser = await model.create({ [attributeName]: inVal });
   const fetchedUser = await model.findOne({
@@ -2234,7 +2254,8 @@ export async function testSimpleInOut<M extends Model, Key extends keyof Creatio
       id: createdUser.id,
     },
   });
-  expect(fetchedUser[attributeName]).to.deep.eq(outVal, message);
+
+  return fetchedUser[attributeName];
 }
 
 export async function testSimpleInOutRaw<M extends Model, Key extends keyof CreationAttributes<M>>(
