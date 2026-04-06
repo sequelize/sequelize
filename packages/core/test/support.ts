@@ -354,13 +354,6 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(
 
 type MaybeLazy<T> = T | (() => T);
 
-export function expectsql(
-  query: MaybeLazy<BoundQuery | Error>,
-  assertions: {
-    query: PartialRecord<ExpectationKey, string | Error>;
-    bind: PartialRecord<ExpectationKey, unknown>;
-  },
-): void;
 /**
  * Notice: For default expectations, [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
  *
@@ -370,6 +363,13 @@ export function expectsql(
 export function expectsql(
   query: MaybeLazy<string | Error>,
   assertions: PartialRecord<ExpectationKey, string | Error>,
+): void;
+export function expectsql(
+  query: MaybeLazy<BoundQuery | Error>,
+  assertions: {
+    query: PartialRecord<ExpectationKey, string | Error>;
+    bind: PartialRecord<ExpectationKey, unknown>;
+  },
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error | BoundQuery>,
