@@ -318,4 +318,8 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   ): string {
     return this.#internals.getConstraintSnippet(tableName, options);
   }
+
+  getRandomFunctionCall(): string {
+    return 'RANDOM()';
+  }
 }

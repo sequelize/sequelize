@@ -5,7 +5,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const queryGenerator = current.dialect.queryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   if (current.dialect.name === 'snowflake') {
@@ -27,7 +27,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.createTableQuery(FooUser.table, sql.attributesToSQL(FooUser.getAttributes()), {}),
+          queryGenerator.createTableQuery(
+            FooUser.table,
+            queryGenerator.attributesToSQL(FooUser.getAttributes()),
+            {},
+          ),
           {
             sqlite3:
               'CREATE TABLE IF NOT EXISTS `foo.users` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `mood` TEXT);',
@@ -72,9 +76,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         BarProject.belongsTo(BarUser, { foreignKey: 'user_id' });
 
         expectsql(
-          sql.createTableQuery(
+          queryGenerator.createTableQuery(
             BarProject.table,
-            sql.attributesToSQL(BarProject.getAttributes()),
+            queryGenerator.attributesToSQL(BarProject.getAttributes()),
             {},
           ),
           {
@@ -119,7 +123,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.createTableQuery(Image.table, sql.attributesToSQL(Image.getAttributes()), {}),
+          queryGenerator.createTableQuery(
+            Image.table,
+            queryGenerator.attributesToSQL(Image.getAttributes()),
+            {},
+          ),
           {
             sqlite3:
               'CREATE TABLE IF NOT EXISTS `images` (`id` INTEGER PRIMARY KEY AUTOINCREMENT REFERENCES `files` (`id`));',

@@ -5,7 +5,7 @@ const { literal, Op } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const queryGenerator = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
@@ -19,14 +19,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
   describe('addIndex', () => {
     it('naming', () => {
-      expectsql(sql.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
+      expectsql(queryGenerator.addIndexQuery('table', ['column1', 'column2'], {}, 'table'), {
         default: 'CREATE INDEX [table_column1_column2] ON [table] ([column1], [column2])',
         'mariadb mysql':
           'ALTER TABLE `table` ADD INDEX `table_column1_column2` (`column1`, `column2`)',
       });
 
       if (current.dialect.supports.schemas) {
-        expectsql(sql.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
+        expectsql(queryGenerator.addIndexQuery('schema.table', ['column1', 'column2'], {}), {
           default:
             'CREATE INDEX [schema_table_column1_column2] ON [schema.table] ([column1], [column2])',
           'mariadb mysql':
@@ -34,7 +34,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         expectsql(
-          sql.addIndexQuery(
+          queryGenerator.addIndexQuery(
             {
               schema: 'schema',
               tableName: 'table',
@@ -53,12 +53,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.addIndexQuery(
+          queryGenerator.addIndexQuery(
             // quoteTable will produce '"schema"."table"'
             // that is a perfectly valid table name, so passing it to quoteTable again (through addIndexQuery) must produce this:
             // '"""schema"".""table"""'
             // the double-quotes are duplicated because they are escaped
-            sql.quoteTable({
+            queryGenerator.quoteTable({
               schema: 'schema',
               tableName: 'table',
             }),
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     it('type and using', () => {
       expectsql(
-        sql.addIndexQuery('User', ['fieldC'], {
+        queryGenerator.addIndexQuery('User', ['fieldC'], {
           type: 'FULLTEXT',
           concurrently: true,
         }),
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       expectsql(
-        sql.addIndexQuery(
+        queryGenerator.addIndexQuery(
           'User',
           ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }],
           {
@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     it('POJO field', () => {
       expectsql(
-        sql.addIndexQuery(
+        queryGenerator.addIndexQuery(
           'table',
           [{ name: 'column', collate: 'BINARY', length: 5, order: 'DESC' }],
           {},
@@ -147,7 +147,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     it('function', () => {
       expectsql(
-        sql.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], { name: 'myindex' }),
+        queryGenerator.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], {
+          name: 'myindex',
+        }),
         {
           default: 'CREATE INDEX [myindex] ON [table] (UPPER([test]))',
           mariadb: 'ALTER TABLE `table` ADD INDEX `myindex` (UPPER(`test`))',
@@ -159,7 +161,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.index.using === 2) {
       it('USING', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: ['event'],
             using: 'gin',
           }),
@@ -173,7 +175,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.index.where) {
       it('WHERE', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: ['type'],
             where: {
               type: 'public',
@@ -189,7 +191,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: ['type'],
             where: {
               type: {
@@ -210,7 +212,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: ['type'],
             where: {
               type: {
@@ -232,7 +234,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.dataTypes.JSONB) {
       it('operator', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: ['event'],
             using: 'gin',
             operator: 'jsonb_path_ops',
@@ -247,7 +249,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (current.dialect.supports.index.operator) {
       it('operator with multiple fields', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: ['column1', 'column2'],
             using: 'gist',
             operator: 'inet_ops',
@@ -260,7 +262,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
       it('operator in fields', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: [
               {
                 name: 'column',
@@ -276,7 +278,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
       it('operator in fields with order', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: [
               {
                 name: 'column',
@@ -293,7 +295,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
       it('operator in multiple fields #1', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: [
               {
                 name: 'column1',
@@ -312,7 +314,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
       it('operator in multiple fields #2', () => {
         expectsql(
-          sql.addIndexQuery('table', {
+          queryGenerator.addIndexQuery('table', {
             fields: [
               {
                 name: 'path',
@@ -337,7 +339,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('include columns with unique index', () => {
       expectsql(
         () =>
-          sql.addIndexQuery('User', {
+          queryGenerator.addIndexQuery('User', {
             name: 'email_include_name',
             fields: ['email'],
             include: ['first_name', 'last_name'],
@@ -358,7 +360,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('include columns with non-unique index', () => {
       expectsql(
         () =>
-          sql.addIndexQuery('User', {
+          queryGenerator.addIndexQuery('User', {
             name: 'email_include_name',
             fields: ['email'],
             include: ['first_name', 'last_name'],
@@ -379,7 +381,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('include columns using a liternal with non-unique index', () => {
       expectsql(
         () =>
-          sql.addIndexQuery('User', {
+          queryGenerator.addIndexQuery('User', {
             name: 'email_include_name',
             fields: ['email'],
             include: literal('(first_name, last_name)'),
@@ -400,7 +402,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     it('include columns using an array of liternals with non-unique index', () => {
       expectsql(
         () =>
-          sql.addIndexQuery('User', {
+          queryGenerator.addIndexQuery('User', {
             name: 'email_include_name',
             fields: ['email'],
             include: [literal('first_name'), literal('last_name')],

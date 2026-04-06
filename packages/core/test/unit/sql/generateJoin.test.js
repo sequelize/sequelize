@@ -8,7 +8,7 @@ const {
   _validateIncludedElements,
 } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
 
-const sql = sequelize.queryGenerator;
+const queryGenerator = sequelize.queryGenerator;
 
 describe('QueryGenerator#generateJoin', () => {
   const expectJoin = function (path, options, expectation) {
@@ -17,7 +17,7 @@ describe('QueryGenerator#generateJoin', () => {
 
     const include = at(options, path)[0];
 
-    const join = sql.generateJoin(include, {
+    const join = queryGenerator.generateJoin(include, {
       options,
       subQuery:
         options.subQuery === undefined

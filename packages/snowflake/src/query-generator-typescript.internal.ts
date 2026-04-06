@@ -179,4 +179,8 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ? `START TRANSACTION NAME ${this.quoteIdentifier(options.transactionName)}`
       : 'START TRANSACTION';
   }
+
+  getRandomFunctionCall(): string {
+    return 'RANDOM()';
+  }
 }

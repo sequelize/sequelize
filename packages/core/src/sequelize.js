@@ -55,6 +55,7 @@ import {
   noSequelizeDataType,
   noSequelizeIsDefined,
   noSequelizeModel,
+  noSequelizeRandom,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -69,6 +70,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the specified dialect.
    *
+   * @deprecated use sequelize.dialect.name.
    * @returns {string} The specified dialect.
    */
   getDialect() {
@@ -80,6 +82,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the database name.
    *
+   * @deprecated use sequelize.options.replication.write
    * @returns {string} The database name.
    */
   getDatabaseName() {
@@ -91,6 +94,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns an instance of AbstractQueryInterface.
    *
+   * @deprecated use {@link Sequelize#queryInterface}.
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
   getQueryInterface() {
@@ -151,8 +155,8 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Fetch a Model which is already defined
    *
+   * @deprecated use sequelize.models.getOrThrow instead.
    * @param {string} modelName The name of a model defined with Sequelize.define
-   *
    * @throws Will throw an error if the model is not defined (that is, if sequelize#isDefined returns false)
    * @returns {Model} Specified model
    */
@@ -165,8 +169,8 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Checks whether a model with the given name is defined
    *
+   * @deprecated use sequelize.models.hasByName instead.
    * @param {string} modelName The name of a model defined with Sequelize.define
-   *
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
@@ -608,15 +612,13 @@ Use Sequelize#query if you wish to use replacements.`);
   /**
    * Get the fn for random based on the dialect
    *
-   * @returns {Fn}
+   * @deprecated use {@link sql.random} instead, as it can be used without needing a reference to sequelize.
+   * @returns {Random}
    */
-  // TODO: replace with sql.random
   random() {
-    if (['postgres', 'sqlite3', 'snowflake'].includes(this.dialect.name)) {
-      return fn('RANDOM');
-    }
+    noSequelizeRandom();
 
-    return fn('RAND');
+    return sql.random;
   }
 
   // Global exports
