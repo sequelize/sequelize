@@ -3036,7 +3036,6 @@ __metadata:
     lodash: "npm:^4.18.1"
     mocha: "npm:11.7.5"
     pg: "npm:^8.15.6"
-    pg-hstore: "npm:^2.3.4"
     pg-types: "npm:^4.1.0"
     postgres-array: "npm:^3.0.4"
     semver: "npm:^7.7.4"
@@ -13051,15 +13050,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pg-hstore@npm:^2.3.4":
-  version: 2.3.4
-  resolution: "pg-hstore@npm:2.3.4"
-  dependencies:
-    underscore: "npm:^1.13.1"
-  checksum: 10c0/2f4e352ba82b200cda55b796e7e8ef7e50377914f1ab4d91fa6dc9701b3d4ae4ddf168376a08a21d1f5a38d87f434be1c55d2287ec6b5135db3745ca296c99e2
-  languageName: node
-  linkType: hard
-
 "pg-int8@npm:1.0.1":
   version: 1.0.1
   resolution: "pg-int8@npm:1.0.1"
@@ -15650,13 +15640,6 @@ __metadata:
     has-symbols: "npm:^1.1.0"
     which-boxed-primitive: "npm:^1.1.1"
   checksum: 10c0/7dbd35ab02b0e05fe07136c72cb9355091242455473ec15057c11430129bab38b7b3624019b8778d02a881c13de44d63cd02d122ee782fb519e1de7775b5b982
-  languageName: node
-  linkType: hard
-
-"underscore@npm:^1.13.1":
-  version: 1.13.7
-  resolution: "underscore@npm:1.13.7"
-  checksum: 10c0/fad2b4aac48847674aaf3c30558f383399d4fdafad6dd02dd60e4e1b8103b52c5a9e5937e0cc05dacfd26d6a0132ed0410ab4258241240757e4a4424507471cd
   languageName: node
   linkType: hard
 
