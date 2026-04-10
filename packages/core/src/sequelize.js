@@ -366,14 +366,9 @@ Use Sequelize#query if you wish to use replacements.`);
 
     setTransactionFromCls(options, this);
 
-    // Deprecation bridge: useMaster -> usePrimary
+    // Emit deprecation warning for useMaster before entering the retry loop.
     if (Object.hasOwn(options, 'useMaster')) {
       useMasterToUsePrimary();
-      if (options.usePrimary === undefined) {
-        options.usePrimary = options.useMaster;
-      }
-
-      delete options.useMaster;
     }
 
     const retryOptions = { ...this.options.retry, ...options.retry };
@@ -386,7 +381,7 @@ Use Sequelize#query if you wish to use replacements.`);
         : options.connection
           ? options.connection
           : await this.pool.acquire({
-              usePrimary: options.usePrimary,
+              usePrimary: options.usePrimary ?? (Object.hasOwn(options, 'useMaster') ? options.useMaster : undefined),
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 
