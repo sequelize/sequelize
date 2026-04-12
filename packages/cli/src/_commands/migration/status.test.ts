@@ -1,6 +1,7 @@
 import { runCommand } from '@oclif/test';
 import { fileUrlToDirname } from '@sequelize/utils/node';
 import { expect } from 'chai';
+import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { resetMigrations } from '../../_internal/test-helpers.js';
 
@@ -38,23 +39,53 @@ describe('migration:status', function () {
 
     expect(stderr).to.equal('');
     const result = JSON.parse(stdout);
-    expect(result.executed).to.deep.equal([]);
+    expect(result.migrated).to.deep.equal([]);
     expect(result.pending).to.deep.equal(NAMES);
   });
 
-  it('shows all as executed after a full run', async () => {
+  it('shows all as migrated after a full run', async () => {
     await runCommand(['migration:run'], { root: packageRoot });
     const { stdout } = await runCommand(['migration:status', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
-    expect(result.executed).to.deep.equal(NAMES);
+    expect(result.migrated).to.deep.equal(NAMES);
     expect(result.pending).to.deep.equal([]);
   });
 
-  it('correctly splits executed and pending after a partial run', async () => {
+  it('correctly splits migrated and pending after a partial run', async () => {
     await runCommand(['migration:run', '--step=2'], { root: packageRoot });
     const { stdout } = await runCommand(['migration:status', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
-    expect(result.executed).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
+    expect(result.migrated).to.deep.equal(['2024-01-01-create-users', '2024-01-02-create-posts']);
     expect(result.pending).to.deep.equal(['2024-01-03-create-comments']);
+  });
+});
+
+describe('migration:status (special cases)', function () {
+  this.timeout(15_000);
+
+  it('does not error on empty migration folder', async () => {
+    await resetMigrations([]);
+
+    const { stdout, stderr } = await runCommand(['migration:status', '--json'], {
+      root: packageRoot,
+    });
+
+    expect(stderr).to.equal('');
+    const result = JSON.parse(stdout);
+    expect(result.migrated).to.deep.equal([]);
+    expect(result.pending).to.deep.equal([]);
+  });
+
+  it('does not error on missing migration folder', async () => {
+    await rm(join(packageRoot, 'migrations'), { recursive: true, force: true });
+
+    const { stdout, stderr } = await runCommand(['migration:status', '--json'], {
+      root: packageRoot,
+    });
+
+    expect(stderr).to.equal('');
+    const result = JSON.parse(stdout);
+    expect(result.migrated).to.deep.equal([]);
+    expect(result.pending).to.deep.equal([]);
   });
 });

@@ -17,7 +17,7 @@ export class MigrationStatusCommand extends SequelizeCommand<
     `<%= config.bin %> <%= command.id %> --json`,
   ];
 
-  async run(): Promise<{ executed: string[]; pending: string[] }> {
+  async run(): Promise<{ migrated: string[]; pending: string[] }> {
     const status: MigrationStatus = await getMigrationStatus({ logger: makeUmzugLogger(this) });
 
     if (status.executed.length === 0 && status.pending.length === 0) {
@@ -43,7 +43,7 @@ export class MigrationStatusCommand extends SequelizeCommand<
     }
 
     return {
-      executed: status.executed.map(m => m.name),
+      migrated: status.executed.map(m => m.name),
       pending: status.pending.map(m => m.name),
     };
   }

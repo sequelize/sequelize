@@ -7,3 +7,4 @@ export * from './api/get-umzug.js';
 export * from './api/run-migrations.js';
 export * from './api/undo-migrations.js';
 export * from './config.js';
+export * from './types.js';

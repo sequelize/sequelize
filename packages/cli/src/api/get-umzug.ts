@@ -1,11 +1,12 @@
 import { Sequelize } from '@sequelize/core';
-import { isFunction, isNotNullish } from '@sequelize/utils';
+import { isFunction } from '@sequelize/utils';
 import { checkFileExists } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { inspect } from 'node:util';
 import { SequelizeStorage, Umzug } from 'umzug';
-import type { RunnableMigration, UmzugOptions } from 'umzug/lib/types.js';
+import type { Resolver, RunnableMigration, UmzugOptions } from 'umzug/lib/types.js';
 import { config } from '../_internal/config.js';
 
 const SUPPORTED_JS_FILE_EXTENSIONS = Object.freeze(['.js', '.ts', '.cjs', '.mjs', '.cts', '.mts']);
@@ -24,7 +25,7 @@ export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'log
 
   const umzug = new Umzug({
     ...options,
-    migrations: universalUmzugMigrations,
+    migrations: getUniversalUmzugMigrations(),
     context: {
       sequelize,
     },
@@ -34,50 +35,50 @@ export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'log
   return { umzug, sequelize };
 }
 
-async function universalUmzugMigrations(): Promise<Array<RunnableMigration<UmzugContext>>> {
+function getUniversalUmzugMigrations(): UmzugOptions<UmzugContext>['migrations'] {
   const { migrationFolder } = config;
 
-  const migrationNames = await fs.readdir(migrationFolder, { withFileTypes: true });
-
-  const migrations = await Promise.all(
-    migrationNames.map(async migrationDirent => {
-      const filename = path.join(migrationFolder, migrationDirent.name);
-
-      if (migrationDirent.isFile()) {
-        const extension = path.extname(filename);
-
-        // supports migrations/<name>.sql (only up, no down)
-        if (SUPPORTED_SQL_FILE_EXTENSIONS.includes(extension)) {
-          return createSqlMigration(migrationDirent.name, filename, filename);
-        }
-
-        // supports migrations/<name>.js & similar
-        if (SUPPORTED_JS_FILE_EXTENSIONS.includes(extension)) {
-          return createJsMigration(migrationDirent.name, filename);
-        }
-
-        return null;
+  return {
+    glob: path.join(migrationFolder, '{*.{js,ts,cjs,mjs,cts,mts,sql},*/up.sql}'),
+    resolve: migration => {
+      if (!migration.path) {
+        throw new Error(`Migration ${inspect(migration.name)} is missing its file path.`);
       }
+
+      const migrationPath = migration.path;
 
       // supports migrations/<name>/(up|down).sql
-      if (migrationDirent.isDirectory()) {
-        const upPath = path.join(filename, 'up.sql');
-        const downPath = path.join(filename, 'down.sql');
+      if (path.basename(migrationPath) === 'up.sql') {
+        const migrationDir = path.dirname(migrationPath);
 
-        const hasUp = await checkFileExists(upPath);
-
-        if (!hasUp) {
-          return null;
-        }
-
-        return createSqlMigration(migrationDirent.name, filename, upPath, downPath);
+        return createSqlMigration(
+          path.basename(migrationDir),
+          migrationDir,
+          migrationPath,
+          path.join(migrationDir, 'down.sql'),
+        );
       }
 
-      return null;
-    }),
-  );
+      const extension = path.extname(migrationPath);
 
-  return migrations.filter(isNotNullish);
+      // supports migrations/<name>.sql (only up, no down)
+      if (SUPPORTED_SQL_FILE_EXTENSIONS.includes(extension)) {
+        return createSqlMigration(migration.name, migrationPath, migrationPath);
+      }
+
+      // supports migrations/<name>.js & similar
+      if (SUPPORTED_JS_FILE_EXTENSIONS.includes(extension)) {
+        return createJsMigration(migration.name, migrationPath);
+      }
+
+      throw new Error(
+        `Unsupported migration file ${inspect(migrationPath)}. Supported extensions are ${SUPPORTED_JS_FILE_EXTENSIONS.join(', ')} and ${SUPPORTED_SQL_FILE_EXTENSIONS.join(', ')}`,
+      );
+    },
+  } satisfies {
+    glob: string;
+    resolve: Resolver<UmzugContext>;
+  };
 }
 
 function createSqlMigration(
@@ -116,7 +117,7 @@ function createJsMigration(
     name: migrationName,
     path: migrationPath,
     up: async migrationParams => {
-      const migration = await import(migrationPath);
+      const migration = await import(pathToFileURL(migrationPath).href);
       const up = migration.up ?? migration.default?.up;
 
       if (!up) {
@@ -134,12 +135,12 @@ function createJsMigration(
       await up(sequelize.queryInterface, sequelize, migrationParams);
     },
     down: async migrationParams => {
-      const migration = await import(migrationPath);
+      const migration = await import(pathToFileURL(migrationPath).href);
       const down = migration.down ?? migration.default?.down;
 
       if (!down) {
         throw new Error(
-          'Migration ${inspect(migrationName)} is missing the "down" export, so cannot be reverted.',
+          `Migration ${inspect(migrationName)} is missing the "down" export, so cannot be reverted.`,
         );
       }
 
