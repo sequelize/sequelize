@@ -34,6 +34,19 @@ export function makeUmzugLogger(
 }
 
 export abstract class SequelizeCommand<Flags extends FlagInput> extends Command {
+  override toErrorJson(err: unknown) {
+    if (err instanceof Error) {
+      return {
+        error: {
+          message: err.message,
+          code: (err as NodeJS.ErrnoException).code,
+        },
+      };
+    }
+
+    return { error: err };
+  }
+
   static strict = false;
 
   static baseFlags = {

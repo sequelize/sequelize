@@ -76,7 +76,7 @@ describe('migration:status (special cases)', function () {
     expect(result.pending).to.deep.equal([]);
   });
 
-  it('does not error on missing migration folder', async () => {
+  it('errors on missing migration folder', async () => {
     await rm(join(packageRoot, 'migrations'), { recursive: true, force: true });
 
     const { stdout, stderr } = await runCommand(['migration:status', '--json'], {
@@ -85,7 +85,6 @@ describe('migration:status (special cases)', function () {
 
     expect(stderr).to.equal('');
     const result = JSON.parse(stdout);
-    expect(result.migrated).to.deep.equal([]);
-    expect(result.pending).to.deep.equal([]);
+    expect(result.error.message).to.contain('Migration folder not found at path');
   });
 });

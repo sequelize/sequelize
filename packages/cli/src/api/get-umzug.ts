@@ -1,12 +1,12 @@
 import { Sequelize } from '@sequelize/core';
-import { isFunction } from '@sequelize/utils';
-import { checkFileExists } from '@sequelize/utils/node';
+import { isFunction, isNotNullish } from '@sequelize/utils';
+import { checkFileExists, isNodeError } from '@sequelize/utils/node';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { inspect } from 'node:util';
 import { SequelizeStorage, Umzug } from 'umzug';
-import type { Resolver, RunnableMigration, UmzugOptions } from 'umzug/lib/types.js';
+import type { RunnableMigration, UmzugOptions } from 'umzug/lib/types.js';
 import { config } from '../_internal/config.js';
 
 const SUPPORTED_JS_FILE_EXTENSIONS = Object.freeze(['.js', '.ts', '.cjs', '.mjs', '.cts', '.mts']);
@@ -25,7 +25,7 @@ export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'log
 
   const umzug = new Umzug({
     ...options,
-    migrations: getUniversalUmzugMigrations(),
+    migrations: await getUniversalUmzugMigrations(),
     context: {
       sequelize,
     },
@@ -35,50 +35,64 @@ export async function createUmzug(options: Pick<UmzugOptions<UmzugContext>, 'log
   return { umzug, sequelize };
 }
 
-function getUniversalUmzugMigrations(): UmzugOptions<UmzugContext>['migrations'] {
+async function getUniversalUmzugMigrations(): Promise<Array<RunnableMigration<UmzugContext>>> {
   const { migrationFolder } = config;
 
-  return {
-    glob: path.join(migrationFolder, '{*.{js,ts,cjs,mjs,cts,mts,sql},*/up.sql}'),
-    resolve: migration => {
-      if (!migration.path) {
-        throw new Error(`Migration ${inspect(migration.name)} is missing its file path.`);
-      }
+  let migrationNames;
 
-      const migrationPath = migration.path;
-
-      // supports migrations/<name>/(up|down).sql
-      if (path.basename(migrationPath) === 'up.sql') {
-        const migrationDir = path.dirname(migrationPath);
-
-        return createSqlMigration(
-          path.basename(migrationDir),
-          migrationDir,
-          migrationPath,
-          path.join(migrationDir, 'down.sql'),
-        );
-      }
-
-      const extension = path.extname(migrationPath);
-
-      // supports migrations/<name>.sql (only up, no down)
-      if (SUPPORTED_SQL_FILE_EXTENSIONS.includes(extension)) {
-        return createSqlMigration(migration.name, migrationPath, migrationPath);
-      }
-
-      // supports migrations/<name>.js & similar
-      if (SUPPORTED_JS_FILE_EXTENSIONS.includes(extension)) {
-        return createJsMigration(migration.name, migrationPath);
-      }
-
+  try {
+    migrationNames = await fs.readdir(migrationFolder, { withFileTypes: true });
+  } catch (error) {
+    if (isNodeError(error) && error.code === 'ENOENT') {
       throw new Error(
-        `Unsupported migration file ${inspect(migrationPath)}. Supported extensions are ${SUPPORTED_JS_FILE_EXTENSIONS.join(', ')} and ${SUPPORTED_SQL_FILE_EXTENSIONS.join(', ')}`,
+        `Migration folder not found at path ${inspect(migrationFolder)}. Please ensure the "migrationFolder" entry in your config points to the correct location.`,
       );
-    },
-  } satisfies {
-    glob: string;
-    resolve: Resolver<UmzugContext>;
-  };
+    }
+
+    throw error;
+  }
+
+  const migrations = await Promise.all(
+    migrationNames
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(async migrationDirent => {
+        const filename = path.join(migrationFolder, migrationDirent.name);
+
+        if (migrationDirent.isFile()) {
+          const extension = path.extname(filename);
+
+          // supports migrations/<name>.sql (only up, no down)
+          if (SUPPORTED_SQL_FILE_EXTENSIONS.includes(extension)) {
+            return createSqlMigration(migrationDirent.name, filename, filename);
+          }
+
+          // supports migrations/<name>.js & similar
+          if (SUPPORTED_JS_FILE_EXTENSIONS.includes(extension)) {
+            return createJsMigration(migrationDirent.name, filename);
+          }
+
+          return null;
+        }
+
+        // supports migrations/<name>/(up|down).sql
+        if (migrationDirent.isDirectory()) {
+          const upPath = path.join(filename, 'up.sql');
+          const downPath = path.join(filename, 'down.sql');
+
+          const hasUp = await checkFileExists(upPath);
+
+          if (!hasUp) {
+            return null;
+          }
+
+          return createSqlMigration(migrationDirent.name, filename, upPath, downPath);
+        }
+
+        return null;
+      }),
+  );
+
+  return migrations.filter(isNotNullish);
 }
 
 function createSqlMigration(
