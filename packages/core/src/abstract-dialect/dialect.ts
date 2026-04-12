@@ -2,7 +2,7 @@ import { EMPTY_OBJECT, freezeDeep, getImmutablePojo, isFunction, isString } from
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
-import type { DialectName, Sequelize } from '../sequelize.js';
+import type { Sequelize } from '../sequelize.js';
 import { logger } from '../utils/logger.js';
 import type { DeepPartial } from '../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
@@ -315,7 +315,7 @@ export type AbstractDialectParams<Options> = {
    */
   identifierDelimiter: string | { start: string; end: string };
   minimumDatabaseVersion: string;
-  name: DialectName;
+  name: string;
   options: Options | undefined;
   sequelize: Sequelize;
 };
@@ -563,7 +563,7 @@ export abstract class AbstractDialect<
   readonly minimumDatabaseVersion: string;
   readonly dataTypesDocumentationUrl: string;
   readonly options: Options;
-  readonly name: DialectName;
+  readonly name: string;
 
   /** dialect-specific implementation of shared data types */
   readonly #dataTypeOverrides: Map<string, Class<AbstractDataType<any>>>;
