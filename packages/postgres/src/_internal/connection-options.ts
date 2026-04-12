@@ -8,6 +8,7 @@ const STRING_CONNECTION_OPTION_MAP = {
   application_name: undefined,
   client_encoding: undefined,
   database: undefined,
+  fallback_application_name: undefined,
   host: undefined,
   options: undefined,
   password: undefined,

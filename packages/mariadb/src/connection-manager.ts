@@ -13,6 +13,12 @@ import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import * as MariaDb from 'mariadb';
+import type {
+  ConnectionConfig,
+  FieldInfo,
+  TypeCastNextFunction,
+  TypeCastResult,
+} from 'mariadb/types/share.js';
 import semver from 'semver';
 import type { MariaDbDialect } from './dialect.js';
 
@@ -24,7 +30,7 @@ export interface MariaDbConnection extends AbstractConnection, MariaDb.Connectio
 
 export interface MariaDbConnectionOptions
   extends Omit<
-    MariaDb.ConnectionConfig,
+    ConnectionConfig,
     // Can only be set by Sequelize to prevent users from making it return a format
     // that is incompatible with Sequelize
     | 'typeCast'
@@ -72,11 +78,11 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     this.#lib = dialect.options.mariaDbModule ?? MariaDb;
   }
 
-  #typeCast(field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction): MariaDb.TypeCastResult {
+  #typeCast(field: FieldInfo, next: TypeCastNextFunction): TypeCastResult {
     const parser = this.dialect.getParserForDatabaseDataType(field.type);
 
     if (parser) {
-      return parser(field) as MariaDb.TypeCastResult;
+      return parser(field) as TypeCastResult;
     }
 
     return next();
@@ -94,12 +100,11 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     let tzOffset = this.sequelize.options.timezone;
     tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
 
-    const connectionConfig: MariaDb.ConnectionConfig = removeUndefined({
+    const connectionConfig: ConnectionConfig = removeUndefined({
       foundRows: false,
       ...config,
       timezone: tzOffset,
-      typeCast: (field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction) =>
-        this.#typeCast(field, next),
+      typeCast: (field: FieldInfo, next: TypeCastNextFunction) => this.#typeCast(field, next),
     });
 
     if (!this.sequelize.options.keepDefaultTimezone) {
