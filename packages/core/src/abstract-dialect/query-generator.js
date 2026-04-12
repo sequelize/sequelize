@@ -235,9 +235,30 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
         onDuplicateKeyUpdate = ` ${joinSQLFragments(fragments)}`;
       } else {
-        const valueKeys = options.updateOnDuplicate.map(
-          attr => `${this.quoteIdentifier(attr)}=${values[attr]}`,
-        );
+        let valueKeys;
+        if (options.updateValues) {
+          valueKeys = options.updateOnDuplicate.map(attr => {
+            const key = attr;
+            if (options.updateValues[key] !== undefined) {
+              const value = options.updateValues[key];
+              const escapedValue = this.escape(value, {
+                model: options.model,
+                type: modelAttributeMap[key]?.type,
+                replacements: options.replacements,
+                bindParam,
+              });
+
+              return `${this.quoteIdentifier(attr)}=${escapedValue}`;
+            }
+
+            return `${this.quoteIdentifier(attr)}=${values[attr]}`;
+          });
+        } else {
+          valueKeys = options.updateOnDuplicate.map(
+            attr => `${this.quoteIdentifier(attr)}=${values[attr]}`,
+          );
+        }
+
         // the rough equivalent to ON CONFLICT DO NOTHING in mysql, etc is ON DUPLICATE KEY UPDATE id = id
         // So, if no update values were provided, fall back to the identifier columns provided in the upsertKeys array.
         // This will be the primary key in most cases, but it could be some other constraint.
