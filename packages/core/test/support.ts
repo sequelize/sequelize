@@ -1,7 +1,7 @@
 import type { AbstractDialect, BoundQuery, DialectName, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
-import { isNotString } from '@sequelize/utils';
+import { isNotString, pojo } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -205,8 +205,8 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
 export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
-  const expectations: PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>> =
-    Object.create(null);
+  const expectations =
+    pojo<PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>>>();
 
   for (const [key, value] of Object.entries(assertions)) {
     const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
@@ -379,7 +379,7 @@ export function expectsql(
 ): void {
   const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> =
     'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | DialectName, string | Error> = Object.create(null);
+  const expectations = pojo<PartialRecord<'default' | DialectName, string | Error>>();
 
   /**
    * The list of expectations that are run against more than one dialect, which enables the transformation of

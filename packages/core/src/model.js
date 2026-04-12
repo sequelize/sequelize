@@ -1,6 +1,6 @@
 'use strict';
 
-import { EMPTY_OBJECT, every, find } from '@sequelize/utils';
+import { EMPTY_OBJECT, every, find, pojo } from '@sequelize/utils';
 import assignWith from 'lodash/assignWith';
 import cloneDeepLodash from 'lodash/cloneDeep';
 import defaultsLodash from 'lodash/defaults';
@@ -223,7 +223,7 @@ export class Model extends ModelTypeScript {
 
               return value && value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
             })
-          : Object.create(null);
+          : pojo();
 
       // set id to null if not passed as value, a newly created dao has no id
       // removing this breaks bulkCreate
@@ -299,7 +299,7 @@ export class Model extends ModelTypeScript {
 
     const deletedAtCol = modelDefinition.timestampAttributeNames.deletedAt;
     const deletedAtAttribute = modelDefinition.attributes.get(deletedAtCol);
-    const deletedAtObject = Object.create(null);
+    const deletedAtObject = pojo();
 
     let deletedAtDefaultValue = deletedAtAttribute.defaultValue ?? null;
 
@@ -2459,7 +2459,7 @@ ${associationOwner._getAssociationDebugList()}`);
         });
 
         // Map attributes to fields for serial identification
-        const fieldMappedAttributes = Object.create(null);
+        const fieldMappedAttributes = pojo();
         for (const attrName in model.tableAttributes) {
           const attribute = modelDefinition.attributes.get(attrName);
           fieldMappedAttributes[attribute.columnName] = attribute;
@@ -3512,7 +3512,7 @@ Instead of specifying a Model, either:
       (options.plain && this._options.include) ||
       options.clone
     ) {
-      const values = Object.create(null);
+      const values = pojo();
       if (attributesWithGetters.size > 0) {
         for (const attributeName2 of attributesWithGetters) {
           if (!this._options.attributes?.includes(attributeName2)) {
