@@ -160,6 +160,7 @@ export class HasManyAssociation<
       addMultiple: `add${plural}`,
       add: `add${singular}`,
       create: `create${singular}`,
+      createMultiple: `create${plural}`,
       remove: `remove${singular}`,
       removeMultiple: `remove${plural}`,
       hasSingle: `has${singular}`,
@@ -228,12 +229,14 @@ export class HasManyAssociation<
         'remove',
         'removeMultiple',
         'create',
+        'createMultiple',
       ],
       {
         hasSingle: 'has',
         hasAll: 'has',
         addMultiple: 'add',
         removeMultiple: 'remove',
+        createMultiple: 'createMultiple',
       },
     );
   }
@@ -604,6 +607,50 @@ export class HasManyAssociation<
       },
       options,
     );
+  }
+
+  /**
+   * Create a new instances of the associated model and associate it with this.
+   *
+   * @param sourceInstance source instance
+   * @param values values for target model instance
+   * @param options Options passed to `target.bulkCreate`
+   */
+  async createMultiple(
+    sourceInstance: S,
+    values: AllowIterable<CreationAttributes<T>>,
+    options:
+      | HasManyCreateAssociationMixinOptions<T>
+      | HasManyCreateAssociationMixinOptions<T>['fields'] = {},
+  ): Promise<T[]> {
+    if (Array.isArray(options)) {
+      options = {
+        fields: options,
+      };
+    }
+
+    if (this.scope) {
+      for (const attribute of Object.keys(this.scope)) {
+        // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
+        for (const value of values) {
+          value[attribute] = this.scope[attribute];
+        }
+
+        if (options.fields) {
+          options.fields.push(attribute);
+        }
+      }
+    }
+
+    if (options.fields) {
+      options.fields.push(this.foreignKey);
+    }
+
+    for (const value of values) {
+      value[this.foreignKey] = sourceInstance.get(this.sourceKey);
+    }
+
+    return this.target.bulkCreate(values as ReadonlyArray<CreationAttributes<T>>, options);
   }
 }
 
