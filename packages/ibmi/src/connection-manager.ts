@@ -9,10 +9,7 @@ const debug = logger.debugContext('connection:ibmi');
 
 export type OdbcModule = typeof Odbc;
 
-export interface IBMiConnection extends AbstractConnection, OdbcConnection {
-  // properties of ObdcConnection, but not declared in their typings
-  connected: boolean;
-}
+export interface IBMiConnection extends AbstractConnection, OdbcConnection {}
 
 export interface IBMiConnectionOptions extends Omit<ConnectionParameters, 'connectionString'> {
   /**
@@ -121,6 +118,6 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
   }
 
   validate(connection: IBMiConnection): boolean {
-    return connection.connected;
+    return connection.connected();
   }
 }
