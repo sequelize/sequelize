@@ -10,6 +10,7 @@ import {
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { nameIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { pojo } from '@sequelize/utils';
 import extend from 'lodash/extend';
 import isPlainObject from 'lodash/isPlainObject';
 import mapKeys from 'lodash/mapKeys';
@@ -180,7 +181,7 @@ export class OracleQuery extends AbstractQuery {
           autoCommit: this.autoCommit,
         });
 
-        return Object.create(null);
+        return pojo();
       } catch (error) {
         throw this.formatError(error);
       } finally {
@@ -216,7 +217,7 @@ export class OracleQuery extends AbstractQuery {
       try {
         await this.connection.commit();
 
-        return Object.create(null);
+        return pojo();
       } catch (error) {
         throw this.formatError(error);
       } finally {
@@ -228,7 +229,7 @@ export class OracleQuery extends AbstractQuery {
       try {
         await this.connection.rollback();
 
-        return Object.create(null);
+        return pojo();
       } catch (error) {
         throw this.formatError(error);
       } finally {
@@ -240,7 +241,7 @@ export class OracleQuery extends AbstractQuery {
       try {
         await this.connection.execute(this.sql, [], { autoCommit: false });
 
-        return Object.create(null);
+        return pojo();
       } catch (error) {
         throw this.formatError(error);
       } finally {

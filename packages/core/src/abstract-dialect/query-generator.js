@@ -1,6 +1,6 @@
 'use strict';
 
-import { inspect } from '@sequelize/utils';
+import { inspect, pojo } from '@sequelize/utils';
 import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -102,7 +102,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returningModelAttributes = [];
     const returnTypes = [];
     const returnAttributes = [];
-    const values = Object.create(null);
+    const values = pojo();
     const quotedTable = this.quoteTable(table);
     let bind;
     let bindParam;
@@ -158,8 +158,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind =
-        this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
+      bind = this.dialect.supports.returnIntoValues && options.bind ? options.bind : pojo();
       bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
@@ -493,7 +492,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
+      bind = pojo();
       bindParam = createBindParamGenerator(bind);
     }
 

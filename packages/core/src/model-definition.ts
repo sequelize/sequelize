@@ -52,7 +52,7 @@ export class ModelDefinition<M extends Model = Model> {
     return this.#table;
   }
 
-  readonly associations: { [associationName: string]: Association } = Object.create(null);
+  readonly associations: { [associationName: string]: Association } = pojo();
 
   /**
    * The list of attributes that have *not* been normalized.
@@ -97,7 +97,7 @@ export class ModelDefinition<M extends Model = Model> {
   /**
    * Records which attributes are the different built-in timestamp attributes
    */
-  readonly timestampAttributeNames: TimestampAttributes = Object.create(null);
+  readonly timestampAttributeNames: TimestampAttributes = pojo();
 
   /**
    * The name of the attribute that records the version of the model instance.
@@ -268,7 +268,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     }
 
     // attributes that will be added at the start of this.rawAttributes (id)
-    const rawAttributes: { [attributeName: string]: AttributeOptions<M> } = Object.create(null);
+    const rawAttributes = pojo<{ [attributeName: string]: AttributeOptions<M> }>();
 
     for (const [attributeName, rawAttributeOrDataType] of getAllOwnEntries(attributesOptions)) {
       if (typeof attributeName === 'symbol') {
@@ -334,7 +334,7 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
       this.#readOnlyAttributeNames.add(this.#versionAttributeName);
     }
 
-    this.rawAttributes = Object.create(null);
+    this.rawAttributes = pojo();
 
     // Add id if no primary key was manually added to definition
     if (
