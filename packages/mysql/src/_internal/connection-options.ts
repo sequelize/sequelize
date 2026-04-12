@@ -30,6 +30,7 @@ type BooleanConnectionOptions = PickByType<Omit<MySqlConnectionOptions, AnyOptio
 const BOOLEAN_CONNECTION_OPTION_MAP = {
   compress: undefined,
   disableEval: undefined,
+  enableCleartextPlugin: undefined,
   enableKeepAlive: undefined,
   gracefulEnd: undefined,
   insecureAuth: undefined,

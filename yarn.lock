@@ -2917,7 +2917,7 @@ __metadata:
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.20"
     lodash: "npm:^4.18.1"
-    mariadb: "npm:^3.4.5"
+    mariadb: "patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch"
     mocha: "npm:11.7.5"
     semver: "npm:^7.7.4"
     wkx: "npm:^0.5.0"
@@ -3866,7 +3866,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=18, @types/node@npm:>=20":
+"@types/node@npm:*, @types/node@npm:>=18":
   version: 26.1.1
   resolution: "@types/node@npm:26.1.1"
   dependencies:
@@ -10484,17 +10484,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lru-cache@npm:^10.0.1, lru-cache@npm:^10.2.0, lru-cache@npm:^10.2.2":
+"lru-cache@npm:^10.0.1, lru-cache@npm:^10.2.0, lru-cache@npm:^10.2.2, lru-cache@npm:^10.4.3":
   version: 10.4.3
   resolution: "lru-cache@npm:10.4.3"
   checksum: 10c0/ebd04fbca961e6c1d6c0af3799adcc966a1babe798f685bb84e6599266599cd95d94630b10262f5424539bc4640107e8a33aa28585374abf561d30d16f4b39fb
-  languageName: node
-  linkType: hard
-
-"lru-cache@npm:^11.5.0":
-  version: 11.5.2
-  resolution: "lru-cache@npm:11.5.2"
-  checksum: 10c0/ece1ad731f5b655e85d67047d04bfc13823dc77aa61c5454924a9869ba600a0104e39cc33d726021feef812bc347ca34a5608a5eb1972a5dd0870b7ecd42c3f2
   languageName: node
   linkType: hard
 
@@ -10618,16 +10611,29 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:^3.4.5":
-  version: 3.5.3
-  resolution: "mariadb@npm:3.5.3"
+"mariadb@npm:3.5.2":
+  version: 3.5.2
+  resolution: "mariadb@npm:3.5.2"
   dependencies:
     "@types/geojson": "npm:^7946.0.16"
-    "@types/node": "npm:>=20"
+    "@types/node": "npm:>=18"
     denque: "npm:^2.1.0"
     iconv-lite: "npm:^0.7.2"
-    lru-cache: "npm:^11.5.0"
-  checksum: 10c0/c41a37574932df9cdac077dda7087cc21b059e2e4efab84e6bf7729ae2d769d1eeb96eae6e1063a1dea528ed31e06dcd2e68fe55dcd0f51e78271141ef0e4340
+    lru-cache: "npm:^10.4.3"
+  checksum: 10c0/3fe61ede40e38eddf7b32d975fe55a67d342620909deb282c87fa03c943206739adbf31e3767ebd20211d73b66f6d424c0e09166ba35dfa6079b04c084d5c69d
+  languageName: node
+  linkType: hard
+
+"mariadb@patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch":
+  version: 3.5.2
+  resolution: "mariadb@patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch::version=3.5.2&hash=a1b9d7"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.16"
+    "@types/node": "npm:>=18"
+    denque: "npm:^2.1.0"
+    iconv-lite: "npm:^0.7.2"
+    lru-cache: "npm:^10.4.3"
+  checksum: 10c0/718008284a9ed357ed797893068628629aef45c6f6aa340caf522b1656b7f006000596df55151438c3cc36a40bf21be0535dd3d15f44ef98f3799063cf505e12
   languageName: node
   linkType: hard
 

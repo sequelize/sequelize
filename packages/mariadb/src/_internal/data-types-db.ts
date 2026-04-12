@@ -1,6 +1,6 @@
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import dayjs from 'dayjs';
-import type { FieldInfo } from 'mariadb';
+import type { FieldInfo } from 'mariadb/types/share.js';
 import type { MariaDbDialect } from '../dialect.js';
 
 /**
