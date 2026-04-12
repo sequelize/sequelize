@@ -1,5 +1,6 @@
 'use strict';
 
+import { inspect } from '@sequelize/utils';
 import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -706,7 +707,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (!field.name) {
-        throw new Error(`The following index field has no name: ${NodeUtil.inspect(field)}`);
+        throw new Error(`The following index field has no name: ${inspect(field)}`);
       }
 
       result += this.quoteIdentifier(field.name);
