@@ -349,13 +349,13 @@ export class InstanceValidator {
     // Cast value as string to pass new Validator.js string requirement
     const valueString = String(value);
     // check if Validator knows that kind of validation test
-    if (typeof validator[validatorType] !== 'function') {
+    if (typeof Validator[validatorType] !== 'function') {
       throw new TypeError(`Invalid validator function: ${validatorType}`);
     }
 
     const validatorArgs = this._extractValidatorArgs(test, validatorType, field);
 
-    if (!validator[validatorType](valueString, ...validatorArgs)) {
+    if (!Validator[validatorType](valueString, ...validatorArgs)) {
       throw Object.assign(new Error(test.msg || `Validation ${validatorType} on ${field} failed`), {
         validatorName: validatorType,
         validatorArgs,
