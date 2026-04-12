@@ -61,7 +61,7 @@ import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
-import { validator as Validator } from './utils/validator-extras';
+import { Validator } from './utils/validator-extras';
 
 /**
  * This is the main class, the entry point to sequelize.
