@@ -183,9 +183,17 @@ export class MariaDbQuery extends AbstractQuery {
     }
 
     const meta = rows.meta;
-    for (const [i, _field] of Object.keys(this.model.fieldRawAttributesMap).entries()) {
+    for (const _field of Object.keys(this.model.fieldRawAttributesMap)) {
       const modelField = this.model.fieldRawAttributesMap[_field];
       if (modelField.type instanceof DataTypes.JSON) {
+        const metaEntry = meta?.find(column => {
+          return (
+            column.name() === modelField.fieldName ||
+            column.name() === modelField.field ||
+            column.orgName() === modelField.field
+          );
+        });
+
         // Value is returned as String, not JSON
         rows = rows.map(row => {
           // JSON fields for MariaDB server 10.5.2+ already results in JSON format so we can skip JSON.parse
@@ -193,7 +201,7 @@ export class MariaDbQuery extends AbstractQuery {
           if (
             row[modelField.fieldName] &&
             typeof row[modelField.fieldName] === 'string' &&
-            (!meta[i] || meta[i].dataTypeFormat !== 'json')
+            metaEntry?._dataTypeFormat?.toString() !== 'json'
           ) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
