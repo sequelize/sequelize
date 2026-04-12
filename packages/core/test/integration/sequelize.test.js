@@ -186,7 +186,6 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         if (dialect !== 'db2') {
           it('triggers the error event when using replication', async () => {
             const sequelize = createSequelizeInstance({
-              dialect,
               replication: {
                 read: [badUsernameConfig[dialect]],
               },

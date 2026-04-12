@@ -94,7 +94,6 @@ export const Deferrable = Pkg.Deferrable;
 export const ConstraintChecking = Pkg.ConstraintChecking;
 export const ParameterStyle = Pkg.ParameterStyle;
 
-// export { Validator as validator } from './lib/utils/validator-extras';
 export const Validator = Pkg.Validator;
 
 export const ValidationErrorItemOrigin = Pkg.ValidationErrorItemOrigin;
