@@ -1,6 +1,7 @@
 /dist
 /lib
 /tmp
+/test-artifacts
 node_modules
 oclif.lock
 oclif.manifest.json

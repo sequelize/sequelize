@@ -1,4 +1,4 @@
-import type { AbstractDialect, BoundQuery, DialectName, Options } from '@sequelize/core';
+import type { AbstractDialect, BoundQuery, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString, pojo } from '@sequelize/utils';
@@ -19,6 +19,17 @@ import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
 
 export { getSqliteDatabasePath } from './config/config';
 
+export type DialectName =
+  | 'mysql'
+  | 'postgres'
+  | 'sqlite3'
+  | 'mariadb'
+  | 'mssql'
+  | 'db2'
+  | 'snowflake'
+  | 'ibmi'
+  | 'oracle';
+
 const expect = chai.expect;
 
 const packagesDir = path.resolve(__dirname, '..', '..');
@@ -34,17 +45,14 @@ chai.use(sinonChai);
  * that is also checks whether the message is present in the error cause.
  */
 chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
 });
 
 chai.Assertion.addMethod('beNullish', function nullish() {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(this._obj).to.not.exist;
 });
 
 chai.Assertion.addMethod('notBeNullish', function nullish() {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(this._obj).to.exist;
 });
 
@@ -146,7 +154,7 @@ export function createSequelizeInstance<Dialect extends AbstractDialect = Abstra
     return new Sequelize(sequelizePostgresOptions) as unknown as Sequelize<Dialect>;
   }
 
-  return new Sequelize<Dialect>(sequelizeOptions as Options<Dialect>);
+  return new Sequelize<Dialect>(sequelizeOptions as unknown as Options<Dialect>);
 }
 
 export function getSupportedDialects() {
@@ -237,7 +245,7 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
     result = error;
   }
 
-  const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
+  const expectation = expectations[sequelize.dialect.name as DialectName] ?? expectations.default;
   if (expectation === undefined) {
     throw new Error(
       `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
@@ -257,7 +265,7 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
       `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
     );
 
-    const isDefault = expectations[sequelize.dialect.name] === undefined;
+    const isDefault = expectations[sequelize.dialect.name as DialectName] === undefined;
     assertMatchesExpectation(result, expectation, isDefault);
   }
 }
@@ -414,7 +422,8 @@ export function expectsql(
   }
 
   const dialect = sequelize.dialect;
-  const usedExpectationName = dialect.name in expectations ? dialect.name : 'default';
+  const usedExpectationName =
+    dialect.name in expectations ? (dialect.name as DialectName) : 'default';
 
   let expectation = expectations[usedExpectationName];
   if (expectation == null) {
@@ -464,7 +473,9 @@ export function expectsql(
 
   if ('bind' in assertions) {
     const bind =
-      assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
+      assertions.bind[sequelize.dialect.name as DialectName] ||
+      assertions.bind.default ||
+      assertions.bind;
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
@@ -517,7 +528,6 @@ export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize)
 if (typeof before !== 'undefined') {
   before(function onBefore() {
     // legacy, remove once all tests have been migrated to not use "this" anymore
-    // eslint-disable-next-line @typescript-eslint/no-invalid-this
     Object.defineProperty(this, 'sequelize', {
       value: sequelize,
       writable: false,

@@ -1,6 +1,6 @@
 'use strict';
 
-import type { AbstractDialect, DialectName } from '@sequelize/core';
+import type { AbstractDialect } from '@sequelize/core';
 import {
   ConnectionRefusedError,
   HostNotReachableError,
@@ -12,6 +12,7 @@ import { expect } from 'chai';
 import type { Class } from 'type-fest';
 import type { DialectConfigs } from '../config/config';
 import { CONFIG } from '../config/config';
+import type { DialectName } from './support';
 import {
   destroySequelizeAfterTest,
   getSqliteDatabasePath,
