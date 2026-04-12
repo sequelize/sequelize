@@ -103,6 +103,70 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
     expect(AB.options.validate).to.deep.equal({});
   });
 
+  it('auto-creates indexes on join table FK columns when they are not part of the PK', () => {
+    const User = sequelize.define('User');
+    const Project = sequelize.define('Project');
+
+    // Use a through model with its own PK so that the FK columns are NOT part of the composite PK
+    const UserProject = sequelize.define('UserProject', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
+    });
+
+    User.belongsToMany(Project, { through: UserProject });
+    Project.belongsToMany(User, { through: UserProject });
+
+    const indexes = UserProject.modelDefinition.getIndexes();
+
+    const hasSingleColumnFkIndex = (fieldName: string) =>
+      indexes.some(idx => {
+        if (idx.fields?.length !== 1 || idx.unique === true) {
+          return false;
+        }
+
+        const [field] = idx.fields;
+
+        return (
+          (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName
+        );
+      });
+
+    expect(hasSingleColumnFkIndex('userId')).to.be.true;
+    expect(hasSingleColumnFkIndex('projectId')).to.be.true;
+  });
+
+  it('does not create duplicate indexes on join table FK columns that are already PKs', () => {
+    const User = sequelize.define('User');
+    const Project = sequelize.define('Project');
+
+    // Default: no custom PK, so both FK columns become the composite PK
+    User.belongsToMany(Project, { through: 'UserProject' });
+    Project.belongsToMany(User, { through: 'UserProject' });
+
+    const ThroughModel = sequelize.models.getOrThrow('UserProject');
+    const indexes = ThroughModel.modelDefinition.getIndexes();
+
+    // FK columns are already the composite PK, so no separate indexes should be created
+    const hasSingleColumnFkIndex = (fieldName: string) =>
+      indexes.some(idx => {
+        if (idx.fields?.length !== 1 || idx.unique === true) {
+          return false;
+        }
+
+        const [field] = idx.fields;
+
+        return (
+          (typeof field === 'string' ? field : 'name' in field ? field.name : null) === fieldName
+        );
+      });
+
+    expect(hasSingleColumnFkIndex('userId')).to.be.false;
+    expect(hasSingleColumnFkIndex('projectId')).to.be.false;
+  });
+
   it('should not override custom methods with association mixin', () => {
     const methods = {
       getTasks: 'get',
@@ -1243,14 +1307,13 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         ].sort(),
       );
 
-      expect(Through.getIndexes()).to.deep.equal([
-        {
-          name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
-          unique: true,
-          fields: ['id_user_very_long_field', 'id_group_very_long_field'],
-          column: 'id_user_very_long_field',
-        },
-      ]);
+      const indexes = Through.getIndexes();
+      expect(indexes).to.deep.include({
+        name: 'table_user_group_with_very_long_name_id_group_very_long_field_id_user_very_long_field_unique',
+        unique: true,
+        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+        column: 'id_user_very_long_field',
+      });
 
       // @ts-expect-error -- this property does not exist after normalization
       expect(Through.getAttributes().id_user_very_long_field.unique).to.be.undefined;
@@ -1297,14 +1360,12 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       expect(MyUsers.through.model === UserGroup);
       expect(MyGroups.through.model === UserGroup);
 
-      expect(UserGroup.getIndexes()).to.deep.equal([
-        {
-          name: 'custom_user_group_unique',
-          unique: true,
-          fields: ['id_user_very_long_field', 'id_group_very_long_field'],
-          column: 'id_user_very_long_field',
-        },
-      ]);
+      expect(UserGroup.getIndexes()).to.deep.include({
+        name: 'custom_user_group_unique',
+        unique: true,
+        fields: ['id_user_very_long_field', 'id_group_very_long_field'],
+        column: 'id_user_very_long_field',
+      });
 
       // @ts-expect-error -- this property does not exist after normalization
       expect(UserGroup.getAttributes().id_user_very_long_field.unique).to.be.undefined;
