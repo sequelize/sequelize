@@ -485,6 +485,12 @@ new Sequelize({
       throw new Error('The "dialect" option must be explicitly supplied since Sequelize 4');
     }
 
+    if (typeof options.dialect !== 'function') {
+      throw new Error(
+        'The "dialect" option must be a dialect class. Pass the class exported by your dialect package instead.',
+      );
+    }
+
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {
       const modelName = model.modelDefinition.modelName;

@@ -220,7 +220,7 @@ export interface EphemeralSequelizeOptions<Dialect extends AbstractDialect> {
   databaseVersion?: string;
 
   /**
-   * The dialect of the database you are connecting to. Either the name of the dialect, or a dialect class.
+   * The dialect of the database you are connecting to. Pass the Dialect class exported by the dialect package.
    */
   dialect: Class<Dialect>;
 

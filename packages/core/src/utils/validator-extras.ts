@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import baseValidator from 'validator';
 import type { Model } from '../model';
 
-export const validator = {
+export const Validator = {
   ...baseValidator,
 
   extend(name: string, fn: Function) {
@@ -95,4 +95,6 @@ export const validator = {
   isDate(dateString: string) {
     return dayjs(dateString).isValid();
   },
+
+  _default: undefined,
 };

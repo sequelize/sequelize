@@ -10,7 +10,7 @@ import { BelongsToAssociation } from './associations/belongs-to';
 import * as SequelizeError from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { getAllOwnKeys } from './utils/object';
-import { validator } from './utils/validator-extras';
+import { Validator } from './utils/validator-extras';
 
 /**
  * Instance Validator.
@@ -47,7 +47,7 @@ export class InstanceValidator {
      * @name validator
      * @private
      */
-    this.validator = validator;
+    this.validator = Validator;
 
     /**
      *  All errors will be stored here from the validations.
