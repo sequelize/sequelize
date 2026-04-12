@@ -642,9 +642,13 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0019',
   'SEQUELIZE0021',
   'SEQUELIZE0022',
-  'DEP0040', // Added for Node 22 support
-  'DEP0169', // Added for Node 24 support
 ];
+
+const ignoredDeprecationMessages: readonly RegExp[] = [
+  // TODO: remove once Sequelize serializes shared postgres client queries without relying on pg's deprecated internal queue.
+  /^Calling client\.query\(\) when the client is already executing a query is deprecated and will be removed in pg@9\.0\./,
+];
+
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
 export function allowDeprecationsInSuite(codes: readonly string[]) {
   before(() => {
@@ -658,7 +662,11 @@ export function allowDeprecationsInSuite(codes: readonly string[]) {
 
 // TODO: the DeprecationWarning is only thrown once. We should figure out a way to reset that or move all tests that use deprecated tests to one suite per deprecation.
 process.on('warning', (warning: NodeJS.ErrnoException) => {
-  if (warning.name === 'DeprecationWarning' && !allowedDeprecations.includes(warning.code!)) {
+  if (
+    warning.name === 'DeprecationWarning' &&
+    !allowedDeprecations.includes(warning.code!) &&
+    !ignoredDeprecationMessages.some(pattern => pattern.test(warning.message))
+  ) {
     throw warning;
   }
 });

@@ -40,6 +40,6 @@
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.20",
     "lodash": "^4.18.1",
-    "odbc": "^2.4.9"
+    "odbc": "^2.5.0"
   }
 }
