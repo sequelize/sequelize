@@ -56,6 +56,7 @@ import {
   noSequelizeIsDefined,
   noSequelizeModel,
   noSequelizeRandom,
+  useMasterToUsePrimary,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -201,7 +202,8 @@ export class Sequelize extends SequelizeTypeScript {
    * @param {boolean}         [options.plain=false] Sets the query type to `SELECT` and return a single row
    * @param {object|Array}    [options.replacements] Either an object of named parameter replacements in the format `:param` or an array of unnamed replacements to replace `?` in your SQL.
    * @param {object|Array}    [options.bind] Either an object of named bind parameter in the format `_param` or an array of unnamed bind parameter to replace `$1, $2, ...` in your SQL.
-   * @param {boolean}         [options.useMaster=false] Force the query to use the write pool, regardless of the query type.
+   * @param {boolean}         [options.usePrimary=false] Force the query to use the primary (write) pool, regardless of the query type.
+   * @param {boolean}         [options.useMaster=false] Deprecated: Use options.usePrimary instead.
    * @param {Function}        [options.logging=false] A function that gets executed while running the query to log the sql.
    * @param {Model}           [options.instance] A sequelize model instance whose Model is to be used to build the query result
    * @param {ModelStatic<Model>}    [options.model] A sequelize model used to build the returned model instances
@@ -363,6 +365,16 @@ Use Sequelize#query if you wish to use replacements.`);
     };
 
     setTransactionFromCls(options, this);
+
+    if (Object.hasOwn(options, 'useMaster')) {
+      useMasterToUsePrimary();
+      if (options.usePrimary === undefined) {
+        options.usePrimary = options.useMaster;
+      }
+
+      delete options.useMaster;
+    }
+
     const retryOptions = { ...this.options.retry, ...options.retry };
 
     return await retry(async () => {
@@ -373,7 +385,7 @@ Use Sequelize#query if you wish to use replacements.`);
         : options.connection
           ? options.connection
           : await this.pool.acquire({
-              useMaster: options.useMaster,
+              usePrimary: options.usePrimary,
               type: options.type === 'SELECT' ? 'read' : 'write',
             });
 
