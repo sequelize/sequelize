@@ -164,7 +164,6 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
   async acquire(options?: AcquireConnectionOptions | undefined) {
     options = options ? shallowClonePojo(options) : pojo();
 
-    // Deprecation bridge: useMaster -> usePrimary
     if ('useMaster' in options) {
       useMasterToUsePrimary();
       if (options.usePrimary === undefined) {
