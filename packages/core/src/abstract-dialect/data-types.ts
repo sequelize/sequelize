@@ -1773,7 +1773,107 @@ export interface BlobOptions {
  *
  * @category DataTypes
  */
+export interface VarBinaryOptions {
+  /**
+   * The maximum number of bytes to store. Must be a positive integer between 1 and 65535.
+   */
+  length: number;
+}
+
+/**
+ * A variable-length binary string with a maximum byte length.
+ *
+ * Unlike {@link BLOB}, `VARBINARY` has a fixed maximum length and can be efficiently indexed.
+ * This makes it well-suited for storing binary identifiers (e.g. hashes, UUIDs as bytes) that
+ * need to participate in indexes or unique constraints.
+ *
+ * __Fallback policy:__
+ * If this type is not supported by the dialect, an error will be raised.
+ *
+ * @example
+ * ```ts
+ * // Store a SHA-256 hash (32 bytes) as binary
+ * DataTypes.VARBINARY(32)
+ *
+ * // Store an arbitrary binary value up to 255 bytes
+ * DataTypes.VARBINARY(255)
+ * ```
+ *
+ * @category DataTypes
+ */
 // TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
+export class VARBINARY extends AbstractDataType<AcceptedBlob> {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'VARBINARY';
+  readonly options: VarBinaryOptions;
+
+  /**
+   * @param lengthOrOptions The maximum number of bytes to store, or an options object.
+   */
+  constructor(lengthOrOptions: number | VarBinaryOptions) {
+    super();
+
+    const length = typeof lengthOrOptions === 'object' ? lengthOrOptions.length : lengthOrOptions;
+
+    if (!Number.isInteger(length) || length < 1 || length > 65_535) {
+      throw new TypeError(
+        'The "length" option of VARBINARY must be a positive integer between 1 and 65535.',
+      );
+    }
+
+    this.options = { length };
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.VARBINARY) {
+      throwUnsupportedDataType(dialect, 'VARBINARY');
+    }
+  }
+
+  toSql(): string {
+    return `VARBINARY(${this.options.length})`;
+  }
+
+  validate(value: any) {
+    if (
+      Buffer.isBuffer(value) ||
+      typeof value === 'string' ||
+      value instanceof Uint8Array ||
+      value instanceof ArrayBuffer
+    ) {
+      return;
+    }
+
+    rejectBlobs(value);
+
+    ValidationErrorItem.throwDataTypeValidationError(
+      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
+    );
+  }
+
+  sanitize(value: unknown): unknown {
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return makeBufferFromTypedArray(value);
+    }
+
+    if (typeof value === 'string') {
+      return Buffer.from(value);
+    }
+
+    return value;
+  }
+
+  escape(value: string | Buffer) {
+    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+
+    return this._getDialect().escapeBuffer(buf);
+  }
+
+  getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
+    return options.bindParam(value);
+  }
+}
+
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   /** @hidden */
   static readonly [DataTypeIdentifier]: string = 'BLOB';

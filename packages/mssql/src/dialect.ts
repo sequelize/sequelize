@@ -69,6 +69,7 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     tmpTableTrigger: true,
     dataTypes: {
       JSON: true,
+      VARBINARY: true,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geography/spatial-types-geography?view=sql-server-ver16
       GEOGRAPHY: false,
       // TODO: https://learn.microsoft.com/en-us/sql/t-sql/spatial-geometry/spatial-types-geometry-transact-sql?view=sql-server-ver16
