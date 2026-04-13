@@ -3170,6 +3170,12 @@ ${associationOwner._getAssociationDebugList()}`);
   static _injectScope(options) {
     const scope = cloneDeep(this._scope) ?? {};
     this._normalizeIncludes(scope, this);
+    // If the caller explicitly provided an order, do not let the scope's order
+    // prepend to it. The query-level order takes full precedence over the scope.
+    if (options.order) {
+      delete scope.order;
+    }
+
     this._defaultsOptions(options, scope);
   }
 
