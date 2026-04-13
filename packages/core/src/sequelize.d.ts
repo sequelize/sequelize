@@ -237,12 +237,12 @@ export class Sequelize<
    * @param fn The function you want to call
    * @param args All further arguments will be passed as arguments to the function
    *
-   * @deprecated use top level {@link sql.fn} instead
+   * @deprecated use top level {@link @sequelize/core!sql.fn} instead
    * @hidden
    */
   static fn: typeof fn;
   /**
-   * @deprecated use top level {@link sql.fn} instead
+   * @deprecated use top level {@link @sequelize/core!sql.fn} instead
    * @hidden
    */
   fn: typeof fn;
@@ -253,12 +253,12 @@ export class Sequelize<
    *
    * @param col The name of the column
    *
-   * @deprecated use top level {@link sql.col} instead
+   * @deprecated use top level {@link @sequelize/core!sql.col} instead
    * @hidden
    */
   static col: typeof col;
   /**
-   * @deprecated use top level {@link sql.col} instead
+   * @deprecated use top level {@link @sequelize/core!sql.col} instead
    * @hidden
    */
   col: typeof col;
@@ -284,12 +284,12 @@ export class Sequelize<
    *
    * @param val
    *
-   * @deprecated use top level {@link sql.literal} instead
+   * @deprecated use top level {@link @sequelize/core!sql.literal} instead
    * @hidden
    */
   static literal: typeof literal;
   /**
-   * @deprecated use top level {@link sql.literal} instead
+   * @deprecated use top level {@link @sequelize/core!sql.literal} instead
    * @hidden
    */
   literal: typeof literal;

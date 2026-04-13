@@ -614,7 +614,7 @@ Use Sequelize#query if you wish to use replacements.`);
   /**
    * Get the fn for random based on the dialect
    *
-   * @deprecated use {@link sql.random} instead, as it can be used without needing a reference to sequelize.
+   * @deprecated use {@link @sequelize/core!sql.random} instead, as it can be used without needing a reference to sequelize.
    * @returns {Random}
    */
   random() {
