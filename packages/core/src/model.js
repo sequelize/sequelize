@@ -3175,6 +3175,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (options.order) {
       delete scope.order;
     }
+
     this._defaultsOptions(options, scope);
   }
 
