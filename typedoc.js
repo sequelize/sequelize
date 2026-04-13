@@ -1,7 +1,19 @@
 module.exports = {
   entryPointStrategy: 'packages',
-  // Note: packages/postgres cannot be included until https://github.com/TypeStrong/typedoc/issues/2467 is fixed
-  entryPoints: ['packages/core', 'packages/utils', 'packages/validator-js'],
+  entryPoints: [
+    'packages/core',
+    'packages/db2',
+    'packages/ibmi',
+    'packages/mariadb',
+    'packages/mssql',
+    'packages/mysql',
+    'packages/oracle',
+    'packages/postgres',
+    'packages/snowflake',
+    'packages/sqlite3',
+    'packages/utils',
+    'packages/validator-js',
+  ],
   out: './.typedoc-build',
   readme: 'none',
   plugin: ['typedoc-plugin-missing-exports', 'typedoc-plugin-mdn-links'],
