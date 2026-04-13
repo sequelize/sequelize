@@ -48,6 +48,8 @@ export class BelongsToAssociation<
   SourceKey extends AttributeNames<S> = any,
   TargetKey extends AttributeNames<T> = any,
 > extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
+  readonly #foreignKey: SourceKey;
+
   readonly accessors: SingleAssociationAccessors;
 
   /**
@@ -59,7 +61,9 @@ export class BelongsToAssociation<
     return this.foreignKey;
   }
 
-  foreignKey: SourceKey;
+  get foreignKey(): SourceKey {
+    return this.#foreignKey;
+  }
 
   /**
    * The column name of the foreign key
@@ -146,7 +150,7 @@ export class BelongsToAssociation<
       foreignKey = this.inferForeignKey();
     }
 
-    this.foreignKey = foreignKey as SourceKey;
+    this.#foreignKey = foreignKey as SourceKey;
 
     this.targetKeyField = getColumnName(targetAttributes.getOrThrow(this.targetKey));
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;

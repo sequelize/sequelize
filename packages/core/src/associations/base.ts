@@ -101,7 +101,10 @@ export abstract class Association<
     /* method name in model */ string
   >;
 
-  abstract foreignKey: ForeignKey;
+  /**
+   * The name of the foreign key attribute used by this association.
+   */
+  abstract get foreignKey(): ForeignKey;
 
   /**
    * A reference to the association that created this one.
