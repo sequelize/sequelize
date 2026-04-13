@@ -2,109 +2,16 @@ diff --git a/types/index.d.ts b/types/index.d.ts
 index 639234f7e9181546ea17b8f98a198f4c5a66106d..7c923425a6426dc0a9b1e6111c7efa927556d32c 100644
 --- a/types/index.d.ts
 +++ b/types/index.d.ts
-@@ -7,8 +7,8 @@
- // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
- // TypeScript Version: 2.1
- 
--import { Readable } from 'node:stream';
--import { EventEmitter } from 'node:events';
-+import { Readable } from "node:stream";
-+import { EventEmitter } from "node:events";
- 
- import type {
-   ConnectionConfig,
-@@ -20,14 +20,16 @@ import type {
+@@ -20,9 +20,9 @@ import type {
    PoolClusterConfig,
    SqlImportOptions,
    ConnectionInfo,
 -  UserConnectionConfig
 -} from './share';
-+  UserConnectionConfig,
-+} from "./share.js";
++  UserConnectionConfig
++} from './share.js';
  
 -export * from './share';
-+export * from "./share.js";
++export * from './share.js';
  
  export const version: string;
- 
--export function createConnection(connectionUri: string | ConnectionConfig): Promise<Connection>;
-+export function createConnection(
-+  connectionUri: string | ConnectionConfig,
-+): Promise<Connection>;
- export function importFile(config: ImportFileConfig): Promise<void>;
- 
- export interface Prepare<V = any> {
-@@ -92,7 +94,10 @@ export interface Connection extends EventEmitter {
-   /**
-    * Execute batch. Values are Array of Array.
-    */
--  batch<T = UpsertResult | UpsertResult[], V = any>(sql: string | QueryOptions, values?: V): Promise<T>;
-+  batch<T = UpsertResult | UpsertResult[], V = any>(
-+    sql: string | QueryOptions,
-+    values?: V,
-+  ): Promise<T>;
- 
-   /**
-    * Execute query returning a Readable Object that will emit columns/data/end/error events
-@@ -183,11 +188,11 @@ export interface Connection extends EventEmitter {
-   // @ts-ignore - for backward compatibility
-   [Symbol.asyncDispose](): Promise<void>;
- 
--  on(ev: 'end', callback: () => void): Connection;
--  on(ev: 'error', callback: (err: SqlError) => void): Connection;
-+  on(ev: "end", callback: () => void): Connection;
-+  on(ev: "error", callback: (err: SqlError) => void): Connection;
-   on(eventName: string | symbol, listener: (...args: any[]) => void): this;
--  listeners(ev: 'end'): (() => void)[];
--  listeners(ev: 'error'): ((err: SqlError) => void)[];
-+  listeners(ev: "end"): (() => void)[];
-+  listeners(ev: "error"): ((err: SqlError) => void)[];
- }
- 
- export interface PoolConnection extends Connection {
-@@ -214,7 +219,10 @@ export interface Pool {
-   /**
-    * Execute a batch on one connection from pool.
-    */
--  batch<T = UpsertResult | UpsertResult[], V = any>(sql: string | QueryOptions, values?: V): Promise<T>;
-+  batch<T = UpsertResult | UpsertResult[], V = any>(
-+    sql: string | QueryOptions,
-+    values?: V,
-+  ): Promise<T>;
- 
-   /**
-    * Execute query using binary (prepare) protocol
-@@ -275,16 +283,19 @@ export interface Pool {
-   // @ts-ignore - for backward compatibility
-   [Symbol.asyncDispose](): Promise<void>;
- 
--  on(ev: 'acquire', callback: (conn: Connection) => void): Pool;
--  on(ev: 'connection', callback: (conn: Connection) => void): Pool;
--  on(ev: 'enqueue', callback: () => void): Pool;
--  on(ev: 'release', callback: (conn: Connection) => void): Pool;
-+  on(ev: "acquire", callback: (conn: Connection) => void): Pool;
-+  on(ev: "connection", callback: (conn: Connection) => void): Pool;
-+  on(ev: "enqueue", callback: () => void): Pool;
-+  on(ev: "release", callback: (conn: Connection) => void): Pool;
- }
- 
- export interface FilteredPoolCluster {
-   getConnection(): Promise<PoolConnection>;
-   query<T = any, V = any>(sql: string | QueryOptions, values?: V): Promise<T>;
--  batch<T = UpsertResult | UpsertResult[], V = any>(sql: string | QueryOptions, values?: V): Promise<T>;
-+  batch<T = UpsertResult | UpsertResult[], V = any>(
-+    sql: string | QueryOptions,
-+    values?: V,
-+  ): Promise<T>;
-   execute<T = any, V = any>(sql: string | QueryOptions, values?: V): Promise<T>;
- }
- 
-@@ -296,7 +307,7 @@ export interface PoolCluster {
-   remove(pattern: string): void;
-   getConnection(pattern?: string, selector?: string): Promise<PoolConnection>;
- 
--  on(ev: 'remove', callback: (nodekey: string) => void): PoolCluster;
-+  on(ev: "remove", callback: (nodekey: string) => void): PoolCluster;
- }
- export function createPool(config: PoolConfig | string): Pool;
- export function createPoolCluster(config?: PoolClusterConfig): PoolCluster;
