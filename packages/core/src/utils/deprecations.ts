@@ -148,6 +148,6 @@ export const noSequelizeRandom = deprecate(
 
 export const useMasterToUsePrimary = deprecate(
   noop,
-  'The "useMaster" option has been renamed to "usePrimary". "useMaster" is deprecated and will be removed in a future release.',
+  'The "useMaster" option has been renamed to "usePrimary".',
   'SEQUELIZE0033',
 );
