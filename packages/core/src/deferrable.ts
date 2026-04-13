@@ -69,7 +69,7 @@ export class ConstraintChecking {
   }
 }
 
-class DeferredConstraintChecking extends ConstraintChecking {
+class DEFERRED extends ConstraintChecking {
   readonly #constraints: readonly string[];
 
   /**
@@ -84,9 +84,7 @@ class DeferredConstraintChecking extends ConstraintChecking {
   }
 
   isEqual(other: unknown): boolean {
-    return (
-      other instanceof DeferredConstraintChecking && isEqual(this.#constraints, other.#constraints)
-    );
+    return other instanceof DEFERRED && isEqual(this.#constraints, other.#constraints);
   }
 
   get constraints(): readonly string[] {
@@ -94,7 +92,7 @@ class DeferredConstraintChecking extends ConstraintChecking {
   }
 }
 
-class ImmediateConstraintChecking extends ConstraintChecking {
+class IMMEDIATE extends ConstraintChecking {
   readonly #constraints: readonly string[];
 
   /**
@@ -109,9 +107,7 @@ class ImmediateConstraintChecking extends ConstraintChecking {
   }
 
   isEqual(other: unknown): boolean {
-    return (
-      other instanceof ImmediateConstraintChecking && isEqual(this.#constraints, other.#constraints)
-    );
+    return other instanceof IMMEDIATE && isEqual(this.#constraints, other.#constraints);
   }
 
   get constraints(): readonly string[] {
@@ -119,5 +115,5 @@ class ImmediateConstraintChecking extends ConstraintChecking {
   }
 }
 
-const ConstraintCheckingDeferred = classToInvokable(DeferredConstraintChecking);
-const ConstraintCheckingImmediate = classToInvokable(ImmediateConstraintChecking);
+const ConstraintCheckingDeferred = classToInvokable(DEFERRED);
+const ConstraintCheckingImmediate = classToInvokable(IMMEDIATE);
