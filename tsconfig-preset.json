@@ -17,5 +17,8 @@
     "checkJs": false,
     "stripInternal": true,
     "exactOptionalPropertyTypes": true
+  },
+  "ts-node": {
+    "transpileOnly": true
   }
 }
