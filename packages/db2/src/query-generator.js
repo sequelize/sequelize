@@ -579,6 +579,14 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     const isGenerated = attribute.generatedAs !== undefined;
     if (isGenerated) {
+      const generatedType = attribute.type.toString();
+      if (/^(?:BLOB|CLOB|DBCLOB|NCLOB|XML)\b/i.test(generatedType)) {
+        const dataTypeName = attribute.type.getDataTypeId?.() ?? generatedType;
+        throw new Error(
+          `db2 does not support ${dataTypeName} (${generatedType}) generated columns.`,
+        );
+      }
+
       const expr = this.escape(attribute.generatedAs, { model: options?.model });
       template += ` GENERATED ALWAYS AS (${expr})`;
     }

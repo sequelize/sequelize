@@ -869,6 +869,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     let template;
 
     if (attribute.generatedAs !== undefined) {
+      const generatedType = attribute.type.toString();
+      if (/^(?:BLOB|CLOB|NCLOB|LONG(?: RAW)?)\b/i.test(generatedType)) {
+        const dataTypeName = attribute.type.getDataTypeId?.() ?? generatedType;
+        throw new Error(
+          `oracle does not support ${dataTypeName} (${generatedType}) generated columns.`,
+        );
+      }
+
       const expr = this.escape(attribute.generatedAs, { model: options?.model });
       template = `${attribute.type.toString()} GENERATED ALWAYS AS (${expr}) VIRTUAL`;
 
