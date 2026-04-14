@@ -545,6 +545,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         }
       }
 
+      if (attribute.comment && typeof attribute.comment === 'string') {
+        result += ` COMMENT ${attribute.comment}`;
+      }
+
       return result;
     }
 
