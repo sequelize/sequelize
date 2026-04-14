@@ -5,6 +5,18 @@ import { getTestDialect, sequelize } from '../../support';
 const dialectName = getTestDialect();
 
 describe('generated column result types', () => {
+  if (dialectName === 'mssql') {
+    it('casts computed expressions to the declared Sequelize data type', () => {
+      const definition = sequelize.queryGenerator.attributeToSQL({
+        type: sequelize.normalizeDataType(DataTypes.INTEGER),
+        generatedAs: sql.literal("N'not an integer'"),
+        generatedColumn: 'STORED',
+      });
+
+      expect(definition).to.equal("AS (CAST(N'not an integer' AS INTEGER)) PERSISTED");
+    });
+  }
+
   if (dialectName === 'oracle') {
     for (const [name, type] of [
       ['BLOB', DataTypes.BLOB],

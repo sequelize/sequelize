@@ -494,9 +494,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (attribute.generatedAs !== undefined) {
       const expr = this.escape(attribute.generatedAs, { model: options?.model });
+      const generatedType = attributeTypeToSql(attribute.type, { dialect: this.dialect });
       const mode = attribute.generatedColumn ?? 'STORED';
       const persisted = mode === 'STORED' ? ' PERSISTED' : '';
-      let result = `AS (${expr})${persisted}`;
+      let result = `AS (CAST(${expr} AS ${generatedType}))${persisted}`;
 
       if (attribute.allowNull === false) {
         if (mode === 'VIRTUAL') {

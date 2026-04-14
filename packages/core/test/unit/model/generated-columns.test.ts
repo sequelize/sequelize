@@ -298,7 +298,9 @@ describe('Model - Generated Columns (unit)', () => {
           primaryKey: true,
         });
 
-        expect(primaryKeyDefinition).to.equal('AS ([source] + 1) PERSISTED PRIMARY KEY');
+        expect(primaryKeyDefinition).to.equal(
+          'AS (CAST([source] + 1 AS INTEGER)) PERSISTED PRIMARY KEY',
+        );
 
         const foreignKeyDefinition = sequelize.queryGenerator.attributeToSQL({
           type: sequelize.normalizeDataType(DataTypes.INTEGER),
@@ -309,7 +311,7 @@ describe('Model - Generated Columns (unit)', () => {
         });
 
         expect(foreignKeyDefinition).to.equal(
-          'AS ([source] + 1) PERSISTED REFERENCES [parents] ([id]) ON DELETE CASCADE',
+          'AS (CAST([source] + 1 AS INTEGER)) PERSISTED REFERENCES [parents] ([id]) ON DELETE CASCADE',
         );
       });
     }
