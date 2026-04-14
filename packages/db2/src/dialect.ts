@@ -80,6 +80,10 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     startTransaction: {
       useBegin: true,
     },
+    generatedColumns: {
+      stored: true,
+      virtual: false,
+    },
   });
 
   readonly connectionManager: Db2ConnectionManager;

@@ -929,6 +929,12 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
+          // Generated expressions cannot be changed in-place on every supported dialect, and an
+          // unchanged generated attribute does not need to be altered during sync.
+          if (currentAttribute.generatedAs !== undefined) {
+            continue;
+          }
+
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
           const references = currentAttribute.references;
           if (currentAttribute.references) {
@@ -2335,10 +2341,19 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
-          options.updateOnDuplicate = intersection(
+          const requestedUpdateAttributes = intersection(
             without(Object.keys(model.tableAttributes), createdAtAttr),
             options.updateOnDuplicate,
           );
+          options.updateOnDuplicate = requestedUpdateAttributes.filter(
+            attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+          );
+
+          if (options.updateOnDuplicate.length === 0) {
+            throw new Error(
+              'updateOnDuplicate must contain at least one writable attribute. Generated columns are recomputed by the database and cannot be updated explicitly.',
+            );
+          }
         } else {
           throw new Error('updateOnDuplicate option only supports non-empty array.');
         }
@@ -2467,7 +2482,16 @@ ${associationOwner._getAssociationDebugList()}`);
 
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
-          options.updateOnDuplicate = options.updateOnDuplicate.map(attrName => {
+          const writableUpdateAttributes = options.updateOnDuplicate.filter(
+            attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+          );
+          if (writableUpdateAttributes.length === 0) {
+            throw new Error(
+              'updateOnDuplicate must contain at least one writable attribute. Generated columns are recomputed by the database and cannot be updated explicitly.',
+            );
+          }
+
+          options.updateOnDuplicate = writableUpdateAttributes.map(attrName => {
             return modelDefinition.getColumnName(attrName);
           });
 
@@ -2957,6 +2981,14 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
+    for (const attributeName of modelDefinition.generatedAttributeNames) {
+      delete values[attributeName];
+    }
+
+    options.fields = options.fields.filter(
+      attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+    );
+
     if (updatedAtAttrName && !options.silent) {
       values[updatedAtAttrName] = this._getDefaultTimestamp(updatedAtAttrName) || new Date();
     }
@@ -3071,6 +3103,14 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
     }
+
+    for (const attributeName of modelDefinition.generatedAttributeNames) {
+      delete valuesUse[attributeName];
+    }
+
+    options.fields = options.fields.filter(
+      attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+    );
 
     let result;
     if (updateDoneRowByRow) {
@@ -3266,6 +3306,18 @@ Instead of specifying a Model, either:
 
     const modelDefinition = this.modelDefinition;
     const attributeDefs = modelDefinition.attributes;
+
+    // Validate that none of the fields are generated columns
+    const fieldsToCheck = Array.isArray(fields) ? fields : Object.keys(fields);
+    for (const fieldName of fieldsToCheck) {
+      const attribute =
+        modelDefinition.attributes.get(fieldName) ?? modelDefinition.columns.get(fieldName);
+      if (attribute && modelDefinition.generatedAttributeNames.has(attribute.attributeName)) {
+        throw new Error(
+          `Cannot increment/decrement "${attribute.attributeName}" because it is a generated column.`,
+        );
+      }
+    }
 
     if (Array.isArray(fields)) {
       fields = fields.map(attributeName => {
@@ -3694,7 +3746,10 @@ Instead of specifying a Model, either:
         // TODO: throw an error when trying to set a read only attribute with to a different value
         // If attempting to set read only attributes, return
         const readOnlyAttributeNames = modelDefinition.readOnlyAttributeNames;
-        if (!this.isNewRecord && readOnlyAttributeNames.has(key)) {
+        if (
+          readOnlyAttributeNames.has(key) &&
+          (!this.isNewRecord || modelDefinition.generatedAttributeNames.has(key))
+        ) {
           return this;
         }
       }
@@ -4059,7 +4114,9 @@ Instead of specifying a Model, either:
     }
 
     const realFields = options.fields.filter(
-      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
+      attributeName =>
+        !modelDefinition.virtualAttributeNames.has(attributeName) &&
+        !modelDefinition.generatedAttributeNames.has(attributeName),
     );
     if (realFields.length === 0) {
       return this;

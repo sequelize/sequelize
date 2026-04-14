@@ -165,6 +165,10 @@ export class PostgresDialect extends AbstractDialect<
     delete: {
       limit: false,
     },
+    generatedColumns: {
+      stored: true,
+      virtual: false,
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;
@@ -178,7 +182,7 @@ export class PostgresDialect extends AbstractDialect<
       dataTypeOverrides: DataTypes,
       options,
       name: 'postgres',
-      minimumDatabaseVersion: '11.0.0',
+      minimumDatabaseVersion: '12.0.0',
       identifierDelimiter: '"',
       dataTypesDocumentationUrl: 'https://www.postgresql.org/docs/current/datatype.html',
     });

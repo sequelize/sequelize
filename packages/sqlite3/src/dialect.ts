@@ -90,6 +90,10 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
     delete: {
       limit: false,
     },
+    generatedColumns: {
+      stored: true,
+      virtual: true,
+    },
   });
 
   readonly Query = SqliteQuery;
@@ -103,7 +107,7 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
       options,
       dataTypeOverrides: DataTypes,
       sequelize,
-      minimumDatabaseVersion: '3.8.0',
+      minimumDatabaseVersion: '3.31.0',
       dataTypesDocumentationUrl: 'https://www.sqlite.org/datatype3.html',
       name: 'sqlite3',
     });

@@ -1,6 +1,7 @@
 import type { NonUndefined } from '@sequelize/utils';
 import { isDataType } from '../../abstract-dialect/data-types-utils.js';
 import type { DataType } from '../../abstract-dialect/data-types.js';
+import type { BaseSqlExpression } from '../../expression-builders/base-sql-expression.js';
 import type { AttributeIndexOptions, AttributeOptions } from '../../model.js';
 import { columnToAttribute } from '../../utils/deprecations.js';
 import { underscore } from '../../utils/string.js';
@@ -23,6 +24,7 @@ export type InheritedAttributeOptions = Partial<AttributeOptions> & {
 };
 
 type AttributeDecoratorOption = DataType | InheritedAttributeOptions;
+type GeneratedColumnMode = NonNullable<AttributeOptions['generatedColumn']>;
 
 /**
  * The `@Attribute` decorator is used to add an attribute to a model. It is used on an instance property.
@@ -66,6 +68,39 @@ export const Attribute = createRequiredAttributeOptionsDecorator<AttributeDecora
     return attrOptionOrDataType;
   },
 );
+
+const GeneratedDecorator = createRequiredAttributeOptionsDecorator<{
+  expression: BaseSqlExpression;
+  mode: GeneratedColumnMode;
+}>('Generated', ({ expression, mode }) => ({
+  generatedAs: expression,
+  generatedColumn: mode,
+}));
+
+/**
+ * Marks an attribute as a database-generated column.
+ *
+ * The attribute's data type is declared separately with {@link Attribute}. The storage mode defaults
+ * to `STORED`; pass `VIRTUAL` for dialects that support virtual generated columns.
+ *
+ * @example
+ * ```ts
+ * class LineItem extends Model<InferAttributes<LineItem>> {
+ *   @Attribute(DataTypes.INTEGER)
+ *   @Generated(sql`price * quantity`)
+ *   declare total: number;
+ * }
+ * ```
+ *
+ * @param expression SQL expression used by the database to compute the column.
+ * @param mode Whether the computed value is stored or computed when read.
+ */
+export function Generated(
+  expression: BaseSqlExpression,
+  mode: GeneratedColumnMode = 'STORED',
+): PropertyOrGetterDescriptor {
+  return GeneratedDecorator({ expression, mode });
+}
 
 /**
  * @param optionsOrDataType

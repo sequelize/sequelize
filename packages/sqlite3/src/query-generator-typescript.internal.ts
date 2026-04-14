@@ -47,7 +47,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
+    return `PRAGMA TABLE_XINFO(${this.quoteTable(tableName)})`;
   }
 
   describeCreateTableQuery(tableName: TableOrModel) {
@@ -167,14 +167,17 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTable);
 
     const tableAttributes = this.attributesToSQL(attributes);
-    const attributeNamesImport = Object.keys(tableAttributes)
+    const copiedAttributes = Object.keys(tableAttributes).filter(
+      attributeName => attributes[attributeName].generatedAs === undefined,
+    );
+    const attributeNamesImport = copiedAttributes
       .map(attr => {
         return attrNameAfter === attr
           ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}`
           : this.quoteIdentifier(attr);
       })
       .join(', ');
-    const attributeNamesExport = Object.keys(tableAttributes)
+    const attributeNamesExport = copiedAttributes
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
@@ -204,7 +207,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTable);
 
     const tableAttributes = this.attributesToSQL(attributes);
+    // Generated columns cannot be inserted into explicitly. SQLite recomputes both
+    // VIRTUAL and STORED columns while the ordinary columns are copied.
     const attributeNames = Object.keys(tableAttributes)
+      .filter(attributeName => attributes[attributeName].generatedAs === undefined)
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 

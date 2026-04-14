@@ -9,6 +9,7 @@ import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
 import { QueryTypes } from '../enums';
+import { validateGeneratedColumnOptions } from '../utils/generated-columns';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
@@ -81,6 +82,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
+    for (const [attributeName, attribute] of Object.entries(attributes)) {
+      validateGeneratedColumnOptions(
+        attribute,
+        this.sequelize.dialect,
+        `Attribute "${attributeName}"`,
+      );
+    }
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
@@ -98,6 +106,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
+      model,
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
       // schema override for multi-tenancy
       schema: options.schema,
@@ -132,6 +141,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     attribute = this.sequelize.normalizeAttribute(attribute);
+    validateGeneratedColumnOptions(attribute, this.sequelize.dialect, `Attribute "${key}"`);
 
     if (
       attribute.type instanceof AbstractDataType &&
@@ -207,9 +217,16 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
+    const attribute = this.normalizeAttribute(dataTypeOrOptions);
+    validateGeneratedColumnOptions(
+      attribute,
+      this.sequelize.dialect,
+      `Attribute "${attributeName}"`,
+    );
+
     const query = this.queryGenerator.attributesToSQL(
       {
-        [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
+        [attributeName]: attribute,
       },
       {
         context: 'changeColumn',

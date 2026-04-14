@@ -201,6 +201,12 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
 
       for (const definition of defs) {
+        if (/\bGENERATED ALWAYS AS\b/i.test(definition)) {
+          throw new Error(
+            `Changing the expression of generated column ${attributeName} is not supported by the db2 dialect. Remove and re-add the column instead.`,
+          );
+        }
+
         if (/REFERENCES/.test(definition)) {
           constraintString.push(
             template(
@@ -571,7 +577,13 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       changeNull = 0;
     }
 
-    if (attribute.autoIncrement) {
+    const isGenerated = attribute.generatedAs !== undefined;
+    if (isGenerated) {
+      const expr = this.escape(attribute.generatedAs, { model: options?.model });
+      template += ` GENERATED ALWAYS AS (${expr})`;
+    }
+
+    if (!isGenerated && attribute.autoIncrement) {
       let initialValue = 1;
       if (attribute.initialAutoIncrement) {
         initialValue = attribute.initialAutoIncrement;
@@ -582,6 +594,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     // Blobs/texts cannot have a defaultValue
     if (
+      !isGenerated &&
       attribute.type !== 'TEXT' &&
       attribute.type._binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)

@@ -156,6 +156,10 @@ export class InstanceValidator {
         continue;
       }
 
+      if (this.modelInstance.modelDefinition.generatedAttributeNames.has(attrName)) {
+        continue;
+      }
+
       const value = this.modelInstance.dataValues[attrName];
 
       if (value instanceof BaseSqlExpression) {

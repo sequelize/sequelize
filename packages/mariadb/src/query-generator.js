@@ -173,8 +173,75 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     });
     let template = attributeString;
 
-    if (attribute.allowNull === false) {
+    if (attribute.generatedAs === undefined && attribute.allowNull === false) {
       template += ' NOT NULL';
+    }
+
+    if (attribute.generatedAs !== undefined) {
+      const expr = this.escape(attribute.generatedAs, { model: options?.model });
+      const mode = attribute.generatedColumn === 'VIRTUAL' ? 'VIRTUAL' : 'STORED';
+      template += ` GENERATED ALWAYS AS (${expr}) ${mode}`;
+
+      if (attribute.allowNull === false) {
+        throw new Error('mariadb does not support NOT NULL on generated columns.');
+      }
+
+      if (attribute.unique === true) {
+        template += ' UNIQUE';
+      }
+
+      if (attribute.primaryKey) {
+        throw new Error('mariadb does not support generated columns as primary keys.');
+      }
+
+      if (attribute.comment) {
+        template += ` COMMENT ${this.escape(attribute.comment)}`;
+      }
+
+      if (attribute.first) {
+        template += ' FIRST';
+      }
+
+      if (attribute.after) {
+        template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
+      }
+
+      if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
+        if (mode === 'VIRTUAL') {
+          throw new Error('mariadb only supports foreign keys on STORED generated columns.');
+        }
+
+        const onDelete = attribute.onDelete?.toUpperCase();
+        const onUpdate = attribute.onUpdate?.toUpperCase();
+        if (['SET NULL', 'SET DEFAULT'].includes(onDelete)) {
+          throw new Error(`mariadb does not support ON DELETE ${onDelete} on generated columns.`);
+        }
+
+        if (['CASCADE', 'SET NULL', 'SET DEFAULT'].includes(onUpdate)) {
+          throw new Error(`mariadb does not support ON UPDATE ${onUpdate} on generated columns.`);
+        }
+
+        if (options?.context === 'addColumn' && options.foreignKey) {
+          const fkName = this.quoteIdentifier(
+            `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+          );
+
+          template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
+        }
+
+        template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+        template += ` (${this.quoteIdentifier(attribute.references.key ?? 'id')})`;
+
+        if (onDelete) {
+          template += ` ON DELETE ${onDelete}`;
+        }
+
+        if (onUpdate) {
+          template += ` ON UPDATE ${onUpdate}`;
+        }
+      }
+
+      return template;
     }
 
     if (attribute.autoIncrement) {

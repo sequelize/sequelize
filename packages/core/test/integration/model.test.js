@@ -1031,7 +1031,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         let table = await this.sequelize.queryInterface.describeTable('Publics', {
           logging(sql) {
-            if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
+            if (dialectName === 'sqlite3' && sql.includes('TABLE_XINFO')) {
               test++;
               expect(sql).to.not.contain('special');
             } else if (dialectName !== 'postgres') {
@@ -1050,7 +1050,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { tableName: 'Publics', schema: 'special' },
           {
             logging(sql) {
-              if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
+              if (dialectName === 'sqlite3' && sql.includes('TABLE_XINFO')) {
                 test++;
                 expect(sql).to.contain('special');
               } else if (dialectName !== 'postgres') {

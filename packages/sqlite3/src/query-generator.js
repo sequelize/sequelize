@@ -207,6 +207,48 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
           sql += ' NOT NULL';
         }
 
+        if (attribute.generatedAs !== undefined) {
+          if (attribute.primaryKey) {
+            throw new Error('sqlite3 does not support generated columns as primary keys.');
+          }
+
+          const expr = this.escape(attribute.generatedAs, { model: options?.model });
+          const mode = attribute.generatedColumn === 'VIRTUAL' ? 'VIRTUAL' : 'STORED';
+          sql += ` GENERATED ALWAYS AS (${expr}) ${mode}`;
+
+          if (attribute.unique === true) {
+            sql += ' UNIQUE';
+          }
+
+          if (attribute.primaryKey) {
+            sql += ' PRIMARY KEY';
+          }
+
+          if (attribute.references) {
+            const referencesTable = this.quoteTable(attribute.references.table);
+
+            let referencesKey;
+            if (attribute.references.key) {
+              referencesKey = this.quoteIdentifier(attribute.references.key);
+            } else {
+              referencesKey = this.quoteIdentifier('id');
+            }
+
+            sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+
+            if (attribute.onDelete) {
+              sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+            }
+
+            if (attribute.onUpdate) {
+              sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+            }
+          }
+
+          result[columnName] = sql;
+          continue;
+        }
+
         if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
           // TODO thoroughly check that DataTypes.NOW will properly
           // get populated on all databases as DEFAULT value

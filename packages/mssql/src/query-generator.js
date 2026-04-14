@@ -179,6 +179,13 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     for (const attributeName in attributes) {
       const quotedAttrName = this.quoteIdentifier(attributeName);
       let definition = attributes[attributeName];
+
+      if (/^AS\s*\(/i.test(definition)) {
+        throw new Error(
+          `Changing the expression of generated column ${attributeName} is not supported by the mssql dialect. Remove and re-add the column instead.`,
+        );
+      }
+
       if (definition.includes('COMMENT ')) {
         const commentMatch = definition.match(/^(.+) (COMMENT.*)$/);
         const commentText = commentMatch[2].replace('COMMENT', '').trim();
@@ -483,6 +490,61 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         .join(', ')}))`;
 
       return template;
+    }
+
+    if (attribute.generatedAs !== undefined) {
+      const expr = this.escape(attribute.generatedAs, { model: options?.model });
+      const mode = attribute.generatedColumn ?? 'STORED';
+      const persisted = mode === 'STORED' ? ' PERSISTED' : '';
+      let result = `AS (${expr})${persisted}`;
+
+      if (attribute.allowNull === false) {
+        if (mode === 'VIRTUAL') {
+          throw new Error('mssql only supports NOT NULL on PERSISTED generated columns.');
+        }
+
+        result += ' NOT NULL';
+      }
+
+      if (
+        attribute.unique === true &&
+        (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
+      ) {
+        result += ' UNIQUE';
+      }
+
+      if (attribute.primaryKey) {
+        result += ' PRIMARY KEY';
+      }
+
+      if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
+        if (mode === 'VIRTUAL') {
+          throw new Error('mssql only supports foreign keys on PERSISTED generated columns.');
+        }
+
+        const onDelete = attribute.onDelete?.toUpperCase();
+        const onUpdate = attribute.onUpdate?.toUpperCase();
+        if (onDelete && !['NO ACTION', 'CASCADE'].includes(onDelete)) {
+          throw new Error(`mssql does not support ON DELETE ${onDelete} on generated columns.`);
+        }
+
+        if (onUpdate && onUpdate !== 'NO ACTION') {
+          throw new Error(`mssql does not support ON UPDATE ${onUpdate} on generated columns.`);
+        }
+
+        result += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+        result += ` (${this.quoteIdentifier(attribute.references.key ?? 'id')})`;
+
+        if (onDelete) {
+          result += ` ON DELETE ${onDelete}`;
+        }
+
+        if (onUpdate) {
+          result += ` ON UPDATE ${onUpdate}`;
+        }
+      }
+
+      return result;
     }
 
     template = attributeTypeToSql(attribute.type, { dialect: this.dialect });

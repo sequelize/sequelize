@@ -1,4 +1,5 @@
 import type {
+  AddColumnOptions,
   AddConstraintOptions,
   AttributeOptions,
   ConstraintDescription,
@@ -15,6 +16,7 @@ import type {
 import {
   AbstractQueryInterface,
   BaseError,
+  literal,
   QueryTypes,
   UnknownConstraintError,
 } from '@sequelize/core';
@@ -23,11 +25,148 @@ import {
   noSchemaDelimiterParameter,
   noSchemaParameter,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/deprecations.js';
+import { validateGeneratedColumnOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import isEmpty from 'lodash/isEmpty';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
+
+function findClosingParenthesis(sql: string, openingParenthesis: number): number {
+  let depth = 0;
+  let closingQuote: string | undefined;
+
+  for (let index = openingParenthesis; index < sql.length; index++) {
+    const character = sql[index];
+
+    if (closingQuote) {
+      if (character === closingQuote) {
+        // SQL escapes quoted content by doubling the closing quote.
+        if (sql[index + 1] === closingQuote) {
+          index++;
+        } else {
+          closingQuote = undefined;
+        }
+      }
+
+      continue;
+    }
+
+    if (character === "'" || character === '"' || character === '`') {
+      closingQuote = character;
+      continue;
+    }
+
+    if (character === '[') {
+      closingQuote = ']';
+      continue;
+    }
+
+    if (character === '(') {
+      depth++;
+    } else if (character === ')' && --depth === 0) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+function splitColumnDefinitions(createTableSql: string): string[] {
+  const openingParenthesis = createTableSql.indexOf('(');
+  if (openingParenthesis === -1) {
+    return [];
+  }
+
+  const closingParenthesis = findClosingParenthesis(createTableSql, openingParenthesis);
+  if (closingParenthesis === -1) {
+    return [];
+  }
+
+  const definitions: string[] = [];
+  let definitionStart = openingParenthesis + 1;
+  let depth = 0;
+  let closingQuote: string | undefined;
+
+  for (let index = definitionStart; index < closingParenthesis; index++) {
+    const character = createTableSql[index];
+
+    if (closingQuote) {
+      if (character === closingQuote) {
+        if (createTableSql[index + 1] === closingQuote) {
+          index++;
+        } else {
+          closingQuote = undefined;
+        }
+      }
+
+      continue;
+    }
+
+    if (character === "'" || character === '"' || character === '`') {
+      closingQuote = character;
+    } else if (character === '[') {
+      closingQuote = ']';
+    } else if (character === '(') {
+      depth++;
+    } else if (character === ')') {
+      depth--;
+    } else if (character === ',' && depth === 0) {
+      definitions.push(createTableSql.slice(definitionStart, index).trim());
+      definitionStart = index + 1;
+    }
+  }
+
+  definitions.push(createTableSql.slice(definitionStart, closingParenthesis).trim());
+
+  return definitions;
+}
+
+function getColumnName(definition: string): string | undefined {
+  const firstCharacter = definition[0];
+  if (firstCharacter === '`' || firstCharacter === '"' || firstCharacter === "'") {
+    const end = definition.indexOf(firstCharacter, 1);
+
+    return end === -1 ? undefined : definition.slice(1, end);
+  }
+
+  if (firstCharacter === '[') {
+    const end = definition.indexOf(']', 1);
+
+    return end === -1 ? undefined : definition.slice(1, end);
+  }
+
+  return /^([^\s]+)/.exec(definition)?.[1];
+}
+
+function parseGeneratedExpressions(createTableSql: string): Map<string, string> {
+  const expressions = new Map<string, string>();
+
+  for (const definition of splitColumnDefinitions(createTableSql)) {
+    const columnName = getColumnName(definition);
+    if (!columnName) {
+      continue;
+    }
+
+    const generatedAs = /\b(?:GENERATED\s+ALWAYS\s+)?AS\s*\(/i.exec(definition);
+    if (!generatedAs) {
+      continue;
+    }
+
+    const openingParenthesis = generatedAs.index + generatedAs[0].lastIndexOf('(');
+    const closingParenthesis = findClosingParenthesis(definition, openingParenthesis);
+    if (closingParenthesis === -1) {
+      continue;
+    }
+
+    expressions.set(
+      columnName.toLowerCase(),
+      definition.slice(openingParenthesis + 1, closingParenthesis),
+    );
+  }
+
+  return expressions;
+}
 
 export class SqliteQueryInterface<
   Dialect extends SqliteDialect = SqliteDialect,
@@ -101,6 +240,39 @@ export class SqliteQueryInterface<
         column.unique = false;
       }
 
+      const generatedColumns = Object.entries(data).filter(([, column]) =>
+        Boolean(column.generatedColumn),
+      );
+      if (generatedColumns.length > 0) {
+        const createTableRows = await this.sequelize.queryRaw(
+          this.queryGenerator.describeCreateTableQuery(table),
+          {
+            ...options,
+            type: QueryTypes.SELECT,
+          },
+        );
+        const createTableRow = createTableRows.find(
+          row => 'sql' in row && typeof row.sql === 'string' && /^CREATE\s+TABLE\b/i.test(row.sql),
+        ) as { sql: string } | undefined;
+        const createTableSql = createTableRow?.sql;
+
+        if (typeof createTableSql !== 'string') {
+          throw new Error(`Unable to read the CREATE TABLE statement for ${table.tableName}.`);
+        }
+
+        const generatedExpressions = parseGeneratedExpressions(createTableSql);
+        for (const [columnName, column] of generatedColumns) {
+          const expression = generatedExpressions.get(columnName.toLowerCase());
+          if (expression === undefined) {
+            throw new Error(
+              `Unable to parse the generated expression for column ${columnName} in table ${table.tableName}.`,
+            );
+          }
+
+          column.generatedAs = literal(expression);
+        }
+      }
+
       const indexes = await this.showIndex(tableName, options);
       for (const index of indexes) {
         for (const field of index.fields) {
@@ -144,6 +316,62 @@ export class SqliteQueryInterface<
 
       throw error;
     }
+  }
+
+  async addColumn(
+    tableName: TableOrModel,
+    columnName: string,
+    dataTypeOrOptions: DataType | AttributeOptions,
+    options: AddColumnOptions = {},
+  ): Promise<void> {
+    if (!tableName || !columnName || !dataTypeOrOptions) {
+      throw new Error(
+        'addColumn takes at least 3 arguments (table, attribute name, attribute definition)',
+      );
+    }
+
+    const normalizedAttribute = this.sequelize.normalizeAttribute(dataTypeOrOptions);
+    validateGeneratedColumnOptions(
+      normalizedAttribute,
+      this.sequelize.dialect,
+      `Attribute "${columnName}"`,
+    );
+
+    // SQLite cannot add a STORED generated column through ALTER TABLE when the
+    // table contains rows. Rebuild the table so existing rows are preserved and
+    // the generated value is computed by SQLite.
+    if (
+      normalizedAttribute.generatedAs !== undefined &&
+      normalizedAttribute.generatedColumn !== 'VIRTUAL'
+    ) {
+      const columns = await this.describeTable(tableName, options);
+      if (columns[columnName]) {
+        if (options.ifNotExists) {
+          return;
+        }
+
+        return super.addColumn(
+          this.queryGenerator.extractTableDetails(tableName),
+          columnName,
+          dataTypeOrOptions,
+          options,
+        );
+      }
+
+      columns[columnName] = normalizedAttribute as (typeof columns)[string];
+      const queryOptions = { ...options };
+      delete queryOptions.ifNotExists;
+      await this.#internalQueryInterface.alterTableInternal(tableName, columns, queryOptions);
+
+      return;
+    }
+
+    await super.addColumn(
+      this.queryGenerator.extractTableDetails(tableName),
+      columnName,
+      dataTypeOrOptions,
+      options,
+    );
   }
 
   async addConstraint(tableName: TableOrModel, options: AddConstraintOptions): Promise<void> {
@@ -214,11 +442,15 @@ export class SqliteQueryInterface<
     let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.definition}`;
 
     if (constraint.constraintType === 'FOREIGN KEY') {
+      if (!constraint.referencedTableName) {
+        throw new Error(`Constraint ${constraintName} does not reference a table.`);
+      }
+
       constraintSnippet = `, CONSTRAINT ${constraint.constraintName} FOREIGN KEY`;
       const columns = constraint
         .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
         .join(', ');
-      const referenceTableName = this.queryGenerator.quoteTable(constraint.referencedTableName!);
+      const referenceTableName = this.queryGenerator.quoteTable(constraint.referencedTableName);
       const referenceTableColumns = constraint
         .referencedColumnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
         .join(', ');
@@ -429,14 +661,13 @@ export class SqliteQueryInterface<
     let constraintData = data;
 
     if (options?.columnName) {
+      const { columnName } = options;
       constraintData = constraintData.filter(constraint =>
-        constraint.columnNames?.includes(options.columnName!),
+        constraint.columnNames?.includes(columnName),
       );
       constraintData = constraintData.map(constraint => {
         if (constraint.columnNames) {
-          constraint.columnNames = constraint.columnNames.filter(
-            column => column === options.columnName,
-          );
+          constraint.columnNames = constraint.columnNames.filter(column => column === columnName);
         }
 
         return constraint;
@@ -494,6 +725,13 @@ export class SqliteQueryInterface<
     dataTypeOrOptions: DataType | AttributeOptions,
     options?: QueryRawOptions,
   ): Promise<void> {
+    const normalizedAttribute = this.sequelize.normalizeAttribute(dataTypeOrOptions);
+    validateGeneratedColumnOptions(
+      normalizedAttribute,
+      this.sequelize.dialect,
+      `Attribute "${columnName}"`,
+    );
+
     const columns = await this.describeTable(tableName, options);
     for (const column of Object.values(columns)) {
       // This is handled by copying indexes over,
@@ -502,7 +740,7 @@ export class SqliteQueryInterface<
       delete column.unique;
     }
 
-    Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
+    Object.assign(columns[columnName], normalizedAttribute);
 
     await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);
   }

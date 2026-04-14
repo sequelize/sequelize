@@ -119,7 +119,7 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
-    if (this.sql.includes('PRAGMA TABLE_INFO')) {
+    if (/PRAGMA TABLE_(?:X?INFO)/i.test(this.sql)) {
       // this is the sqlite way of getting the metadata of a table
       const result = {};
 
@@ -141,6 +141,10 @@ export class SqliteQuery extends AbstractQuery {
           defaultValue,
           primaryKey: _result.pk !== 0,
         };
+
+        if (_result.hidden === 2 || _result.hidden === 3) {
+          result[_result.name].generatedColumn = _result.hidden === 2 ? 'VIRTUAL' : 'STORED';
+        }
 
         if (result[_result.name].type === 'TINYINT(1)') {
           result[_result.name].defaultValue = { 0: false, 1: true }[
