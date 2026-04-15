@@ -50,14 +50,8 @@ describe('QueryInterface#bulkInsert', () => {
       oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
 
-    if (!['db2', 'mssql'].includes(sequelize.dialect.name)) {
-      const firstArg = stub.getCall(0).args[1];
-      if (firstArg && typeof firstArg === 'object') {
-        expect(firstArg.bind).to.include({ sequelize_1: 'user0' });
-        expect(firstArg.bind).to.have.property('sequelize_1000', 'user999');
-      } else {
-        throw new Error('expected the first arg to be an object');
-      }
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq(users.map(user => [user.firstName]));
     }
   });
 
@@ -104,6 +98,10 @@ describe('QueryInterface#bulkInsert', () => {
       ),
       oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq(users.map(user => [user.firstName]));
+    }
   });
 
   // you'll find more replacement tests in query-generator tests
@@ -141,5 +139,9 @@ describe('QueryInterface#bulkInsert', () => {
       ),
       oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
     });
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
+    }
   });
 });
