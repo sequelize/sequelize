@@ -48,7 +48,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
         ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('a string'))`,
       },
       bind: {
-        default: {},
+        default: undefined,
       },
     });
   });
