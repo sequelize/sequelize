@@ -41,10 +41,15 @@ describe('QueryGenerator#bulkInsertQuery', () => {
     );
 
     expectsql(sql, {
-      default: `INSERT INTO [Users] ([firstName]) VALUES ('a string');`,
-      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'a string');`,
-      // TODO: ibmi should be the same as `default`, since the 'returning' option is not specified
-      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('a string'))`,
+      query: {
+        default: `INSERT INTO [Users] ([firstName]) VALUES ('a string');`,
+        mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'a string');`,
+        // TODO: ibmi should be the same as `default`, since the 'returning' option is not specified
+        ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('a string'))`,
+      },
+      bind: {
+        default: undefined,
+      },
     });
   });
 });
