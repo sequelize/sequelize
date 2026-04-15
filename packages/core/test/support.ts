@@ -471,7 +471,7 @@ export function expectsql(
     expect(minifySql(isObject(query) ? query.query : query)).to.equal(minifySql(expectation));
   }
 
-  if ('bind' in assertions) {
+  if ('bind' in assertions && !(expectation instanceof Error)) {
     const bind =
       assertions.bind[sequelize.dialect.name as DialectName] ||
       assertions.bind.default ||
