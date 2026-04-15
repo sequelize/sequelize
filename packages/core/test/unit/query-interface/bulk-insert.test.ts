@@ -44,6 +44,10 @@ describe('QueryInterface#bulkInsert', () => {
       // oracle uses `executeMany()` provided by node-oracledb driver and passes the value with binds
       oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq(users.map(user => [user.firstName]));
+    }
   });
 
   it('uses minimal insert queries when rows >1000', async () => {
@@ -69,6 +73,10 @@ describe('QueryInterface#bulkInsert', () => {
       ),
       oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq(users.map(user => [user.firstName]));
+    }
   });
 
   // you'll find more replacement tests in query-generator tests
@@ -105,5 +113,9 @@ describe('QueryInterface#bulkInsert', () => {
       ),
       oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
     });
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
+    }
   });
 });
