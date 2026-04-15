@@ -117,7 +117,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
 
   escapeString(val: string): string {
     if (val.startsWith('TO_TIMESTAMP_TZ') || val.startsWith('TO_DATE')) {
-      this.assertDate(val);
+      this.assertDateLiteral(val);
 
       return val;
     }
@@ -133,53 +133,16 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     return `'${hex}'`;
   }
 
-  // assert date to avoid SQL injections.
-  assertDate(val: string): void {
-    // Split the string using parentheses to isolate the function name, parameters, and potential extra parts
-    const splitVal = val.split(/\(|\)/);
-
-    // Validate that the split result has exactly three parts (function name, parameters, and an empty string)
-    // and that there are no additional SQL commands after the function call (indicated y the last empty string).
-    if (splitVal.length !== 3 || splitVal[2] !== '') {
-      throw new Error('Invalid SQL function call.'); // Error if function call has unexpected format
+  assertDateLiteral(val: string): void {
+    if (/^TO_DATE\('[^']*'\s*,\s*'YYYY\/MM\/DD'\)$/.test(val)) {
+      return;
     }
 
-    // Extract the function name (either 'TO_TIMESTAMP_TZ' or 'TO_DATE') and the contents inside the parentheses
-    const functionName = splitVal[0].trim(); // Function name should be 'TO_TIMESTAMP_TZ' or 'TO_DATE'
-    const insideParens = splitVal[1].trim(); // This contains the parameters (date value and format string)
-
-    if (!['TO_TIMESTAMP_TZ', 'TO_DATE'].includes(functionName)) {
-      throw new Error('Invalid SQL function call. Expected TO_TIMESTAMP_TZ or TO_DATE.');
+    if (/^TO_TIMESTAMP_TZ\('[^']*'\s*,\s*'YYYY-MM-DD HH24:MI:SS\.FFTZH:TZM'\)$/.test(val)) {
+      return;
     }
 
-    // Split the parameters inside the parentheses by commas (should contain exactly two: date and format)
-    const params = insideParens.split(',');
-
-    // Validate that the parameters contain exactly two parts (date value and format string)
-    if (params.length !== 2) {
-      throw new Error(
-        'Unexpected input received.\nSequelize supports TO_TIMESTAMP_TZ or TO_DATE exclusively with a combination of value and format.',
-      );
-    }
-
-    // Extract the format value (second parameter) and remove single quotes around it
-    const formatValue = params[1].trim();
-
-    if (functionName === 'TO_TIMESTAMP_TZ') {
-      const expectedFormat = "'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'";
-      // Validate that the formatValue is equal to expectedFormat since that is the only format used within sequelize
-      if (formatValue !== expectedFormat) {
-        throw new Error(
-          `Invalid format string for TO_TIMESTAMP_TZ. Expected format: ${expectedFormat}`,
-        );
-      }
-    } else if (functionName === 'TO_DATE') {
-      const expectedFormat = "'YYYY/MM/DD'";
-      // Validate that the formatValue is equal to expectedFormat since that is the only format used within sequelize
-      if (formatValue !== expectedFormat) {
-        throw new Error(`Invalid format string for TO_DATE. Expected format: ${expectedFormat}`);
-      }
-    }
+    throw new Error('Invalid SQL function call.');
   }
 
   static getSupportedOptions() {
