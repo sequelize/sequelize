@@ -368,7 +368,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ),
         {
           default: "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\'))',
+          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2))',
           snowflake:
             'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2);',
           postgres:
@@ -410,7 +410,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             mariadb: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
             postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1),(DEFAULT))',
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             sqlite3: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
             default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1),($sequelize_2);',
