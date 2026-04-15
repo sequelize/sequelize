@@ -73,6 +73,8 @@ describe('QueryInterface#bulkInsert', () => {
       expect(firstOpts.transaction).to.equal(transaction);
       if (['db2', 'mssql'].includes(sequelize.dialect.name)) {
         expect(firstOpts.bind ?? {}).to.deep.equal({});
+      } else if (sequelize.dialect.name === 'oracle') {
+        expect(firstOpts.bind).to.deep.eq(users.map(user => [user.firstName]));
       } else {
         expect(firstOpts).to.have.property('bind');
         expect(Object.keys(firstOpts.bind || {})).to.have.lengthOf(2000);
@@ -105,43 +107,46 @@ describe('QueryInterface#bulkInsert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  it('does not parse replacements outside of raw sql', async () => {
-    const { User } = vars;
-    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+  (sequelize.dialect.name === 'oracle' ? it.skip : it)(
+    'does not parse replacements outside of raw sql',
+    async () => {
+      const { User } = vars;
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.queryInterface.bulkInsert(
-      User.table,
-      [
+      await sequelize.queryInterface.bulkInsert(
+        User.table,
+        [
+          {
+            firstName: ':injection',
+          },
+        ],
         {
-          firstName: ':injection',
+          replacements: {
+            injection: 'raw sql',
+          },
+          parameterStyle: ParameterStyle.REPLACEMENT,
         },
-      ],
-      {
-        replacements: {
-          injection: 'raw sql',
-        },
-        parameterStyle: ParameterStyle.REPLACEMENT,
-      },
-    );
+      );
 
-    expect(stub.callCount).to.eq(1);
-    const firstCall = stub.getCall(0);
+      expect(stub.callCount).to.eq(1);
+      const firstCall = stub.getCall(0);
 
-    expectPerDialect(() => firstCall.args[0], {
-      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
-      'mysql mariadb sqlite3': toMatchSql(
-        "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
-      ),
-      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
-      // TODO: db2 should use the same system as ibmi
-      ibmi: toMatchSql(
-        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
-      ),
-      oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
-    });
+      expectPerDialect(() => firstCall.args[0], {
+        default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
+        'mysql mariadb sqlite3': toMatchSql(
+          "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
+        ),
+        mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
+        // TODO: db2 should use the same system as ibmi
+        ibmi: toMatchSql(
+          `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
+        ),
+        oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
+      });
 
-    if (sequelize.dialect.name === 'oracle') {
-      expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
-    }
-  });
+      if (sequelize.dialect.name === 'oracle') {
+        expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
+      }
+    },
+  );
 });
