@@ -6,7 +6,6 @@ import type { Logging, ModelOptions, ModelStatic } from './model.js';
 import type { SequelizeHooks } from './sequelize-typescript.js';
 import type {
   DefaultSetOptions,
-  DialectName,
   QueryOptions,
   ReplicationOptions,
   RetryOptions,
@@ -14,42 +13,6 @@ import type {
 } from './sequelize.js';
 import type { PoolOptions } from './sequelize.types.js';
 import type { IsolationLevel, TransactionNestMode, TransactionType } from './transaction.js';
-
-export function importDialect(dialect: string): typeof AbstractDialect {
-  // Requiring the dialect in a switch-case to keep the
-  // require calls static. (Browserify fix)
-  switch (dialect) {
-    case 'mariadb':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/mariadb').MariaDbDialect;
-    case 'mssql':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/mssql').MsSqlDialect;
-    case 'mysql':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/mysql').MySqlDialect;
-    case 'postgres':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/postgres').PostgresDialect;
-    case 'sqlite':
-    case 'sqlite3':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/sqlite3').SqliteDialect;
-    case 'ibmi':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/db2-ibmi').IBMiDialect;
-    case 'db2':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/db2').Db2Dialect;
-    case 'snowflake':
-      // eslint-disable-next-line import/no-extraneous-dependencies -- legacy function, will be removed. User needs to install the dependency themselves
-      return require('@sequelize/snowflake').SnowflakeDialect;
-    default:
-      throw new Error(
-        `The dialect ${dialect} is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite3, ibmi, db2 and snowflake.`,
-      );
-  }
-}
 
 export const PERSISTED_SEQUELIZE_OPTIONS = getSynchronizedTypeKeys<
   PersistedSequelizeOptions<AbstractDialect>
@@ -257,9 +220,9 @@ export interface EphemeralSequelizeOptions<Dialect extends AbstractDialect> {
   databaseVersion?: string;
 
   /**
-   * The dialect of the database you are connecting to. Either the name of the dialect, or a dialect class.
+   * The dialect of the database you are connecting to. Pass the Dialect class exported by the dialect package.
    */
-  dialect: DialectName | Class<Dialect>;
+  dialect: Class<Dialect>;
 
   /**
    * Sets global permanent hooks.

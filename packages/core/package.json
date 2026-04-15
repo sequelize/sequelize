@@ -1,7 +1,7 @@
 {
   "name": "@sequelize/core",
-  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
-  "version": "7.0.0-alpha.47",
+  "description": "Sequelize is a promise-based Node.js ORM tool for Postgres, MySQL, MariaDB, SQLite, Microsoft SQL Server, Amazon Redshift, Snowflake’s Data Cloud, Db2, Oracle, and IBM i. It features solid transaction support, relations, eager and lazy loading, read replication and more.",
+  "version": "7.0.0-alpha.48",
   "funding": [
     {
       "type": "opencollective",
@@ -41,7 +41,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=18.20.8"
+    "node": "^20.9.0 || ^22.11.0 || >=24.0.0"
   },
   "files": [
     "lib"
@@ -49,29 +49,28 @@
   "license": "MIT",
   "dependencies": {
     "@sequelize/utils": "workspace:*",
-    "@types/debug": "^4.1.12",
-    "@types/validator": "^13.15.3",
+    "@types/debug": "^4.1.13",
+    "@types/validator": "^13.15.10",
     "ansis": "^3.17.0",
     "bnf-parser": "^3.1.6",
-    "dayjs": "^1.11.18",
+    "dayjs": "^1.11.20",
     "debug": "^4.4.3",
-    "dottie": "^2.0.6",
     "fast-glob": "^3.3.3",
     "inflection": "^3.0.2",
-    "lodash": "^4.17.21",
+    "lodash": "^4.18.1",
     "retry-as-promised": "^7.1.1",
-    "semver": "^7.7.3",
+    "semver": "^7.7.4",
     "sequelize-pool": "^8.0.1",
     "toposort-class": "^1.0.1",
     "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
-    "validator": "^13.15.15"
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
     "@types/chai-as-promised": "7.1.8",
     "@types/chai-datetime": "1.0.0",
-    "@types/lodash": "4.17.20",
+    "@types/lodash": "4.17.24",
     "@types/mocha": "10.0.10",
     "@types/semver": "7.7.1",
     "@types/sinon": "17.0.4",
@@ -83,7 +82,7 @@
     "expect-type": "0.13.0",
     "fs-jetpack": "5.1.0",
     "lcov-result-merger": "5.0.1",
-    "mocha": "11.7.4",
+    "mocha": "11.7.5",
     "moment": "2.30.1",
     "nyc": "17.1.0",
     "p-map": "4.0.0",
@@ -108,6 +107,7 @@
     "sql",
     "sqlserver",
     "snowflake",
+    "oracledb",
     "orm",
     "nodejs",
     "object relational mapper",
@@ -141,7 +141,8 @@
     "test-unit-db2": "cross-env DIALECT=db2 yarn _test-unit",
     "test-unit-ibmi": "cross-env DIALECT=ibmi yarn _test-unit",
     "test-unit-snowflake": "cross-env DIALECT=snowflake yarn _test-unit",
-    "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite3 && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-ibmi",
+    "test-unit-oracle": "cross-env DIALECT=oracle yarn _test-unit",
+    "test-unit-all": "yarn test-unit-mariadb && yarn test-unit-mysql && yarn test-unit-postgres && yarn test-unit-mssql && yarn test-unit-sqlite3 && yarn test-unit-snowflake && yarn test-unit-db2 && yarn test-unit-oracle && yarn test-unit-ibmi",
     "test-unit": "yarn test-unit-all",
     "----------------------------------------- integration tests ---------------------------------------------": "",
     "test-integration-mariadb": "cross-env DIALECT=mariadb yarn test-integration",
@@ -153,7 +154,8 @@
     "test-integration-db2": "cross-env DIALECT=db2 yarn test-integration",
     "test-integration-ibmi": "cross-env DIALECT=ibmi yarn test-integration",
     "test-integration-snowflake": "cross-env DIALECT=snowflake yarn test-integration",
-    "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-sqlite3 && yarn test-integration-mssql && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake",
+    "test-integration-oracle": "cross-env DIALECT=oracle yarn test-integration",
+    "test-integration-all": "yarn test-integration-mariadb && yarn test-integration-mysql && yarn test-integration-postgres && yarn test-integration-postgres-native && yarn test-integration-sqlite3 && yarn test-integration-mssql && yarn test-integration-db2 && yarn test-integration-ibmi && yarn test-integration-snowflake && yarn test-integration-oracle",
     "----------------------------------------- all tests ---------------------------------------------": "",
     "test-mariadb": "cross-env DIALECT=mariadb yarn test",
     "test-mysql": "cross-env DIALECT=mysql yarn test",
@@ -163,6 +165,7 @@
     "test-mssql": "cross-env DIALECT=mssql yarn test",
     "test-db2": "cross-env DIALECT=db2 yarn test",
     "test-ibmi": "cross-env DIALECT=ibmi yarn test",
+    "test-oracle": "cross-env DIALECT=oracle yarn test",
     "----------------------------------------- development ---------------------------------------------": "",
     "build": "node ../../build-packages.mjs core"
   },

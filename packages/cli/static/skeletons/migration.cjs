@@ -2,22 +2,22 @@
 
 module.exports = {
   /** @type {import('@sequelize/cli').MigrationFunction} */
-  async up(queryInterface, sequelize) {
+  async up({ sequelize }) {
     /**
      * Add altering commands here.
      *
      * Example:
-     * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+     * await sequelize.queryInterface.createTable('users', { id: DataTypes.INTEGER });
      */
   },
 
   /** @type {import('@sequelize/cli').MigrationFunction} */
-  async down(queryInterface, sequelize) {
+  async down({ sequelize }) {
     /**
      * Add reverting commands here.
      *
      * Example:
-     * await queryInterface.dropTable('users');
+     * await sequelize.queryInterface.dropTable('users');
      */
   },
 };

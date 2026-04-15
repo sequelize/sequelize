@@ -658,7 +658,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (options?.alias) {
-      sql += ` AS ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
     }
 
     if (options?.indexHints) {
@@ -909,6 +909,22 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     throw new Error(`getUuidV4FunctionCall has not been implemented in ${this.dialect.name}.`);
   }
 
+  getUuidV7FunctionCall(): string {
+    if (!this.dialect.supports.uuidV7Generation) {
+      throw new Error(`UUID V7 generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getUuidV7FunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
+  getRandomFloatFunctionCall(): string {
+    if (!this.dialect.supports.randomFloatGeneration) {
+      throw new Error(`Random float generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getRandomFloatFunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
   getToggleForeignKeyChecksQuery(_enable: boolean): string {
     throw new Error(`${this.dialect.name} does not support toggling foreign key checks`);
   }
@@ -970,5 +986,36 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     return this.#internals;
+  }
+
+  /**
+   * Generates a dialect-aware COUNT(*) wrapper around a subquery.
+   *
+   * This utility is used to compute the total number of rows returned
+   * by an arbitrary SQL query by wrapping it in:
+   *
+   *   SELECT COUNT(*) AS count FROM (<query>) <alias>
+   *
+   * The alias token is generated through getAliasToken, so dialects
+   * that do not support the `AS` keyword (e.g. Oracle) are handled correctly.
+   *
+   * @param query The SQL query to wrap inside the COUNT(*) subquery.
+   *
+   * @example
+   * ```ts
+   * const subQuery = `SELECT * FROM "Users" WHERE "active" = true`;
+   * const countQuery = queryGenerator.generateCountAllQuery(subQuery);
+   * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) AS Z
+   * // (Oracle)
+   * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) Z
+   * ```
+   */
+
+  generateCountAllQuery(query: string): string {
+    // dialect-aware alias token
+    const aliasToken = this.#internals.getAliasToken();
+
+    // The "Z" alias is required for all dialects (Oracle does not support "AS")
+    return `SELECT COUNT(*) AS count FROM (${query}) ${aliasToken} Z`;
   }
 }

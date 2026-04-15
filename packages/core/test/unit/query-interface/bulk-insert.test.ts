@@ -46,6 +46,8 @@ describe('QueryInterface#bulkInsert', () => {
       mssql: toMatchRegex(
         /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
       ),
+      // oracle uses `executeMany()` provided by node-oracledb driver and passes the value with binds
+      oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
 
     if (!['db2', 'mssql'].includes(sequelize.dialect.name)) {
@@ -100,6 +102,7 @@ describe('QueryInterface#bulkInsert', () => {
       mssql: toMatchRegex(
         /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
       ),
+      oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
   });
 
@@ -136,6 +139,7 @@ describe('QueryInterface#bulkInsert', () => {
       ibmi: toMatchSql(
         `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
       ),
+      oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
     });
   });
 });

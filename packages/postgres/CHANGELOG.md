@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.48](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.47...v7.0.0-alpha.48) (2026-02-04)
+
+### Features
+
+- **core:** convert query.js to TS and implement caching, pooling, and other optimizations ([#18051](https://github.com/sequelize/sequelize/issues/18051)) ([c3b3576](https://github.com/sequelize/sequelize/commit/c3b35760395f53c6c0f4affd6b90fb951865154d))
+
 # [7.0.0-alpha.47](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.46...v7.0.0-alpha.47) (2025-10-25)
 
 ### Bug Fixes

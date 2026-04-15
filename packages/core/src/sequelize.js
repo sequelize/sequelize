@@ -55,12 +55,13 @@ import {
   noSequelizeDataType,
   noSequelizeIsDefined,
   noSequelizeModel,
+  noSequelizeRandom,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
-import { validator as Validator } from './utils/validator-extras';
+import { Validator } from './utils/validator-extras';
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -69,6 +70,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the specified dialect.
    *
+   * @deprecated use sequelize.dialect.name.
    * @returns {string} The specified dialect.
    */
   getDialect() {
@@ -80,6 +82,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the database name.
    *
+   * @deprecated use sequelize.options.replication.write
    * @returns {string} The database name.
    */
   getDatabaseName() {
@@ -91,6 +94,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns an instance of AbstractQueryInterface.
    *
+   * @deprecated use {@link Sequelize#queryInterface}.
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
   getQueryInterface() {
@@ -151,8 +155,8 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Fetch a Model which is already defined
    *
+   * @deprecated use sequelize.models.getOrThrow instead.
    * @param {string} modelName The name of a model defined with Sequelize.define
-   *
    * @throws Will throw an error if the model is not defined (that is, if sequelize#isDefined returns false)
    * @returns {Model} Specified model
    */
@@ -165,8 +169,8 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Checks whether a model with the given name is defined
    *
+   * @deprecated use sequelize.models.hasByName instead.
    * @param {string} modelName The name of a model defined with Sequelize.define
-   *
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
@@ -266,36 +270,44 @@ Use Sequelize#query if you wish to use replacements.`);
         );
       }
 
-      const mappedResult = mapBindParameters(sql, this.dialect);
+      const isOracleBulkBind = this.dialect.name === 'oracle' && isBindArray && options.executeMany;
 
-      for (const parameterName of mappedResult.parameterSet) {
-        if (isBindArray) {
-          if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+      if (isOracleBulkBind) {
+        // skip mapBindParameters and all bind name validation
+        // oracle driver executeMany() expects this format
+        bindParameters = options.bind;
+      } else {
+        const mappedResult = mapBindParameters(sql, this.dialect);
+
+        for (const parameterName of mappedResult.parameterSet) {
+          if (isBindArray) {
+            if (!/[1-9][0-9]*/.test(parameterName) || options.bind.length < Number(parameterName)) {
+              throw new Error(
+                `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
+              );
+            }
+          } else if (!(parameterName in options.bind)) {
             throw new Error(
               `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
             );
           }
-        } else if (!(parameterName in options.bind)) {
-          throw new Error(
-            `Query includes bind parameter "$${parameterName}", but no value has been provided for that bind parameter.`,
-          );
         }
-      }
 
-      sql = mappedResult.sql;
+        sql = mappedResult.sql;
 
-      // used by dialects that support "INOUT" parameters to map the OUT parameters back the the name the dev used.
-      options.bindParameterOrder = mappedResult.bindOrder;
-      if (mappedResult.bindOrder == null) {
-        bindParameters = options.bind;
-      } else {
-        bindParameters = mappedResult.bindOrder.map(key => {
-          if (isBindArray) {
-            return options.bind[key - 1];
-          }
+        // used by dialects that support "INOUT" parameters to map the OUT parameters back to the name the dev used.
+        options.bindParameterOrder = mappedResult.bindOrder;
+        if (mappedResult.bindOrder == null) {
+          bindParameters = options.bind;
+        } else {
+          bindParameters = mappedResult.bindOrder.map(key => {
+            if (isBindArray) {
+              return options.bind[key - 1];
+            }
 
-          return options.bind[key];
-        });
+            return options.bind[key];
+          });
+        }
       }
     }
 
@@ -591,24 +603,24 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    await this.query(
-      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : ''}`,
-      options,
-    );
+    const dummyTableName = this.dialect.supports.select.dummyTable;
+    const fromClause = dummyTableName
+      ? ` FROM ${this.queryGenerator.quoteIdentifier(dummyTableName)}`
+      : '';
+
+    await this.query(`SELECT 1+1 AS result${fromClause}`, options);
   }
 
   /**
    * Get the fn for random based on the dialect
    *
-   * @returns {Fn}
+   * @deprecated use {@link sql.random} instead, as it can be used without needing a reference to sequelize.
+   * @returns {Random}
    */
-  // TODO: replace with sql.random
   random() {
-    if (['postgres', 'sqlite3', 'snowflake'].includes(this.dialect.name)) {
-      return fn('RANDOM');
-    }
+    noSequelizeRandom();
 
-    return fn('RAND');
+    return sql.random;
   }
 
   // Global exports

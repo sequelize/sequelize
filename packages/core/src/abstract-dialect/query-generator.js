@@ -1,5 +1,6 @@
 'use strict';
 
+import { inspect, pojo } from '@sequelize/utils';
 import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -11,16 +12,20 @@ import isPlainObject from 'lodash/isPlainObject';
 import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
+import crypto from 'node:crypto';
 import NodeUtil from 'node:util';
 import { Association } from '../associations/base';
 import { BelongsToAssociation } from '../associations/belongs-to';
 import { BelongsToManyAssociation } from '../associations/belongs-to-many';
 import { HasManyAssociation } from '../associations/has-many';
+import * as DataTypes from '../data-types';
 import { ParameterStyle } from '../enums.js';
+import * as sequelizeError from '../errors';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import { Col } from '../expression-builders/col.js';
 import { Literal } from '../expression-builders/literal.js';
-import { conformIndex } from '../model-internals';
+import { _validateIncludedElements, conformIndex } from '../model-internals';
+import { Op } from '../operators';
 import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
@@ -32,14 +37,6 @@ import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
 
-const util = require('node:util');
-const crypto = require('node:crypto');
-
-const DataTypes = require('../data-types');
-const { Op } = require('../operators');
-const sequelizeError = require('../errors');
-const { _validateIncludedElements } = require('../model-internals');
-
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
   'charset',
@@ -50,6 +47,25 @@ export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'uniqueKeys',
 ]);
 export const ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS = new Set(['ifNotExists']);
+
+const VALID_ORDER_OPTIONS = [
+  'ASC',
+  'DESC',
+  'ASC NULLS LAST',
+  'DESC NULLS LAST',
+  'ASC NULLS FIRST',
+  'DESC NULLS FIRST',
+  'NULLS FIRST',
+  'NULLS LAST',
+];
+
+function isOrderDirection(value) {
+  return typeof value === 'string' && VALID_ORDER_OPTIONS.includes(value.toUpperCase());
+}
+
+function isModelAttribute(value) {
+  return value?._modelAttribute === true;
+}
 
 /**
  * Abstract Query Generator
@@ -84,7 +100,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const modelAttributeMap = {};
     const fields = [];
     const returningModelAttributes = [];
-    const values = Object.create(null);
+    const returnTypes = [];
+    const returnAttributes = [];
+    const values = pojo();
     const quotedTable = this.quoteTable(table);
     let bind;
     let bindParam;
@@ -112,10 +130,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += ' VALUES ()';
     }
 
-    if (this.dialect.supports.returnValues && options.returning) {
+    if (
+      (this.dialect.supports.returnValues || this.dialect.supports.returnIntoValues) &&
+      options.returning
+    ) {
       const returnValues = this.generateReturnValues(modelAttributes, options);
 
       returningModelAttributes.push(...returnValues.returnFields);
+      // Storing the returnTypes for dialects that need to have returning into bind information for outbinds
+      if (this.dialect.supports.returnIntoValues) {
+        returnTypes.push(...returnValues.returnTypes);
+      }
+
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
@@ -132,8 +158,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
-      bindParam = createBindParamGenerator(bind);
+      bind = this.dialect.supports.returnIntoValues && options.bind ? options.bind : pojo();
+      bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -272,7 +298,18 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       emptyQuery += returningFragment;
     }
 
-    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}`.trim()};`;
+    if (this.dialect.supports.returnIntoValues && options.returning) {
+      // Populating the returnAttributes array and performing operations needed for output binds of insertQuery
+      this.populateInsertQueryReturnIntoBinds(
+        returningModelAttributes,
+        returnTypes,
+        Object.keys(bind).length,
+        returnAttributes,
+        options,
+      );
+    }
+
+    query = `${`${replacements.attributes.length > 0 ? valueQuery : emptyQuery}${returnAttributes.join(',')}`.trim()};`;
     if (this.dialect.supports.finalTable) {
       query = `SELECT * FROM FINAL TABLE (${replacements.attributes.length > 0 ? valueQuery : emptyQuery});`;
     }
@@ -452,6 +489,17 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   /**
+   * Helper method for populating the returning into bind information
+   * that is needed by some dialects (currently Oracle)
+   * This is called when `dialect.supports.returnIntoValues` is `true`
+   *
+   * @private
+   */
+  populateInsertQueryReturnIntoBinds() {
+    // noop by default
+  }
+
+  /**
    * Returns an update query
    *
    * @param {string} tableName
@@ -486,18 +534,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
+      bind = pojo();
       bindParam = createBindParamGenerator(bind);
     }
 
-    if (
-      this.dialect.supports['LIMIT ON UPDATE'] &&
-      options.limit &&
-      this.dialect.name !== 'mssql' &&
-      this.dialect.name !== 'db2'
-    ) {
-      // TODO: use bind parameter
-      suffix = ` LIMIT ${this.escape(options.limit, options)} `;
+    if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
+      if (!['mssql', 'db2', 'oracle'].includes(this.dialect.name)) {
+        // TODO: use bind parameter
+        suffix = ` LIMIT ${this.escape(options.limit, options)} `;
+      } else if (this.dialect.name === 'oracle') {
+        // This cannot be set in where clause because rownum will be quoted
+        if (where && ((where.length && where.length > 0) || Object.keys(where).length > 0)) {
+          suffix += ' AND ';
+        } else {
+          suffix += ' WHERE ';
+        }
+
+        suffix += `rownum <= ${this.escape(options.limit)} `;
+      }
     }
 
     if (this.dialect.supports.returnValues && options.returning) {
@@ -694,7 +748,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (!field.name) {
-        throw new Error(`The following index field has no name: ${util.inspect(field)}`);
+        throw new Error(`The following index field has no name: ${inspect(field)}`);
       }
 
       result += this.quoteIdentifier(field.name);
@@ -822,16 +876,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   */
   quote(collection, parent, connector = '.', options) {
     // init
-    const validOrderOptions = [
-      'ASC',
-      'DESC',
-      'ASC NULLS LAST',
-      'DESC NULLS LAST',
-      'ASC NULLS FIRST',
-      'DESC NULLS FIRST',
-      'NULLS FIRST',
-      'NULLS LAST',
-    ];
+    const validOrderOptions = VALID_ORDER_OPTIONS;
 
     // just quote as identifiers if string
     if (typeof collection === 'string') {
@@ -995,7 +1040,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       );
     }
 
-    throw new Error(`Unknown structure passed to order / group: ${util.inspect(collection)}`);
+    throw new Error(`Unknown structure passed to order / group: ${NodeUtil.inspect(collection)}`);
   }
 
   /**
@@ -1232,7 +1277,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         } else {
           // Ordering is handled by the subqueries, so ordering the UNION'ed result is not needed
           groupedLimitOrder = options.order;
-          delete options.order;
+          // For dialects which don't allow for ordering in the subqueries, the result of a select
+          // is a set, not a sequence, and so is the result of UNION.
+          // So the top level ORDER BY is required
+          if (!this.dialect.supports.topLevelOrderByRequired) {
+            delete options.order;
+          }
+
           where = and(new Literal(placeholder), where);
         }
 
@@ -1253,7 +1304,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             model,
           },
           model,
-        ).replace(/;$/, '')}) AS sub`; // Every derived table must have its own alias
+        ).replace(/;$/, '')}) ${this.#internals.getAliasToken()} sub`; // Every derived table must have its own alias
         const splicePos = baseQuery.indexOf(placeholder);
 
         mainQueryItems.push(
@@ -1440,7 +1491,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         modelName: model && model.name,
         as: mainTable.quotedAs,
       });
-      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) AS ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
+      query = `SELECT ${attributes.main.join(', ')} FROM (${subQueryItems.join('')}) ${this.#internals.getAliasToken()} ${mainTable.quotedAs}${mainJoinQueries.join('')}${mainQueryItems.join('')}`;
     } else {
       query = mainQueryItems.join('');
     }
@@ -1606,6 +1657,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           prefix = attr.replace(
             /json_extract\(/i,
             `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`,
+          );
+        } else if (/json_value\(/.test(attr)) {
+          prefix = attr.replace(
+            /json_value\(/i,
+            `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`,
           );
         } else {
           prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
@@ -1839,6 +1895,198 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     );
   }
 
+  /**
+   * Analyzes an ORDER BY clause to determine the attribute reference path.
+   *
+   * This handles order arrays like [Model, 'field', 'ASC'] or ['assoc1', 'assoc2', 'field', 'DESC']
+   * by traversing the association chain to find the correct table alias path and attribute.
+   *
+   * This does not handle raw SQL or literal orders, only structured association orders.
+   *
+   * The returned information is used to:
+   * - Resolve the correct table alias (internal path with '->' or external path with '.')
+   * - Find the corresponding include to access minified aliases
+   * - Replace the association parts to their table.column reference.
+   *
+   * @param {Array} order - The order clause array (e.g., [User, Task, 'name', 'DESC'])
+   * @param {Model} model - The root model for the query
+   * @param {object} options - Query options including include tree
+   * @returns {object|null} Info about the association path and attribute, or null if not an association order or malformed
+   */
+  _getAssociationOrderInfo(order, model, options) {
+    if (!Array.isArray(order) || order.length < 2 || !isModelStatic(model)) {
+      return null;
+    }
+
+    const isDirectional =
+      typeof order.at(-1) === 'string' && VALID_ORDER_OPTIONS.includes(order.at(-1).toUpperCase());
+    const attributeIndex = order.length - 1 - (isDirectional ? 1 : 0);
+
+    // If attributeIndex is 0, there are no associations in the order array
+    if (attributeIndex < 1) {
+      return null;
+    }
+
+    const attribute = order[attributeIndex];
+
+    // Sanity check that the attribute is a property name and not malformed.
+    if (typeof attribute !== 'string' || attribute.length === 0) {
+      return null;
+    }
+
+    // Everything before the attribute should be associations
+    const associationParts = order.slice(0, attributeIndex);
+    if (associationParts.length === 0) {
+      return null;
+    }
+
+    let currentModel = model;
+    const associations = [];
+    let previousAssociation = null;
+
+    // Start association walk through the order clause
+    for (const part of associationParts) {
+      let association;
+      const previousBelongsToMany =
+        previousAssociation instanceof BelongsToManyAssociation ? previousAssociation : null;
+      const matchesPreviousThroughModel =
+        previousBelongsToMany &&
+        (part === previousBelongsToMany.throughModel ||
+          (isPlainObject(part) &&
+            part.model === previousBelongsToMany.throughModel &&
+            (part.as == null || part.as === previousBelongsToMany.fromTargetToThrough.as)));
+
+      if (matchesPreviousThroughModel) {
+        association = previousBelongsToMany.fromTargetToThrough;
+      } else if (part instanceof Association) {
+        association = part;
+      } else if (typeof part === 'string' && currentModel?.associations?.[part]) {
+        association = currentModel.associations[part];
+      } else if (isModelStatic(part)) {
+        association = currentModel.getAssociationWithModel(part);
+      } else if (isPlainObject(part) && part.model && isModelStatic(part.model)) {
+        association = currentModel.getAssociationWithModel(part.model, part.as);
+      } else {
+        throw new Error(
+          `Invalid Order: association "${part}" is not found in ${currentModel.name}'s associations. Check your order definition.`,
+        );
+      }
+
+      associations.push(association);
+      currentModel = association.target;
+      previousAssociation = association;
+    }
+
+    if (associations.length === 0) {
+      return null;
+    }
+
+    const associationAliases = associations.map(association => association.as);
+    if (associationAliases.some(alias => !alias)) {
+      return null;
+    }
+
+    // Find the corresponding include in the query options to access its alias information
+    const include = this._findIncludeForAliasPath(options?.include, associationAliases);
+
+    return {
+      attribute,
+      replaceCount: associationParts.length + 1, // Number of elements to replace in the order array
+      associationAliases,
+      include,
+      externalPath: associationAliases.join('.'), // e.g., 'user.tasks' for nested associations
+      internalPath: associationAliases.join('->'), // e.g., 'user->tasks' used for internal aliasing
+    };
+  }
+
+  /**
+   * Finds the nested include object that matches a given alias path.
+   *
+   * Starting from the provided root `includes` array, this method walks the tree by
+   * following each segment in `aliasPath` and matching it against the `as` of each include.
+   * If any segment is not found at a given level, it returns `null`. When all segments are
+   * matched, it returns the deepest include corresponding to the full path.
+   *
+   * This is used (e.g. by association order resolution) to locate the include that corresponds
+   * to an ORDER BY association chain so that the correct table aliasing/minified alias can be applied.
+   *
+   * @param {Array<object>} includes - The root include array to traverse (e.g. `options.include`).
+   * @param {string[]} aliasPath - Ordered list of association alias names (e.g. ['user', 'tasks']).
+   * @returns {object|null} The include that matches the full alias path, or `null` if no match is found.
+   */
+  _findIncludeForAliasPath(includes, aliasPath) {
+    if (!Array.isArray(includes) || aliasPath.length === 0) {
+      return null;
+    }
+
+    let currentIncludes = includes;
+    let match;
+
+    for (const segment of aliasPath) {
+      match = currentIncludes.find(include => include.as === segment);
+      if (!match) {
+        return null;
+      }
+
+      currentIncludes = match.include || [];
+    }
+
+    return match;
+  }
+
+  /**
+   * Splits a raw ORDER clause entry into normalized sub-entries.
+   *
+   * This helper peels off any leading model/attribute reference segments and keeps
+   * an optional trailing direction (ASC/DESC). For example:
+   * - [User, 'tasks', 'name', 'DESC'] -> [[User], ['tasks', 'name', 'DESC']]
+   * - ['createdAt', 'ASC'] -> [['createdAt', 'ASC']]
+   * - ['DESC'] -> [['DESC']]
+   * - [] -> [[]]
+   *
+   * The output is consumed by later normalization steps that resolve association paths
+   * and build the final ORDER BY fragment.
+   *
+   * @param {Array<unknown>} rawOrder - The raw order entry array to split.
+   * @returns {Array<Array<unknown>>} A list of order sub-entries, where leading model/attribute
+   *   references are emitted as single-item arrays, and the remaining path plus optional
+   *   direction are grouped as the last entry. Returns `[[]]` for an empty input.
+   * @private
+   */
+  _splitOrderEntry(rawOrder) {
+    const orderParts = [...rawOrder];
+    const results = [];
+
+    let direction;
+    if (isOrderDirection(orderParts.at(-1))) {
+      direction = orderParts.pop();
+    }
+
+    while (orderParts.length > 1 && isModelAttribute(orderParts[0])) {
+      results.push([orderParts.shift()]);
+    }
+
+    if (orderParts.length > 0) {
+      const entry = [...orderParts];
+      if (direction !== undefined) {
+        entry.push(direction);
+        direction = undefined;
+      }
+
+      results.push(entry);
+    }
+
+    if (direction !== undefined) {
+      if (results.length === 0) {
+        results.push([direction]);
+      } else {
+        results.at(-1).push(direction);
+      }
+    }
+
+    return results.length > 0 ? results : [[]];
+  }
+
   generateJoin(include, topLevelInfo, options) {
     const association = include.association;
     const parent = include.parent;
@@ -2019,6 +2267,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (returnValuesType === 'returning') {
       returningFragment = ` RETURNING ${returnFields.join(', ')}`;
+    } else if (this.dialect.supports.returnIntoValues) {
+      returningFragment = ` RETURNING ${returnFields.join(', ')} INTO `;
     } else if (returnValuesType === 'output') {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(', ')}`;
 
@@ -2034,7 +2284,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    return { outputFragment, returnFields, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
@@ -2380,61 +2630,83 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const subQueryOrder = [];
 
     if (Array.isArray(options.order)) {
-      for (let order of options.order) {
-        // wrap if not array
-        if (!Array.isArray(order)) {
-          order = [order];
-        }
+      for (const rawOrder of options.order) {
+        const normalizedOrder = Array.isArray(rawOrder) ? rawOrder : [rawOrder];
+        const orderEntries = this._splitOrderEntry(normalizedOrder);
 
-        if (
-          subQuery &&
-          Array.isArray(order) &&
-          order[0] &&
-          !(order[0] instanceof Association) &&
-          !isModelStatic(order[0]) &&
-          !isModelStatic(order[0].model) &&
-          !(
-            typeof order[0] === 'string' &&
-            model &&
-            model.associations !== undefined &&
-            model.associations[order[0]]
-          )
-        ) {
-          // TODO - refactor this.quote() to not change the first argument
-          const columnName = model.modelDefinition.getColumnNameLoose(order[0]);
-          const subQueryAlias = this._getAliasForField(model.name, columnName, options);
-
-          let parent = null;
-          let orderToQuote = [];
-
-          // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
-          // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
-          // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
-          if (subQueryAlias === null) {
-            orderToQuote = order;
-            parent = model;
-          } else {
-            orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
-            parent = null;
+        for (let order of orderEntries) {
+          if (!Array.isArray(order)) {
+            order = [order];
           }
 
-          subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
-        }
+          const associationOrderInfo = this._getAssociationOrderInfo(order, model, options);
 
-        // Handle case where renamed attributes are used to order by,
-        // see https://github.com/sequelize/sequelize/issues/8739
-        // need to check if either of the attribute options match the order
-        if (options.attributes && model) {
-          const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
-
-          if (aliasedAttribute) {
-            const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
-
-            order[0] = new Col(alias || aliasedAttribute[1]);
+          if (subQuery && associationOrderInfo?.include?.subQuery) {
+            const subOrder = [...order];
+            subQueryOrder.push(this.quote(subOrder, model, '->', options));
           }
-        }
 
-        mainQueryOrder.push(this.quote(order, model, '->', options));
+          if (
+            subQuery &&
+            Array.isArray(order) &&
+            order[0] &&
+            !Array.isArray(order[0]) &&
+            !(order[0] instanceof Association) &&
+            !isModelStatic(order[0]) &&
+            !isModelStatic(order[0].model) &&
+            !(
+              typeof order[0] === 'string' &&
+              model &&
+              model.associations !== undefined &&
+              model.associations[order[0]]
+            )
+          ) {
+            // TODO - refactor this.quote() to not change the first argument
+            const columnName = model.modelDefinition.getColumnNameLoose(order[0]);
+            const subQueryAlias = this._getAliasForField(model.name, columnName, options);
+
+            let parent = null;
+            let orderToQuote = [];
+
+            // we need to ensure that the parent is null if we use the subquery alias, else we'll get an exception since
+            // "model_name"."alias" doesn't exist - only "alias" does. we also need to ensure that we preserve order direction
+            // by pushing order[1] to the subQueryOrder as well - in case it doesn't exist, we want to push "ASC"
+            if (subQueryAlias === null) {
+              orderToQuote = order;
+              parent = model;
+            } else {
+              orderToQuote = [subQueryAlias, order.length > 1 ? order[1] : 'ASC'];
+              parent = null;
+            }
+
+            subQueryOrder.push(this.quote(orderToQuote, parent, '->', options));
+          }
+
+          if (subQuery && associationOrderInfo?.include?.subQuery) {
+            const aliasField = `${associationOrderInfo.externalPath}.${associationOrderInfo.attribute}`;
+            const alias =
+              this._getAliasForField(associationOrderInfo.internalPath, aliasField, options) ||
+              aliasField;
+            const aliasLiteral = new Literal(this.quoteIdentifier(alias));
+
+            order.splice(0, associationOrderInfo.replaceCount, aliasLiteral);
+          }
+
+          // Handle case where renamed attributes are used to order by,
+          // see https://github.com/sequelize/sequelize/issues/8739
+          // need to check if either of the attribute options match the order
+          if (options.attributes && model) {
+            const aliasedAttribute = this._getAliasForFieldFromQueryOptions(order[0], options);
+
+            if (aliasedAttribute) {
+              const alias = this._getAliasForField(model.name, aliasedAttribute[1], options);
+
+              order[0] = new Col(alias || aliasedAttribute[1]);
+            }
+          }
+
+          mainQueryOrder.push(this.quote(order, model, '->', options));
+        }
       }
     } else if (options.order instanceof BaseSqlExpression) {
       const sql = this.quote(options.order, model, '->', options);
@@ -2484,7 +2756,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fragment += ` ${attributes.join(', ')} FROM ${tables}`;
 
     if (options.groupedLimit) {
-      fragment += ` AS ${mainTableAs}`;
+      fragment += ` ${this.#internals.getAliasToken()} ${mainTableAs}`;
     }
 
     return fragment;

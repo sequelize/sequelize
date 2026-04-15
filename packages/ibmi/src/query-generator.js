@@ -18,6 +18,7 @@ import {
   nameIndex,
   removeTrailingSemicolon,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { pojo } from '@sequelize/utils';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import util from 'node:util';
@@ -41,7 +42,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     }
 
     const primaryKeys = [];
-    const foreignKeys = Object.create(null);
+    const foreignKeys = pojo();
     const attrStr = [];
 
     for (const attr in attributes) {
@@ -197,7 +198,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
    @private
   */
   addIndexQuery(tableName, _attributes, _options, rawTablename) {
-    let options = _options || Object.create(null);
+    let options = _options || pojo();
 
     if (!Array.isArray(_attributes)) {
       options = _attributes;
@@ -456,7 +457,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = Object.create(null);
+    const result = pojo();
 
     for (const key of Object.keys(attributes)) {
       const attribute = {

@@ -17,6 +17,7 @@ describe('QueryGenerator#listSchemasQuery', () => {
       sqlite3: notSupportedError,
       postgres: `SELECT schema_name AS "schema" FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('public', 'information_schema', 'tiger', 'tiger_data', 'topology')`,
       snowflake: `SELECT SCHEMA_NAME AS "schema" FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys')`,
+      oracle: `SELECT USERNAME AS "schema" FROM ALL_USERS WHERE COMMON = ('NO') AND USERNAME != user`,
     });
   });
 
@@ -30,6 +31,7 @@ describe('QueryGenerator#listSchemasQuery', () => {
       sqlite3: notSupportedError,
       postgres: `SELECT schema_name AS "schema" FROM information_schema.schemata WHERE schema_name !~ E'^pg_' AND schema_name NOT IN ('public', 'information_schema', 'tiger', 'tiger_data', 'topology', 'test', 'Te''st2')`,
       snowflake: `SELECT SCHEMA_NAME AS "schema" FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME NOT IN ('INFORMATION_SCHEMA', 'PERFORMANCE_SCHEMA', 'SYS', 'information_schema', 'performance_schema', 'sys', 'test', 'Te''st2')`,
+      oracle: `SELECT USERNAME AS "schema" FROM ALL_USERS WHERE COMMON = ('NO') AND USERNAME != user`,
     });
   });
 });

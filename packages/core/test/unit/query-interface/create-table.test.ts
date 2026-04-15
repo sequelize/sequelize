@@ -10,6 +10,31 @@ describe('QueryInterface#createTable', () => {
     sinon.restore();
   });
 
+  it('supports sql.random default values', async () => {
+    const stub = sinon.stub(sequelize, 'queryRaw');
+    await sequelize.queryInterface.createTable('table', {
+      value: {
+        type: DataTypes.FLOAT(),
+        defaultValue: sql.random,
+      },
+    });
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+    expectsql(firstCall.args[0], {
+      postgres: 'CREATE TABLE IF NOT EXISTS "table" ("value" REAL DEFAULT RANDOM());',
+      mysql: 'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT (RAND())) ENGINE=InnoDB;',
+      mariadb: 'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT RAND()) ENGINE=InnoDB;',
+      mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([value] REAL DEFAULT RAND());`,
+      sqlite3:
+        'CREATE TABLE IF NOT EXISTS `table` (`value` REAL DEFAULT ((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0));',
+      snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("value" FLOAT DEFAULT RANDOM());',
+      db2: 'CREATE TABLE IF NOT EXISTS "table" ("value" REAL DEFAULT RAND());',
+      ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("value" REAL DEFAULT RAND()); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("value" BINARY_FLOAT DEFAULT DBMS_RANDOM.VALUE())'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+    });
+  });
+
   it('supports sql.uuidV4 default values', async () => {
     const localSequelize =
       dialect.name === 'postgres'
@@ -40,6 +65,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("id" VARCHAR2(36),PRIMARY KEY ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -93,6 +119,7 @@ describe('QueryInterface#createTable', () => {
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("id" VARCHAR2(36),PRIMARY KEY ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 
@@ -117,6 +144,8 @@ describe('QueryInterface#createTable', () => {
       'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
+      // oracle uses BLOB with CHECK constraint and JSON_NULL isn't allowed.
+      oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
 });

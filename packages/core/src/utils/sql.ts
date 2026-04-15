@@ -1,3 +1,4 @@
+import { pojo } from '@sequelize/utils';
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../abstract-dialect/dialect.js';
 import type { EscapeOptions } from '../abstract-dialect/query-generator-typescript.js';
@@ -460,7 +461,7 @@ export function combineBinds(bindA: BindOrReplacements, bindB: { [key: string]: 
 }
 
 function arrayBindToNamedBind(bind: unknown[]): { [key: string]: unknown } {
-  const out = Object.create(null);
+  const out = pojo<Record<string, unknown>>();
 
   // eslint-disable-next-line unicorn/no-for-loop -- too slow.
   for (let i = 0; i < bind.length; i++) {
@@ -547,11 +548,14 @@ export async function withSqliteForeignKeysOff<T>(
  * Creates a function that can be used to collect bind parameters.
  *
  * @param bind A mutable object to which bind parameters will be added.
+ * @param preserveNumbering (optional) It retains the previous bind position value.
  */
 export function createBindParamGenerator(
   bind: Record<string, unknown>,
+  preserveNumbering = false,
 ): (value: unknown) => string {
-  let i = 0;
+  // For Oracle, continue numbering to handle upsert sql generation
+  let i = preserveNumbering ? Object.keys(bind).length : 0;
 
   return (value: unknown): string => {
     const bindName = `sequelize_${++i}`;

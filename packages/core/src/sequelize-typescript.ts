@@ -58,11 +58,7 @@ import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
 import { setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
-import {
-  EPHEMERAL_SEQUELIZE_OPTIONS,
-  PERSISTED_SEQUELIZE_OPTIONS,
-  importDialect,
-} from './sequelize.internals.js';
+import { EPHEMERAL_SEQUELIZE_OPTIONS, PERSISTED_SEQUELIZE_OPTIONS } from './sequelize.internals.js';
 import type { QueryRawOptions } from './sequelize.js';
 import { Sequelize } from './sequelize.js';
 import type { NormalizedOptions, Options } from './sequelize.types.js';
@@ -195,19 +191,6 @@ const instanceSequelizeHooks = new HookHandlerBuilder<SequelizeHooks<AbstractDia
 
 type TransactionCallback<T> = (t: Transaction) => PromiseLike<T> | T;
 type SessionCallback<T> = (connection: AbstractConnection) => PromiseLike<T> | T;
-
-export const SUPPORTED_DIALECTS = Object.freeze([
-  'mysql',
-  'postgres',
-  'sqlite3',
-  'mariadb',
-  'mssql',
-  'mariadb',
-  'mssql',
-  'db2',
-  'snowflake',
-  'ibmi',
-] as const);
 
 // DO NOT MAKE THIS CLASS PUBLIC!
 /**
@@ -502,6 +485,12 @@ new Sequelize({
       throw new Error('The "dialect" option must be explicitly supplied since Sequelize 4');
     }
 
+    if (typeof options.dialect !== 'function') {
+      throw new Error(
+        'The "dialect" option must be a dialect class. Pass the class exported by your dialect package instead.',
+      );
+    }
+
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {
       const modelName = model.modelDefinition.modelName;
@@ -523,9 +512,8 @@ new Sequelize({
 
     this.rawOptions = freezeDeep(cloneDeepPlainValues(options, true));
 
-    const DialectClass: typeof AbstractDialect = isString(options.dialect)
-      ? importDialect(options.dialect)
-      : (options.dialect as unknown as typeof AbstractDialect);
+    const DialectClass: typeof AbstractDialect =
+      options.dialect as unknown as typeof AbstractDialect;
 
     const nonUndefinedOptions = removeUndefined(options);
 
