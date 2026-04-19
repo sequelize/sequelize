@@ -183,8 +183,8 @@ export class MariaDbQuery extends AbstractQuery {
     }
 
     const meta = rows.meta;
-    for (const _field of Object.keys(this.model.fieldRawAttributesMap)) {
-      const modelField = this.model.fieldRawAttributesMap[_field];
+    for (const field of Object.keys(this.model.fieldRawAttributesMap)) {
+      const modelField = this.model.fieldRawAttributesMap[field];
       if (modelField.type instanceof DataTypes.JSON) {
         const metaEntry = meta?.find(column => {
           return (
