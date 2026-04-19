@@ -117,7 +117,7 @@ export interface PersistedSequelizeOptions<Dialect extends AbstractDialect> exte
    * Set this to "sql" if you want the null to be stored as the SQL NULL value.
    * Set this to "explicit" if you don't want Sequelize to make any assumptions.
    * This means that you won't be able to use the JavaScript null primitive as the top level value of a JSON column,
-   * you will have to use {@link SQL_NULL} or {@link JSON_NULL} instead.
+   * you will have to use {@link @sequelize/core!SQL_NULL} or {@link @sequelize/core!JSON_NULL} instead.
    *
    * This only impacts serialization when inserting or updating values.
    * Comparing always requires to be explicit.
@@ -235,7 +235,7 @@ export interface EphemeralSequelizeOptions<Dialect extends AbstractDialect> {
    * This option is only useful if you created your models using decorators.
    * Models created using {@link Model.init} or {@link Sequelize#define} don't need to be specified in this option.
    *
-   * Use {@link importModels} to load models dynamically:
+   * Use {@link @sequelize/core!importModels} to load models dynamically:
    *
    * @example
    * ```ts

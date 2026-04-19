@@ -134,8 +134,6 @@ export function mergeAttributeOptions(
       }
 
       if (Array.isArray(optionValue)) {
-        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- became valid in TS 5.8
-        // @ts-ignore -- runtime type checking is enforced by model
         existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
       } else {
         existingOptions[optionName] = [...existingOptions[optionName], optionValue];

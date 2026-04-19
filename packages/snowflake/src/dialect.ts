@@ -38,6 +38,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptio
   arrayBindingThreshold: undefined,
   authenticator: undefined,
   browserActionTimeout: undefined,
+  browserRedirectPort: undefined,
   clientConfigFile: undefined,
   clientRequestMFAToken: undefined,
   clientSessionKeepAlive: undefined,

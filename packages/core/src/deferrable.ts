@@ -60,55 +60,60 @@ export class ConstraintChecking {
     throw new Error('constraints getter implementation missing');
   }
 
+  static get DEFERRED() {
+    return ConstraintCheckingDeferred;
+  }
+
+  static get IMMEDIATE() {
+    return ConstraintCheckingImmediate;
+  }
+}
+
+class DEFERRED extends ConstraintChecking {
+  readonly #constraints: readonly string[];
+
   /**
    * Will trigger an additional query at the beginning of a
    * transaction which sets the constraints to deferred.
+   *
+   * @param constraints
    */
-  static readonly DEFERRED = classToInvokable(
-    class DEFERRED extends ConstraintChecking {
-      readonly #constraints: readonly string[];
+  constructor(constraints: readonly string[] = EMPTY_ARRAY) {
+    super();
+    this.#constraints = Object.freeze([...constraints]);
+  }
 
-      /**
-       * @param constraints An array of constraint names. Will defer all constraints by default.
-       */
-      constructor(constraints: readonly string[] = EMPTY_ARRAY) {
-        super();
-        this.#constraints = Object.freeze([...constraints]);
-      }
+  isEqual(other: unknown): boolean {
+    return other instanceof DEFERRED && isEqual(this.#constraints, other.#constraints);
+  }
 
-      isEqual(other: unknown): boolean {
-        return other instanceof DEFERRED && isEqual(this.#constraints, other.#constraints);
-      }
+  get constraints(): readonly string[] {
+    return this.#constraints;
+  }
+}
 
-      get constraints(): readonly string[] {
-        return this.#constraints;
-      }
-    },
-  );
+class IMMEDIATE extends ConstraintChecking {
+  readonly #constraints: readonly string[];
 
   /**
    * Will trigger an additional query at the beginning of a
    * transaction which sets the constraints to immediately.
+   *
+   * @param constraints
    */
-  static readonly IMMEDIATE = classToInvokable(
-    class IMMEDIATE extends ConstraintChecking {
-      readonly #constraints: readonly string[];
+  constructor(constraints: readonly string[] = EMPTY_ARRAY) {
+    super();
+    this.#constraints = Object.freeze([...constraints]);
+  }
 
-      /**
-       * @param constraints An array of constraint names. Will defer all constraints by default.
-       */
-      constructor(constraints: readonly string[] = EMPTY_ARRAY) {
-        super();
-        this.#constraints = Object.freeze([...constraints]);
-      }
+  isEqual(other: unknown): boolean {
+    return other instanceof IMMEDIATE && isEqual(this.#constraints, other.#constraints);
+  }
 
-      isEqual(other: unknown): boolean {
-        return other instanceof IMMEDIATE && isEqual(this.#constraints, other.#constraints);
-      }
-
-      get constraints(): readonly string[] {
-        return this.#constraints;
-      }
-    },
-  );
+  get constraints(): readonly string[] {
+    return this.#constraints;
+  }
 }
+
+const ConstraintCheckingDeferred = classToInvokable(DEFERRED);
+const ConstraintCheckingImmediate = classToInvokable(IMMEDIATE);
