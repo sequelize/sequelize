@@ -3124,7 +3124,7 @@ __metadata:
     chai: "npm:4.5.0"
     dayjs: "npm:^1.11.20"
     lodash: "npm:^4.18.1"
-    mariadb: "patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch"
+    mariadb: "npm:3.4.5"
     mocha: "npm:11.7.5"
     semver: "npm:^7.7.4"
     wkx: "npm:^0.5.0"
@@ -4321,6 +4321,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10c0/b66c484c0a9f6d88b1ef360b0f487717234ee1a482cb2551ff73d9f3c43a42a777daf4c8a5eee970960728f8fe1f3877d3d8c6ffabcbca74cb401a59db700fa4
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^24.0.13":
+  version: 24.12.2
+  resolution: "@types/node@npm:24.12.2"
+  dependencies:
+    undici-types: "npm:~7.16.0"
+  checksum: 10c0/710050c42f89075c4479e4e1e4c2532486b0c41b1e2a8a13ad88641c88b88cdaea87414e19224f30028719737bd70e327edcaa184d50e86b9418941edd7eb02b
   languageName: node
   linkType: hard
 
@@ -9224,7 +9233,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"iconv-lite@npm:^0.6.2":
+"iconv-lite@npm:^0.6.2, iconv-lite@npm:^0.6.3":
   version: 0.6.3
   resolution: "iconv-lite@npm:0.6.3"
   dependencies:
@@ -11037,29 +11046,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"mariadb@npm:3.5.2":
-  version: 3.5.2
-  resolution: "mariadb@npm:3.5.2"
+"mariadb@npm:3.4.5":
+  version: 3.4.5
+  resolution: "mariadb@npm:3.4.5"
   dependencies:
     "@types/geojson": "npm:^7946.0.16"
-    "@types/node": "npm:>=18"
+    "@types/node": "npm:^24.0.13"
     denque: "npm:^2.1.0"
-    iconv-lite: "npm:^0.7.2"
+    iconv-lite: "npm:^0.6.3"
     lru-cache: "npm:^10.4.3"
-  checksum: 10c0/3fe61ede40e38eddf7b32d975fe55a67d342620909deb282c87fa03c943206739adbf31e3767ebd20211d73b66f6d424c0e09166ba35dfa6079b04c084d5c69d
-  languageName: node
-  linkType: hard
-
-"mariadb@patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch":
-  version: 3.5.2
-  resolution: "mariadb@patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch::version=3.5.2&hash=226ba3"
-  dependencies:
-    "@types/geojson": "npm:^7946.0.16"
-    "@types/node": "npm:>=18"
-    denque: "npm:^2.1.0"
-    iconv-lite: "npm:^0.7.2"
-    lru-cache: "npm:^10.4.3"
-  checksum: 10c0/ba29e91a7039174bd23677f17521872f4da7c4ccc0b3934f015756ec613835d3f0db77b925c8abfbb9deada389b9532122eacd58ce2f1804a2d09b44884bccd3
+  checksum: 10c0/2b007083f992c1543e73ec9c4113528deeb418502dfee791bb2902c7c2e228d9e46c3ed7415c27f7d03850e34189ee4a8b5c54ef7d262abcfd5eb1848e8ca76e
   languageName: node
   linkType: hard
 
@@ -16076,6 +16072,13 @@ __metadata:
   version: 6.21.0
   resolution: "undici-types@npm:6.21.0"
   checksum: 10c0/c01ed51829b10aa72fc3ce64b747f8e74ae9b60eafa19a7b46ef624403508a54c526ffab06a14a26b3120d055e1104d7abe7c9017e83ced038ea5cf52f8d5e04
+  languageName: node
+  linkType: hard
+
+"undici-types@npm:~7.16.0":
+  version: 7.16.0
+  resolution: "undici-types@npm:7.16.0"
+  checksum: 10c0/3033e2f2b5c9f1504bdc5934646cb54e37ecaca0f9249c983f7b1fc2e87c6d18399ebb05dc7fd5419e02b2e915f734d872a65da2e3eeed1813951c427d33cc9a
   languageName: node
   linkType: hard
 

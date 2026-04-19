@@ -41,7 +41,7 @@
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.20",
     "lodash": "^4.18.1",
-    "mariadb": "patch:mariadb@npm%3A3.5.2#~/.yarn/patches/mariadb-npm-3.5.2-52603499c8.patch",
+    "mariadb": "3.4.5",
     "semver": "^7.7.4",
     "wkx": "^0.5.0"
   },
