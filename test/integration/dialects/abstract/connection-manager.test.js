@@ -83,6 +83,7 @@ describe('Connection Manager', () => {
     const connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
     sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
     sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
+    connectionManager.config.pool.validate = () => true;
     connectionManager.initPools();
 
     const queryOptions = {
@@ -129,6 +130,7 @@ describe('Connection Manager', () => {
     const connectStub = sandbox.stub(connectionManager, '_connect').returns(resolvedPromise);
     sandbox.stub(connectionManager, '_disconnect').returns(resolvedPromise);
     sandbox.stub(sequelize, 'databaseVersion').returns(resolvedPromise);
+    connectionManager.config.pool.validate = () => true;
     connectionManager.initPools();
 
     const queryOptions = {

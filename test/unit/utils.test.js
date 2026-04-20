@@ -6,6 +6,7 @@ const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
 const Utils = require(__dirname + '/../../lib/utils');
+const Op = require(__dirname + '/../../lib/operators');
 const tedious = require('tedious');
 const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
 
@@ -58,14 +59,14 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
 
     test('defaults symbol keys', () => {
       expect(Utils.defaults(
-        { a: 1, [Symbol.for('c')]: 3},
+        { a: 1, [Op.eq]: 3},
         { b: 2 },
-        { [Symbol.for('c')]: 4, [Symbol.for('d')]: 4 }
+        { [Op.eq]: 4, [Op.ne]: 4 }
       )).to.eql({
         a: 1,
         b: 2,
-        [Symbol.for('c')]: 3,
-        [Symbol.for('d')]: 4
+        [Op.eq]: 3,
+        [Op.ne]: 4
       });
     });
   });

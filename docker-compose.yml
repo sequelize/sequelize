@@ -26,6 +26,20 @@ services:
       - "8998:5432"
     container_name: postgres-95
 
+  # PostgreSQL 17
+  postgres-17:
+    platform: linux/amd64
+    image: postgis/postgis:17-3.5
+    environment:
+      POSTGRES_USER: sequelize_test
+      POSTGRES_PASSWORD: sequelize_test
+      POSTGRES_DB: sequelize_test
+    volumes:
+      - ./test/config/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
+    ports:
+      - "8996:5432"
+    container_name: postgres-17
+
   # MySQL
   mysql-57:
     image: mysql:5.7
