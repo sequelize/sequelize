@@ -14,7 +14,7 @@ const Support = require(__dirname + '/../support'),
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('generateJoin', () => {
     const testsql = function (path, options, expectation) {
-      const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
+      const name = `${path}, ${util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity })}`;
 
       Sequelize.Model._conformOptions(options);
       options = Sequelize.Model._validateIncludedElements(options);

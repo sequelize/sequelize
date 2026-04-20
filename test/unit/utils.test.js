@@ -229,7 +229,8 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('stack', () => {
-    it('stack trace starts after call to Util.stack()', () => {
+    // eslint-disable-next-line prefer-arrow-callback
+    it('stack trace starts after call to Util.stack()', function this_here_test() {
       // We need a named function to be able to capture its trace
       function a() {
         return b();

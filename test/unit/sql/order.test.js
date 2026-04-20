@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = (options, expectation) => {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(
           sql.selectQuery(options.table || (model && model.getTableName()), options, options.model),
           expectation

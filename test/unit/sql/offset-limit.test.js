@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function (options, expectation) {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 2 }), () => {
+      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.addLimitAndOffset(options, model), expectation);
       });
     };

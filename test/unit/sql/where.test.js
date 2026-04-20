@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(util.inspect(params, { depth: 10 }) + ((options && ', ' + util.inspect(options)) || ''), () => {
+      it(util.inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) + ((options && ', ' + util.inspect(options)) || ''), () => {
         return expectsql(sql.whereQuery(params, options), expectation);
       });
     };
@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(key + ': ' + util.inspect(value, { depth: 10 }) + ((options && ', ' + util.inspect(options)) || ''), () => {
+      it(key + ': ' + util.inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) + ((options && ', ' + util.inspect(options)) || ''), () => {
         return expectsql(sql.whereItemQuery(key, value, options), expectation);
       });
     };
@@ -1533,7 +1533,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function (value, expectation) {
       const User = current.define('user', {});
 
-      it(util.inspect(value, { depth: 10 }), () => {
+      it(util.inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };
