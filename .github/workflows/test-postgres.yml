@@ -1,0 +1,49 @@
+name: Test Postgres
+
+on:
+  push:
+    branches: [main, 'release/**']
+  pull_request:
+    branches: [main, 'release/**']
+
+jobs:
+  test-postgres:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_USER: sequelize_test
+          POSTGRES_PASSWORD: sequelize_test
+          POSTGRES_DB: sequelize_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U sequelize_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Postgres extensions
+        env:
+          PGPASSWORD: sequelize_test
+        run: psql -h localhost -U sequelize_test -d sequelize_test -f test/config/init-postgres.sql
+
+      - run: npm install
+
+      - name: Run Postgres tests
+        env:
+          DIALECT: postgres
+          SEQ_PORT: 5432
+          SEQ_USER: sequelize_test
+          SEQ_PW: sequelize_test
+          SEQ_DB: sequelize_test
+        run: npm run test-postgres
