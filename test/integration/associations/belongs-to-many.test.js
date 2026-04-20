@@ -1339,7 +1339,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         }).return (user);
       }).then(user => {
         expect(spy).to.have.been.calledTwice;
-        spy.reset();
+        spy.resetHistory();
         return Promise.join(
           user,
           user.getProjects({
@@ -1378,14 +1378,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         return user.addProject(project, { logging: spy }).return (user);
       }).then(user => {
         expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
-        spy.reset();
+        spy.resetHistory();
         return user.getProjects({
           logging: spy
         });
       }).then(projects => {
         const project = projects[0];
         expect(spy.calledOnce).to.be.ok;
-        spy.reset();
+        spy.resetHistory();
 
         expect(project).to.be.ok;
         return self.user.removeProject(project, {

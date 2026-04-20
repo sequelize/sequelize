@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     const Model = current.define('Model', {});
 
     beforeEach(function() {
-      this.sinon = sinon.sandbox.create();
+      this.sinon = sinon.createSandbox();
     });
 
     afterEach(function() {

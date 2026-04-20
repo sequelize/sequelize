@@ -23,7 +23,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     afterEach(function() {
-      this.stub.reset();
+      this.stub.resetHistory();
     });
 
     after(function() {

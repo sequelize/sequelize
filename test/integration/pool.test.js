@@ -11,7 +11,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function() {
   if (dialect === 'sqlite') return;
 
   beforeEach(() => {
-    this.sinon = sinon.sandbox.create();
+    this.sinon = sinon.createSandbox();
   });
 
   afterEach(() => {

@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       Support.createSequelizeInstance();
       expect(Utils.deprecate.calledOnce).to.be.true;
       expect(Utils.deprecate.args[0][0]).to.be.equal('String based operators are now deprecated. Please use Symbol based operators for better security, read more at http://docs.sequelizejs.com/manual/tutorial/querying.html#operators');
-      Utils.deprecate.reset();
+      Utils.deprecate.resetHistory();
       Support.createSequelizeInstance({ operatorsAliases: {} });
       expect(Utils.deprecate.called).to.be.false;
     });
@@ -1161,7 +1161,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('through Sequelize.sync()', function() {
         const self = this;
-        self.spy.reset();
+        self.spy.resetHistory();
         return this.sequelize.sync({ force: true, logging: false }).then(() => {
           expect(self.spy.notCalled).to.be.true;
         });
@@ -1169,7 +1169,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       it('through DAOFactory.sync()', function() {
         const self = this;
-        self.spy.reset();
+        self.spy.resetHistory();
         return this.User.sync({ force: true, logging: false }).then(() => {
           expect(self.spy.notCalled).to.be.true;
         });

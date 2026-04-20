@@ -278,8 +278,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(hook1).to.have.been.calledOnce;
         expect(hook2).to.have.been.calledOnce;
 
-        hook1.reset();
-        hook2.reset();
+        hook1.resetHistory();
+        hook2.resetHistory();
 
         this.Model.removeHook('beforeCreate', 'myHook');
         this.Model.removeHook('beforeCreate', 'myHook2');
@@ -308,10 +308,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(hook3).to.have.been.calledOnce;
         expect(hook4).to.have.been.calledOnce;
 
-        hook1.reset();
-        hook2.reset();
-        hook3.reset();
-        hook4.reset();
+        hook1.resetHistory();
+        hook2.resetHistory();
+        hook3.resetHistory();
+        hook4.resetHistory();
 
         this.Model.removeHook('beforeCreate', 'myHook');
 

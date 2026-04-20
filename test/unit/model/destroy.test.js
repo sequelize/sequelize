@@ -26,7 +26,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     beforeEach(function() {
       this.deloptions = {where: {secretValue: '1'}};
       this.cloneOptions = _.clone(this.deloptions);
-      this.stubDelete.reset();
+      this.stubDelete.resetHistory();
     });
 
     afterEach(function() {
