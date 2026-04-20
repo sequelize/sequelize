@@ -1,7 +1,7 @@
 {
   "name": "sequelize",
   "description": "Multi dialect ORM for Node.JS",
-  "version": "400.44.6",
+  "version": "400.45.0",
   "author": "Sascha Depold <sascha@depold.com>",
   "contributors": [
     {
@@ -41,7 +41,7 @@
     "debug": "^3.1.0",
     "depd": "^1.1.0",
     "dottie": "^2.0.0",
-    "generic-pool": "3.5.0",
+    "generic-pool": "3.9.0",
     "inflection": "1.12.0",
     "lodash": "^4.17.1",
     "moment": "^2.20.0",
@@ -75,10 +75,10 @@
     "lcov-result-merger": "^2.0.0",
     "mocha": "^5.0.4",
     "mysql2": "1.5.3",
-    "pg": "^7.x",
-    "pg-hstore": "^2.3.2",
+    "pg": "^8.19.0",
+    "pg-hstore": "^2.3.4",
     "pg-native": "^2.x",
-    "pg-types": "^1.x",
+    "pg-types": "^2.2.0",
     "rimraf": "^2.5.4",
     "semantic-release": "^15.0.0",
     "sinon": "^4.3.0",
@@ -87,6 +87,9 @@
     "tedious": "1.14.0",
     "uuid-validate": "^0.0.2",
     "validate-commit-msg": "^2.12.2"
+  },
+  "peerDependencies": {
+    "pg": "^8.19.0"
   },
   "keywords": [
     "mysql",
