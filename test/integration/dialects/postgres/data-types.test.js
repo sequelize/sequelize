@@ -2,6 +2,7 @@
 
 const chai = require('chai');
 const expect = chai.expect;
+const moment = require('moment');
 const Support = require(__dirname + '/../../support');
 const dialect = Support.getTestDialect();
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
@@ -195,7 +196,7 @@ if (dialect === 'postgres') {
         }).then(user => {
           expect(user.username).to.equal('bob');
           expect(user.beforeTime).to.equal(-Infinity);
-          expect(new Date(user.sometime)).to.be.withinDate(date, new Date());
+          expect(user.sometime).to.equal(moment(date).format('YYYY-MM-DD'));
           expect(user.anotherTime).to.equal(Infinity);
           expect(user.afterTime).to.equal(Infinity);
 
@@ -220,7 +221,7 @@ if (dialect === 'postgres') {
           });
         }).then(user => {
           expect(user.sometime).to.not.equal(Infinity);
-          expect(new Date(user.sometime)).to.be.withinDate(date, new Date());
+          expect(user.sometime).to.equal(moment(date).format('YYYY-MM-DD'));
 
           // find
           return User.findAll();

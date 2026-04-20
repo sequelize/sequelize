@@ -3,15 +3,14 @@
 const Support   = require(__dirname + '/../support'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
-  suite = require('mocha').suite,
   sql       = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 if (current.dialect.name !== 'sqlite') {
-  suite(Support.getTestDialectTeaser('SQL'), () => {
-    suite('removeColumn', () => {
-      test('schema', () => {
+  describe(Support.getTestDialectTeaser('SQL'), () => {
+    describe('removeColumn', () => {
+      it('schema', () => {
         expectsql(sql.removeColumnQuery({
           schema: 'archive',
           tableName: 'user'

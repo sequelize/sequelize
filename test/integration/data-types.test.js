@@ -575,7 +575,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return record.reload();
       }).then(record => {
         expect(typeof record.stamp).to.be.eql('string');
-        expect(new Date(record.stamp)).to.equalDate(newDate);
+        expect(record.stamp).to.be.eql(moment(newDate).format('YYYY-MM-DD'));
       });
   });
 

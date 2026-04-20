@@ -7,28 +7,28 @@ const Operators = require('../../../../lib/operators');
 const TableHints = require('../../../../lib/table-hints');
 const QueryGenerator = require('../../../../lib/dialects/mssql/query-generator');
 const _ = require('lodash');
-const suite = require('mocha').suite;
+// describe and it are provided by mocha's BDD interface (default)
 
 if (current.dialect.name === 'mssql') {
-  suite('[MSSQL Specific] QueryGenerator', () => {
+  describe('[MSSQL Specific] QueryGenerator', () => {
     // Dialect would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
     QueryGenerator._dialect = current.dialect;
     //Aliases might not be needed here since it doesn't seem like this test uses any operators
     QueryGenerator.setOperatorsAliases(Operators.Aliases);
 
-    test('getDefaultConstraintQuery', () => {
+    it('getDefaultConstraintQuery', () => {
       expectsql(QueryGenerator.getDefaultConstraintQuery({tableName: 'myTable', schema: 'mySchema'}, 'myColumn'), {
         mssql: "SELECT name FROM SYS.DEFAULT_CONSTRAINTS WHERE PARENT_OBJECT_ID = OBJECT_ID('[mySchema].[myTable]', 'U') AND PARENT_COLUMN_ID = (SELECT column_id FROM sys.columns WHERE NAME = ('myColumn') AND object_id = OBJECT_ID('[mySchema].[myTable]', 'U'));"
       });
     });
 
-    test('dropConstraintQuery', () => {
+    it('dropConstraintQuery', () => {
       expectsql(QueryGenerator.dropConstraintQuery({tableName: 'myTable', schema: 'mySchema'}, 'myConstraint'), {
         mssql: 'ALTER TABLE [mySchema].[myTable] DROP CONSTRAINT [myConstraint];'
       });
     });
 
-    test('bulkInsertQuery', () => {
+    it('bulkInsertQuery', () => {
       //normal cases
       expectsql(QueryGenerator.bulkInsertQuery('myTable', [{ name: 'foo' }, {name: 'bar'}]), {
         mssql: "INSERT INTO [myTable] ([name]) VALUES (N'foo'),(N'bar');"
@@ -49,7 +49,7 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    test('selectFromTableFragment', () => {
+    it('selectFromTableFragment', () => {
       const modifiedGen = _.clone(QueryGenerator);
       // Test newer versions first
       // Should be all the same since handling is done in addLimitAndOffset
@@ -114,67 +114,67 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    test('getPrimaryKeyConstraintQuery', () => {
+    it('getPrimaryKeyConstraintQuery', () => {
       expectsql(QueryGenerator.getPrimaryKeyConstraintQuery('myTable', 'myColumnName'), {
         mssql: 'SELECT K.TABLE_NAME AS tableName, K.COLUMN_NAME AS columnName, K.CONSTRAINT_NAME AS constraintName FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS C JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE AS K ON C.TABLE_NAME = K.TABLE_NAME AND C.CONSTRAINT_CATALOG = K.CONSTRAINT_CATALOG AND C.CONSTRAINT_SCHEMA = K.CONSTRAINT_SCHEMA AND C.CONSTRAINT_NAME = K.CONSTRAINT_NAME WHERE C.CONSTRAINT_TYPE = \'PRIMARY KEY\' AND K.COLUMN_NAME = \'myColumnName\' AND K.TABLE_NAME = \'myTable\';'
       });
     });
 
-    test('createSchema', () => {
+    it('createSchema', () => {
       expectsql(QueryGenerator.createSchema('mySchema'), {
         mssql: 'IF NOT EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN EXEC sp_executesql N\'CREATE SCHEMA [mySchema] ;\' END;'
       });
     });
 
-    test('dropSchema', () => {
+    it('dropSchema', () => {
       expectsql(QueryGenerator.dropSchema('mySchema'), {
         mssql: 'IF EXISTS (SELECT schema_name FROM information_schema.schemata WHERE schema_name = \'mySchema\' ) BEGIN DECLARE @id INT, @ms_sql NVARCHAR(2000); DECLARE @cascade TABLE ( id INT NOT NULL IDENTITY PRIMARY KEY, ms_sql NVARCHAR(2000) NOT NULL ); INSERT INTO @cascade ( ms_sql ) SELECT CASE WHEN o.type IN (\'F\',\'PK\') THEN N\'ALTER TABLE [\'+ s.name + N\'].[\' + p.name + N\'] DROP CONSTRAINT [\' + o.name + N\']\' ELSE N\'DROP TABLE [\'+ s.name + N\'].[\' + o.name + N\']\' END FROM sys.objects o JOIN sys.schemas s on o.schema_id = s.schema_id LEFT OUTER JOIN sys.objects p on o.parent_object_id = p.object_id WHERE o.type IN (\'F\', \'PK\', \'U\') AND s.name =  \'mySchema\' ORDER BY o.type ASC; SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id; WHILE @id IS NOT NULL BEGIN BEGIN TRY EXEC sp_executesql @ms_sql; END TRY BEGIN CATCH BREAK; THROW; END CATCH; DELETE FROM @cascade WHERE id = @id; SELECT @id = NULL, @ms_sql = NULL; SELECT TOP 1 @id = id, @ms_sql = ms_sql FROM @cascade ORDER BY id; END EXEC sp_executesql N\'DROP SCHEMA [mySchema] ;\' END;'
       });
     });
 
-    test('showSchemasQuery', () => {
+    it('showSchemasQuery', () => {
       expectsql(QueryGenerator.showSchemasQuery(), {
         mssql: 'SELECT "name" as "schema_name" FROM sys.schemas as s WHERE "s"."name" NOT IN ( \'INFORMATION_SCHEMA\', \'dbo\', \'guest\', \'sys\', \'archive\' ) AND "s"."name" NOT LIKE \'db_%\''
       });
     });
 
-    test('versionQuery', () => {
+    it('versionQuery', () => {
       expectsql(QueryGenerator.versionQuery(), {
         mssql: "DECLARE @ms_ver NVARCHAR(20); SET @ms_ver = REVERSE(CONVERT(NVARCHAR(20), SERVERPROPERTY('ProductVersion'))); SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'"
       });
     });
 
-    test('renameTableQuery', () => {
+    it('renameTableQuery', () => {
       expectsql(QueryGenerator.renameTableQuery('oldTableName', 'newTableName'), {
         mssql: 'EXEC sp_rename [oldTableName], [newTableName];'
       });
     });
 
-    test('showTablesQuery', () => {
+    it('showTablesQuery', () => {
       expectsql(QueryGenerator.showTablesQuery(), {
         mssql: 'SELECT TABLE_NAME, TABLE_SCHEMA FROM INFORMATION_SCHEMA.TABLES;'
       });
     });
 
-    test('dropTableQuery', () => {
+    it('dropTableQuery', () => {
       expectsql(QueryGenerator.dropTableQuery('dirtyTable'), {
         mssql: "IF OBJECT_ID('[dirtyTable]', 'U') IS NOT NULL DROP TABLE [dirtyTable];"
       });
     });
 
-    test('removeColumnQuery', () => {
+    it('removeColumnQuery', () => {
       expectsql(QueryGenerator.removeColumnQuery('myTable', 'myColumn'), {
         mssql: 'ALTER TABLE [myTable] DROP COLUMN [myColumn];'
       });
     });
 
-    test('quoteIdentifier', () => {
+    it('quoteIdentifier', () => {
       expectsql(QueryGenerator.quoteIdentifier("'myTable'.'Test'"), {
         mssql: '[myTable.Test]'
       });
     });
 
-    test('getForeignKeysQuery', () => {
+    it('getForeignKeysQuery', () => {
       expectsql(QueryGenerator.getForeignKeysQuery('myTable'), {
         mssql: "SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), tableName = TB.NAME, tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), columnName = COL.NAME, referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), referencedTableName = RTB.NAME, referencedColumnName = RCOL.NAME FROM SYS.FOREIGN_KEY_COLUMNS FKC INNER JOIN SYS.OBJECTS OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID INNER JOIN SYS.TABLES TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID INNER JOIN SYS.COLUMNS COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID INNER JOIN SYS.TABLES RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID INNER JOIN SYS.COLUMNS RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID WHERE TB.NAME ='myTable'"
       });
@@ -191,7 +191,7 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    test('getForeignKeyQuery', () => {
+    it('getForeignKeyQuery', () => {
       expectsql(QueryGenerator.getForeignKeyQuery('myTable', 'myColumn'), {
         mssql: "SELECT constraint_name = OBJ.NAME, constraintName = OBJ.NAME, constraintSchema = SCHEMA_NAME(OBJ.SCHEMA_ID), tableName = TB.NAME, tableSchema = SCHEMA_NAME(TB.SCHEMA_ID), columnName = COL.NAME, referencedTableSchema = SCHEMA_NAME(RTB.SCHEMA_ID), referencedTableName = RTB.NAME, referencedColumnName = RCOL.NAME FROM SYS.FOREIGN_KEY_COLUMNS FKC INNER JOIN SYS.OBJECTS OBJ ON OBJ.OBJECT_ID = FKC.CONSTRAINT_OBJECT_ID INNER JOIN SYS.TABLES TB ON TB.OBJECT_ID = FKC.PARENT_OBJECT_ID INNER JOIN SYS.COLUMNS COL ON COL.COLUMN_ID = PARENT_COLUMN_ID AND COL.OBJECT_ID = TB.OBJECT_ID INNER JOIN SYS.TABLES RTB ON RTB.OBJECT_ID = FKC.REFERENCED_OBJECT_ID INNER JOIN SYS.COLUMNS RCOL ON RCOL.COLUMN_ID = REFERENCED_COLUMN_ID AND RCOL.OBJECT_ID = RTB.OBJECT_ID WHERE TB.NAME ='myTable' AND COL.NAME ='myColumn'"
       });
@@ -203,13 +203,13 @@ if (current.dialect.name === 'mssql') {
       });
     });
 
-    test('dropForeignKeyQuery', () => {
+    it('dropForeignKeyQuery', () => {
       expectsql(QueryGenerator.dropForeignKeyQuery('myTable', 'myColumnKey'), {
         mssql: 'ALTER TABLE [myTable] DROP [myColumnKey]'
       });
     });
 
-    test('arithmeticQuery', () => {
+    it('arithmeticQuery', () => {
       [{
         title: 'Should use the plus operator',
         arguments: ['+', 'myTable', { foo: 'bar' }, {}, {}],

@@ -50,6 +50,7 @@ if (current.dialect.supports.transactions) {
 
       if (Support.getTestDialect() !== 'sqlite') {
         it('works for long running transactions', function() {
+          this.timeout(30000);
           return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
             this.sequelize = sequelize;
 

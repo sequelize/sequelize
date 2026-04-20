@@ -1,7 +1,6 @@
 'use strict';
 
 const chai = require('chai');
-const suite = require('mocha').suite;
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
@@ -10,9 +9,9 @@ const Op = require(__dirname + '/../../lib/operators');
 const tedious = require('tedious');
 const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
 
-suite(Support.getTestDialectTeaser('Utils'), () => {
-  suite('merge', () => {
-    test('does not clone sequelize models', () => {
+describe(Support.getTestDialectTeaser('Utils'), () => {
+  describe('merge', () => {
+    it('does not clone sequelize models', () => {
       const User = Support.sequelize.define('user');
       const merged = Utils.merge({}, { include: [{model: User }]});
       const merged2 = Utils.merge({}, { user: User });
@@ -22,29 +21,29 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('toDefaultValue', () => {
-    test('return plain data types', () => {
+  describe('toDefaultValue', () => {
+    it('return plain data types', () => {
       expect(Utils.toDefaultValue(DataTypes.UUIDV4)).to.equal('UUIDV4');
     });
-    test('return uuid v1', () => {
+    it('return uuid v1', () => {
       expect(/^[a-z0-9\-]{36}$/.test(Utils.toDefaultValue(DataTypes.UUIDV1()))).to.be.equal(true);
     });
-    test('return uuid v4', () => {
+    it('return uuid v4', () => {
       expect(/^[a-z0-9\-]{36}/.test(Utils.toDefaultValue(DataTypes.UUIDV4()))).to.be.equal(true);
     });
-    test('return now', () => {
+    it('return now', () => {
       expect(Object.prototype.toString.call(Utils.toDefaultValue(DataTypes.NOW()))).to.be.equal('[object Date]');
     });
-    test('return plain string', () => {
+    it('return plain string', () => {
       expect(Utils.toDefaultValue('Test')).to.equal('Test');
     });
-    test('return plain object', () => {
+    it('return plain object', () => {
       chai.assert.deepEqual({}, Utils.toDefaultValue({}));
     });
   });
 
-  suite('defaults', () => {
-    test('defaults normal object', () => {
+  describe('defaults', () => {
+    it('defaults normal object', () => {
       expect(Utils.defaults(
         { a: 1, c: 3},
         { b: 2 },
@@ -57,7 +56,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    test('defaults symbol keys', () => {
+    it('defaults symbol keys', () => {
       expect(Utils.defaults(
         { a: 1, [Op.eq]: 3},
         { b: 2 },
@@ -71,8 +70,8 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('mapFinderOptions', () => {
-    test('virtual attribute dependencies', () => {
+  describe('mapFinderOptions', () => {
+    it('virtual attribute dependencies', () => {
       expect(Utils.mapFinderOptions({
         attributes: [
           'active'
@@ -93,7 +92,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       ]);
     });
 
-    test('multiple calls', () => {
+    it('multiple calls', () => {
       const Model = Support.sequelize.define('User', {
         createdAt: {
           type: DataTypes.DATE,
@@ -122,8 +121,8 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('mapOptionFieldNames', () => {
-    test('plain where', () => {
+  describe('mapOptionFieldNames', () => {
+    it('plain where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           firstName: 'Paul',
@@ -146,7 +145,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    test('$or where', () => {
+    it('$or where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           $or: {
@@ -173,7 +172,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    test('$or[] where', () => {
+    it('$or[] where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           $or: [
@@ -200,7 +199,7 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
       });
     });
 
-    test('$and where', () => {
+    it('$and where', () => {
       expect(Utils.mapOptionFieldNames({
         where: {
           $and: {
@@ -228,8 +227,8 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('stack', () => {
-    test('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line
+  describe('stack', () => {
+    it('stack trace starts after call to Util.stack()', function this_here_test() { // eslint-disable-line
       // We need a named function to be able to capture its trace
       function a() {
         return b();
@@ -252,13 +251,13 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('Sequelize.cast', () => {
+  describe('Sequelize.cast', () => {
     const sql = Support.sequelize;
     const generator = sql.queryInterface.QueryGenerator;
     const run = generator.handleSequelizeMethod.bind(generator);
     const expectsql = Support.expectsql;
 
-    test('accepts condition object (auto casting)', () => {
+    it('accepts condition object (auto casting)', () => {
       expectsql(run(sql.fn('SUM', sql.cast({
         $or: {
           foo: 'foo',
@@ -271,25 +270,25 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
     });
   });
 
-  suite('Logger', () => {
+  describe('Logger', () => {
     const logger = Utils.getLogger();
 
-    test('deprecate', () => {
+    it('deprecate', () => {
       expect(logger.deprecate).to.be.a('function');
       logger.deprecate('test deprecation');
     });
 
-    test('debug', () => {
+    it('debug', () => {
       expect(logger.debug).to.be.a('function');
       logger.debug('test debug');
     });
 
-    test('warn', () => {
+    it('warn', () => {
       expect(logger.warn).to.be.a('function');
       logger.warn('test warning');
     });
 
-    test('debugContext',  () => {
+    it('debugContext',  () => {
       expect(logger.debugContext).to.be.a('function');
       const testLogger = logger.debugContext('test');
 
@@ -299,28 +298,28 @@ suite(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   if (Support.getTestDialect() === 'mssql') {
-    suite('mapIsolationLevelStringToTedious', () => {
-      test('READ_UNCOMMITTED', () => {
+    describe('mapIsolationLevelStringToTedious', () => {
+      it('READ_UNCOMMITTED', () => {
         expect(Utils.mapIsolationLevelStringToTedious('READ_UNCOMMITTED', tedious)).to.equal(tediousIsolationLevel.READ_UNCOMMITTED);
       });
 
-      test('READ_COMMITTED', () => {
+      it('READ_COMMITTED', () => {
         expect(Utils.mapIsolationLevelStringToTedious('READ_COMMITTED', tedious)).to.equal(tediousIsolationLevel.READ_COMMITTED);
       });
 
-      test('REPEATABLE_READ', () => {
+      it('REPEATABLE_READ', () => {
         expect(Utils.mapIsolationLevelStringToTedious('REPEATABLE_READ', tedious)).to.equal(tediousIsolationLevel.REPEATABLE_READ);
       });
 
-      test('SERIALIZABLE', () => {
+      it('SERIALIZABLE', () => {
         expect(Utils.mapIsolationLevelStringToTedious('SERIALIZABLE', tedious)).to.equal(tediousIsolationLevel.SERIALIZABLE);
       });
 
-      test('SNAPSHOT', () => {
+      it('SNAPSHOT', () => {
         expect(Utils.mapIsolationLevelStringToTedious('SNAPSHOT', tedious)).to.equal(tediousIsolationLevel.SNAPSHOT);
       });
 
-      test('should throw error if tedious lib is not passed as a parameter', () => {
+      it('should throw error if tedious lib is not passed as a parameter', () => {
         expect(Utils.mapIsolationLevelStringToTedious.bind(Utils, 'SNAPSHOT')).to.throw('An instance of tedious lib should be passed to this function');
       });
     });

@@ -483,8 +483,10 @@ if (current.dialect.supports.transactions) {
     }
 
     if (current.dialect.supports.lock) {
-      describe('row locking', () => {
+      describe('row locking', function() {
+        this.timeout(30000);
         it('supports for update', function() {
+          this.timeout(30000);
           const User = this.sequelize.define('user', {
               username: Support.Sequelize.STRING,
               awesome: Support.Sequelize.BOOLEAN

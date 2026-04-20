@@ -2,7 +2,6 @@
 
 const Support   = require(__dirname + '/../support'),
   util = require('util'),
-  suite = require('mocha').suite,
   expectsql = Support.expectsql,
   current   = Support.sequelize,
   Sequelize = Support.Sequelize,
@@ -10,14 +9,14 @@ const Support   = require(__dirname + '/../support'),
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('delete', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('delete', () => {
     const User = current.define('test_user', {}, {
       timestamps: false,
       schema: 'public'
     });
 
-    suite('truncate #4306', () => {
+    describe('truncate #4306', () => {
       const options = {
         table: User.getTableName(),
         where: {},
@@ -26,7 +25,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         limit: 10
       };
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -43,7 +42,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    suite('truncate with cascade and restartIdentity', () => {
+    describe('truncate with cascade and restartIdentity', () => {
       const options = {
         table: User.getTableName(),
         where: {},
@@ -53,7 +52,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         limit: 10
       };
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -70,14 +69,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    suite('delete without limit', () => {
+    describe('delete without limit', () => {
       const options = {
         table: User.getTableName(),
         where: {name: 'foo' },
         limit: null
       };
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -94,14 +93,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    suite('delete with limit', () => {
+    describe('delete with limit', () => {
       const options = {
         table: User.getTableName(),
         where: {name: "foo';DROP TABLE mySchema.myTable;"},
         limit: 10
       };
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,
@@ -118,14 +117,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    suite('delete with limit and without model', () => {
+    describe('delete with limit and without model', () => {
       const options = {
         table: User.getTableName(),
         where: {name: "foo';DROP TABLE mySchema.myTable;"},
         limit: 10
       };
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         let query;
         try {
           query = sql.deleteQuery(
@@ -149,7 +148,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    suite('delete when the primary key has a different field name', () => {
+    describe('delete when the primary key has a different field name', () => {
       const User = current.define('test_user', {
         id: {
           type: Sequelize.INTEGER,
@@ -166,7 +165,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         where: { 'test_user_id': 100 }
       };
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.deleteQuery(
             options.table,

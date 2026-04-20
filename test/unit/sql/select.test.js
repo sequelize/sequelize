@@ -5,11 +5,6 @@ const Support   = require(__dirname + '/../support'),
   Model = require(__dirname + '/../../../lib/model'),
   util = require('util'),
   chai = require('chai'),
-  mocha = require('mocha'),
-  suite = mocha.suite,
-  test = mocha.test,
-  suiteSetup = mocha.suiteSetup,
-  suiteTeardown = mocha.suiteTeardown,
   expect = chai.expect,
   expectsql = Support.expectsql,
   current   = Support.sequelize,
@@ -17,12 +12,12 @@ const Support   = require(__dirname + '/../support'),
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('select', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('select', () => {
     const testsql = function(options, expectation) {
       const model = options.model;
 
-      test(util.inspect(options, {depth: 2}), () => {
+      it(util.inspect(options, {depth: 2}), () => {
         return expectsql(
           sql.selectQuery(
             options.table || model && model.getTableName(),
@@ -443,8 +438,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    suite('attribute escaping', () => {
-      test('plain attributes (1)', () => {
+    describe('attribute escaping', () => {
+      it('plain attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT)]
         }), {
@@ -453,7 +448,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('plain attributes (2)', () => {
+      it('plain attributes (2)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: ['* FROM User; DELETE FROM User;SELECT id']
         }), {
@@ -461,7 +456,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('plain attributes (3)', () => {
+      it('plain attributes (3)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: ['a\', * FROM User; DELETE FROM User;SELECT id']
         }), {
@@ -470,7 +465,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('plain attributes (4)', () => {
+      it('plain attributes (4)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: ['*, COUNT(*) FROM User; DELETE FROM User;SELECT id']
         }), {
@@ -478,7 +473,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('aliased attributes (1)', () => {
+      it('aliased attributes (1)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
             ['* FROM [User]; DELETE FROM [User];SELECT [id]'.replace(/\[/g, Support.sequelize.dialect.TICK_CHAR_LEFT).replace(/\]/g, Support.sequelize.dialect.TICK_CHAR_RIGHT), 'myCol']
@@ -488,7 +483,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('aliased attributes (2)', () => {
+      it('aliased attributes (2)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
             ['* FROM User; DELETE FROM User;SELECT id', 'myCol']
@@ -498,7 +493,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('aliased attributes (3)', () => {
+      it('aliased attributes (3)', () => {
         expectsql(sql.selectQuery('User', {
           attributes: [
             ['id', '* FROM User; DELETE FROM User;SELECT id']
@@ -508,7 +503,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
-      test('attributes from includes', () => {
+      it('attributes from includes', () => {
         const User = Support.sequelize.define('User', {
           name: DataTypes.STRING,
           age: DataTypes.INTEGER
@@ -574,22 +569,22 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
-  suite('queryIdentifiersFalse', () => {
-    suiteSetup(() => {
+  describe('queryIdentifiersFalse', () => {
+    before(() => {
       sql.options.quoteIdentifiers = false;
     });
-    suiteTeardown(() => {
+    after(() => {
       sql.options.quoteIdentifiers = true;
     });
 
-    test('*', () => {
+    it('*', () => {
       expectsql(sql.selectQuery('User'), {
         default: 'SELECT * FROM [User];',
         postgres: 'SELECT * FROM User;'
       });
     });
 
-    test('with attributes', () => {
+    it('with attributes', () => {
       expectsql(sql.selectQuery('User', {
         attributes: ['name', 'age']
       }), {
@@ -598,7 +593,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    test('include (left outer join)', () => {
+    it('include (left outer join)', () => {
       const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -632,7 +627,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
 
 
-    test('nested include (left outer join)', () => {
+    it('nested include (left outer join)', () => {
       const User = Support.sequelize.define('User', {
         name: DataTypes.STRING,
         age: DataTypes.INTEGER
@@ -678,8 +673,8 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
-  suite('raw query', () => {
-    test('raw replacements for where', () => {
+  describe('raw query', () => {
+    it('raw replacements for where', () => {
       expect(() => {
         sql.selectQuery('User', {
           attributes: ['*'],
@@ -688,7 +683,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
-    test('raw replacements for nested where', () => {
+    it('raw replacements for nested where', () => {
       expect(() => {
         sql.selectQuery('User', {
           attributes: ['*'],
@@ -697,7 +692,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
-    test('raw replacements for having', () => {
+    it('raw replacements for having', () => {
       expect(() => {
         sql.selectQuery('User', {
           attributes: ['*'],
@@ -706,7 +701,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
-    test('raw replacements for nested having', () => {
+    it('raw replacements for nested having', () => {
       expect(() => {
         sql.selectQuery('User', {
           attributes: ['*'],
@@ -715,7 +710,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }).to.throw(Error, 'Support for literal replacements in the `where` object has been removed.');
     });
 
-    test('raw string from where', () => {
+    it('raw string from where', () => {
       expect(() => {
         sql.selectQuery('User', {
           attributes: ['*'],
@@ -724,7 +719,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       }).to.throw(Error, 'Support for `{where: \'raw query\'}` has been removed.');
     });
 
-    test('raw string from having', () => {
+    it('raw string from having', () => {
       expect(() => {
         sql.selectQuery('User', {
           attributes: ['*'],
@@ -734,7 +729,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
     });
   });
 
-  suite('queryGenerator: selectQuery', () => {
+  describe('queryGenerator: selectQuery', () => {
     const User = Support.sequelize.define('User', {
       username: DataTypes.STRING
     }, { timestamps: false });
@@ -755,14 +750,14 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       as: 'contributors'
     });
 
-    test('throws an error if encountering parentheses in an attribute', () => {
+    it('throws an error if encountering parentheses in an attribute', () => {
       expect(() => sql.selectQuery(Project.tableName, {
         model: Project,
         attributes: [['count(*)', 'count']]
       }, Project)).to.throw('In order to fix the vulnerability CVE-2023-22578, we had to remove support for treating attributes as raw SQL if they included parentheses.');
     });
 
-    test('escapes attributes with parentheses if attributeBehavior is escape', () => {
+    it('escapes attributes with parentheses if attributeBehavior is escape', () => {
       const escapeSequelize = Support.createSequelizeInstance({
         attributeBehavior: 'escape'
       });
@@ -776,7 +771,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    test('inlines attributes with parentheses if attributeBehavior is unsafe-legacy', () => {
+    it('inlines attributes with parentheses if attributeBehavior is unsafe-legacy', () => {
       const escapeSequelize = Support.createSequelizeInstance({
         attributeBehavior: 'unsafe-legacy'
       });

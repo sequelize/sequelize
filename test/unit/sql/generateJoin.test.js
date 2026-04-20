@@ -4,7 +4,6 @@ const Support   = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = require(__dirname + '/../../../lib/sequelize'),
   util      = require('util'),
-  suite     = require('mocha').suite,
   _         = require('lodash'),
   expectsql = Support.expectsql,
   current   = Support.sequelize,
@@ -12,8 +11,8 @@ const Support   = require(__dirname + '/../support'),
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-suite(Support.getTestDialectTeaser('SQL'), () => {
-  suite('generateJoin', () => {
+describe(Support.getTestDialectTeaser('SQL'), () => {
+  describe('generateJoin', () => {
     const testsql = function(path, options, expectation) {
 
       const name = `${path}, ${util.inspect(options, { depth: 10 })}`;
@@ -23,7 +22,7 @@ suite(Support.getTestDialectTeaser('SQL'), () => {
 
       const include = _.at(options, path)[0];
 
-      test(name, () => {
+      it(name, () => {
 
         const join = sql.generateJoin(include,
           {
