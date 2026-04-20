@@ -19,9 +19,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(util.inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) + ((options && ', ' + util.inspect(options)) || ''), () => {
-        return expectsql(sql.whereQuery(params, options), expectation);
-      });
+      it(
+        util.inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) +
+          ((options && ', ' + util.inspect(options)) || ''),
+        () => {
+          return expectsql(sql.whereQuery(params, options), expectation);
+        }
+      );
     };
 
     testsql(
@@ -108,9 +112,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(key + ': ' + util.inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) + ((options && ', ' + util.inspect(options)) || ''), () => {
-        return expectsql(sql.whereItemQuery(key, value, options), expectation);
-      });
+      it(
+        key +
+          ': ' +
+          util.inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) +
+          ((options && ', ' + util.inspect(options)) || ''),
+        () => {
+          return expectsql(sql.whereItemQuery(key, value, options), expectation);
+        }
+      );
     };
 
     testsql(undefined, 'lol=1', {
