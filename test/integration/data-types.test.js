@@ -15,82 +15,97 @@ const chai = require('chai'),
   semver = require('semver');
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
-  afterEach(function() {
+  afterEach(function () {
     // Restore some sanity by resetting all parsers
     this.sequelize.connectionManager._clearTypeParser();
     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
   });
 
   it('allows me to return values from a custom parse function', () => {
-    const parse = Sequelize.DATE.parse = sinon.spy(value => {
+    const parse = (Sequelize.DATE.parse = sinon.spy(value => {
       return moment(value, 'YYYY-MM-DD HH:mm:ss');
-    });
+    }));
 
-    const stringify = Sequelize.DATE.prototype.stringify = sinon.spy(function(value, options) {
+    const stringify = (Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
       if (!moment.isMoment(value)) {
         value = this._applyTimezone(value, options);
       }
       return value.format('YYYY-MM-DD HH:mm:ss');
-    });
+    }));
 
     current.refreshTypes();
 
-    const User = current.define('user', {
-      dateField: Sequelize.DATE
-    }, {
-      timestamps: false
-    });
+    const User = current.define(
+      'user',
+      {
+        dateField: Sequelize.DATE
+      },
+      {
+        timestamps: false
+      }
+    );
 
-    return current.sync({ force: true }).then(() => {
-      return User.create({
-        dateField: moment('2011 10 31', 'YYYY MM DD')
+    return current
+      .sync({ force: true })
+      .then(() => {
+        return User.create({
+          dateField: moment('2011 10 31', 'YYYY MM DD')
+        });
+      })
+      .then(() => {
+        return User.findAll().get(0);
+      })
+      .then(user => {
+        expect(parse).to.have.been.called;
+        expect(stringify).to.have.been.called;
+
+        expect(moment.isMoment(user.dateField)).to.be.ok;
+
+        delete Sequelize.DATE.parse;
       });
-    }).then(() => {
-      return User.findAll().get(0);
-    }).then(user => {
-      expect(parse).to.have.been.called;
-      expect(stringify).to.have.been.called;
-
-      expect(moment.isMoment(user.dateField)).to.be.ok;
-
-      delete Sequelize.DATE.parse;
-    });
   });
 
-  const testSuccess = function(Type, value) {
-    const parse = Type.constructor.parse = sinon.spy(value => {
+  const testSuccess = function (Type, value) {
+    const parse = (Type.constructor.parse = sinon.spy(value => {
       return value;
-    });
+    }));
 
-    const stringify = Type.constructor.prototype.stringify = sinon.spy(function() {
+    const stringify = (Type.constructor.prototype.stringify = sinon.spy(function () {
       return Sequelize.ABSTRACT.prototype.stringify.apply(this, arguments);
-    });
+    }));
 
-    const User = current.define('user', {
-      field: Type
-    }, {
-      timestamps: false
-    });
+    const User = current.define(
+      'user',
+      {
+        field: Type
+      },
+      {
+        timestamps: false
+      }
+    );
 
-    return current.sync({ force: true }).then(() => {
+    return current
+      .sync({ force: true })
+      .then(() => {
+        current.refreshTypes();
 
-      current.refreshTypes();
+        return User.create({
+          field: value
+        });
+      })
+      .then(() => {
+        return User.findAll().get(0);
+      })
+      .then(() => {
+        expect(parse).to.have.been.called;
+        expect(stringify).to.have.been.called;
 
-      return User.create({
-        field: value
+        delete Type.constructor.parse;
+        delete Type.constructor.prototype.stringify;
       });
-    }).then(() => {
-      return User.findAll().get(0);
-    }).then(() => {
-      expect(parse).to.have.been.called;
-      expect(stringify).to.have.been.called;
-
-      delete Type.constructor.parse;
-      delete Type.constructor.prototype.stringify;
-    });
   };
 
-  const testFailure = function(Type) {
+  const testFailure = function (Type) {
     Type.constructor.parse = _.noop();
 
     expect(() => {
@@ -104,7 +119,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSON', () => {
       const Type = new Sequelize.JSON();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' }});
+      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
     });
   }
 
@@ -112,7 +127,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     it('calls parse and stringify for JSONB', () => {
       const Type = new Sequelize.JSONB();
 
-      return testSuccess(Type, { test: 42, nested: { foo: 'bar' }});
+      return testSuccess(Type, { test: 42, nested: { foo: 'bar' } });
     });
   }
 
@@ -208,60 +223,68 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }
   });
 
-  it('should handle JS BigInt type', function() {
+  it('should handle JS BigInt type', function () {
     const User = this.sequelize.define('user', {
       age: Sequelize.BIGINT
     });
 
     const age = BigInt(Number.MAX_SAFE_INTEGER).add(Number.MAX_SAFE_INTEGER);
 
-    return User.sync({ force: true }).then(() => {
-      return User.create({ age });
-    }).then(user => {
-      expect(BigInt(user.age).toString()).to.equal(age.toString());
-      return User.findAll({
-        where: { age }
+    return User.sync({ force: true })
+      .then(() => {
+        return User.create({ age });
+      })
+      .then(user => {
+        expect(BigInt(user.age).toString()).to.equal(age.toString());
+        return User.findAll({
+          where: { age }
+        });
+      })
+      .then(users => {
+        expect(users).to.have.lengthOf(1);
+        expect(BigInt(users[0].age).toString()).to.equal(age.toString());
       });
-    }).then(users => {
-      expect(users).to.have.lengthOf(1);
-      expect(BigInt(users[0].age).toString()).to.equal(age.toString());
-    });
   });
 
   if (dialect === 'mysql') {
-    it('should handle TINYINT booleans', function() {
+    it('should handle TINYINT booleans', function () {
       const User = this.sequelize.define('user', {
         id: { type: Sequelize.TINYINT, primaryKey: true },
         isRegistered: Sequelize.TINYINT
       });
 
-      return User.sync({ force: true }).then(() => {
-        return User.create({ id: 1, isRegistered: true });
-      }).then(registeredUser => {
-        expect(registeredUser.isRegistered).to.equal(true);
-        return User.findOne({
-          where: {
-            id: 1,
-            isRegistered: true
-          }
-        });
-      }).then(registeredUser => {
-        expect(registeredUser).to.be.ok;
-        expect(registeredUser.isRegistered).to.equal(1);
+      return User.sync({ force: true })
+        .then(() => {
+          return User.create({ id: 1, isRegistered: true });
+        })
+        .then(registeredUser => {
+          expect(registeredUser.isRegistered).to.equal(true);
+          return User.findOne({
+            where: {
+              id: 1,
+              isRegistered: true
+            }
+          });
+        })
+        .then(registeredUser => {
+          expect(registeredUser).to.be.ok;
+          expect(registeredUser.isRegistered).to.equal(1);
 
-        return User.create({ id: 2, isRegistered: false });
-      }).then(unregisteredUser => {
-        expect(unregisteredUser.isRegistered).to.equal(false);
-        return User.findOne({
-          where: {
-            id: 2,
-            isRegistered: false
-          }
+          return User.create({ id: 2, isRegistered: false });
+        })
+        .then(unregisteredUser => {
+          expect(unregisteredUser.isRegistered).to.equal(false);
+          return User.findOne({
+            where: {
+              id: 2,
+              isRegistered: false
+            }
+          });
+        })
+        .then(unregisteredUser => {
+          expect(unregisteredUser).to.be.ok;
+          expect(unregisteredUser.isRegistered).to.equal(0);
         });
-      }).then(unregisteredUser => {
-        expect(unregisteredUser).to.be.ok;
-        expect(unregisteredUser.isRegistered).to.equal(0);
-      });
     });
   }
 
@@ -357,14 +380,16 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
       return new Sequelize.Promise((resolve, reject) => {
         if (/^postgres/.test(dialect)) {
-          current.query('SELECT PostGIS_Lib_Version();')
+          current
+            .query('SELECT PostGIS_Lib_Version();')
             .then(result => {
               if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
                 resolve(true);
               } else {
                 resolve();
               }
-            }).catch(reject);
+            })
+            .catch(reject);
         } else {
           resolve(true);
         }
@@ -375,25 +400,29 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           const User = current.define('user', { field: Type }, { timestamps: false });
           const point = { type: 'Point', coordinates: [] };
 
-          return current.sync({ force: true }).then(() => {
-            return User.create({
-              //insert a empty GEOMETRY type
-              field: point
+          return current
+            .sync({ force: true })
+            .then(() => {
+              return User.create({
+                //insert a empty GEOMETRY type
+                field: point
+              });
+            })
+            .then(() => {
+              //This case throw unhandled exception
+              return User.findAll();
+            })
+            .then(users => {
+              if (dialect === 'mysql') {
+                // MySQL will return NULL, becuase they lack EMPTY geometry data support.
+                expect(users[0].field).to.be.eql(null);
+              } else if (dialect === 'postgres' || dialect === 'postgres-native') {
+                //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
+                expect(users[0].field).to.be.deep.eql({ type: 'Point', coordinates: [0, 0] });
+              } else {
+                expect(users[0].field).to.be.deep.eql(point);
+              }
             });
-          }).then(() => {
-            //This case throw unhandled exception
-            return User.findAll();
-          }).then(users =>{
-            if (dialect === 'mysql') {
-              // MySQL will return NULL, becuase they lack EMPTY geometry data support.
-              expect(users[0].field).to.be.eql(null);
-            } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-              //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
-              expect(users[0].field).to.be.deep.eql({ type: 'Point', coordinates: [0, 0] });
-            } else {
-              expect(users[0].field).to.be.deep.eql(point);
-            }
-          });
         }
       });
     });
@@ -406,48 +435,55 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       const User = current.define('user', { field: Type }, { timestamps: false });
       const point = null;
 
-      return current.sync({ force: true }).then(() => {
-        return User.create({
-          // insert a null GEOMETRY type
-          field: point
+      return current
+        .sync({ force: true })
+        .then(() => {
+          return User.create({
+            // insert a null GEOMETRY type
+            field: point
+          });
+        })
+        .then(() => {
+          //This case throw unhandled exception
+          return User.findAll();
+        })
+        .then(users => {
+          expect(users[0].field).to.be.eql(null);
         });
-      }).then(() => {
-        //This case throw unhandled exception
-        return User.findAll();
-      }).then(users =>{
-        expect(users[0].field).to.be.eql(null);
-      });
     });
   }
 
   if (dialect === 'postgres' || dialect === 'sqlite') {
     // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
-    it('should store and parse IEEE floating point literals (NaN and Infinity)', function() {
+    it('should store and parse IEEE floating point literals (NaN and Infinity)', function () {
       const Model = this.sequelize.define('model', {
         float: Sequelize.FLOAT,
         double: Sequelize.DOUBLE,
         real: Sequelize.REAL
       });
 
-      return Model.sync({ force: true }).then(() => {
-        return Model.create({
-          id: 1,
-          float: NaN,
-          double: Infinity,
-          real: -Infinity
+      return Model.sync({ force: true })
+        .then(() => {
+          return Model.create({
+            id: 1,
+            float: NaN,
+            double: Infinity,
+            real: -Infinity
+          });
+        })
+        .then(() => {
+          return Model.find({ where: { id: 1 } });
+        })
+        .then(user => {
+          expect(user.get('float')).to.be.NaN;
+          expect(user.get('double')).to.eq(Infinity);
+          expect(user.get('real')).to.eq(-Infinity);
         });
-      }).then(() => {
-        return Model.find({ where: { id: 1 } });
-      }).then(user => {
-        expect(user.get('float')).to.be.NaN;
-        expect(user.get('double')).to.eq(Infinity);
-        expect(user.get('real')).to.eq(-Infinity);
-      });
     });
   }
 
   if (dialect === 'postgres' || dialect === 'mysql') {
-    it('should parse DECIMAL as string', function() {
+    it('should parse DECIMAL as string', function () {
       const Model = this.sequelize.define('model', {
         decimal: Sequelize.DECIMAL,
         decimalPre: Sequelize.DECIMAL(10, 4),
@@ -465,29 +501,32 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         decimalWithFloatParser: 0.12345678
       };
 
-      return Model.sync({ force: true }).then(() => {
-        return Model.create(sampleData);
-      }).then(() => {
-        return Model.findById(1);
-      }).then(user => {
-        /**
-         * MYSQL default precision is 10 and scale is 0
-         * Thus test case below will return number without any fraction values
-        */
-        if (dialect === 'mysql') {
-          expect(user.get('decimal')).to.be.eql('12345678');
-        } else {
-          expect(user.get('decimal')).to.be.eql('12345678.12345678');
-        }
+      return Model.sync({ force: true })
+        .then(() => {
+          return Model.create(sampleData);
+        })
+        .then(() => {
+          return Model.findById(1);
+        })
+        .then(user => {
+          /**
+           * MYSQL default precision is 10 and scale is 0
+           * Thus test case below will return number without any fraction values
+           */
+          if (dialect === 'mysql') {
+            expect(user.get('decimal')).to.be.eql('12345678');
+          } else {
+            expect(user.get('decimal')).to.be.eql('12345678.12345678');
+          }
 
-        expect(user.get('decimalPre')).to.be.eql('123456.1234');
-        expect(user.get('decimalWithParser')).to.be.eql('12345678123456781.123456781234567');
-        expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
-        expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
-      });
+          expect(user.get('decimalPre')).to.be.eql('123456.1234');
+          expect(user.get('decimalWithParser')).to.be.eql('12345678123456781.123456781234567');
+          expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
+          expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
+        });
     });
 
-    it('should parse BIGINT as string', function() {
+    it('should parse BIGINT as string', function () {
       const Model = this.sequelize.define('model', {
         jewelPurity: Sequelize.BIGINT
       });
@@ -497,19 +536,22 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         jewelPurity: '9223372036854775807'
       };
 
-      return Model.sync({ force: true }).then(() => {
-        return Model.create(sampleData);
-      }).then(() => {
-        return Model.findById(1);
-      }).then(user => {
-        expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
-        expect(user.get('jewelPurity')).to.be.string;
-      });
+      return Model.sync({ force: true })
+        .then(() => {
+          return Model.create(sampleData);
+        })
+        .then(() => {
+          return Model.findById(1);
+        })
+        .then(user => {
+          expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
+          expect(user.get('jewelPurity')).to.be.string;
+        });
     });
   }
 
   if (dialect === 'postgres') {
-    it('should return Int4 range properly #5747', function() {
+    it('should return Int4 range properly #5747', function () {
       const Model = this.sequelize.define('M', {
         interval: {
           type: Sequelize.RANGE(Sequelize.INTEGER),
@@ -519,8 +561,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
 
       return Model.sync({ force: true })
-        .then(() => Model.create({ interval: [1, 4] }) )
-        .then(() => Model.findAll() )
+        .then(() => Model.create({ interval: [1, 4] }))
+        .then(() => Model.findAll())
         .spread(m => {
           expect(m.interval[0]).to.be.eql(1);
           expect(m.interval[1]).to.be.eql(4);
@@ -528,109 +570,130 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  it('should allow spaces in ENUM', function() {
+  it('should allow spaces in ENUM', function () {
     const Model = this.sequelize.define('user', {
       name: Sequelize.STRING,
       type: Sequelize.ENUM(['action', 'mecha', 'canon', 'class s'])
     });
 
-    return Model.sync({ force: true }).then(() => {
-      return Model.create({ name: 'sakura', type: 'class s' });
-    }).then(record => {
-      expect(record.type).to.be.eql('class s');
-    });
+    return Model.sync({ force: true })
+      .then(() => {
+        return Model.create({ name: 'sakura', type: 'class s' });
+      })
+      .then(record => {
+        expect(record.type).to.be.eql('class s');
+      });
   });
 
-  it('should return YYYY-MM-DD format string for DATEONLY', function() {
+  it('should return YYYY-MM-DD format string for DATEONLY', function () {
     const Model = this.sequelize.define('user', {
       stamp: Sequelize.DATEONLY
     });
     const testDate = moment().format('YYYY-MM-DD');
     const newDate = new Date();
 
-    return Model.sync({ force: true})
+    return Model.sync({ force: true })
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return Model.findById(record.id);
-      }).then(record => {
+      })
+      .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return record.update({
           stamp: testDate
         });
-      }).then(record => {
+      })
+      .then(record => {
         return record.reload();
-      }).then(record => {
+      })
+      .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return record.update({
           stamp: newDate
         });
-      }).then(record => {
+      })
+      .then(record => {
         return record.reload();
-      }).then(record => {
+      })
+      .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(moment(newDate).format('YYYY-MM-DD'));
       });
   });
 
-  it('should return set DATEONLY field to NULL correctly', function() {
+  it('should return set DATEONLY field to NULL correctly', function () {
     const Model = this.sequelize.define('user', {
       stamp: Sequelize.DATEONLY
     });
     const testDate = moment().format('YYYY-MM-DD');
 
-    return Model.sync({ force: true})
+    return Model.sync({ force: true })
       .then(() => Model.create({ stamp: testDate }))
       .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return Model.findById(record.id);
-      }).then(record => {
+      })
+      .then(record => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return record.update({
           stamp: null
         });
-      }).then(record => {
+      })
+      .then(record => {
         return record.reload();
-      }).then(record => {
+      })
+      .then(record => {
         expect(record.stamp).to.be.eql(null);
       });
   });
 
-  it('should be able to cast buffer as boolean', function() {
-    const ByteModel = this.sequelize.define('Model', {
-      byteToBool: this.sequelize.Sequelize.BLOB
-    }, {
-      timestamps: false
-    });
+  it('should be able to cast buffer as boolean', function () {
+    const ByteModel = this.sequelize.define(
+      'Model',
+      {
+        byteToBool: this.sequelize.Sequelize.BLOB
+      },
+      {
+        timestamps: false
+      }
+    );
 
-    const BoolModel = this.sequelize.define('Model', {
-      byteToBool: this.sequelize.Sequelize.BOOLEAN
-    }, {
-      timestamps: false
-    });
+    const BoolModel = this.sequelize.define(
+      'Model',
+      {
+        byteToBool: this.sequelize.Sequelize.BOOLEAN
+      },
+      {
+        timestamps: false
+      }
+    );
 
     return ByteModel.sync({
       force: true
-    }).then(() => {
-      return ByteModel.create({
-        byteToBool: new Buffer([true])
-      });
-    }).then(byte => {
-      expect(byte.byteToBool).to.be.ok;
+    })
+      .then(() => {
+        return ByteModel.create({
+          byteToBool: new Buffer([true])
+        });
+      })
+      .then(byte => {
+        expect(byte.byteToBool).to.be.ok;
 
-      return BoolModel.findById(byte.id);
-    }).then(bool => {
-      expect(bool.byteToBool).to.be.true;
-    });
+        return BoolModel.findById(byte.id);
+      })
+      .then(bool => {
+        expect(bool.byteToBool).to.be.true;
+      });
   });
 });

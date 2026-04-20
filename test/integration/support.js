@@ -2,16 +2,16 @@
 
 const Support = require('../support');
 
-beforeEach(function() {
+beforeEach(function () {
   this.sequelize.test.trackRunningQueries();
   return Support.clearDatabase(this.sequelize);
 });
 
-afterEach(function() {
+afterEach(function () {
   try {
     this.sequelize.test.verifyNoRunningQueries();
   } catch (err) {
-    err.message += ' in '+this.currentTest.fullTitle();
+    err.message += ' in ' + this.currentTest.fullTitle();
     throw err;
   }
 });

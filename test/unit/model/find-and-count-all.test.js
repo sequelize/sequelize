@@ -11,7 +11,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAndCount', () => {
     describe('should handle promise rejection', () => {
-      before(function() {
+      before(function () {
         this.stub = sinon.stub();
 
         Promise.onPossiblyUnhandledRejection(() => {
@@ -32,12 +32,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      after(function() {
+      after(function () {
         this.findAll.resetBehavior();
         this.count.resetBehavior();
       });
 
-      it('with errors in count and findAll both', function() {
+      it('with errors in count and findAll both', function () {
         return this.User.findAndCount({})
           .then(() => {
             throw new Error();

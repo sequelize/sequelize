@@ -6,7 +6,7 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
-  beforeEach(function() {
+  beforeEach(function () {
     this.User = this.sequelize.define('User', {
       username: {
         type: DataTypes.STRING,
@@ -21,16 +21,16 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
   });
 
   describe('#count', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       return this.User.bulkCreate([
-        {username: 'adam', mood: 'happy'},
-        {username: 'joe', mood: 'sad'},
-        {username: 'joe', mood: 'happy'}
+        { username: 'adam', mood: 'happy' },
+        { username: 'joe', mood: 'sad' },
+        { username: 'joe', mood: 'happy' }
       ]);
     });
 
     describe('on success', () => {
-      it('hook runs', function() {
+      it('hook runs', function () {
         let beforeHook = false;
 
         this.User.beforeCount(() => {
@@ -43,24 +43,23 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
       });
 
-      it('beforeCount hook can change options', function() {
+      it('beforeCount hook can change options', function () {
         this.User.beforeCount(options => {
           options.where.username = 'adam';
         });
 
-        return expect(this.User.count({where: {username: 'joe'}})).to.eventually.equal(1);
+        return expect(this.User.count({ where: { username: 'joe' } })).to.eventually.equal(1);
       });
     });
 
     describe('on error', () => {
-      it('in beforeCount hook returns error', function() {
+      it('in beforeCount hook returns error', function () {
         this.User.beforeCount(() => {
           throw new Error('Oops!');
         });
 
-        return expect(this.User.count({where: {username: 'adam'}})).to.be.rejectedWith('Oops!');
+        return expect(this.User.count({ where: { username: 'adam' } })).to.be.rejectedWith('Oops!');
       });
     });
   });
-
 });

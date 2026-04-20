@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  _         = require('lodash'),
-  Support   = require(__dirname + '/../support'),
-  current   = Support.sequelize;
+  _ = require('lodash'),
+  Support = require(__dirname + '/../support'),
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('should not override custom methods with association mixin', () => {
@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('belongsTo'), () => {
     const Task = current.define('Task');
 
     _.each(methods, (alias, method) => {
-      User.prototype[method] = function() {
+      User.prototype[method] = function () {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
         return realMethod;

@@ -13,7 +13,7 @@ const chai = require('chai'),
   current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-  beforeEach(function() {
+  beforeEach(function () {
     this.User = this.sequelize.define('User', {
       username: DataTypes.STRING,
       secretValue: DataTypes.STRING,
@@ -29,47 +29,49 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('findAll', () => {
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
-          const User = sequelize.define('User', { username: Sequelize.STRING });
+      it('supports transactions', function () {
+        return Support.prepareTransactionTest(this.sequelize)
+          .bind({})
+          .then(sequelize => {
+            const User = sequelize.define('User', { username: Sequelize.STRING });
 
-          return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then(t => {
-              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findAll({ where: {username: 'foo'} }).then(users1 => {
-                  return User.findAll({ transaction: t }).then(users2 => {
-                    return User.findAll({ where: {username: 'foo'}, transaction: t }).then(users3 => {
-                      expect(users1.length).to.equal(0);
-                      expect(users2.length).to.equal(1);
-                      expect(users3.length).to.equal(1);
-                      return t.rollback();
+            return User.sync({ force: true }).then(() => {
+              return sequelize.transaction().then(t => {
+                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                  return User.findAll({ where: { username: 'foo' } }).then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
+                      return User.findAll({ where: { username: 'foo' }, transaction: t }).then(users3 => {
+                        expect(users1.length).to.equal(0);
+                        expect(users2.length).to.equal(1);
+                        expect(users3.length).to.equal(1);
+                        return t.rollback();
+                      });
                     });
                   });
                 });
               });
             });
           });
-        });
       });
     }
 
-    it('should not crash on an empty where array', function() {
+    it('should not crash on an empty where array', function () {
       return this.User.findAll({
         where: []
       });
     });
 
     describe('special where conditions/smartWhere object', () => {
-      beforeEach(function() {
+      beforeEach(function () {
         this.buf = new Buffer(16);
         this.buf.fill('\x01');
         return this.User.bulkCreate([
-          {username: 'boo', intVal: 5, theDate: '2013-01-01 12:00'},
-          {username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00', binary: this.buf }
+          { username: 'boo', intVal: 5, theDate: '2013-01-01 12:00' },
+          { username: 'boo2', intVal: 10, theDate: '2013-01-10 12:00', binary: this.buf }
         ]);
       });
 
-      it('should be able to find rows where attribute is in a list of values', function() {
+      it('should be able to find rows where attribute is in a list of values', function () {
         return this.User.findAll({
           where: {
             username: ['boo', 'boo2']
@@ -79,7 +81,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should not break when trying to find rows using an array of primary keys', function() {
+      it('should not break when trying to find rows using an array of primary keys', function () {
         return this.User.findAll({
           where: {
             id: [1, 2, 3]
@@ -87,7 +89,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should not break when using smart syntax on binary fields', function() {
+      it('should not break when using smart syntax on binary fields', function () {
         return this.User.findAll({
           where: {
             binary: [this.buf, this.buf]
@@ -99,7 +101,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using like', function() {
+      it('should be able to find a row using like', function () {
         return this.User.findAll({
           where: {
             username: {
@@ -114,7 +116,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using not like', function() {
+      it('should be able to find a row using not like', function () {
         return this.User.findAll({
           where: {
             username: {
@@ -130,7 +132,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       if (dialect === 'postgres') {
-        it('should be able to find a row using ilike', function() {
+        it('should be able to find a row using ilike', function () {
           return this.User.findAll({
             where: {
               username: {
@@ -145,7 +147,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('should be able to find a row using not ilike', function() {
+        it('should be able to find a row using not ilike', function () {
           return this.User.findAll({
             where: {
               username: {
@@ -161,7 +163,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       }
 
-      it('should be able to find a row between a certain date using the between shortcut', function() {
+      it('should be able to find a row between a certain date using the between shortcut', function () {
         return this.User.findAll({
           where: {
             theDate: {
@@ -174,7 +176,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row not between a certain integer using the not between shortcut', function() {
+      it('should be able to find a row not between a certain integer using the not between shortcut', function () {
         return this.User.findAll({
           where: {
             intVal: {
@@ -187,17 +189,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to handle false/true values just fine...', function() {
+      it('should be able to handle false/true values just fine...', function () {
         const User = this.User;
 
         return User.bulkCreate([
-          {username: 'boo5', aBool: false},
-          {username: 'boo6', aBool: true}
+          { username: 'boo5', aBool: false },
+          { username: 'boo6', aBool: true }
         ]).then(() => {
-          return User.findAll({where: {aBool: false}}).then(users => {
+          return User.findAll({ where: { aBool: false } }).then(users => {
             expect(users).to.have.length(1);
             expect(users[0].username).to.equal('boo5');
-            return User.findAll({where: {aBool: true}}).then(_users => {
+            return User.findAll({ where: { aBool: true } }).then(_users => {
               expect(_users).to.have.length(1);
               expect(_users[0].username).to.equal('boo6');
             });
@@ -205,7 +207,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to handle false/true values through associations as well...', function() {
+      it('should be able to handle false/true values through associations as well...', function () {
         const User = this.User,
           Passports = this.sequelize.define('Passports', {
             isActive: Sequelize.BOOLEAN
@@ -217,21 +219,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true }).then(() => {
           return Passports.sync({ force: true }).then(() => {
             return User.bulkCreate([
-              {username: 'boo5', aBool: false},
-              {username: 'boo6', aBool: true}
+              { username: 'boo5', aBool: false },
+              { username: 'boo6', aBool: true }
             ]).then(() => {
-              return Passports.bulkCreate([
-                {isActive: true},
-                {isActive: false}
-              ]).then(() => {
+              return Passports.bulkCreate([{ isActive: true }, { isActive: false }]).then(() => {
                 return User.findById(1).then(user => {
                   return Passports.findById(1).then(passport => {
                     return user.setPassports([passport]).then(() => {
                       return User.findById(2).then(_user => {
                         return Passports.findById(2).then(_passport => {
                           return _user.setPassports([_passport]).then(() => {
-                            return _user.getPassports({where: {isActive: false}}).then(theFalsePassport => {
-                              return user.getPassports({where: {isActive: true}}).then(theTruePassport => {
+                            return _user.getPassports({ where: { isActive: false } }).then(theFalsePassport => {
+                              return user.getPassports({ where: { isActive: true } }).then(theTruePassport => {
                                 expect(theFalsePassport).to.have.length(1);
                                 expect(theFalsePassport[0].isActive).to.be.false;
                                 expect(theTruePassport).to.have.length(1);
@@ -250,7 +249,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to handle binary values through associations as well...', function() {
+      it('should be able to handle binary values through associations as well...', function () {
         const User = this.User;
         const Binary = this.sequelize.define('Binary', {
           id: {
@@ -267,13 +266,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.sequelize.sync({ force: true }).then(() => {
           return User.bulkCreate([
-            {username: 'boo5', aBool: false},
-            {username: 'boo6', aBool: true}
+            { username: 'boo5', aBool: false },
+            { username: 'boo6', aBool: true }
           ]).then(() => {
-            return Binary.bulkCreate([
-              {id: buf1},
-              {id: buf2}
-            ]).then(() => {
+            return Binary.bulkCreate([{ id: buf1 }, { id: buf2 }]).then(() => {
               return User.findById(1).then(user => {
                 return Binary.findById(buf1).then(binary => {
                   return user.setBinary(binary).then(() => {
@@ -299,7 +295,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row between a certain date', function() {
+      it('should be able to find a row between a certain date', function () {
         return this.User.findAll({
           where: {
             theDate: {
@@ -312,7 +308,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row between a certain date and an additional where clause', function() {
+      it('should be able to find a row between a certain date and an additional where clause', function () {
         return this.User.findAll({
           where: {
             theDate: {
@@ -326,7 +322,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row not between a certain integer', function() {
+      it('should be able to find a row not between a certain integer', function () {
         return this.User.findAll({
           where: {
             intVal: {
@@ -339,7 +335,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using not between and between logic', function() {
+      it('should be able to find a row using not between and between logic', function () {
         return this.User.findAll({
           where: {
             theDate: {
@@ -353,7 +349,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using not between and between logic with dates', function() {
+      it('should be able to find a row using not between and between logic with dates', function () {
         return this.User.findAll({
           where: {
             theDate: {
@@ -367,7 +363,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using greater than or equal to logic with dates', function() {
+      it('should be able to find a row using greater than or equal to logic with dates', function () {
         return this.User.findAll({
           where: {
             theDate: {
@@ -380,7 +376,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using greater than or equal to', function() {
+      it('should be able to find a row using greater than or equal to', function () {
         return this.User.find({
           where: {
             intVal: {
@@ -393,7 +389,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using greater than', function() {
+      it('should be able to find a row using greater than', function () {
         return this.User.find({
           where: {
             intVal: {
@@ -406,7 +402,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using lesser than or equal to', function() {
+      it('should be able to find a row using lesser than or equal to', function () {
         return this.User.find({
           where: {
             intVal: {
@@ -419,7 +415,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using lesser than', function() {
+      it('should be able to find a row using lesser than', function () {
         return this.User.find({
           where: {
             intVal: {
@@ -432,7 +428,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should have no problem finding a row using lesser and greater than', function() {
+      it('should have no problem finding a row using lesser and greater than', function () {
         return this.User.findAll({
           where: {
             intVal: {
@@ -446,7 +442,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find a row using not equal to logic', function() {
+      it('should be able to find a row using not equal to logic', function () {
         return this.User.find({
           where: {
             intVal: {
@@ -459,7 +455,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be able to find multiple users with any of the special where logic properties', function() {
+      it('should be able to find multiple users with any of the special where logic properties', function () {
         return this.User.findAll({
           where: {
             intVal: {
@@ -476,24 +472,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('eager loading', () => {
-      it('should not ignore where condition with empty includes, #8771', function() {
+      it('should not ignore where condition with empty includes, #8771', function () {
         return this.User.bulkCreate([
           { username: 'D.E.N.N.I.S', intVal: 6 },
           { username: 'F.R.A.N.K', intVal: 5 },
           { username: 'W.I.L.D C.A.R.D', intVal: 8 }
-        ]).then(() => this.User.findAll({
-          where: {
-            intVal: 8
-          },
-          include: []
-        })).then(users => {
-          expect(users).to.have.length(1);
-          expect(users[0].get('username')).to.be.equal('W.I.L.D C.A.R.D');
-        });
+        ])
+          .then(() =>
+            this.User.findAll({
+              where: {
+                intVal: 8
+              },
+              include: []
+            })
+          )
+          .then(users => {
+            expect(users).to.have.length(1);
+            expect(users[0].get('username')).to.be.equal('W.I.L.D C.A.R.D');
+          });
       });
 
       describe('belongsTo', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
           self.Task = self.sequelize.define('TaskBelongsTo', { title: Sequelize.STRING });
           self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
@@ -512,21 +512,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('throws an error about unexpected input if include contains a non-object', function() {
+        it('throws an error about unexpected input if include contains a non-object', function () {
           const self = this;
-          return self.Worker.findAll({ include: [1] }).catch (err => {
-            expect(err.message).to.equal('Include unexpected. Element has to be either a Model, an Association or an object.');
+          return self.Worker.findAll({ include: [1] }).catch(err => {
+            expect(err.message).to.equal(
+              'Include unexpected. Element has to be either a Model, an Association or an object.'
+            );
           });
         });
 
-        it('throws an error if included DaoFactory is not associated', function() {
+        it('throws an error if included DaoFactory is not associated', function () {
           const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
+          return self.Worker.findAll({ include: [self.Task] }).catch(err => {
             expect(err.message).to.equal('TaskBelongsTo is not associated to Worker!');
           });
         });
 
-        it('returns the associated worker via task.worker', function() {
+        it('returns the associated worker via task.worker', function () {
           return this.Task.findAll({
             where: { title: 'homework' },
             include: [this.Worker]
@@ -537,7 +539,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('returns the associated worker via task.worker, using limit and sort', function() {
+        it('returns the associated worker via task.worker, using limit and sort', function () {
           return this.Task.findAll({
             where: { title: 'homework' },
             include: [this.Worker],
@@ -552,7 +554,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('hasOne', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
           self.Task = self.sequelize.define('TaskHasOne', { title: Sequelize.STRING });
           self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
@@ -570,14 +572,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('throws an error if included DaoFactory is not associated', function() {
+        it('throws an error if included DaoFactory is not associated', function () {
           const self = this;
-          return self.Task.findAll({ include: [self.Worker] }).catch (err => {
+          return self.Task.findAll({ include: [self.Worker] }).catch(err => {
             expect(err.message).to.equal('Worker is not associated to TaskHasOne!');
           });
         });
 
-        it('returns the associated task via worker.task', function() {
+        it('returns the associated task via worker.task', function () {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [this.Task]
@@ -590,7 +592,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('hasOne with alias', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
           self.Task = self.sequelize.define('Task', { title: Sequelize.STRING });
           self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
@@ -608,23 +610,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('throws an error if included DaoFactory is not referenced by alias', function() {
+        it('throws an error if included DaoFactory is not referenced by alias', function () {
           const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
-            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
-            'You must use the \'as\' keyword to specify the alias within your include statement.');
+          return self.Worker.findAll({ include: [self.Task] }).catch(err => {
+            expect(err.message).to.equal(
+              'Task is associated to Worker using an alias. ' +
+                "You must use the 'as' keyword to specify the alias within your include statement."
+            );
           });
         });
 
-        it('throws an error if alias is not associated', function() {
+        it('throws an error if alias is not associated', function () {
           const self = this;
-          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
-            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
-            'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
+          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch(err => {
+            expect(err.message).to.equal(
+              'Task is associated to Worker using an alias. ' +
+                "You've included an alias (Work), but it does not match the alias defined in your association."
+            );
           });
         });
 
-        it('returns the associated task via worker.task', function() {
+        it('returns the associated task via worker.task', function () {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDo' }]
@@ -635,7 +641,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('returns the associated task via worker.task when daoFactory is aliased with model', function() {
+        it('returns the associated task via worker.task when daoFactory is aliased with model', function () {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDo' }]
@@ -646,7 +652,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('hasMany', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
           self.Task = self.sequelize.define('task', { title: Sequelize.STRING });
           self.Worker = self.sequelize.define('worker', { name: Sequelize.STRING });
@@ -664,14 +670,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('throws an error if included DaoFactory is not associated', function() {
+        it('throws an error if included DaoFactory is not associated', function () {
           const self = this;
-          return self.Task.findAll({ include: [self.Worker] }).catch (err => {
+          return self.Task.findAll({ include: [self.Worker] }).catch(err => {
             expect(err.message).to.equal('worker is not associated to task!');
           });
         });
 
-        it('returns the associated tasks via worker.tasks', function() {
+        it('returns the associated tasks via worker.tasks', function () {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [this.Task]
@@ -683,7 +689,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         // https://github.com/sequelize/sequelize/issues/8739
-        it('supports sorting on renamed sub-query attribute', function() {
+        it('supports sorting on renamed sub-query attribute', function () {
           const User = this.sequelize.define('user', {
             name: {
               type: Sequelize.STRING,
@@ -696,11 +702,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.sync({ force: true })
             .then(() => Project.sync({ force: true }))
             .then(() => {
-              return User.bulkCreate([
-                { name: 'a' },
-                { name: 'b' },
-                { name: 'c' }
-              ]);
+              return User.bulkCreate([{ name: 'a' }, { name: 'b' }, { name: 'c' }]);
             })
             .then(() => {
               return User.findAll({
@@ -716,7 +718,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
         });
 
-        it('supports sorting DESC on renamed sub-query attribute', function() {
+        it('supports sorting DESC on renamed sub-query attribute', function () {
           const User = this.sequelize.define('user', {
             name: {
               type: Sequelize.STRING,
@@ -729,11 +731,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return User.sync({ force: true })
             .then(() => Project.sync({ force: true }))
             .then(() => {
-              return User.bulkCreate([
-                { name: 'a' },
-                { name: 'b' },
-                { name: 'c' }
-              ]);
+              return User.bulkCreate([{ name: 'a' }, { name: 'b' }, { name: 'c' }]);
             })
             .then(() => {
               return User.findAll({
@@ -749,7 +747,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
         });
 
-        it('supports sorting on multiple renamed sub-query attributes', function() {
+        it('supports sorting on multiple renamed sub-query attributes', function () {
           const User = this.sequelize.define('user', {
             name: {
               type: Sequelize.STRING,
@@ -774,7 +772,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             })
             .then(() => {
               return User.findAll({
-                order: [['name', 'ASC'], ['age', 'DESC']],
+                order: [
+                  ['name', 'ASC'],
+                  ['age', 'DESC']
+                ],
                 limit: 2,
                 include: [Project]
               });
@@ -803,7 +804,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('hasMany with alias', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
           self.Task = self.sequelize.define('Task', { title: Sequelize.STRING });
           self.Worker = self.sequelize.define('Worker', { name: Sequelize.STRING });
@@ -821,23 +822,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('throws an error if included DaoFactory is not referenced by alias', function() {
+        it('throws an error if included DaoFactory is not referenced by alias', function () {
           const self = this;
-          return self.Worker.findAll({ include: [self.Task] }).catch (err => {
-            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
-            'You must use the \'as\' keyword to specify the alias within your include statement.');
+          return self.Worker.findAll({ include: [self.Task] }).catch(err => {
+            expect(err.message).to.equal(
+              'Task is associated to Worker using an alias. ' +
+                "You must use the 'as' keyword to specify the alias within your include statement."
+            );
           });
         });
 
-        it('throws an error if alias is not associated', function() {
+        it('throws an error if alias is not associated', function () {
           const self = this;
-          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch (err => {
-            expect(err.message).to.equal('Task is associated to Worker using an alias. ' +
-            'You\'ve included an alias (Work), but it does not match the alias defined in your association.');
+          return self.Worker.findAll({ include: [{ model: self.Task, as: 'Work' }] }).catch(err => {
+            expect(err.message).to.equal(
+              'Task is associated to Worker using an alias. ' +
+                "You've included an alias (Work), but it does not match the alias defined in your association."
+            );
           });
         });
 
-        it('returns the associated task via worker.task', function() {
+        it('returns the associated task via worker.task', function () {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDos' }]
@@ -848,7 +853,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('returns the associated task via worker.task when daoFactory is aliased with model', function() {
+        it('returns the associated task via worker.task when daoFactory is aliased with model', function () {
           return this.Worker.findAll({
             where: { name: 'worker' },
             include: [{ model: this.Task, as: 'ToDos' }]
@@ -859,34 +864,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('queryOptions', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
-          return this.User.create({username: 'barfooz'}).then(user => {
+          return this.User.create({ username: 'barfooz' }).then(user => {
             self.user = user;
           });
         });
 
-        it('should return a DAO when queryOptions are not set', function() {
+        it('should return a DAO when queryOptions are not set', function () {
           const self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}}).then(users => {
+          return this.User.findAll({ where: { username: 'barfooz' } }).then(users => {
             users.forEach(user => {
               expect(user).to.be.instanceOf(self.User);
             });
           });
         });
 
-        it('should return a DAO when raw is false', function() {
+        it('should return a DAO when raw is false', function () {
           const self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}, raw: false }).then(users => {
+          return this.User.findAll({ where: { username: 'barfooz' }, raw: false }).then(users => {
             users.forEach(user => {
               expect(user).to.be.instanceOf(self.User);
             });
           });
         });
 
-        it('should return raw data when raw is true', function() {
+        it('should return raw data when raw is true', function () {
           const self = this;
-          return this.User.findAll({ where: { username: 'barfooz'}, raw: true }).then(users => {
+          return this.User.findAll({ where: { username: 'barfooz' }, raw: true }).then(users => {
             users.forEach(user => {
               expect(user).to.not.be.instanceOf(self.User);
               expect(users[0]).to.be.instanceOf(Object);
@@ -896,7 +901,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('include all', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           const self = this;
 
           self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
@@ -906,8 +911,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           self.Continent.hasMany(self.Country);
           self.Country.belongsTo(self.Continent);
-          self.Country.belongsToMany(self.Industry, {through: 'country_industry'});
-          self.Industry.belongsToMany(self.Country, {through: 'country_industry'});
+          self.Country.belongsToMany(self.Industry, { through: 'country_industry' });
+          self.Industry.belongsToMany(self.Country, { through: 'country_industry' });
           self.Country.hasMany(self.Person);
           self.Person.belongsTo(self.Country);
           self.Country.hasMany(self.Person, { as: 'residents', foreignKey: 'CountryResidentId' });
@@ -933,7 +938,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('includes all associations', function() {
+        it('includes all associations', function () {
           return this.Country.findAll({ include: [{ all: true }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
@@ -944,7 +949,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('includes specific type of association', function() {
+        it('includes specific type of association', function () {
           return this.Country.findAll({ include: [{ all: 'BelongsTo' }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
@@ -955,7 +960,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('utilises specified attributes', function() {
+        it('utilises specified attributes', function () {
           return this.Country.findAll({ include: [{ all: 'HasMany', attributes: ['name'] }] }).then(countries => {
             expect(countries).to.exist;
             expect(countries[0]).to.exist;
@@ -970,16 +975,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('is over-ruled by specified include', function() {
-          return this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] }).then(countries => {
-            expect(countries).to.exist;
-            expect(countries[0]).to.exist;
-            expect(countries[0].continent).to.exist;
-            expect(countries[0].continent.name).to.be.undefined;
-          });
+        it('is over-ruled by specified include', function () {
+          return this.Country.findAll({ include: [{ all: true }, { model: this.Continent, attributes: ['id'] }] }).then(
+            countries => {
+              expect(countries).to.exist;
+              expect(countries[0]).to.exist;
+              expect(countries[0].continent).to.exist;
+              expect(countries[0].continent.name).to.be.undefined;
+            }
+          );
         });
 
-        it('includes all nested associations', function() {
+        it('includes all nested associations', function () {
           return this.Continent.findAll({ include: [{ all: true, nested: true }] }).then(continents => {
             expect(continents).to.exist;
             expect(continents[0]).to.exist;
@@ -994,7 +1001,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       describe('properly handles attributes:[] cases', () => {
-        beforeEach(function() {
+        beforeEach(function () {
           this.Animal = this.sequelize.define('Animal', {
             name: Sequelize.STRING,
             age: Sequelize.INTEGER
@@ -1009,33 +1016,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           this.Kingdom.belongsToMany(this.Animal, { through: this.AnimalKingdom });
 
-          return this.sequelize.sync({ force: true })
-            .then(() => Sequelize.Promise.all([
-              this.Animal.create({ name: 'Dog', age: 20 }),
-              this.Animal.create({ name: 'Cat', age: 30 }),
-              this.Animal.create({ name: 'Peacock', age: 25 }),
-              this.Animal.create({ name: 'Fish', age: 100 })
-            ]))
-            .spread((a1, a2, a3, a4) => Sequelize.Promise.all([
-              this.Kingdom.create({ name: 'Earth' }),
-              this.Kingdom.create({ name: 'Water' }),
-              this.Kingdom.create({ name: 'Wind' })
-            ]).spread((k1, k2, k3) =>
+          return this.sequelize
+            .sync({ force: true })
+            .then(() =>
               Sequelize.Promise.all([
-                k1.addAnimals([a1, a2]),
-                k2.addAnimals([a4]),
-                k3.addAnimals([a3])
+                this.Animal.create({ name: 'Dog', age: 20 }),
+                this.Animal.create({ name: 'Cat', age: 30 }),
+                this.Animal.create({ name: 'Peacock', age: 25 }),
+                this.Animal.create({ name: 'Fish', age: 100 })
               ])
-            ));
+            )
+            .spread((a1, a2, a3, a4) =>
+              Sequelize.Promise.all([
+                this.Kingdom.create({ name: 'Earth' }),
+                this.Kingdom.create({ name: 'Water' }),
+                this.Kingdom.create({ name: 'Wind' })
+              ]).spread((k1, k2, k3) =>
+                Sequelize.Promise.all([k1.addAnimals([a1, a2]), k2.addAnimals([a4]), k3.addAnimals([a3])])
+              )
+            );
         });
 
-        it('N:M with ignoring include.attributes only', function() {
+        it('N:M with ignoring include.attributes only', function () {
           return this.Kingdom.findAll({
-            include: [{
-              model: this.Animal,
-              where: { age: { $gte: 29 } },
-              attributes: []
-            }]
+            include: [
+              {
+                model: this.Animal,
+                where: { age: { $gte: 29 } },
+                attributes: []
+              }
+            ]
           }).then(kingdoms => {
             expect(kingdoms.length).to.be.eql(2);
             kingdoms.forEach(kingdom => {
@@ -1045,15 +1055,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('N:M with ignoring through.attributes only', function() {
+        it('N:M with ignoring through.attributes only', function () {
           return this.Kingdom.findAll({
-            include: [{
-              model: this.Animal,
-              where: { age: { $gte: 29 } },
-              through: {
-                attributes: []
+            include: [
+              {
+                model: this.Animal,
+                where: { age: { $gte: 29 } },
+                through: {
+                  attributes: []
+                }
               }
-            }]
+            ]
           }).then(kingdoms => {
             expect(kingdoms.length).to.be.eql(2);
             kingdoms.forEach(kingdom => {
@@ -1063,16 +1075,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('N:M with ignoring include.attributes but having through.attributes', function() {
+        it('N:M with ignoring include.attributes but having through.attributes', function () {
           return this.Kingdom.findAll({
-            include: [{
-              model: this.Animal,
-              where: { age: { $gte: 29 } },
-              attributes: [],
-              through: {
-                attributes: ['mutation']
+            include: [
+              {
+                model: this.Animal,
+                where: { age: { $gte: 29 } },
+                attributes: [],
+                through: {
+                  attributes: ['mutation']
+                }
               }
-            }]
+            ]
           }).then(kingdoms => {
             expect(kingdoms.length).to.be.eql(2);
             kingdoms.forEach(kingdom => {
@@ -1085,8 +1099,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     describe('order by eager loaded tables', () => {
-      describe('HasMany', () => {
-        beforeEach(function() {
+      (describe('HasMany', () => {
+        beforeEach(function () {
           const self = this;
 
           self.Continent = this.sequelize.define('continent', { name: Sequelize.STRING });
@@ -1135,49 +1149,66 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('sorts simply', function() {
+        it('sorts simply', function () {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Asia'], ['DESC', 'Europe']], params => {
-            return self.Continent.findAll({
-              order: [['name', params[0]]]
-            }).then(continents => {
-              expect(continents).to.exist;
-              expect(continents[0]).to.exist;
-              expect(continents[0].name).to.equal(params[1]);
-            });
-          });
+          return this.sequelize.Promise.map(
+            [
+              ['ASC', 'Asia'],
+              ['DESC', 'Europe']
+            ],
+            params => {
+              return self.Continent.findAll({
+                order: [['name', params[0]]]
+              }).then(continents => {
+                expect(continents).to.exist;
+                expect(continents[0]).to.exist;
+                expect(continents[0].name).to.equal(params[1]);
+              });
+            }
+          );
         });
 
-        it('sorts by 1st degree association', function() {
+        it('sorts by 1st degree association', function () {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'England'], ['DESC', 'Asia', 'Korea']], params => {
-            return self.Continent.findAll({
-              include: [self.Country],
-              order: [[self.Country, 'name', params[0]]]
-            }).then(continents => {
-              expect(continents).to.exist;
-              expect(continents[0]).to.exist;
-              expect(continents[0].name).to.equal(params[1]);
-              expect(continents[0].countries).to.exist;
-              expect(continents[0].countries[0]).to.exist;
-              expect(continents[0].countries[0].name).to.equal(params[2]);
-            });
-          });
+          return this.sequelize.Promise.map(
+            [
+              ['ASC', 'Europe', 'England'],
+              ['DESC', 'Asia', 'Korea']
+            ],
+            params => {
+              return self.Continent.findAll({
+                include: [self.Country],
+                order: [[self.Country, 'name', params[0]]]
+              }).then(continents => {
+                expect(continents).to.exist;
+                expect(continents[0]).to.exist;
+                expect(continents[0].name).to.equal(params[1]);
+                expect(continents[0].countries).to.exist;
+                expect(continents[0].countries[0]).to.exist;
+                expect(continents[0].countries[0].name).to.equal(params[2]);
+              });
+            }
+          );
         });
 
-        it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function() {
+        it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function () {
           const self = this;
           return this.sequelize.Promise.map([['ASC', 'Asia', 'Europe', 'England']], params => {
             return self.Continent.findAll({
-              include: [{
-                model: self.Country,
-                required: false,
-                where: {
-                  name: params[3]
+              include: [
+                {
+                  model: self.Country,
+                  required: false,
+                  where: {
+                    name: params[3]
+                  }
                 }
-              }],
+              ],
               limit: 2,
-              order: [['name', params[0]], [self.Country, 'name', params[0]]]
+              order: [
+                ['name', params[0]],
+                [self.Country, 'name', params[0]]
+              ]
             }).then(continents => {
               expect(continents).to.exist;
               expect(continents[0]).to.exist;
@@ -1194,207 +1225,241 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        it('sorts by 2nd degree association', function() {
+        (it('sorts by 2nd degree association', function () {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'England', 'Fred'], ['DESC', 'Asia', 'Korea', 'Kim']], params => {
-            return self.Continent.findAll({
-              include: [{ model: self.Country, include: [self.Person] }],
-              order: [[self.Country, self.Person, 'lastName', params[0]]]
-            }).then(continents => {
-              expect(continents).to.exist;
-              expect(continents[0]).to.exist;
-              expect(continents[0].name).to.equal(params[1]);
-              expect(continents[0].countries).to.exist;
-              expect(continents[0].countries[0]).to.exist;
-              expect(continents[0].countries[0].name).to.equal(params[2]);
-              expect(continents[0].countries[0].people).to.exist;
-              expect(continents[0].countries[0].people[0]).to.exist;
-              expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
-            });
-          });
+          return this.sequelize.Promise.map(
+            [
+              ['ASC', 'Europe', 'England', 'Fred'],
+              ['DESC', 'Asia', 'Korea', 'Kim']
+            ],
+            params => {
+              return self.Continent.findAll({
+                include: [{ model: self.Country, include: [self.Person] }],
+                order: [[self.Country, self.Person, 'lastName', params[0]]]
+              }).then(continents => {
+                expect(continents).to.exist;
+                expect(continents[0]).to.exist;
+                expect(continents[0].name).to.equal(params[1]);
+                expect(continents[0].countries).to.exist;
+                expect(continents[0].countries[0]).to.exist;
+                expect(continents[0].countries[0].name).to.equal(params[2]);
+                expect(continents[0].countries[0].people).to.exist;
+                expect(continents[0].countries[0].people[0]).to.exist;
+                expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
+              });
+            }
+          );
         }),
+          it('sorts by 2nd degree association with alias', function () {
+            const self = this;
+            return this.sequelize.Promise.map(
+              [
+                ['ASC', 'Europe', 'France', 'Fred'],
+                ['DESC', 'Europe', 'England', 'Kim']
+              ],
+              params => {
+                return self.Continent.findAll({
+                  include: [{ model: self.Country, include: [self.Person, { model: self.Person, as: 'residents' }] }],
+                  order: [[self.Country, { model: self.Person, as: 'residents' }, 'lastName', params[0]]]
+                }).then(continents => {
+                  expect(continents).to.exist;
+                  expect(continents[0]).to.exist;
+                  expect(continents[0].name).to.equal(params[1]);
+                  expect(continents[0].countries).to.exist;
+                  expect(continents[0].countries[0]).to.exist;
+                  expect(continents[0].countries[0].name).to.equal(params[2]);
+                  expect(continents[0].countries[0].residents).to.exist;
+                  expect(continents[0].countries[0].residents[0]).to.exist;
+                  expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
+                });
+              }
+            );
+          }));
 
-        it('sorts by 2nd degree association with alias', function() {
+        it('sorts by 2nd degree association with alias while using limit', function () {
           const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
-            return self.Continent.findAll({
-              include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
-              order: [[self.Country, {model: self.Person, as: 'residents' }, 'lastName', params[0]]]
-            }).then(continents => {
-              expect(continents).to.exist;
-              expect(continents[0]).to.exist;
-              expect(continents[0].name).to.equal(params[1]);
-              expect(continents[0].countries).to.exist;
-              expect(continents[0].countries[0]).to.exist;
-              expect(continents[0].countries[0].name).to.equal(params[2]);
-              expect(continents[0].countries[0].residents).to.exist;
-              expect(continents[0].countries[0].residents[0]).to.exist;
-              expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
-            });
-          });
-        });
-
-        it('sorts by 2nd degree association with alias while using limit', function() {
-          const self = this;
-          return this.sequelize.Promise.map([['ASC', 'Europe', 'France', 'Fred'], ['DESC', 'Europe', 'England', 'Kim']], params => {
-            return self.Continent.findAll({
-              include: [{ model: self.Country, include: [self.Person, {model: self.Person, as: 'residents' }] }],
-              order: [[{ model: self.Country }, {model: self.Person, as: 'residents' }, 'lastName', params[0]]],
-              limit: 3
-            }).then(continents => {
-              expect(continents).to.exist;
-              expect(continents[0]).to.exist;
-              expect(continents[0].name).to.equal(params[1]);
-              expect(continents[0].countries).to.exist;
-              expect(continents[0].countries[0]).to.exist;
-              expect(continents[0].countries[0].name).to.equal(params[2]);
-              expect(continents[0].countries[0].residents).to.exist;
-              expect(continents[0].countries[0].residents[0]).to.exist;
-              expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
-            });
-          });
+          return this.sequelize.Promise.map(
+            [
+              ['ASC', 'Europe', 'France', 'Fred'],
+              ['DESC', 'Europe', 'England', 'Kim']
+            ],
+            params => {
+              return self.Continent.findAll({
+                include: [{ model: self.Country, include: [self.Person, { model: self.Person, as: 'residents' }] }],
+                order: [[{ model: self.Country }, { model: self.Person, as: 'residents' }, 'lastName', params[0]]],
+                limit: 3
+              }).then(continents => {
+                expect(continents).to.exist;
+                expect(continents[0]).to.exist;
+                expect(continents[0].name).to.equal(params[1]);
+                expect(continents[0].countries).to.exist;
+                expect(continents[0].countries[0]).to.exist;
+                expect(continents[0].countries[0].name).to.equal(params[2]);
+                expect(continents[0].countries[0].residents).to.exist;
+                expect(continents[0].countries[0].residents[0]).to.exist;
+                expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
+              });
+            }
+          );
         });
       }),
+        describe('ManyToMany', () => {
+          beforeEach(function () {
+            const self = this;
 
-      describe('ManyToMany', () => {
-        beforeEach(function() {
-          const self = this;
+            self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
+            self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
+            self.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER });
 
-          self.Country = this.sequelize.define('country', { name: Sequelize.STRING });
-          self.Industry = this.sequelize.define('industry', { name: Sequelize.STRING });
-          self.IndustryCountry = this.sequelize.define('IndustryCountry', { numYears: Sequelize.INTEGER });
+            self.Country.belongsToMany(self.Industry, { through: self.IndustryCountry });
+            self.Industry.belongsToMany(self.Country, { through: self.IndustryCountry });
 
-          self.Country.belongsToMany(self.Industry, {through: self.IndustryCountry});
-          self.Industry.belongsToMany(self.Country, {through: self.IndustryCountry});
+            return this.sequelize.sync({ force: true }).then(() => {
+              return self.sequelize.Promise.props({
+                england: self.Country.create({ name: 'England' }),
+                france: self.Country.create({ name: 'France' }),
+                korea: self.Country.create({ name: 'Korea' }),
+                energy: self.Industry.create({ name: 'Energy' }),
+                media: self.Industry.create({ name: 'Media' }),
+                tech: self.Industry.create({ name: 'Tech' })
+              }).then(r => {
+                _.forEach(r, (item, itemName) => {
+                  self[itemName] = item;
+                });
 
-          return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.Promise.props({
-              england: self.Country.create({ name: 'England' }),
-              france: self.Country.create({ name: 'France' }),
-              korea: self.Country.create({ name: 'Korea' }),
-              energy: self.Industry.create({ name: 'Energy' }),
-              media: self.Industry.create({ name: 'Media' }),
-              tech: self.Industry.create({ name: 'Tech' })
-            }).then(r => {
-              _.forEach(r, (item, itemName) => {
-                self[itemName] = item;
+                return self.sequelize.Promise.all([
+                  self.england.addIndustry(self.energy, { through: { numYears: 20 } }),
+                  self.england.addIndustry(self.media, { through: { numYears: 40 } }),
+                  self.france.addIndustry(self.media, { through: { numYears: 80 } }),
+                  self.korea.addIndustry(self.tech, { through: { numYears: 30 } })
+                ]);
               });
-
-              return self.sequelize.Promise.all([
-                self.england.addIndustry(self.energy, { through: { numYears: 20 }}),
-                self.england.addIndustry(self.media, { through: { numYears: 40 }}),
-                self.france.addIndustry(self.media, { through: { numYears: 80 }}),
-                self.korea.addIndustry(self.tech, { through: { numYears: 30 }})
-              ]);
             });
           });
-        });
 
-        it('sorts by 1st degree association', function() {
-          const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
-            return self.Country.findAll({
-              include: [self.Industry],
-              order: [[self.Industry, 'name', params[0]]]
-            }).then(countries => {
-              expect(countries).to.exist;
-              expect(countries[0]).to.exist;
-              expect(countries[0].name).to.equal(params[1]);
-              expect(countries[0].industries).to.exist;
-              expect(countries[0].industries[0]).to.exist;
-              expect(countries[0].industries[0].name).to.equal(params[2]);
-            });
-          });
-        });
-
-        it('sorts by 1st degree association while using limit', function() {
-          const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'Korea', 'Tech']], params => {
-            return self.Country.findAll({
-              include: [self.Industry],
-              order: [
-                [self.Industry, 'name', params[0]]
+          it('sorts by 1st degree association', function () {
+            const self = this;
+            return this.sequelize.Promise.map(
+              [
+                ['ASC', 'England', 'Energy'],
+                ['DESC', 'Korea', 'Tech']
               ],
-              limit: 3
-            }).then(countries => {
-              expect(countries).to.exist;
-              expect(countries[0]).to.exist;
-              expect(countries[0].name).to.equal(params[1]);
-              expect(countries[0].industries).to.exist;
-              expect(countries[0].industries[0]).to.exist;
-              expect(countries[0].industries[0].name).to.equal(params[2]);
-            });
+              params => {
+                return self.Country.findAll({
+                  include: [self.Industry],
+                  order: [[self.Industry, 'name', params[0]]]
+                }).then(countries => {
+                  expect(countries).to.exist;
+                  expect(countries[0]).to.exist;
+                  expect(countries[0].name).to.equal(params[1]);
+                  expect(countries[0].industries).to.exist;
+                  expect(countries[0].industries[0]).to.exist;
+                  expect(countries[0].industries[0].name).to.equal(params[2]);
+                });
+              }
+            );
           });
-        });
 
-        it('sorts by through table attribute', function() {
-          const self = this;
-          return this.sequelize.Promise.map([['ASC', 'England', 'Energy'], ['DESC', 'France', 'Media']], params => {
-            return self.Country.findAll({
-              include: [self.Industry],
-              order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]
-            }).then(countries => {
-              expect(countries).to.exist;
-              expect(countries[0]).to.exist;
-              expect(countries[0].name).to.equal(params[1]);
-              expect(countries[0].industries).to.exist;
-              expect(countries[0].industries[0]).to.exist;
-              expect(countries[0].industries[0].name).to.equal(params[2]);
-            });
+          it('sorts by 1st degree association while using limit', function () {
+            const self = this;
+            return this.sequelize.Promise.map(
+              [
+                ['ASC', 'England', 'Energy'],
+                ['DESC', 'Korea', 'Tech']
+              ],
+              params => {
+                return self.Country.findAll({
+                  include: [self.Industry],
+                  order: [[self.Industry, 'name', params[0]]],
+                  limit: 3
+                }).then(countries => {
+                  expect(countries).to.exist;
+                  expect(countries[0]).to.exist;
+                  expect(countries[0].name).to.equal(params[1]);
+                  expect(countries[0].industries).to.exist;
+                  expect(countries[0].industries[0]).to.exist;
+                  expect(countries[0].industries[0].name).to.equal(params[2]);
+                });
+              }
+            );
           });
-        });
-      });
+
+          it('sorts by through table attribute', function () {
+            const self = this;
+            return this.sequelize.Promise.map(
+              [
+                ['ASC', 'England', 'Energy'],
+                ['DESC', 'France', 'Media']
+              ],
+              params => {
+                return self.Country.findAll({
+                  include: [self.Industry],
+                  order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]
+                }).then(countries => {
+                  expect(countries).to.exist;
+                  expect(countries[0]).to.exist;
+                  expect(countries[0].name).to.equal(params[1]);
+                  expect(countries[0].industries).to.exist;
+                  expect(countries[0].industries[0]).to.exist;
+                  expect(countries[0].industries[0].name).to.equal(params[2]);
+                });
+              }
+            );
+          });
+        }));
     });
 
     describe('normal findAll', () => {
-      beforeEach(function() {
+      beforeEach(function () {
         const self = this;
-        return this.User.create({username: 'user', data: 'foobar', theDate: moment().toDate()}).then(user => {
-          return self.User.create({username: 'user2', data: 'bar', theDate: moment().toDate()}).then(user2 => {
+        return this.User.create({ username: 'user', data: 'foobar', theDate: moment().toDate() }).then(user => {
+          return self.User.create({ username: 'user2', data: 'bar', theDate: moment().toDate() }).then(user2 => {
             self.users = [user].concat(user2);
           });
         });
       });
 
-      it('finds all entries', function() {
+      it('finds all entries', function () {
         return this.User.findAll().then(users => {
           expect(users.length).to.equal(2);
         });
       });
 
-      it('can also handle object notation', function() {
+      it('can also handle object notation', function () {
         const self = this;
-        return this.User.findAll({where: {id: this.users[1].id}}).then(users => {
+        return this.User.findAll({ where: { id: this.users[1].id } }).then(users => {
           expect(users.length).to.equal(1);
           expect(users[0].id).to.equal(self.users[1].id);
         });
       });
 
-      it('sorts the results via id in ascending order', function() {
+      it('sorts the results via id in ascending order', function () {
         return this.User.findAll().then(users => {
           expect(users.length).to.equal(2);
           expect(users[0].id).to.be.below(users[1].id);
         });
       });
 
-      it('sorts the results via id in descending order', function() {
+      it('sorts the results via id in descending order', function () {
         return this.User.findAll({ order: [['id', 'DESC']] }).then(users => {
           expect(users[0].id).to.be.above(users[1].id);
         });
       });
 
-      it('sorts the results via a date column', function() {
+      it('sorts the results via a date column', function () {
         const self = this;
-        return self.User.create({username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate()}).then(() => {
-          return self.User.findAll({ order: [['theDate', 'DESC']] }).then(users => {
-            expect(users[0].id).to.be.above(users[2].id);
-          });
-        });
+        return self.User.create({ username: 'user3', data: 'bar', theDate: moment().add(2, 'hours').toDate() }).then(
+          () => {
+            return self.User.findAll({ order: [['theDate', 'DESC']] }).then(users => {
+              expect(users[0].id).to.be.above(users[2].id);
+            });
+          }
+        );
       });
 
-      it('handles offset and limit', function() {
+      it('handles offset and limit', function () {
         const self = this;
-        return this.User.bulkCreate([{username: 'bobby'}, {username: 'tables'}]).then(() => {
+        return this.User.bulkCreate([{ username: 'bobby' }, { username: 'tables' }]).then(() => {
           return self.User.findAll({ limit: 2, offset: 2 }).then(users => {
             expect(users.length).to.equal(2);
             expect(users[0].id).to.equal(3);
@@ -1402,14 +1467,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should allow us to find IDs using capital letters', function() {
+      it('should allow us to find IDs using capital letters', function () {
         const User = this.sequelize.define('User' + config.rand(), {
           ID: { type: Sequelize.INTEGER, primaryKey: true, autoIncrement: true },
           Login: { type: Sequelize.STRING }
         });
 
         return User.sync({ force: true }).then(() => {
-          return User.create({Login: 'foo'}).then(() => {
+          return User.create({ Login: 'foo' }).then(() => {
             return User.findAll({ where: { ID: 1 } }).then(user => {
               expect(user).to.be.instanceof(Array);
               expect(user).to.have.length(1);
@@ -1418,7 +1483,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should be possible to order by sequelize.col()', function() {
+      it('should be possible to order by sequelize.col()', function () {
         const self = this;
         const Company = this.sequelize.define('Company', {
           name: Sequelize.STRING
@@ -1431,17 +1496,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      it('should pull in dependent fields for a VIRTUAL', function() {
-        const User = this.sequelize.define('User', {
-          active: {
-            type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN, ['createdAt']),
-            get() {
-              return this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000;
+      it('should pull in dependent fields for a VIRTUAL', function () {
+        const User = this.sequelize.define(
+          'User',
+          {
+            active: {
+              type: new Sequelize.VIRTUAL(Sequelize.BOOLEAN, ['createdAt']),
+              get() {
+                return this.get('createdAt') > Date.now() - 7 * 24 * 60 * 60 * 1000;
+              }
             }
+          },
+          {
+            timestamps: true
           }
-        }, {
-          timestamps: true
-        });
+        );
 
         return User.create().then(() => {
           return User.findAll({
@@ -1458,12 +1527,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('findAndCountAll', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       const self = this;
       return this.User.bulkCreate([
-        {username: 'user', data: 'foobar'},
-        {username: 'user2', data: 'bar'},
-        {username: 'bobby', data: 'foo'}
+        { username: 'user', data: 'foobar' },
+        { username: 'user2', data: 'bar' },
+        { username: 'bobby', data: 'foo' }
       ]).then(() => {
         return self.User.findAll().then(users => {
           self.users = users;
@@ -1472,68 +1541,72 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
-          const User = sequelize.define('User', { username: Sequelize.STRING });
+      it('supports transactions', function () {
+        return Support.prepareTransactionTest(this.sequelize)
+          .bind({})
+          .then(sequelize => {
+            const User = sequelize.define('User', { username: Sequelize.STRING });
 
-          return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then(t => {
-              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findAndCountAll().then(info1 => {
-                  return User.findAndCountAll({ transaction: t }).then(info2 => {
-                    expect(info1.count).to.equal(0);
-                    expect(info2.count).to.equal(1);
-                    return t.rollback();
+            return User.sync({ force: true }).then(() => {
+              return sequelize.transaction().then(t => {
+                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                  return User.findAndCountAll().then(info1 => {
+                    return User.findAndCountAll({ transaction: t }).then(info2 => {
+                      expect(info1.count).to.equal(0);
+                      expect(info2.count).to.equal(1);
+                      return t.rollback();
+                    });
                   });
                 });
               });
             });
           });
-        });
       });
     }
 
-    it('handles where clause {only}', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}}).then(info => {
+    it('handles where clause {only}', function () {
+      return this.User.findAndCountAll({ where: { id: { $ne: this.users[0].id } } }).then(info => {
         expect(info.count).to.equal(2);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
       });
     });
 
-    it('handles where clause with ordering {only}', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, order: [['id', 'ASC']]}).then(info => {
-        expect(info.count).to.equal(2);
-        expect(Array.isArray(info.rows)).to.be.ok;
-        expect(info.rows.length).to.equal(2);
-      });
+    it('handles where clause with ordering {only}', function () {
+      return this.User.findAndCountAll({ where: { id: { $ne: this.users[0].id } }, order: [['id', 'ASC']] }).then(
+        info => {
+          expect(info.count).to.equal(2);
+          expect(Array.isArray(info.rows)).to.be.ok;
+          expect(info.rows.length).to.equal(2);
+        }
+      );
     });
 
-    it('handles offset', function() {
-      return this.User.findAndCountAll({offset: 1}).then(info => {
+    it('handles offset', function () {
+      return this.User.findAndCountAll({ offset: 1 }).then(info => {
         expect(info.count).to.equal(3);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(2);
       });
     });
 
-    it('handles limit', function() {
-      return this.User.findAndCountAll({limit: 1}).then(info => {
+    it('handles limit', function () {
+      return this.User.findAndCountAll({ limit: 1 }).then(info => {
         expect(info.count).to.equal(3);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(1);
       });
     });
 
-    it('handles offset and limit', function() {
-      return this.User.findAndCountAll({offset: 1, limit: 1}).then(info => {
+    it('handles offset and limit', function () {
+      return this.User.findAndCountAll({ offset: 1, limit: 1 }).then(info => {
         expect(info.count).to.equal(3);
         expect(Array.isArray(info.rows)).to.be.ok;
         expect(info.rows.length).to.equal(1);
       });
     });
 
-    it('handles offset with includes', function() {
+    it('handles offset with includes', function () {
       const Election = this.sequelize.define('Election', {
         name: Sequelize.STRING
       });
@@ -1579,55 +1652,59 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    it('handles attributes', function() {
-      return this.User.findAndCountAll({where: {id: {$ne: this.users[0].id}}, attributes: ['data']}).then(info => {
-        expect(info.count).to.equal(2);
-        expect(Array.isArray(info.rows)).to.be.ok;
-        expect(info.rows.length).to.equal(2);
-        expect(info.rows[0].dataValues).to.not.have.property('username');
-        expect(info.rows[1].dataValues).to.not.have.property('username');
-      });
+    it('handles attributes', function () {
+      return this.User.findAndCountAll({ where: { id: { $ne: this.users[0].id } }, attributes: ['data'] }).then(
+        info => {
+          expect(info.count).to.equal(2);
+          expect(Array.isArray(info.rows)).to.be.ok;
+          expect(info.rows.length).to.equal(2);
+          expect(info.rows[0].dataValues).to.not.have.property('username');
+          expect(info.rows[1].dataValues).to.not.have.property('username');
+        }
+      );
     });
   });
 
   describe('all', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       return this.User.bulkCreate([
-        {username: 'user', data: 'foobar'},
-        {username: 'user2', data: 'bar'}
+        { username: 'user', data: 'foobar' },
+        { username: 'user2', data: 'bar' }
       ]);
     });
 
     if (current.dialect.supports.transactions) {
-      it('supports transactions', function() {
-        return Support.prepareTransactionTest(this.sequelize).bind({}).then(sequelize => {
-          const User = sequelize.define('User', { username: Sequelize.STRING });
+      it('supports transactions', function () {
+        return Support.prepareTransactionTest(this.sequelize)
+          .bind({})
+          .then(sequelize => {
+            const User = sequelize.define('User', { username: Sequelize.STRING });
 
-          return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then(t => {
-              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                return User.findAll().then(users1 => {
-                  return User.findAll({ transaction: t }).then(users2 => {
-                    expect(users1.length).to.equal(0);
-                    expect(users2.length).to.equal(1);
-                    return t.rollback();
+            return User.sync({ force: true }).then(() => {
+              return sequelize.transaction().then(t => {
+                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                  return User.findAll().then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
+                      expect(users1.length).to.equal(0);
+                      expect(users2.length).to.equal(1);
+                      return t.rollback();
+                    });
                   });
                 });
               });
             });
           });
-        });
       });
     }
 
-    it('should return all users', function() {
+    it('should return all users', function () {
       return this.User.findAll().then(users => {
         expect(users.length).to.equal(2);
       });
     });
   });
 
-  it('should support logging', function() {
+  it('should support logging', function () {
     const spy = sinon.spy();
 
     return this.User.findAll({
@@ -1640,58 +1717,69 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('rejectOnEmpty mode', () => {
     it('works from model options', () => {
-      const Model = current.define('Test', {
-        username: Sequelize.STRING(100)
-      }, {
-        rejectOnEmpty: true
-      });
+      const Model = current.define(
+        'Test',
+        {
+          username: Sequelize.STRING(100)
+        },
+        {
+          rejectOnEmpty: true
+        }
+      );
 
-      return Model.sync({ force: true })
-        .then(() => {
-          return expect(Model.findAll({
+      return Model.sync({ force: true }).then(() => {
+        return expect(
+          Model.findAll({
             where: {
               username: 'some-username-that-is-not-used-anywhere'
             }
-          })).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
-        });
+          })
+        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      });
     });
 
     it('throws custom error with initialized', () => {
+      const Model = current.define(
+        'Test',
+        {
+          username: Sequelize.STRING(100)
+        },
+        {
+          rejectOnEmpty: new Sequelize.ConnectionError('Some Error') //using custom error instance
+        }
+      );
 
-      const Model = current.define('Test', {
-        username: Sequelize.STRING(100)
-      }, {
-        rejectOnEmpty: new Sequelize.ConnectionError('Some Error') //using custom error instance
-      });
-
-      return Model.sync({ force: true })
-        .then(() => {
-          return expect(Model.findAll({
+      return Model.sync({ force: true }).then(() => {
+        return expect(
+          Model.findAll({
             where: {
               username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
             }
-          })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
-        });
+          })
+        ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+      });
     });
 
     it('throws custom error with instance', () => {
+      const Model = current.define(
+        'Test',
+        {
+          username: Sequelize.STRING(100)
+        },
+        {
+          rejectOnEmpty: Sequelize.ConnectionError //using custom error instance
+        }
+      );
 
-      const Model = current.define('Test', {
-        username: Sequelize.STRING(100)
-      }, {
-        rejectOnEmpty: Sequelize.ConnectionError //using custom error instance
-      });
-
-      return Model.sync({ force: true })
-        .then(() => {
-          return expect(Model.findAll({
+      return Model.sync({ force: true }).then(() => {
+        return expect(
+          Model.findAll({
             where: {
               username: 'some-username-that-is-not-used-anywhere-for-sure-this-time'
             }
-          })).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
-        });
+          })
+        ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+      });
     });
-
   });
-
 });

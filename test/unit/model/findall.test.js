@@ -20,29 +20,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('Warns the user if they use a model attribute without a where clause', () => {
-      const User = current.define('User', {firstName: 'string'});
-      User.warnOnInvalidOptions({firstName: 12, order: []}, ['firstName']);
-      const expectedError = 'Model attributes (firstName) passed into finder method options of model User, but the options.where object is empty. Did you forget to use options.where?';
+      const User = current.define('User', { firstName: 'string' });
+      User.warnOnInvalidOptions({ firstName: 12, order: [] }, ['firstName']);
+      const expectedError =
+        'Model attributes (firstName) passed into finder method options of model User, but the options.where object is empty. Did you forget to use options.where?';
       expect(this.loggerSpy.calledWith(expectedError)).to.equal(true);
     });
 
     it('Does not warn the user if they use a model attribute without a where clause that shares its name with a query option', () => {
-      const User = current.define('User', {order: 'string'});
-      User.warnOnInvalidOptions({order: []}, ['order']);
+      const User = current.define('User', { order: 'string' });
+      User.warnOnInvalidOptions({ order: [] }, ['order']);
       expect(this.loggerSpy.called).to.equal(false);
     });
 
     it('Does not warn the user if they use valid query options', () => {
-      const User = current.define('User', {order: 'string'});
-      User.warnOnInvalidOptions({where: {order: 1}, order: []});
+      const User = current.define('User', { order: 'string' });
+      User.warnOnInvalidOptions({ where: { order: 1 }, order: [] });
       expect(this.loggerSpy.called).to.equal(false);
     });
   });
 
   describe('method findAll', () => {
-    const Model = current.define('model', {
-      name: DataTypes.STRING
-    }, { timestamps: false });
+    const Model = current.define(
+      'model',
+      {
+        name: DataTypes.STRING
+      },
+      { timestamps: false }
+    );
 
     before(() => {
       this.stub = sinon.stub(current.getQueryInterface(), 'select').callsFake(() => {
@@ -68,7 +73,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('Throws an error when the attributes option is formatted incorrectly', () => {
-        const errorFunction = Model.findAll.bind(Model, {attributes: 'name'});
+        const errorFunction = Model.findAll.bind(Model, { attributes: 'name' });
         expect(errorFunction).to.throw(sequelizeErrors.QueryError);
       });
     });
@@ -80,11 +85,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: ['foobar']
           }
         }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'id',
-            'name',
-            'foobar'
-          ]);
+          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id', 'name', 'foobar']);
         });
       });
 
@@ -94,9 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             exclude: ['name']
           }
         }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'id'
-          ]);
+          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id']);
         });
       });
 
@@ -107,10 +106,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             include: ['name']
           }
         }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'id',
-            'name'
-          ]);
+          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['id', 'name']);
         });
       });
 
@@ -127,12 +123,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           include: [Foo]
         }).then(() => {
-          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal([
-            'name'
-          ]);
+          expect(this.stub.getCall(0).args[2].attributes).to.deep.equal(['name']);
         });
       });
-
     });
   });
 });

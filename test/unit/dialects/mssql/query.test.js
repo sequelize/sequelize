@@ -30,12 +30,11 @@ if (dialect === 'mssql') {
       });
 
       it('should call beginTransaction with correct arguments', () => {
-        return query._run(connectionStub, 'BEGIN TRANSACTION')
-          .then(() => {
-            expect(connectionStub.beginTransaction.called).to.equal(true);
-            expect(connectionStub.beginTransaction.args[0][1]).to.equal('transactionName');
-            expect(connectionStub.beginTransaction.args[0][2]).to.equal(tediousIsolationLevel.REPEATABLE_READ);
-          });
+        return query._run(connectionStub, 'BEGIN TRANSACTION').then(() => {
+          expect(connectionStub.beginTransaction.called).to.equal(true);
+          expect(connectionStub.beginTransaction.args[0][1]).to.equal('transactionName');
+          expect(connectionStub.beginTransaction.args[0][2]).to.equal(tediousIsolationLevel.REPEATABLE_READ);
+        });
       });
 
       afterEach(() => {

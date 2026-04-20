@@ -1,16 +1,16 @@
 'use strict';
 
-const chai      = require('chai'),
-  expect    = chai.expect,
-  Support   = require(__dirname + '/support'),
+const chai = require('chai'),
+  expect = chai.expect,
+  Support = require(__dirname + '/support'),
   Sequelize = Support.Sequelize,
-  Promise   = Sequelize.Promise,
-  cls       = require('continuation-local-storage'),
+  Promise = Sequelize.Promise,
+  cls = require('continuation-local-storage'),
   current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), () => {
-    before(function() {
+    before(function () {
       this.thenOriginal = Promise.prototype.then;
       Sequelize.useCLS(cls.createNamespace('sequelize'));
     });
@@ -19,21 +19,23 @@ if (current.dialect.supports.transactions) {
       delete Sequelize._cls;
     });
 
-    beforeEach(function() {
-      return Support.prepareTransactionTest(this.sequelize).bind(this).then(function(sequelize) {
-        this.sequelize = sequelize;
+    beforeEach(function () {
+      return Support.prepareTransactionTest(this.sequelize)
+        .bind(this)
+        .then(function (sequelize) {
+          this.sequelize = sequelize;
 
-        this.ns = cls.getNamespace('sequelize');
+          this.ns = cls.getNamespace('sequelize');
 
-        this.User = this.sequelize.define('user', {
-          name: Sequelize.STRING
+          this.User = this.sequelize.define('user', {
+            name: Sequelize.STRING
+          });
+          return this.sequelize.sync({ force: true });
         });
-        return this.sequelize.sync({ force: true });
-      });
     });
 
     describe('context', () => {
-      it('does not use continuation storage on manually managed transactions', function() {
+      it('does not use continuation storage on manually managed transactions', function () {
         const self = this;
 
         return Sequelize._clsRun(() => {
@@ -44,7 +46,7 @@ if (current.dialect.supports.transactions) {
         });
       });
 
-      it('supports several concurrent transactions', function() {
+      it('supports several concurrent transactions', function () {
         let t1id, t2id;
         const self = this;
 
@@ -67,7 +69,7 @@ if (current.dialect.supports.transactions) {
         );
       });
 
-      it('supports nested promise chains', function() {
+      it('supports nested promise chains', function () {
         const self = this;
 
         return this.sequelize.transaction(() => {
@@ -80,7 +82,7 @@ if (current.dialect.supports.transactions) {
         });
       });
 
-      it('does not leak variables to the outer scope', function() {
+      it('does not leak variables to the outer scope', function () {
         // This is a little tricky. We want to check the values in the outer scope, when the transaction has been successfully set up, but before it has been comitted.
         // We can't just call another function from inside that transaction, since that would transfer the context to that function - exactly what we are trying to prevent;
 
@@ -105,25 +107,30 @@ if (current.dialect.supports.transactions) {
               resolve();
             }
           }, 200);
-        }).bind(this).then(function() {
-          expect(transactionEnded).not.to.be.ok;
+        })
+          .bind(this)
+          .then(function () {
+            expect(transactionEnded).not.to.be.ok;
 
-          expect(this.ns.get('transaction')).not.to.be.ok;
+            expect(this.ns.get('transaction')).not.to.be.ok;
 
-          // Just to make sure it didn't change between our last check and the assertion
-          expect(transactionEnded).not.to.be.ok;
-        });
+            // Just to make sure it didn't change between our last check and the assertion
+            expect(transactionEnded).not.to.be.ok;
+          });
       });
 
-      it('does not leak variables to the following promise chain', function() {
-        return this.sequelize.transaction(() => {
-          return Promise.resolve();
-        }).bind(this).then(function() {
-          expect(this.ns.get('transaction')).not.to.be.ok;
-        });
+      it('does not leak variables to the following promise chain', function () {
+        return this.sequelize
+          .transaction(() => {
+            return Promise.resolve();
+          })
+          .bind(this)
+          .then(function () {
+            expect(this.ns.get('transaction')).not.to.be.ok;
+          });
       });
 
-      it('does not leak outside findOrCreate', function() {
+      it('does not leak outside findOrCreate', function () {
         const self = this;
 
         return this.User.findOrCreate({
@@ -142,7 +149,7 @@ if (current.dialect.supports.transactions) {
     });
 
     describe('sequelize.query integration', () => {
-      it('automagically uses the transaction in all calls', function() {
+      it('automagically uses the transaction in all calls', function () {
         const self = this;
         return this.sequelize.transaction(() => {
           return self.User.create({ name: 'bob' }).then(() => {
@@ -155,19 +162,20 @@ if (current.dialect.supports.transactions) {
       });
     });
 
-    it('bluebird patch is applied', function() {
+    it('bluebird patch is applied', function () {
       expect(Promise.prototype.then).to.be.a('function');
       expect(this.thenOriginal).to.be.a('function');
       expect(Promise.prototype.then).not.to.equal(this.thenOriginal);
     });
 
-    it('CLS namespace is stored in Sequelize._cls', function() {
+    it('CLS namespace is stored in Sequelize._cls', function () {
       expect(Sequelize._cls).to.equal(this.ns);
     });
 
-    it('promises returned by sequelize.query are correctly patched', function() {
+    it('promises returned by sequelize.query are correctly patched', function () {
       return this.sequelize.transaction(t =>
-        this.sequelize.query('select 1', {type: Sequelize.QueryTypes.SELECT})
+        this.sequelize
+          .query('select 1', { type: Sequelize.QueryTypes.SELECT })
           .then(() => expect(this.ns.get('transaction')).to.equal(t))
       );
     });

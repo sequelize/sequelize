@@ -10,7 +10,6 @@ const expect = chai.expect;
 
 describe('[ABSTRACT]', () => {
   describe('_groupJoinData', () => {
-
     it('should hash second nested set correctly, when has multiple primary keys and one is a Buffer', () => {
       const Team = current.define('team', {
         id: {
@@ -43,11 +42,11 @@ describe('[ABSTRACT]', () => {
       const includeOptions = {
         model: Team,
         includeMap: {
-          'players': {
+          players: {
             model: Player,
             association: Team.Player
           },
-          'agents': {
+          agents: {
             model: Agent,
             association: Team.Agent
           }
@@ -125,11 +124,11 @@ describe('[ABSTRACT]', () => {
       const includeOptions = {
         model: Team,
         includeMap: {
-          'players': {
+          players: {
             model: Player,
             association: Team.Player
           },
-          'agents': {
+          agents: {
             model: Agent,
             association: Team.Agent
           }
@@ -199,7 +198,7 @@ describe('[ABSTRACT]', () => {
       const includeOptions = {
         model: Team,
         includeMap: {
-          'players': {
+          players: {
             model: Player,
             association
           }
@@ -240,23 +239,25 @@ describe('[ABSTRACT]', () => {
       expect(result[0]).to.have.property('uuid').and.be.equal(teamOneUuid);
       expect(result[0].players).to.be.deep.equal([
         {
-          'id': '1-1',
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z')
+          id: '1-1',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-03-06T15:47:30.000Z')
         },
         {
-          'id': '1-2',
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-24T11:16:44.000Z')
+          id: '1-2',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-24T11:16:44.000Z')
         }
       ]);
 
       expect(result[1]).to.have.property('uuid').and.be.equal(teamTwoUuid);
-      expect(result[1].players).to.be.deep.equal([{
-        'id': '2-1',
-        'created': new Date('2017-03-06T15:47:30.000Z'),
-        'lastModified': new Date('2017-08-22T11:16:44.000Z')
-      }]);
+      expect(result[1].players).to.be.deep.equal([
+        {
+          id: '2-1',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-22T11:16:44.000Z')
+        }
+      ]);
     });
 
     it('should hash parents correctly, when primary key is a Buffer', () => {
@@ -279,7 +280,7 @@ describe('[ABSTRACT]', () => {
       const includeOptions = {
         model: Team,
         includeMap: {
-          'players': {
+          players: {
             model: Player,
             association
           }
@@ -317,23 +318,25 @@ describe('[ABSTRACT]', () => {
       expect(result[0]).to.have.property('uuid').and.be.equal(teamOneUuid);
       expect(result[0].players).to.be.deep.equal([
         {
-          'id': '1-1',
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z')
+          id: '1-1',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-03-06T15:47:30.000Z')
         },
         {
-          'id': '1-2',
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-24T11:16:44.000Z')
+          id: '1-2',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-24T11:16:44.000Z')
         }
       ]);
 
       expect(result[1]).to.have.property('uuid').and.be.equal(teamTwoUuid);
-      expect(result[1].players).to.be.deep.equal([{
-        'id': '2-1',
-        'created': new Date('2017-03-06T15:47:30.000Z'),
-        'lastModified': new Date('2017-08-22T11:16:44.000Z')
-      }]);
+      expect(result[1].players).to.be.deep.equal([
+        {
+          id: '2-1',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-22T11:16:44.000Z')
+        }
+      ]);
     });
 
     it('should hash nested correctly, when primary key is a Buffer', () => {
@@ -356,7 +359,7 @@ describe('[ABSTRACT]', () => {
       const includeOptions = {
         model: Team,
         includeMap: {
-          'players': {
+          players: {
             model: Player,
             association
           }
@@ -388,14 +391,14 @@ describe('[ABSTRACT]', () => {
       expect(result[0]).to.have.property('id').and.be.equal('1');
       expect(result[0].players).to.be.deep.equal([
         {
-          'uuid': playerOneUuid,
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z')
+          uuid: playerOneUuid,
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-03-06T15:47:30.000Z')
         },
         {
-          'uuid': playerTwoUuid,
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-22T11:16:44.000Z')
+          uuid: playerTwoUuid,
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-22T11:16:44.000Z')
         }
       ]);
     });
@@ -424,7 +427,7 @@ describe('[ABSTRACT]', () => {
       const includeOptions = {
         model: Team,
         includeMap: {
-          'players': {
+          players: {
             model: Player,
             association
           }
@@ -458,16 +461,16 @@ describe('[ABSTRACT]', () => {
       expect(result[0]).to.have.property('id').and.be.equal('1');
       expect(result[0].players).to.be.deep.equal([
         {
-          'uuid': playerOneUuid,
-          'id': 'x',
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-03-06T15:47:30.000Z')
+          uuid: playerOneUuid,
+          id: 'x',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-03-06T15:47:30.000Z')
         },
         {
-          'uuid': playerTwoUuid,
-          'id': 'y',
-          'created': new Date('2017-03-06T15:47:30.000Z'),
-          'lastModified': new Date('2017-08-22T11:16:44.000Z')
+          uuid: playerTwoUuid,
+          id: 'y',
+          created: new Date('2017-03-06T15:47:30.000Z'),
+          lastModified: new Date('2017-08-22T11:16:44.000Z')
         }
       ]);
     });

@@ -66,6 +66,5 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
     });
-
   });
 });

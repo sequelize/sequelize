@@ -69,8 +69,8 @@ describe('Sequelize', () => {
       expect(config.port).to.equal('9821');
     });
 
-    describe('sqllite path inititalization', () =>{
-      const current   = Support.sequelize;
+    describe('sqllite path inititalization', () => {
+      const current = Support.sequelize;
       if (current.dialect.name === 'sqlite') {
         it('should accept relative paths for sqlite', () => {
           const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
@@ -87,7 +87,7 @@ describe('Sequelize', () => {
         });
 
         it('should prefer storage in options object', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', {storage: '/completely/different/path.db'});
+          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
           const options = sequelize.options;
           expect(options.dialect).to.equal('sqlite');
           expect(options.storage).to.equal('/completely/different/path.db');

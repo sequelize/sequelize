@@ -11,7 +11,6 @@ const fs = require('fs'),
   expect = chai.expect,
   AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
 
-
 chai.use(require('chai-spies'));
 chai.use(require('chai-datetime'));
 chai.use(require('chai-as-promised'));
@@ -73,9 +72,11 @@ const Support = {
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
         if (callback) {
-          _sequelize.sync({ force: true }).then(() => { callback(_sequelize); });
+          _sequelize.sync({ force: true }).then(() => {
+            callback(_sequelize);
+          });
         } else {
-          return _sequelize.sync({ force: true }).return (_sequelize);
+          return _sequelize.sync({ force: true }).return(_sequelize);
         }
       });
     } else {
@@ -135,9 +136,7 @@ const Support = {
         sequelize.modelManager.models = [];
         sequelize.models = {};
 
-        return sequelize
-          .getQueryInterface()
-          .dropAllEnums();
+        return sequelize.getQueryInterface().dropAllEnums();
       });
   },
 
@@ -156,11 +155,14 @@ const Support = {
   },
 
   getAbstractQueryGenerator(sequelize) {
-    return Object.assign(
-      {},
-      AbstractQueryGenerator,
-      {options: sequelize.options, _dialect: sequelize.dialect, sequelize, quoteIdentifier(identifier) { return identifier; }}
-    );
+    return Object.assign({}, AbstractQueryGenerator, {
+      options: sequelize.options,
+      _dialect: sequelize.dialect,
+      sequelize,
+      quoteIdentifier(identifier) {
+        return identifier;
+      }
+    });
   },
 
   getTestDialect() {
@@ -194,14 +196,12 @@ const Support = {
     if (config.dialect === 'sqlite') {
       url = 'sqlite://' + dbConfig.storage;
     } else {
-
       let credentials = dbConfig.username;
       if (dbConfig.password) {
         credentials += ':' + dbConfig.password;
       }
 
-      url = config.dialect + '://' + credentials
-      + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
+      url = config.dialect + '://' + credentials + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
     }
     return url;
   },
@@ -228,7 +228,7 @@ const Support = {
 };
 
 if (typeof beforeEach !== 'undefined') {
-  beforeEach(function() {
+  beforeEach(function () {
     this.sequelize = Support.sequelize;
   });
 }

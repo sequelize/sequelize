@@ -9,7 +9,7 @@ const QueryInterface = require(__dirname + '/../lib/query-interface'),
  * Shims all Sequelize methods to test for logging passing.
  * @param {Object} Sequelize - Sequelize constructor
  */
-module.exports = function(Sequelize) {
+module.exports = function (Sequelize) {
   // Shim all Sequelize methods
   shimAll(Sequelize.prototype, 'Sequelize#');
   shimAll(Sequelize.Model, 'Model.');
@@ -23,7 +23,7 @@ module.exports = function(Sequelize) {
   // Shim Model static methods to then shim getter/setter methods
   ['hasOne', 'belongsTo', 'hasMany', 'belongsToMany'].forEach(type => {
     shimMethod(Sequelize.Model, type, original => {
-      return function() {
+      return function () {
         const model = this,
           association = original.apply(this, arguments);
 
@@ -132,7 +132,7 @@ module.exports = function(Sequelize) {
     shimMethod(obj, name, original => {
       const sequelizeProto = obj === Sequelize.prototype;
 
-      return function() {
+      return function () {
         let sequelize = sequelizeProto ? this : this.sequelize;
         if (this instanceof Sequelize.Association) sequelize = this.target.sequelize;
         if (!sequelize) throw new Error('Object does not have a `sequelize` attribute');
@@ -215,7 +215,7 @@ module.exports = function(Sequelize) {
     const hadLogging = options.hasOwnProperty('logging'),
       originalLogging = options.logging;
 
-    options.logging = function() {
+    options.logging = function () {
       const logger = originalLogging !== undefined ? originalLogging : sequelize.options.logging;
       if (logger) {
         if ((sequelize.options.benchmark || options.benchmark) && logger === console.log) {
@@ -253,7 +253,8 @@ module.exports = function(Sequelize) {
    * @throws {Error} - Throws if `options.logging` is not a shimmed logging function
    */
   function testLogger(options, name) {
-    if (!options || !options.logging || !options.logging.__testLoggingFn) throw new Error('options.logging has been lost in method ' + name);
+    if (!options || !options.logging || !options.logging.__testLoggingFn)
+      throw new Error('options.logging has been lost in method ' + name);
   }
 
   /**
@@ -266,7 +267,7 @@ module.exports = function(Sequelize) {
     regExp = new RegExp('^\\s+at\\s+(' + pathRegStr + '|.+ \\(' + pathRegStr + ')');
 
   function calledFromTests() {
-    return !!(new Error()).stack.split(/[\r\n]+/)[3].match(regExp);
+    return !!new Error().stack.split(/[\r\n]+/)[3].match(regExp);
   }
 };
 
@@ -311,7 +312,9 @@ function getFunctionCode(fn) {
  * @returns {Array} - Array of names of `method`'s arguments
  */
 function getFunctionArguments(tree) {
-  return tree.body[0].params.map(param => {return param.name;});
+  return tree.body[0].params.map(param => {
+    return param.name;
+  });
 }
 
 /**
@@ -361,7 +364,10 @@ function cloneOptions(options) {
  * @throws {Error} - Throws if options and original are not identical
  */
 function checkOptions(options, original, name) {
-  if (!optionsEqual(options, original)) throw new Error('options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options));
+  if (!optionsEqual(options, original))
+    throw new Error(
+      'options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options)
+    );
 }
 
 /**
@@ -375,6 +381,10 @@ function checkOptions(options, original, name) {
  */
 function optionsEqual(options, original) {
   return _.isEqualWith(options, original, (value1, value2) => {
-    if (typeof value1 === 'object' && !_.isPlainObject(value1) || typeof value2 === 'object' && !_.isPlainObject(value2)) return value1 === value2;
+    if (
+      (typeof value1 === 'object' && !_.isPlainObject(value1)) ||
+      (typeof value2 === 'object' && !_.isPlainObject(value2))
+    )
+      return value1 === value2;
   });
 }

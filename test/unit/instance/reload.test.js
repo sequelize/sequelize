@@ -2,33 +2,37 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
-  current   = Support.sequelize,
+  Support = require(__dirname + '/../support'),
+  current = Support.sequelize,
   Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('reload', () => {
     describe('options tests', () => {
       let stub, instance;
-      const Model = current.define('User', {
-        id: {
-          type: Sequelize.BIGINT,
-          primaryKey: true,
-          autoIncrement: true
+      const Model = current.define(
+        'User',
+        {
+          id: {
+            type: Sequelize.BIGINT,
+            primaryKey: true,
+            autoIncrement: true
+          },
+          deletedAt: {
+            type: Sequelize.DATE
+          }
         },
-        deletedAt: {
-          type: Sequelize.DATE
+        {
+          paranoid: true
         }
-      }, {
-        paranoid: true
-      });
+      );
 
       before(() => {
         stub = sinon.stub(current, 'query').returns(
           Sequelize.Promise.resolve({
-            _previousDataValues: {id: 1},
-            dataValues: {id: 2}
+            _previousDataValues: { id: 1 },
+            dataValues: { id: 2 }
           })
         );
       });
@@ -38,7 +42,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should allow reloads even if options are not given', () => {
-        instance = Model.build({id: 1}, {isNewRecord: false});
+        instance = Model.build({ id: 1 }, { isNewRecord: false });
         expect(() => {
           instance.reload();
         }).to.not.throw();

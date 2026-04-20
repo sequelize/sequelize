@@ -10,7 +10,7 @@ const chai = require('chai'),
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('removeCommentsFromFunctionString', () => {
     it('removes line comments at the start of a line', () => {
-      const functionWithLineComments = function() {
+      const functionWithLineComments = function () {
         // noot noot
       };
 
@@ -21,7 +21,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     it('removes lines comments in the middle of a line', () => {
-      const functionWithLineComments = function() {
+      const functionWithLineComments = function () {
         console.log(1); // noot noot
       };
 
@@ -32,7 +32,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     it('removes range comments', () => {
-      const s = function() {
+      const s = function () {
         console.log(1); /*
           noot noot
         */
@@ -50,11 +50,11 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('argsArePrimaryKeys', () => {
-    it('doesn\'t detect primary keys if primareyKeys and values have different lengths', () => {
+    it("doesn't detect primary keys if primareyKeys and values have different lengths", () => {
       expect(Utils.argsArePrimaryKeys([1, 2, 3], [1])).to.be.false;
     });
 
-    it('doesn\'t detect primary keys if primary keys are hashes or arrays', () => {
+    it("doesn't detect primary keys if primary keys are hashes or arrays", () => {
       expect(Utils.argsArePrimaryKeys([[]], [1])).to.be.false;
     });
 
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
 
-      it('doesn\'t underscore if second param is false', () => {
+      it("doesn't underscore if second param is false", () => {
         expect(Utils.underscoredIf('fooBar', false)).to.equal('fooBar');
       });
     });
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         expect(Utils.camelizeIf('foo_bar', true)).to.equal('fooBar');
       });
 
-      it('doesn\'t camelize if second param is false', () => {
+      it("doesn't camelize if second param is false", () => {
         expect(Utils.underscoredIf('fooBar', true)).to.equal('foo_bar');
       });
     });
@@ -111,14 +111,14 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   describe('cloneDeep', () => {
     it('should clone objects', () => {
-      const obj = {foo: 1},
+      const obj = { foo: 1 },
         clone = Utils.cloneDeep(obj);
 
       expect(obj).to.not.equal(clone);
     });
 
     it('should clone nested objects', () => {
-      const obj = {foo: {bar: 1}},
+      const obj = { foo: { bar: 1 } },
         clone = Utils.cloneDeep(obj);
 
       expect(obj.foo).to.not.equal(clone.foo);
@@ -137,7 +137,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     it('should not call clone methods on arrays', () => {
       expect(() => {
         const arr = [];
-        arr.clone = function() {
+        arr.clone = function () {
           throw new Error('clone method called');
         };
 
@@ -190,17 +190,20 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
         const conditions = {
           metadata: {
             language: 'icelandic',
-            pg_rating: { 'dk': 'G' }
+            pg_rating: { dk: 'G' }
           },
           another_json_field: { x: 1 }
         };
-        const expected = '("metadata"#>>\'{language}\') = \'icelandic\' AND ("metadata"#>>\'{pg_rating,dk}\') = \'G\' AND ("another_json_field"#>>\'{x}\') = \'1\'';
+        const expected =
+          "(\"metadata\"#>>'{language}') = 'icelandic' AND (\"metadata\"#>>'{pg_rating,dk}') = 'G' AND (\"another_json_field\"#>>'{x}') = '1'";
         expect(queryGenerator.handleSequelizeMethod(new Utils.Json(conditions))).to.deep.equal(expected);
       });
 
       it('successfully parses a string using dot notation', () => {
         const path = 'metadata.pg_rating.dk';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal('("metadata"#>>\'{pg_rating,dk}\')');
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path))).to.equal(
+          '("metadata"#>>\'{pg_rating,dk}\')'
+        );
       });
 
       it('allows postgres json syntax', () => {
@@ -211,7 +214,9 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       it('can take a value to compare against', () => {
         const path = 'metadata.pg_rating.is';
         const value = 'U';
-        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal('("metadata"#>>\'{pg_rating,is}\') = \'U\'');
+        expect(queryGenerator.handleSequelizeMethod(new Utils.Json(path, value))).to.equal(
+          "(\"metadata\"#>>'{pg_rating,is}') = 'U'"
+        );
       });
     });
   }
@@ -230,7 +235,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('Sequelize.fn', () => {
     let Airplane;
 
-    beforeEach(function() {
+    beforeEach(function () {
       Airplane = this.sequelize.define('Airplane', {
         wings: DataTypes.INTEGER,
         engines: DataTypes.INTEGER
@@ -241,10 +246,12 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           {
             wings: 2,
             engines: 0
-          }, {
+          },
+          {
             wings: 4,
             engines: 1
-          }, {
+          },
+          {
             wings: 2,
             engines: 2
           }
@@ -253,23 +260,41 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     if (Support.getTestDialect() !== 'mssql') {
-      it('accepts condition object (with cast)', function() {
-        const type = Support.getTestDialect() === 'mysql' ? 'unsigned': 'int';
+      it('accepts condition object (with cast)', function () {
+        const type = Support.getTestDialect() === 'mysql' ? 'unsigned' : 'int';
 
         return Airplane.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
-            [Sequelize.fn('SUM', Sequelize.cast({
-              engines: 1
-            }, type)), 'count-engines'],
-            [Sequelize.fn('SUM', Sequelize.cast({
-              $or: {
-                engines: {
-                  $gt: 1
-                },
-                wings: 4
-              }
-            }, type)), 'count-engines-wings']
+            [
+              Sequelize.fn(
+                'SUM',
+                Sequelize.cast(
+                  {
+                    engines: 1
+                  },
+                  type
+                )
+              ),
+              'count-engines'
+            ],
+            [
+              Sequelize.fn(
+                'SUM',
+                Sequelize.cast(
+                  {
+                    $or: {
+                      engines: {
+                        $gt: 1
+                      },
+                      wings: 4
+                    }
+                  },
+                  type
+                )
+              ),
+              'count-engines-wings'
+            ]
           ]
         }).spread(airplane => {
           expect(parseInt(airplane.get('count'))).to.equal(3);
@@ -280,21 +305,27 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     }
 
     if (Support.getTestDialect() !== 'mssql' && Support.getTestDialect() !== 'postgres') {
-      it('accepts condition object (auto casting)', function() {
+      it('accepts condition object (auto casting)', function () {
         return Airplane.findAll({
           attributes: [
             [this.sequelize.fn('COUNT', '*'), 'count'],
-            [Sequelize.fn('SUM', {
-              engines: 1
-            }), 'count-engines'],
-            [Sequelize.fn('SUM', {
-              $or: {
-                engines: {
-                  $gt: 1
-                },
-                wings: 4
-              }
-            }), 'count-engines-wings']
+            [
+              Sequelize.fn('SUM', {
+                engines: 1
+              }),
+              'count-engines'
+            ],
+            [
+              Sequelize.fn('SUM', {
+                $or: {
+                  engines: {
+                    $gt: 1
+                  },
+                  wings: 4
+                }
+              }),
+              'count-engines-wings'
+            ]
           ]
         }).spread(airplane => {
           expect(parseInt(airplane.get('count'))).to.equal(3);

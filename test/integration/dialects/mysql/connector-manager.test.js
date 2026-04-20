@@ -9,13 +9,12 @@ const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Connection Manager', () => {
-    it('works correctly after being idle', function() {
+    it('works correctly after being idle', function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       const spy = sinon.spy();
 
-      return User
-        .sync({force: true})
-        .then(() => User.create({username: 'user1'}))
+      return User.sync({ force: true })
+        .then(() => User.create({ username: 'user1' }))
         .then(() => User.count())
         .then(count => {
           expect(count).to.equal(1);
@@ -34,11 +33,10 @@ if (dialect === 'mysql') {
 
     it('accepts new queries after shutting down a connection', () => {
       // Create a sequelize instance with fast disconnecting connection
-      const sequelize = Support.createSequelizeInstance({ pool: { idle: 50, max: 1, evict: 10 }});
+      const sequelize = Support.createSequelizeInstance({ pool: { idle: 50, max: 1, evict: 10 } });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
-      return User
-        .sync({force: true})
+      return User.sync({ force: true })
         .then(() => User.create({ username: 'user1' }))
         .then(() => sequelize.Promise.delay(100))
         .then(() => {
@@ -53,11 +51,14 @@ if (dialect === 'mysql') {
     });
 
     it('should maintain connection', () => {
-      const sequelize = Support.createSequelizeInstance({ pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000 }});
+      const sequelize = Support.createSequelizeInstance({
+        pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 }
+      });
       const cm = sequelize.connectionManager;
       let conn;
 
-      return sequelize.sync()
+      return sequelize
+        .sync()
         .then(() => cm.getConnection())
         .then(connection => {
           // Save current connection
@@ -79,7 +80,9 @@ if (dialect === 'mysql') {
     });
 
     it('should work with handleDisconnects before release', () => {
-      const sequelize = Support.createSequelizeInstance({pool: { max: 1, min: 1, handleDisconnects: true, idle: 5000 }});
+      const sequelize = Support.createSequelizeInstance({
+        pool: { max: 1, min: 1, handleDisconnects: true, idle: 5000 }
+      });
       const cm = sequelize.connectionManager;
       let conn;
 
@@ -109,22 +112,31 @@ if (dialect === 'mysql') {
     });
 
     it('-FOUND_ROWS can be suppressed to get back legacy behavior', () => {
-      const sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' }});
+      const sequelize = Support.createSequelizeInstance({ dialectOptions: { flags: '' } });
       const User = sequelize.define('User', { username: DataTypes.STRING });
 
-      return User.sync({force: true})
-        .then(() => User.create({ id: 1, username: 'jozef' }))
-        .then(() => User.update({ username: 'jozef'}, {
-          where: {
-            id: 1
-          }
-        }))
-        // https://github.com/sequelize/sequelize/issues/7184
-        .spread(affectedCount => affectedCount.should.equal(1));
+      return (
+        User.sync({ force: true })
+          .then(() => User.create({ id: 1, username: 'jozef' }))
+          .then(() =>
+            User.update(
+              { username: 'jozef' },
+              {
+                where: {
+                  id: 1
+                }
+              }
+            )
+          )
+          // https://github.com/sequelize/sequelize/issues/7184
+          .spread(affectedCount => affectedCount.should.equal(1))
+      );
     });
 
     it('should work with handleDisconnects', () => {
-      const sequelize = Support.createSequelizeInstance({pool: {min: 1, max: 1, handleDisconnects: true, idle: 5000}});
+      const sequelize = Support.createSequelizeInstance({
+        pool: { min: 1, max: 1, handleDisconnects: true, idle: 5000 }
+      });
       const cm = sequelize.connectionManager;
       let conn;
 

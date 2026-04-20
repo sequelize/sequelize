@@ -2,18 +2,16 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
-  current   = Support.sequelize,
+  Support = require(__dirname + '/../support'),
+  current = Support.sequelize,
   Sequelize = Support.Sequelize,
-  sinon     = require('sinon');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     it('should disallow saves if no primary key values is present', () => {
-      const Model = current.define('User', {
-
-        }),
-        instance = Model.build({}, {isNewRecord: false});
+      const Model = current.define('User', {}),
+        instance = Model.build({}, { isNewRecord: false });
 
       expect(() => {
         instance.save();
@@ -32,10 +30,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       before(() => {
         stub = sinon.stub(current, 'query').returns(
-          Sequelize.Promise.resolve([{
-            _previousDataValues: {},
-            dataValues: {id: 1}
-          }, 1])
+          Sequelize.Promise.resolve([
+            {
+              _previousDataValues: {},
+              dataValues: { id: 1 }
+            },
+            1
+          ])
         );
       });
 

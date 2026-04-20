@@ -44,6 +44,7 @@
     "hints": "^1.1.0",
     "mocha": "^9.2.2",
     "mysql2": "1.5.3",
+    "oxfmt": "^0.45.0",
     "pg": "^8.19.0",
     "pg-hstore": "^2.3.4",
     "pg-native": "^3.7.0",
@@ -78,6 +79,8 @@
   },
   "scripts": {
     "lint": "npx eslint lib test --quiet",
+    "fmt": "oxfmt --write lib test",
+    "fmt:check": "oxfmt --check lib test",
     "test": "npm run teaser && npm run test-unit && npm run test-integration",
     "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
     "test-docker-unit": "npm run test-unit",

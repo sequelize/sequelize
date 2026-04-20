@@ -9,7 +9,6 @@ const chai = require('chai'),
   Promise = current.Promise,
   config = require(__dirname + '/../../config/config');
 
-
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('validations', () => {
     const checks = {
@@ -181,54 +180,68 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     const applyFailTest = function applyFailTest(validatorDetails, i, validator) {
         const failingValue = validatorDetails.fail[i];
-        it('correctly specifies an instance as invalid using a value of "' + failingValue + '" for the validation "' + validator + '"', function() {
-          const validations = {},
-            message = validator + '(' + failingValue + ')';
+        it(
+          'correctly specifies an instance as invalid using a value of "' +
+            failingValue +
+            '" for the validation "' +
+            validator +
+            '"',
+          function () {
+            const validations = {},
+              message = validator + '(' + failingValue + ')';
 
-          validations[validator] = validatorDetails.spec || {};
-          validations[validator].msg = message;
+            validations[validator] = validatorDetails.spec || {};
+            validations[validator].msg = message;
 
-          const UserFail = this.sequelize.define('User' + config.rand(), {
-            name: {
-              type: Sequelize.STRING,
-              validate: validations
-            }
-          });
+            const UserFail = this.sequelize.define('User' + config.rand(), {
+              name: {
+                type: Sequelize.STRING,
+                validate: validations
+              }
+            });
 
-          const failingUser = UserFail.build({ name: failingValue });
+            const failingUser = UserFail.build({ name: failingValue });
 
-          return expect(failingUser.validate()).to.be.rejected.then(_errors => {
-            expect(_errors.get('name')[0].message).to.equal(message);
-            expect(_errors.get('name')[0].value).to.equal(failingValue);
-          });
-        });
+            return expect(failingUser.validate()).to.be.rejected.then(_errors => {
+              expect(_errors.get('name')[0].message).to.equal(message);
+              expect(_errors.get('name')[0].value).to.equal(failingValue);
+            });
+          }
+        );
       },
       applyPassTest = function applyPassTest(validatorDetails, j, validator, type) {
         const succeedingValue = validatorDetails.pass[j];
-        it('correctly specifies an instance as valid using a value of "' + succeedingValue + '" for the validation "' + validator + '"', function() {
-          const validations = {},
-            message = validator + '(' + succeedingValue + ')';
+        it(
+          'correctly specifies an instance as valid using a value of "' +
+            succeedingValue +
+            '" for the validation "' +
+            validator +
+            '"',
+          function () {
+            const validations = {},
+              message = validator + '(' + succeedingValue + ')';
 
-          validations[validator] = validatorDetails.spec || {};
+            validations[validator] = validatorDetails.spec || {};
 
-          if (type === 'msg') {
-            validations[validator].msg = message;
-          } else if (type === 'args') {
-            validations[validator].args = validations[validator].args || true;
-            validations[validator].msg = message;
-          } else if (type === 'true') {
-            validations[validator] = true;
-          }
-
-          const UserSuccess = this.sequelize.define('User' + config.rand(), {
-            name: {
-              type: Sequelize.STRING,
-              validate: validations
+            if (type === 'msg') {
+              validations[validator].msg = message;
+            } else if (type === 'args') {
+              validations[validator].args = validations[validator].args || true;
+              validations[validator].msg = message;
+            } else if (type === 'true') {
+              validations[validator] = true;
             }
-          });
-          const successfulUser = UserSuccess.build({ name: succeedingValue });
-          return expect(successfulUser.validate()).not.to.be.rejected;
-        });
+
+            const UserSuccess = this.sequelize.define('User' + config.rand(), {
+              name: {
+                type: Sequelize.STRING,
+                validate: validations
+              }
+            });
+            const successfulUser = UserSuccess.build({ name: succeedingValue });
+            return expect(successfulUser.validate()).not.to.be.rejected;
+          }
+        );
       };
 
     for (let validator in checks) {
@@ -237,8 +250,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const validatorDetails = checks[validator];
 
         if (!validatorDetails.raw) {
-          validatorDetails.fail = Array.isArray(validatorDetails.fail) ? validatorDetails.fail : [validatorDetails.fail];
-          validatorDetails.pass = Array.isArray(validatorDetails.pass) ? validatorDetails.pass : [validatorDetails.pass];
+          validatorDetails.fail = Array.isArray(validatorDetails.fail)
+            ? validatorDetails.fail
+            : [validatorDetails.fail];
+          validatorDetails.pass = Array.isArray(validatorDetails.pass)
+            ? validatorDetails.pass
+            : [validatorDetails.pass];
         }
 
         for (let i = 0; i < validatorDetails.fail.length; i++) {
@@ -271,7 +288,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       date: Sequelize.DATE
     });
 
-    before(function() {
+    before(function () {
       this.stub = sinon.stub(current, 'query').callsFake(() => {
         return new Promise(resolve => {
           resolve([User.build({}), 1]);
@@ -279,281 +296,357 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
     });
 
-    after(function() {
+    after(function () {
       this.stub.restore();
     });
 
     describe('should not throw', () => {
       describe('create', () => {
         it('should allow number as a string', () => {
-          return expect(User.create({
-            age: '12'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              age: '12'
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow decimal as a string', () => {
-          return expect(User.create({
-            number: '12.6'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              number: '12.6'
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow dates as a string', () => {
-          return expect(User.find({
-            where: {
-              date: '2000-12-16'
-            }
-          })).not.to.be.rejected;
+          return expect(
+            User.find({
+              where: {
+                date: '2000-12-16'
+              }
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow decimal big numbers as a string', () => {
-          return expect(User.create({
-            number: '2321312301230128391820831289123012'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              number: '2321312301230128391820831289123012'
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow decimal as scientific notation', () => {
           return Promise.join(
-            expect(User.create({
-              number: '2321312301230128391820e219'
-            })).not.to.be.rejected,
-            expect(User.create({
-              number: '2321312301230128391820e+219'
-            })).not.to.be.rejected,
-            expect(User.create({
-              number: '2321312301230128391820f219'
-            })).to.be.rejected
+            expect(
+              User.create({
+                number: '2321312301230128391820e219'
+              })
+            ).not.to.be.rejected,
+            expect(
+              User.create({
+                number: '2321312301230128391820e+219'
+              })
+            ).not.to.be.rejected,
+            expect(
+              User.create({
+                number: '2321312301230128391820f219'
+              })
+            ).to.be.rejected
           );
         });
 
         it('should allow string as a number', () => {
-          return expect(User.create({
-            name: 12
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              name: 12
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow 0/1 as a boolean', () => {
-          return expect(User.create({
-            awesome: 1
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              awesome: 1
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow 0/1 string as a boolean', () => {
-          return expect(User.create({
-            awesome: '1'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              awesome: '1'
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow true/false string as a boolean', () => {
-          return expect(User.create({
-            awesome: 'true'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              awesome: 'true'
+            })
+          ).not.to.be.rejected;
         });
       });
 
       describe('findAll', () => {
         it('should allow $in', () => {
-          return expect(User.all({
-            where: {
-              name: {
-                $like: {
-                  $any: ['foo%', 'bar%']
+          return expect(
+            User.all({
+              where: {
+                name: {
+                  $like: {
+                    $any: ['foo%', 'bar%']
+                  }
                 }
               }
-            }
-          })).not.to.be.rejected;
+            })
+          ).not.to.be.rejected;
         });
 
         it('should allow $like for uuid', () => {
-          return expect(User.all({
-            where: {
-              uid: {
-                $like: '12345678%'
+          return expect(
+            User.all({
+              where: {
+                uid: {
+                  $like: '12345678%'
+                }
               }
-            }
-          })).not.to.be.rejected;
+            })
+          ).not.to.be.rejected;
         });
       });
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('should throw when passing string', () => {
-          return expect(User.create({
-            age: 'jan'
-          })).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.create({
+              age: 'jan'
+            })
+          ).to.be.rejectedWith(current.ValidationError);
         });
 
         it('should throw when passing decimal', () => {
-          return expect(User.create({
-            age: 4.5
-          })).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.create({
+              age: 4.5
+            })
+          ).to.be.rejectedWith(current.ValidationError);
         });
       });
 
       describe('update', () => {
         it('should throw when passing string', () => {
-          return expect(User.update({
-            age: 'jan'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.update(
+              {
+                age: 'jan'
+              },
+              { where: {} }
+            )
+          ).to.be.rejectedWith(current.ValidationError);
         });
 
         it('should throw when passing decimal', () => {
-          return expect(User.update({
-            age: 4.5
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.update(
+              {
+                age: 4.5
+              },
+              { where: {} }
+            )
+          ).to.be.rejectedWith(current.ValidationError);
         });
       });
-
     });
   });
 
   describe('custom validation functions', () => {
-
-    const User = current.define('user', {
-      age: {
-        type: Sequelize.INTEGER,
-        validate: {
-          customFn(val, next) {
-            if (val < 0) {
-              next('age must be greater or equal zero');
-            } else {
-              next();
+    const User = current.define(
+      'user',
+      {
+        age: {
+          type: Sequelize.INTEGER,
+          validate: {
+            customFn(val, next) {
+              if (val < 0) {
+                next('age must be greater or equal zero');
+              } else {
+                next();
+              }
             }
           }
-        }
+        },
+        name: Sequelize.STRING
       },
-      name: Sequelize.STRING
-    }, {
-      validate: {
-        customFn() {
-          if (this.get('name') === 'error') {
-            return Promise.reject(new Error('Error from model validation promise'));
+      {
+        validate: {
+          customFn() {
+            if (this.get('name') === 'error') {
+              return Promise.reject(new Error('Error from model validation promise'));
+            }
+            return Promise.resolve();
           }
-          return Promise.resolve();
         }
       }
-    });
+    );
 
-    before(function() {
+    before(function () {
       this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
-    after(function() {
+    after(function () {
       this.stub.restore();
     });
 
     describe('should not throw', () => {
       describe('create', () => {
         it('custom validation functions are successful', () => {
-          return expect(User.create({
-            age: 1,
-            name: 'noerror'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              age: 1,
+              name: 'noerror'
+            })
+          ).not.to.be.rejected;
         });
       });
 
       describe('update', () => {
         it('custom validation functions are successful', () => {
-          return expect(User.update({
-            age: 1,
-            name: 'noerror'
-          }, { where: {}})).not.to.be.rejected;
+          return expect(
+            User.update(
+              {
+                age: 1,
+                name: 'noerror'
+              },
+              { where: {} }
+            )
+          ).not.to.be.rejected;
         });
       });
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom attribute validation function fails', () => {
-          return expect(User.create({
-            age: -1
-          })).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.create({
+              age: -1
+            })
+          ).to.be.rejectedWith(current.ValidationError);
         });
 
         it('custom model validation function fails', () => {
-          return expect(User.create({
-            name: 'error'
-          })).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.create({
+              name: 'error'
+            })
+          ).to.be.rejectedWith(current.ValidationError);
         });
       });
 
       describe('update', () => {
         it('custom attribute validation function fails', () => {
-          return expect(User.update({
-            age: -1
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.update(
+              {
+                age: -1
+              },
+              { where: {} }
+            )
+          ).to.be.rejectedWith(current.ValidationError);
         });
 
         it('when custom model validation function fails', () => {
-          return expect(User.update({
-            name: 'error'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.update(
+              {
+                name: 'error'
+              },
+              { where: {} }
+            )
+          ).to.be.rejectedWith(current.ValidationError);
         });
       });
     });
   });
 
   describe('custom validation functions returning promises', () => {
-
-    const User = current.define('user', {
-      name: Sequelize.STRING
-    }, {
-      validate: {
-        customFn() {
-          if (this.get('name') === 'error') {
-            return Promise.reject(new Error('Error from model validation promise'));
+    const User = current.define(
+      'user',
+      {
+        name: Sequelize.STRING
+      },
+      {
+        validate: {
+          customFn() {
+            if (this.get('name') === 'error') {
+              return Promise.reject(new Error('Error from model validation promise'));
+            }
+            return Promise.resolve();
           }
-          return Promise.resolve();
         }
       }
-    });
+    );
 
-    before(function() {
+    before(function () {
       this.stub = sinon.stub(current, 'query').returns(Promise.resolve([User.build(), 1]));
     });
 
-    after(function() {
+    after(function () {
       this.stub.restore();
     });
 
     describe('should not throw', () => {
       describe('create', () => {
         it('custom model validation functions are successful', () => {
-          return expect(User.create({
-            name: 'noerror'
-          })).not.to.be.rejected;
+          return expect(
+            User.create({
+              name: 'noerror'
+            })
+          ).not.to.be.rejected;
         });
       });
 
       describe('update', () => {
         it('custom model validation functions are successful', () => {
-          return expect(User.update({
-            name: 'noerror'
-          }, { where: {}})).not.to.be.rejected;
+          return expect(
+            User.update(
+              {
+                name: 'noerror'
+              },
+              { where: {} }
+            )
+          ).not.to.be.rejected;
         });
       });
     });
 
     describe('should throw validationerror', () => {
-
       describe('create', () => {
         it('custom model validation function fails', () => {
-          return expect(User.create({
-            name: 'error'
-          })).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.create({
+              name: 'error'
+            })
+          ).to.be.rejectedWith(current.ValidationError);
         });
       });
 
       describe('update', () => {
         it('when custom model validation function fails', () => {
-          return expect(User.update({
-            name: 'error'
-          }, { where: {}})).to.be.rejectedWith(current.ValidationError);
+          return expect(
+            User.update(
+              {
+                name: 'error'
+              },
+              { where: {} }
+            )
+          ).to.be.rejectedWith(current.ValidationError);
         });
       });
     });
   });
-
 });

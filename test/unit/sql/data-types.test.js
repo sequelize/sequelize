@@ -1,20 +1,20 @@
 'use strict';
 
-const Support   = require(__dirname + '/../support'),
+const Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = Support.Sequelize,
   chai = require('chai'),
   util = require('util'),
   uuid = require('uuid'),
   expectsql = Support.expectsql,
-  current   = Support.sequelize,
+  current = Support.sequelize,
   expect = chai.expect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('DataTypes', () => {
-    const testsql = function(description, dataType, expectation) {
+    const testsql = function (description, dataType, expectation) {
       it(description, () => {
         return expectsql(current.normalizeDataType(dataType).toSql(), expectation);
       });
@@ -1168,10 +1168,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         default: 'DECIMAL'
       });
 
-      testsql('DECIMAL({ precision: 10, scale: 2 }).UNSIGNED', DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED, {
-        mysql: 'DECIMAL(10,2) UNSIGNED',
-        default: 'DECIMAL(10,2)'
-      });
+      testsql(
+        'DECIMAL({ precision: 10, scale: 2 }).UNSIGNED',
+        DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED,
+        {
+          mysql: 'DECIMAL(10,2) UNSIGNED',
+          default: 'DECIMAL(10,2)'
+        }
+      );
 
       describe('validate', () => {
         it('should throw an error if `value` is invalid', () => {
@@ -1416,22 +1420,22 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           default: 'GEOMETRY'
         });
 
-        testsql('GEOMETRY(\'POINT\')', DataTypes.GEOMETRY('POINT'), {
+        testsql("GEOMETRY('POINT')", DataTypes.GEOMETRY('POINT'), {
           postgres: 'GEOMETRY(POINT)',
           mysql: 'POINT'
         });
 
-        testsql('GEOMETRY(\'LINESTRING\')', DataTypes.GEOMETRY('LINESTRING'), {
+        testsql("GEOMETRY('LINESTRING')", DataTypes.GEOMETRY('LINESTRING'), {
           postgres: 'GEOMETRY(LINESTRING)',
           mysql: 'LINESTRING'
         });
 
-        testsql('GEOMETRY(\'POLYGON\')', DataTypes.GEOMETRY('POLYGON'), {
+        testsql("GEOMETRY('POLYGON')", DataTypes.GEOMETRY('POLYGON'), {
           postgres: 'GEOMETRY(POLYGON)',
           mysql: 'POLYGON'
         });
 
-        testsql('GEOMETRY(\'POINT\',4326)', DataTypes.GEOMETRY('POINT', 4326), {
+        testsql("GEOMETRY('POINT',4326)", DataTypes.GEOMETRY('POINT', 4326), {
           postgres: 'GEOMETRY(POINT,4326)',
           mysql: 'POINT'
         });

@@ -10,9 +10,7 @@ const chai = require('chai'),
   Promise = require('bluebird');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
-
   describe('method findOrCreate', () => {
-
     before(() => {
       current.constructor.useCLS(cls.createNamespace('sequelize'));
     });
@@ -21,10 +19,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       delete current.constructor._cls;
     });
 
-    beforeEach(function() {
-      this.User = current.define('User', {}, {
-        name: 'John'
-      });
+    beforeEach(function () {
+      this.User = current.define(
+        'User',
+        {},
+        {
+          name: 'John'
+        }
+      );
 
       this.transactionStub = stub(this.User.sequelize, 'transaction');
       this.transactionStub.returns(new Promise(() => {}));
@@ -33,13 +35,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.clsStub.returns({ id: 123 });
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.transactionStub.restore();
       this.clsStub.restore();
     });
 
-    it('should use transaction from cls if available', function() {
-
+    it('should use transaction from cls if available', function () {
       const options = {
         where: {
           name: 'John'
@@ -51,8 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(this.clsStub.calledOnce).to.equal(true, 'expected to ask for transaction');
     });
 
-    it('should not use transaction from cls if provided as argument', function() {
-
+    it('should not use transaction from cls if provided as argument', function () {
       const options = {
         where: {
           name: 'John'

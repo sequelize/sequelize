@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 describe('connection manager', () => {
   describe('_connect', () => {
-    beforeEach(function() {
+    beforeEach(function () {
       this.sinon = sinon.createSandbox();
       this.connection = {};
 
@@ -23,11 +23,11 @@ describe('connection manager', () => {
       this.sequelize = Support.createSequelizeInstance();
     });
 
-    afterEach(function() {
+    afterEach(function () {
       this.sinon.restore();
     });
 
-    it('should resolve connection on dialect connection manager', function() {
+    it('should resolve connection on dialect connection manager', function () {
       const connection = {};
       this.dialect.connectionManager.connect.returns(Promise.resolve(connection));
 
@@ -35,12 +35,14 @@ describe('connection manager', () => {
 
       const config = {};
 
-      return expect(connectionManager._connect(config)).to.eventually.equal(connection).then(() => {
-        expect(this.dialect.connectionManager.connect).to.have.been.calledWith(config);
-      });
+      return expect(connectionManager._connect(config))
+        .to.eventually.equal(connection)
+        .then(() => {
+          expect(this.dialect.connectionManager.connect).to.have.been.calledWith(config);
+        });
     });
 
-    it('should let beforeConnect hook modify config', function() {
+    it('should let beforeConnect hook modify config', function () {
       const username = Math.random().toString(),
         password = Math.random().toString();
 
@@ -60,7 +62,7 @@ describe('connection manager', () => {
       });
     });
 
-    it('should call afterConnect', function() {
+    it('should call afterConnect', function () {
       const spy = sinon.spy();
       this.sequelize.afterConnect(spy);
 

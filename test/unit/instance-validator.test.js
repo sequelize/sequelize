@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
   describe('validate', () => {
     it('runs the validation sequence and hooks when the hooks option is true', () => {
-      const instanceValidator = new InstanceValidator(this.User.build(), {hooks: true});
+      const instanceValidator = new InstanceValidator(this.User.build(), { hooks: true });
       const _validate = sinon.spy(instanceValidator, '_validate');
       const _validateAndRunHooks = sinon.spy(instanceValidator, '_validateAndRunHooks');
 
@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     it('runs the validation sequence but skips hooks if the hooks option is false', () => {
-      const instanceValidator = new InstanceValidator(this.User.build(), {hooks: false});
+      const instanceValidator = new InstanceValidator(this.User.build(), { hooks: false });
       const _validate = sinon.spy(instanceValidator, '_validate');
       const _validateAndRunHooks = sinon.spy(instanceValidator, '_validateAndRunHooks');
 
@@ -120,7 +120,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         throw new Error('after validation error');
       });
 
-      return expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith('after validation error');
+      return expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith(
+        'after validation error'
+      );
     });
 
     describe('validatedFailed hook', () => {

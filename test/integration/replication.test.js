@@ -7,7 +7,7 @@ const DataTypes = require(__dirname + '/../../lib/data-types');
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
-describe(Support.getTestDialectTeaser('Replication'), function() {
+describe(Support.getTestDialectTeaser('Replication'), function () {
   if (dialect === 'sqlite') return;
 
   let sandbox;
@@ -33,11 +33,10 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
       }
     });
 
-    return this.User.sync({force: true})
-      .then(() => {
-        readSpy = sandbox.spy(this.sequelize.connectionManager.pool.read, 'acquire');
-        writeSpy = sandbox.spy(this.sequelize.connectionManager.pool.write, 'acquire');
-      });
+    return this.User.sync({ force: true }).then(() => {
+      readSpy = sandbox.spy(this.sequelize.connectionManager.pool.read, 'acquire');
+      writeSpy = sandbox.spy(this.sequelize.connectionManager.pool.write, 'acquire');
+    });
   });
 
   afterEach(() => {
@@ -65,14 +64,18 @@ describe(Support.getTestDialectTeaser('Replication'), function() {
   });
 
   it('should run read-only transactions on the replica', () => {
-    return this.sequelize.transaction({readOnly: true}, transaction => {
-      return this.User.findAll({transaction});
-    }).then(expectReadCalls);
+    return this.sequelize
+      .transaction({ readOnly: true }, transaction => {
+        return this.User.findAll({ transaction });
+      })
+      .then(expectReadCalls);
   });
 
   it('should run non-read-only transactions on the primary', () => {
-    return this.sequelize.transaction(transaction => {
-      return this.User.findAll({transaction});
-    }).then(expectWriteCalls);
+    return this.sequelize
+      .transaction(transaction => {
+        return this.User.findAll({ transaction });
+      })
+      .then(expectWriteCalls);
   });
 });

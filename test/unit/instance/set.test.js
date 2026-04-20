@@ -2,9 +2,9 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Support   = require(__dirname + '/../support'),
+  Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current   = Support.sequelize,
+  current = Support.sequelize,
   Promise = current.Promise,
   sinon = require('sinon');
 
@@ -14,14 +14,17 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         meta: DataTypes.JSONB
       });
-      const user = User.build({
-        meta: {
-          location: 'Stockhollm'
+      const user = User.build(
+        {
+          meta: {
+            location: 'Stockhollm'
+          }
+        },
+        {
+          isNewRecord: false,
+          raw: true
         }
-      }, {
-        isNewRecord: false,
-        raw: true
-      });
+      );
 
       const meta = user.get('meta');
 
@@ -65,12 +68,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const User = current.define('User', {
         date: DataTypes.DATE
       });
-      const user = User.build({
-        date: ' '
-      }, {
-        isNewRecord: false,
-        raw: true
-      });
+      const user = User.build(
+        {
+          date: ' '
+        },
+        {
+          isNewRecord: false,
+          raw: true
+        }
+      );
 
       user.set('date', new Date());
       expect(user.get('date')).to.be.an.instanceof(Date);
@@ -78,13 +84,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     describe('custom setter', () => {
-      before(function() {
+      before(function () {
         this.stubCreate = sinon.stub(current.getQueryInterface(), 'insert').callsFake(instance => {
           return Promise.resolve([instance, 1]);
         });
       });
 
-      after(function() {
+      after(function () {
         this.stubCreate.restore();
       });
 

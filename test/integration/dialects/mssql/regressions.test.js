@@ -45,13 +45,14 @@ if (dialect.match(/^mssql/)) {
         foreignKey: 'UserID'
       });
 
-      return this.sequelize.sync({ force: true })
-        .then(() => User.bulkCreate([
-          { UserName: 'Vayom' },
-          { UserName: 'Shaktimaan' },
-          { UserName: 'Nikita' },
-          { UserName: 'Aryamaan' }
-        ], { returning: true }))
+      return this.sequelize
+        .sync({ force: true })
+        .then(() =>
+          User.bulkCreate(
+            [{ UserName: 'Vayom' }, { UserName: 'Shaktimaan' }, { UserName: 'Nikita' }, { UserName: 'Aryamaan' }],
+            { returning: true }
+          )
+        )
         .spread((vyom, shakti, nikita, arya) => {
           return Sequelize.Promise.all([
             vyom.createLoginLog(),
@@ -59,7 +60,8 @@ if (dialect.match(/^mssql/)) {
             nikita.createLoginLog(),
             arya.createLoginLog()
           ]);
-        }).then(() => {
+        })
+        .then(() => {
           return LoginLog.findAll({
             include: [
               {
@@ -75,7 +77,8 @@ if (dialect.match(/^mssql/)) {
             offset: 0,
             limit: 10
           });
-        }).then(logs => {
+        })
+        .then(logs => {
           expect(logs).to.have.length(2);
           expect(logs[0].User.get('UserName')).to.equal('Shaktimaan');
           expect(logs[1].User.get('UserName')).to.equal('Aryamaan');

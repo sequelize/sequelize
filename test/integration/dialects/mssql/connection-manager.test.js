@@ -21,7 +21,7 @@ if (dialect.match(/^mssql/)) {
 
           // simulate a unexpected end
           // connection removed from pool by MSSQL Conn Manager
-          conn.unwrap().emit('error', {code: 'ECONNRESET'});
+          conn.unwrap().emit('error', { code: 'ECONNRESET' });
         })
         .then(() => cm.getConnection())
         .then(connection => {
@@ -83,22 +83,30 @@ if (dialect.match(/^mssql/)) {
     describe('Errors', () => {
       it('ECONNREFUSED', () => {
         const sequelize = Support.createSequelizeInstance({ port: 34237 });
-        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(sequelize.ConnectionRefusedError);
+        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          sequelize.ConnectionRefusedError
+        );
       });
 
       it('ENOTFOUND', () => {
         const sequelize = Support.createSequelizeInstance({ host: 'http://wowow.example.com' });
-        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(sequelize.HostNotFoundError);
+        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          sequelize.HostNotFoundError
+        );
       });
 
       it('EHOSTUNREACH', () => {
         const sequelize = Support.createSequelizeInstance({ host: '255.255.255.255' });
-        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(sequelize.HostNotReachableError);
+        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          sequelize.HostNotReachableError
+        );
       });
 
       it('ER_ACCESS_DENIED_ERROR | ELOGIN', () => {
         const sequelize = new Support.Sequelize('localhost', 'was', 'ddsd', Support.sequelize.options);
-        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(sequelize.AccessDeniedError);
+        return expect(sequelize.connectionManager.getConnection()).to.have.been.rejectedWith(
+          sequelize.AccessDeniedError
+        );
       });
     });
   });

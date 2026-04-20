@@ -9,7 +9,7 @@
     "keyword-spacing": "error",
 
     "no-console": "off",
-    "no-extra-parens": "warn",
+    "no-extra-parens": "off",
     "valid-jsdoc": "off",
     "new-cap": [
       "warn",

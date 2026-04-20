@@ -139,12 +139,11 @@ describe('Connection Manager', () => {
       useMaster: true
     };
 
-    return connectionManager.getConnection(queryOptions)
-      .then(() => {
-        chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
-        const calls = connectStub.getCalls();
-        chai.expect(calls[1].args[0].host).to.eql('the-boss');
-      });
+    return connectionManager.getConnection(queryOptions).then(() => {
+      chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
+      const calls = connectStub.getCalls();
+      chai.expect(calls[1].args[0].host).to.eql('the-boss');
+    });
   });
 
   it('should clear the pool after draining it', () => {
@@ -164,5 +163,4 @@ describe('Connection Manager', () => {
       expect(poolClearSpy.calledOnce).to.be.true;
     });
   });
-
 });

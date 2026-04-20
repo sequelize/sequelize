@@ -2,10 +2,10 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  _         = require('lodash'),
-  Support   = require(__dirname + '/../support'),
+  _ = require('lodash'),
+  Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current   = Support.sequelize;
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('hasOne'), () => {
   it('properly use the `as` key to generate foreign key name', () => {
@@ -15,7 +15,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     User.hasOne(Task);
     expect(Task.rawAttributes.UserId).not.to.be.empty;
 
-    User.hasOne(Task, {as: 'Shabda'});
+    User.hasOne(Task, { as: 'Shabda' });
     expect(Task.rawAttributes.ShabdaId).not.to.be.empty;
   });
 
@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('hasOne'), () => {
     const Task = current.define('Task');
 
     _.each(methods, (alias, method) => {
-      User.prototype[method] = function() {
+      User.prototype[method] = function () {
         const realMethod = this.constructor.associations.task[alias];
         expect(realMethod).to.be.a('function');
         return realMethod;
