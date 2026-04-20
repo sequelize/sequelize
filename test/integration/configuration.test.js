@@ -19,8 +19,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
       const seq = new Sequelize(config[dialect].database, config[dialect].username, config[dialect].password, {
         storage: '/path/to/no/where/land',
         logging: false,
-        host: '0.0.0.1',
-        port: config[dialect].port,
+        host: '127.0.0.1',
+        port: 1,
         dialect
       });
       if (dialect === 'sqlite') {
