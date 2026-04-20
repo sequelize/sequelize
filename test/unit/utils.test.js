@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 'use strict';
 
 const chai = require('chai');
@@ -228,8 +229,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
   });
 
   describe('stack', () => {
-    it('stack trace starts after call to Util.stack()', function this_here_test() {
-      // eslint-disable-line
+    it('stack trace starts after call to Util.stack()', () => {
       // We need a named function to be able to capture its trace
       function a() {
         return b();

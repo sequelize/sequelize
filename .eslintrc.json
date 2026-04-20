@@ -19,58 +19,27 @@
       }
     ],
     "no-extra-boolean-cast": "warn",
-    "strict": [
-      "warn",
-      "global"
-    ],
+    "strict": ["warn", "global"],
     "no-var": "error",
     "prefer-const": "error",
-    "semi": [
-      "error",
-      "always"
-    ],
-    "space-before-function-paren": [
-      "warn",
-      "never"
-    ],
+    "semi": ["error", "always"],
+    "space-before-function-paren": ["warn", "never"],
     "space-before-blocks": "error",
     "prefer-arrow-callback": "error",
-    "arrow-parens": [
-      "error",
-      "as-needed"
-    ],
-    "comma-style": [
-      "warn",
-      "last"
-    ],
+    "arrow-parens": ["error", "as-needed"],
+    "comma-style": ["warn", "last"],
     "no-bitwise": "off",
-    "no-cond-assign": [
-      "error",
-      "except-parens"
-    ],
+    "no-cond-assign": ["error", "except-parens"],
     "curly": "off",
     "eqeqeq": "error",
     "no-extend-native": "error",
-    "wrap-iife": [
-      "error",
-      "any"
-    ],
-    "indent": [
-      "error",
-      2,
-      {
-        "SwitchCase": 1
-      }
-    ],
+    "wrap-iife": ["error", "any"],
     "no-use-before-define": "off",
     "no-caller": "error",
     "no-undef": "error",
     "no-unused-vars": "error",
     "no-irregular-whitespace": "error",
-    "max-depth": [
-      "error",
-      8
-    ],
+    "max-depth": ["error", 8],
     "quotes": [
       "error",
       "single",
@@ -90,9 +59,7 @@
     "ecmaVersion": 2020,
     "sourceType": "script"
   },
-  "plugins": [
-    "mocha"
-  ],
+  "plugins": ["mocha"],
   "env": {
     "node": true,
     "mocha": true,
