@@ -27,7 +27,7 @@
     "toposort-class": "^1.0.1",
     "uuid": "^9.0.0",
     "validator": "^10.4.0",
-    "wkx": "^0.4.1"
+    "wkx": "^0.5.0"
   },
   "devDependencies": {
     "big-integer": "^1.6.42",
