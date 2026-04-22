@@ -7,6 +7,9 @@ interface GeneratedColumnOptions {
   defaultValue?: unknown;
   generatedAs?: unknown;
   generatedColumn?: unknown;
+  onDelete?: string | undefined;
+  onUpdate?: string | undefined;
+  references?: unknown;
   type?: unknown;
 }
 
@@ -57,6 +60,22 @@ export function validateGeneratedColumnOptions(
 
   if (attribute.autoIncrement) {
     throw new Error(`${attributeDescription}: A generated column cannot be autoIncrement.`);
+  }
+
+  if (attribute.references) {
+    const onDelete = attribute.onDelete?.toUpperCase();
+    if (onDelete === 'SET NULL' || onDelete === 'SET DEFAULT') {
+      throw new Error(
+        `${attributeDescription}: A generated foreign key cannot use ON DELETE ${onDelete} because generated columns cannot be updated directly.`,
+      );
+    }
+
+    const onUpdate = attribute.onUpdate?.toUpperCase();
+    if (onUpdate && onUpdate !== 'RESTRICT' && onUpdate !== 'NO ACTION') {
+      throw new Error(
+        `${attributeDescription}: A generated foreign key cannot use ON UPDATE ${onUpdate} because generated columns cannot be updated directly.`,
+      );
+    }
   }
 
   const supports = dialect.supports.generatedColumns;

@@ -154,6 +154,9 @@ export class BelongsToAssociation<
     const targetAttribute = targetAttributes.get(this.targetKey)!;
 
     const existingForeignKey = source.modelDefinition.rawAttributes[this.foreignKey];
+    const isGeneratedForeignKey =
+      existingForeignKey?.generatedAs !== undefined ||
+      foreignKeyAttributeOptions?.generatedAs !== undefined;
     const newForeignKeyAttribute = removeUndefined({
       type: cloneDataType(targetAttribute.type),
       ...foreignKeyAttributeOptions,
@@ -196,9 +199,11 @@ export class BelongsToAssociation<
       newReference.key = this.targetKeyField;
 
       newForeignKeyAttribute.references = newReference;
-      newForeignKeyAttribute.onDelete ??=
-        newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
-      newForeignKeyAttribute.onUpdate ??= newForeignKeyAttribute.onUpdate ?? 'CASCADE';
+      if (!isGeneratedForeignKey) {
+        newForeignKeyAttribute.onDelete ??=
+          newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
+        newForeignKeyAttribute.onUpdate ??= 'CASCADE';
+      }
     }
 
     this.source.mergeAttributesDefault({

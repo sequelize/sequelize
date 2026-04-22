@@ -27,6 +27,56 @@ describe('Model generated column safeguards', () => {
   });
 
   if (supportsGeneratedColumns) {
+    describe('foreign key constraints', () => {
+      function defineModels() {
+        const Parent = sequelize.define('GeneratedForeignKeyParent', {}, { timestamps: false });
+        const Child = sequelize.define(
+          'GeneratedForeignKeyChild',
+          {
+            parentSeed: DataTypes.INTEGER,
+            parentId: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('parentSeed'),
+              generatedColumn: supportedMode,
+            },
+          },
+          { timestamps: false },
+        );
+
+        return { Child, Parent };
+      }
+
+      it('uses the dialect non-mutating referential actions by default', () => {
+        const { Child, Parent } = defineModels();
+
+        Child.belongsTo(Parent, { foreignKey: 'parentId' });
+
+        const parentId = Child.getAttributes().parentId;
+        expect(parentId.onDelete).to.equal(undefined);
+        expect(parentId.onUpdate).to.equal(undefined);
+      });
+
+      it('rejects ON DELETE actions that write to the generated foreign key', () => {
+        const { Child, Parent } = defineModels();
+
+        expect(() => {
+          Child.belongsTo(Parent, {
+            foreignKey: { name: 'parentId', onDelete: 'SET NULL' },
+          });
+        }).to.throwWithCause(/generated foreign key.*ON DELETE SET NULL/i);
+      });
+
+      it('rejects ON UPDATE actions that write to the generated foreign key', () => {
+        const { Child, Parent } = defineModels();
+
+        expect(() => {
+          Child.belongsTo(Parent, {
+            foreignKey: { name: 'parentId', onUpdate: 'CASCADE' },
+          });
+        }).to.throwWithCause(/generated foreign key.*ON UPDATE CASCADE/i);
+      });
+    });
+
     it('does not alter existing generated columns during sync({ alter: true })', async () => {
       const TestModel = sequelize.define(
         'GeneratedSync',
