@@ -529,10 +529,10 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
       if (
         rawAttribute.generatedAs !== undefined &&
-        attributeName === this.timestampAttributeNames.deletedAt
+        Object.values(this.timestampAttributeNames).includes(attributeName)
       ) {
         throw new Error(
-          `Attribute "${this.modelName}.${attributeName}": The deletedAt attribute cannot be a generated column because Sequelize must write to it when destroying and restoring paranoid models.`,
+          `Attribute "${this.modelName}.${attributeName}": The Sequelize-managed timestamp attribute cannot be a generated column because Sequelize must write to it.`,
         );
       }
 

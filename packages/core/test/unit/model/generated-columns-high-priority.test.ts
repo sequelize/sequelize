@@ -13,7 +13,27 @@ describe('Model generated column safeguards', () => {
     sinon.restore();
   });
 
-  it('rejects a generated paranoid deletedAt attribute', () => {
+  for (const [attributeName, options] of [
+    ['createdAt', {}],
+    ['updatedAt', {}],
+  ] as const) {
+    it(`rejects a generated Sequelize-managed ${attributeName} attribute`, () => {
+      expect(() => {
+        sequelize.define(
+          `Generated${attributeName}`,
+          {
+            [attributeName]: {
+              type: DataTypes.DATE,
+              generatedAs: sql.literal('NULL'),
+            },
+          },
+          options,
+        );
+      }).to.throw(new RegExp(`${attributeName}.*Sequelize-managed timestamp.*generated`, 'i'));
+    });
+  }
+
+  it('rejects a generated paranoid deletedAt attribute configured with decorators', () => {
     class GeneratedDeletedAt extends Model {
       @Attribute(DataTypes.DATE)
       @Generated(sql.literal('NULL'))
@@ -23,7 +43,7 @@ describe('Model generated column safeguards', () => {
 
     expect(() => {
       sequelize.addModels([GeneratedDeletedAt]);
-    }).to.throw(/deletedAt attribute cannot be a generated column/i);
+    }).to.throw(/destroyedAt.*Sequelize-managed timestamp.*generated/i);
   });
 
   if (supportsGeneratedColumns) {
