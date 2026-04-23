@@ -31,6 +31,20 @@ export function checkNamingCollision(source: ModelStatic<any>, associationName: 
   }
 }
 
+export function assertAssociationForeignKeyIsWritable(
+  foreignKeyModel: ModelStatic<Model>,
+  foreignKey: string,
+  accessor: string,
+): void {
+  if (!foreignKeyModel.modelDefinition.generatedAttributeNames.has(foreignKey)) {
+    return;
+  }
+
+  throw new Error(
+    `Association mutator "${accessor}" cannot be used because the foreign key "${foreignKeyModel.name}.${foreignKey}" is a generated column and cannot be written.`,
+  );
+}
+
 /**
  * Mixin (inject) association methods to model prototype
  *

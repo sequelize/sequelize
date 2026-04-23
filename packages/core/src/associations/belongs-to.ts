@@ -26,7 +26,12 @@ import { Association } from './base';
 import { HasManyAssociation } from './has-many.js';
 import { HasOneAssociation } from './has-one.js';
 import type { NormalizeBaseAssociationOptions } from './helpers';
-import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from './helpers';
+import {
+  assertAssociationForeignKeyIsWritable,
+  defineAssociation,
+  mixinMethods,
+  normalizeBaseAssociationOptions,
+} from './helpers';
 
 /**
  * One-to-one association
@@ -397,6 +402,8 @@ export class BelongsToAssociation<
     associatedInstance: T | T[TargetKey] | null,
     options: BelongsToSetAssociationMixinOptions<T> = {},
   ): Promise<void> {
+    assertAssociationForeignKeyIsWritable(this.source, this.foreignKey, this.accessors.set);
+
     let value = associatedInstance;
 
     if (associatedInstance != null && associatedInstance instanceof this.target) {
@@ -432,6 +439,8 @@ export class BelongsToAssociation<
     values: CreationAttributes<T> = {},
     options: BelongsToCreateAssociationMixinOptions<T> = {},
   ): Promise<T> {
+    assertAssociationForeignKeyIsWritable(this.source, this.foreignKey, this.accessors.create);
+
     values = values || {};
     options = options || {};
 

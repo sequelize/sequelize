@@ -97,6 +97,131 @@ describe('Model generated column safeguards', () => {
       });
     });
 
+    describe('association mutators', () => {
+      function defineBelongsTo() {
+        const Parent = sequelize.define('GeneratedBelongsToParent', {}, { timestamps: false });
+        const Child = sequelize.define(
+          'GeneratedBelongsToChild',
+          {
+            parentSeed: DataTypes.INTEGER,
+            parentId: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('parentSeed'),
+              generatedColumn: supportedMode,
+            },
+          },
+          { timestamps: false },
+        );
+        const association = Child.belongsTo(Parent, { foreignKey: 'parentId' });
+
+        return { association, Child, Parent };
+      }
+
+      function defineHasOne() {
+        const Parent = sequelize.define('GeneratedHasOneParent', {}, { timestamps: false });
+        const Child = sequelize.define(
+          'GeneratedHasOneChild',
+          {
+            parentSeed: DataTypes.INTEGER,
+            parentId: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('parentSeed'),
+              generatedColumn: supportedMode,
+            },
+          },
+          { timestamps: false },
+        );
+        const association = Parent.hasOne(Child, { foreignKey: 'parentId' });
+
+        return { association, Child, Parent };
+      }
+
+      function defineHasMany() {
+        const Parent = sequelize.define('GeneratedHasManyParent', {}, { timestamps: false });
+        const Child = sequelize.define(
+          'GeneratedHasManyChild',
+          {
+            parentSeed: DataTypes.INTEGER,
+            parentId: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('parentSeed'),
+              generatedColumn: supportedMode,
+            },
+          },
+          { timestamps: false },
+        );
+        const association = Parent.hasMany(Child, { foreignKey: 'parentId' });
+
+        return { association, Child, Parent };
+      }
+
+      it('rejects belongsTo#set before changing the source instance', async () => {
+        const { association, Child } = defineBelongsTo();
+        const child = Child.build({ parentSeed: 1 });
+
+        await expect(association.set(child, 2, { save: false })).to.be.rejectedWith(
+          /association mutator.*parentId.*generated/i,
+        );
+        expect(child.get('parentId')).to.equal(undefined);
+      });
+
+      it('rejects belongsTo#create before creating an orphan target', async () => {
+        const { association, Child, Parent } = defineBelongsTo();
+        const create = sinon.stub(Parent, 'create');
+
+        await expect(association.create(Child.build({ parentSeed: 1 }))).to.be.rejectedWith(
+          /association mutator.*parentId.*generated/i,
+        );
+        expect(create).not.to.have.been.called;
+      });
+
+      it('rejects hasOne#set before reading or changing the existing association', async () => {
+        const { association, Child, Parent } = defineHasOne();
+        const get = sinon.stub(association, 'get').resolves(null);
+
+        await expect(
+          association.set(Parent.build(), Child.build({ parentSeed: 1 })),
+        ).to.be.rejectedWith(/association mutator.*parentId.*generated/i);
+        expect(get).not.to.have.been.called;
+      });
+
+      it('rejects hasOne#create before creating an orphan target', async () => {
+        const { association, Child, Parent } = defineHasOne();
+        const create = sinon.stub(Child, 'create');
+
+        await expect(association.create(Parent.build())).to.be.rejectedWith(
+          /association mutator.*parentId.*generated/i,
+        );
+        expect(create).not.to.have.been.called;
+      });
+
+      for (const mutator of ['set', 'add', 'remove'] as const) {
+        it(`rejects hasMany#${mutator} before querying or updating targets`, async () => {
+          const { association, Child, Parent } = defineHasMany();
+          const parent = Parent.build();
+          const child = Child.build({ id: 1, parentSeed: 1 }, { isNewRecord: false });
+          const get = sinon.stub(association, 'get').resolves([]);
+          const update = sinon.stub(Child, 'update');
+
+          await expect(association[mutator](parent, [child])).to.be.rejectedWith(
+            /association mutator.*parentId.*generated/i,
+          );
+          expect(get).not.to.have.been.called;
+          expect(update).not.to.have.been.called;
+        });
+      }
+
+      it('rejects hasMany#create before creating an orphan target', async () => {
+        const { association, Child, Parent } = defineHasMany();
+        const create = sinon.stub(Child, 'create');
+
+        await expect(association.create(Parent.build())).to.be.rejectedWith(
+          /association mutator.*parentId.*generated/i,
+        );
+        expect(create).not.to.have.been.called;
+      });
+    });
+
     it('does not alter existing generated columns during sync({ alter: true })', async () => {
       const TestModel = sequelize.define(
         'GeneratedSync',
