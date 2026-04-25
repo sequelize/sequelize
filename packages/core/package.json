@@ -41,7 +41,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": ">=18.20.8"
+    "node": "^20.9.0 || ^22.11.0 || >=24.0.0"
   },
   "files": [
     "lib"
@@ -57,14 +57,14 @@
     "debug": "^4.4.3",
     "fast-glob": "^3.3.3",
     "inflection": "^3.0.2",
-    "lodash": "^4.17.23",
+    "lodash": "^4.18.1",
     "retry-as-promised": "^7.1.1",
     "semver": "^7.7.4",
     "sequelize-pool": "^8.0.1",
     "toposort-class": "^1.0.1",
     "type-fest": "^4.41.0",
     "uuid": "^11.1.0",
-    "validator": "^13.15.26"
+    "validator": "^13.15.35"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",

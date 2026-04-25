@@ -8,6 +8,7 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { pojo } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import map from 'lodash/map';
 import mapKeys from 'lodash/mapKeys';
@@ -121,7 +122,7 @@ export class SnowflakeQuery extends AbstractQuery {
       // of the returned values to match attributes
       // TODO [>7]: remove this.sequelize.options.quoteIdentifiers === false
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
-        const attrsMap = Object.create(null);
+        const attrsMap = pojo();
 
         for (const attrName of this.model.modelDefinition.attributes.keys()) {
           attrsMap[attrName.toLowerCase()] = attrName;
