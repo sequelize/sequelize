@@ -17,6 +17,7 @@ describe('Transaction', () => {
 
     return {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
+      stubAfterConnect: sinon.stub(sequelize.dialect.connectionManager, 'afterConnect').resolves(),
       stubConnection: sinon.stub(sequelize.dialect.connectionManager, 'connect').resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {},
@@ -32,6 +33,7 @@ describe('Transaction', () => {
   beforeEach(() => {
     vars.stub.resetHistory();
     vars.stubConnection.resetHistory();
+    vars.stubAfterConnect.resetHistory();
     vars.stubValidate.resetHistory();
     vars.stubRelease.resetHistory();
   });
@@ -39,6 +41,7 @@ describe('Transaction', () => {
   after(() => {
     vars.stub.restore();
     vars.stubConnection.restore();
+    vars.stubAfterConnect.restore();
     vars.stubValidate.restore();
     vars.stubRelease.restore();
     vars.stubTransactionId.restore();
