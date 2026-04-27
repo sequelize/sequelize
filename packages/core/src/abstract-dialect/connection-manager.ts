@@ -68,6 +68,13 @@ export class AbstractConnectionManager<
     throw new Error(`connect not implemented in ${this.constructor.name}`);
   }
 
+  /**
+   * Called after {@link connect} and after the connection has been registered in owningPools.
+   * Override this to attach error handlers or run post-connection setup queries, so they run
+   * after the connection is registered in owningPools and can safely call pool.destroy().
+   */
+  async afterConnect?(_connection: TConnection): Promise<void>;
+
   async disconnect(_connection: TConnection): Promise<void> {
     throw new Error(`disconnect not implemented in ${this.constructor.name}`);
   }
