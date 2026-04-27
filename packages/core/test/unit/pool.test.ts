@@ -64,6 +64,10 @@ describe('sequelize.pool', () => {
       });
       sandbox = sinon.createSandbox();
       sandbox.stub(sequelize2.dialect.connectionManager, 'connect').resolves(connection);
+
+      if (sequelize2.dialect.connectionManager.afterConnect) {
+        sandbox.stub(sequelize2.dialect.connectionManager, 'afterConnect').resolves();
+      }
     });
 
     afterEach(() => {
@@ -103,6 +107,33 @@ describe('sequelize.pool', () => {
       expect(spy.callCount).to.equal(1);
       expect(spy.firstCall.args[0]).to.equal(connection);
       expect(spy.firstCall.args[1]).to.deep.equal(sequelize2.options.replication.write);
+    });
+
+    it('does not throw when pool.destroy is called during the afterConnect hook', async () => {
+      // Regression test for https://github.com/sequelize/sequelize/issues/9242
+      //
+      // Dialect connection managers attach an error handler inside connect() that calls
+      // pool.destroy(connection) when a DB error occurs. If an error fires during the
+      // connection setup phase (before the connection is registered in owningPools),
+      // pool.destroy() would throw "Unable to determine to which pool the connection belongs",
+      // causing an unhandled rejection that can crash the process.
+      //
+      // The fix is calling owningPools.set() before connection setup code (including the error
+      // handler attachment) runs, so that if pool.destroy() is called it finds the connection.
+      let destroyError: unknown;
+
+      sequelize2.hooks.addListener('afterConnect', async connection => {
+        // Simulate the dialect's error handler calling pool.destroy() during setup
+        try {
+          await sequelize2.pool.destroy(connection);
+        } catch (error) {
+          destroyError = error;
+        }
+      });
+
+      await sequelize2.pool.acquire();
+
+      expect(destroyError, 'pool.destroy() must not throw during afterConnect').to.equal(undefined);
     });
 
     it('round robins calls to the read pool', async () => {
@@ -187,6 +218,11 @@ describe('sequelize.pool', () => {
       const connectStub = sandbox
         .stub(sequelize3.dialect.connectionManager, 'connect')
         .resolves(connection);
+
+      if (connectionManager.afterConnect) {
+        sandbox.stub(connectionManager, 'afterConnect').resolves();
+      }
+
       sandbox.stub(connectionManager, 'disconnect').resolves();
       sandbox
         .stub(sequelize3, 'fetchDatabaseVersion')
@@ -254,6 +290,11 @@ describe('sequelize.pool', () => {
 
       const connectionManager = sequelize3.dialect.connectionManager;
       const connectStub = sandbox.stub(connectionManager, 'connect').resolves(res);
+
+      if (connectionManager.afterConnect) {
+        sandbox.stub(connectionManager, 'afterConnect').resolves();
+      }
+
       sandbox.stub(connectionManager, 'disconnect').resolves();
 
       await sequelize3.pool.acquire({
@@ -270,6 +311,7 @@ describe('sequelize.pool', () => {
   describe('destroy', () => {
     let sequelize2: Sequelize;
     let connectStub: SinonStub;
+    let afterConnectStub: SinonStub;
     let disconnectStub: SinonStub;
 
     beforeEach(() => {
@@ -281,10 +323,17 @@ describe('sequelize.pool', () => {
         .stub(sequelize2.dialect.connectionManager, 'connect')
         .resolves(connection);
       disconnectStub = sinon.stub(sequelize2.dialect.connectionManager, 'disconnect');
+
+      if (sequelize2.dialect.connectionManager.afterConnect) {
+        afterConnectStub = sinon
+          .stub(sequelize2.dialect.connectionManager, 'afterConnect')
+          .resolves();
+      }
     });
 
     afterEach(() => {
       connectStub.reset();
+      afterConnectStub?.reset();
       disconnectStub.reset();
     });
 

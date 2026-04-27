@@ -98,17 +98,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<
       )) as OracleConnection;
 
       debug('connection acquired');
-      connection.on('error', error => {
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
 
       return connection;
     } catch (error: any) {
@@ -147,6 +136,20 @@ export class OracleConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
+  }
+
+  async afterConnect(connection: OracleConnection): Promise<void> {
+    connection.on('error', error => {
+      switch (error.code) {
+        case 'ESOCKET':
+        case 'ECONNRESET':
+        case 'EPIPE':
+        case 'PROTOCOL_CONNECTION_LOST':
+          void this.sequelize.pool.destroy(connection);
+          break;
+        default:
+      }
+    });
   }
 
   async disconnect(connection: OracleConnection) {

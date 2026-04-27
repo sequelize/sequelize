@@ -107,30 +107,6 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      connection.on('error', (error: unknown) => {
-        if (!isNodeError(error)) {
-          return;
-        }
-
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
-
-      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
-        // set timezone for this connection
-        // but named timezone are not directly supported in mysql, so get its offset first
-        let tzOffset = this.sequelize.options.timezone;
-        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
-        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
-      }
-
       return connection;
     } catch (error) {
       if (!isError(error)) {
@@ -153,6 +129,32 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
         default:
           throw new ConnectionError(error);
       }
+    }
+  }
+
+  async afterConnect(connection: MySqlConnection): Promise<void> {
+    connection.on('error', (error: unknown) => {
+      if (!isNodeError(error)) {
+        return;
+      }
+
+      switch (error.code) {
+        case 'ESOCKET':
+        case 'ECONNRESET':
+        case 'EPIPE':
+        case 'PROTOCOL_CONNECTION_LOST':
+          void this.sequelize.pool.destroy(connection);
+          break;
+        default:
+      }
+    });
+
+    if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
+      // set timezone for this connection
+      // but named timezone are not directly supported in mysql, so get its offset first
+      let tzOffset = this.sequelize.options.timezone;
+      tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
+      await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
     }
   }
 
