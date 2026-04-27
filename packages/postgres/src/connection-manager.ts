@@ -197,7 +197,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       });
     });
 
-    // Don't let a Postgres restart (or error) to take down the whole app
+    return connection;
+  }
+
+  async afterConnect(connection: PostgresConnection): Promise<void> {
+    // Don't let a Postgres restart (or error) to take down the whole app.
     connection.on('error', (error: any) => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
@@ -235,8 +239,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
 
     await this.#refreshOidMap(connection);
-
-    return connection;
   }
 
   async disconnect(connection: PostgresConnection): Promise<void> {

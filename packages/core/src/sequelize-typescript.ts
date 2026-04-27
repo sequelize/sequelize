@@ -308,6 +308,12 @@ export abstract class SequelizeTypeScript<Dialect extends AbstractDialect> {
   #databaseVersion: string | undefined;
 
   /**
+   * Stores the cloned connect options between connect() and afterConnect() so that
+   * beforeConnect hook mutations are visible to afterConnect hooks.
+   */
+  readonly #pendingConnectOptions = new WeakMap<object, ConnectionOptions<Dialect>>();
+
+  /**
    * The QueryInterface instance, dialect dependant.
    */
   get queryInterface(): Dialect['queryInterface'] {
@@ -672,13 +678,24 @@ Connection options can be used at the root of the option bag, in the "replicatio
         await this.hooks.runAsync('beforeConnect', clonedConnectOptions);
 
         const connection = await this.dialect.connectionManager.connect(clonedConnectOptions);
+
+        // Store the cloned options so they can be passed to afterConnect hooks.
+        // This preserves any mutations made by the beforeConnect hook.
+        this.#pendingConnectOptions.set(connection, clonedConnectOptions);
+
+        return connection;
+      },
+      afterConnect: async (connection: Connection<Dialect>): Promise<void> => {
+        const clonedConnectOptions = this.#pendingConnectOptions.get(connection)!;
+
+        this.#pendingConnectOptions.delete(connection);
+
+        await this.dialect.connectionManager.afterConnect?.(connection);
         await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
 
         if (!this.getDatabaseVersionIfExist()) {
           await this.#initializeDatabaseVersion(connection);
         }
-
-        return connection;
       },
       disconnect: async (connection: Connection<Dialect>): Promise<void> => {
         await this.hooks.runAsync('beforeDisconnect', connection);
