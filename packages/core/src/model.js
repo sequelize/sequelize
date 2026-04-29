@@ -2188,10 +2188,12 @@ ${associationOwner._getAssociationDebugList()}`);
       const beforeHookValues = cloneDeep(values);
       await this.hooks.runAsync('beforeUpsert', values, options);
 
-      const hookChangedValues = pickBy(
-        values,
-        (value, key) => !isEqual(value, beforeHookValues[key]),
-      );
+      const hookChangedValues = {};
+      for (const key of union(Object.keys(beforeHookValues), Object.keys(values))) {
+        if (!isEqual(values[key], beforeHookValues[key])) {
+          hookChangedValues[key] = values[key];
+        }
+      }
 
       instance.set(hookChangedValues);
 
