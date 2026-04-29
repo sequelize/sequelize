@@ -151,7 +151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(updateValues.secretValue).to.equal(1);
       });
 
-      it('uses beforeUpsert deleted values in insert and update values', async function () {
+      it('removes properties deleted in beforeUpsert from insert and update values', async function () {
         const unhook = this.User.hooks.addListener('beforeUpsert', values => {
           delete values.name;
         });
