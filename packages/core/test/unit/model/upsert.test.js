@@ -100,6 +100,56 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'updatedAt',
         ]);
       });
+
+      it('uses beforeUpsert changes in insert and update values', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          values.name = 'Hooked Cat';
+          values.virtualValue = '222';
+        });
+
+        try {
+          await this.User.upsert({
+            name: 'Old Cat',
+            secretValue: 1,
+          });
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues.name).to.equal('Hooked Cat');
+        expect(insertValues.value).to.equal('222');
+        expect(updateValues.name).to.equal('Hooked Cat');
+        expect(updateValues.value).to.equal('222');
+      });
+
+      it('does not add beforeUpsert changes to explicitly configured update fields', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          values.name = 'Hooked Cat';
+          values.virtualValue = '222';
+        });
+
+        try {
+          await this.User.upsert(
+            {
+              name: 'Old Cat',
+              secretValue: 1,
+            },
+            {
+              fields: ['secretValue'],
+            },
+          );
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues.name).to.equal('Hooked Cat');
+        expect(insertValues.value).to.equal('222');
+        expect(updateValues).not.to.have.property('name');
+        expect(updateValues).not.to.have.property('value');
+        expect(updateValues.secretValue).to.equal(1);
+      });
     });
   }
 });
