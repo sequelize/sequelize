@@ -150,6 +150,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(updateValues).not.to.have.property('value');
         expect(updateValues.secretValue).to.equal(1);
       });
+
+      it('uses beforeUpsert deleted values in insert and update values', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          delete values.name;
+        });
+
+        try {
+          await this.User.upsert({
+            name: 'Old Cat',
+            secretValue: 1,
+          });
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues).not.to.have.property('name');
+        expect(updateValues).not.to.have.property('name');
+      });
     });
   }
 });
