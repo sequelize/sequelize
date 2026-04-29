@@ -2157,13 +2157,14 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const createdAtAttr = modelDefinition.timestampAttributeNames.createdAt;
     const updatedAtAttr = modelDefinition.timestampAttributeNames.updatedAt;
-    const hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
+    let hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
     const instance = this.build(values);
 
     options.model = this;
     options.instance = instance;
 
-    const changed = [...instance._changed];
+    let changed = [...instance._changed];
+    const fieldsSpecified = Boolean(options.fields);
     if (!options.fields) {
       options.fields = changed;
     }
@@ -2177,6 +2178,24 @@ ${associationOwner._getAssociationDebugList()}`);
       options.conflictFields = options.conflictFields.map(attrName => {
         return modelDefinition.getColumnName(attrName);
       });
+    }
+
+    if (options.hooks) {
+      const beforeHookValues = cloneDeep(values);
+      await this.hooks.runAsync('beforeUpsert', values, options);
+
+      const hookChangedValues = pickBy(
+        values,
+        (value, key) => !isEqual(value, beforeHookValues[key]),
+      );
+
+      instance.set(hookChangedValues);
+
+      hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
+      changed = [...instance._changed];
+      if (!fieldsSpecified) {
+        options.fields = changed;
+      }
     }
 
     // Map field names
@@ -2221,10 +2240,6 @@ ${associationOwner._getAssociationDebugList()}`);
     ) {
       delete insertValues[this.primaryKeyField];
       delete updateValues[this.primaryKeyField];
-    }
-
-    if (options.hooks) {
-      await this.hooks.runAsync('beforeUpsert', values, options);
     }
 
     const result = await this.queryInterface.upsert(
