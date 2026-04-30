@@ -2168,6 +2168,8 @@ ${associationOwner._getAssociationDebugList()}`);
     options.instance = instance;
 
     let changed = [...instance._changed];
+    // Track whether the caller passed an explicit `fields` list so that hook-driven
+    // value changes don't widen the update payload beyond what the caller asked for.
     const fieldsSpecified = Boolean(options.fields);
     if (!options.fields) {
       options.fields = changed;
