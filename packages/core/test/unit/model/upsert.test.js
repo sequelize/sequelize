@@ -100,6 +100,104 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           'updatedAt',
         ]);
       });
+
+      it('uses beforeUpsert changes in insert and update values', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          values.name = 'Hooked Cat';
+          values.virtualValue = '222';
+        });
+
+        try {
+          await this.User.upsert({
+            name: 'Old Cat',
+            secretValue: 1,
+          });
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues.name).to.equal('Hooked Cat');
+        expect(insertValues.value).to.equal('222');
+        expect(updateValues.name).to.equal('Hooked Cat');
+        expect(updateValues.value).to.equal('222');
+      });
+
+      it('does not add beforeUpsert changes to explicitly configured update fields', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          values.name = 'Hooked Cat';
+          values.virtualValue = '222';
+        });
+
+        try {
+          await this.User.upsert(
+            {
+              name: 'Old Cat',
+              secretValue: 1,
+            },
+            {
+              fields: ['secretValue'],
+            },
+          );
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues.name).to.equal('Hooked Cat');
+        expect(insertValues.value).to.equal('222');
+        expect(updateValues).not.to.have.property('name');
+        expect(updateValues).not.to.have.property('value');
+        expect(updateValues.secretValue).to.equal(1);
+      });
+
+      it('preserves primary key set on options.instance in beforeUpsert', async function () {
+        const Item = current.define('Item', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+        });
+
+        const stub = sinon
+          .stub(current.queryInterface, 'upsert')
+          .resolves([Item.build(), true]);
+
+        const unhook = Item.hooks.addListener('beforeUpsert', (values, options) => {
+          options.instance.set('id', 42);
+        });
+
+        try {
+          await Item.upsert({ name: 'Whiskers' });
+        } finally {
+          unhook();
+          stub.restore();
+        }
+
+        const [, insertValues, updateValues] = stub.getCall(0).args;
+        expect(insertValues.id).to.equal(42);
+        expect(updateValues.id).to.equal(42);
+      });
+
+      it('removes properties deleted in beforeUpsert from insert and update values', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          delete values.name;
+        });
+
+        try {
+          await this.User.upsert({
+            name: 'Old Cat',
+            secretValue: 1,
+          });
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues).not.to.have.property('name');
+        expect(updateValues).not.to.have.property('name');
+      });
     });
   }
 });
