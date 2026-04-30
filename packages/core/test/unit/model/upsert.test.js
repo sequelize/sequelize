@@ -160,9 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: DataTypes.STRING,
         });
 
-        const stub = sinon
-          .stub(current.queryInterface, 'upsert')
-          .resolves([Item.build(), true]);
+        this.stub.resolves([Item.build(), true]);
 
         const unhook = Item.hooks.addListener('beforeUpsert', (values, options) => {
           options.instance.set('id', 42);
@@ -172,10 +170,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await Item.upsert({ name: 'Whiskers' });
         } finally {
           unhook();
-          stub.restore();
         }
 
-        const [, insertValues, updateValues] = stub.getCall(0).args;
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
         expect(insertValues.id).to.equal(42);
         expect(updateValues.id).to.equal(42);
       });
