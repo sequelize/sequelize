@@ -2195,7 +2195,11 @@ ${associationOwner._getAssociationDebugList()}`);
 
       instance.set(hookChangedValues);
 
-      hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
+      hasPrimary =
+        this.primaryKeyField in values ||
+        this.primaryKeyAttribute in values ||
+        instance._changed.has(this.primaryKeyAttribute) ||
+        instance._changed.has(this.primaryKeyField);
       changed = [...instance._changed];
       if (!fieldsSpecified) {
         options.fields = changed;

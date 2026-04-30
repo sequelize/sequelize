@@ -151,6 +151,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(updateValues.secretValue).to.equal(1);
       });
 
+      it('preserves primary key set on options.instance in beforeUpsert', async function () {
+        const Item = current.define('Item', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+          name: DataTypes.STRING,
+        });
+
+        const stub = sinon
+          .stub(current.queryInterface, 'upsert')
+          .resolves([Item.build(), true]);
+
+        const unhook = Item.hooks.addListener('beforeUpsert', (values, options) => {
+          options.instance.set('id', 42);
+        });
+
+        try {
+          await Item.upsert({ name: 'Whiskers' });
+        } finally {
+          unhook();
+          stub.restore();
+        }
+
+        const [, insertValues, updateValues] = stub.getCall(0).args;
+        expect(insertValues.id).to.equal(42);
+        expect(updateValues.id).to.equal(42);
+      });
+
       it('removes properties deleted in beforeUpsert from insert and update values', async function () {
         const unhook = this.User.hooks.addListener('beforeUpsert', values => {
           delete values.name;
