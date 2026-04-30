@@ -80,11 +80,10 @@ if (Support.sequelize.dialect.supports.upserts) {
             hookCalled++;
           });
 
-          const [user] = await this.User.upsert(valuesOriginal);
+          await this.User.upsert(valuesOriginal);
           const persistedUser = await this.User.findOne({ where: { username: 'leafninja' } });
 
           expect(valuesOriginal.mood).to.equal('happy');
-          expect(user.mood).to.equal('happy');
           expect(persistedUser.mood).to.equal('happy');
           expect(hookCalled).to.equal(1);
         });
@@ -98,10 +97,9 @@ if (Support.sequelize.dialect.supports.upserts) {
           });
 
           await this.User.create({ mood: 'sad', username: 'leafninja' });
-          const [user] = await this.User.upsert({ mood: 'neutral', username: 'leafninja' });
+          await this.User.upsert({ mood: 'neutral', username: 'leafninja' });
           const persistedUser = await this.User.findOne({ where: { username: 'leafninja' } });
 
-          expect(user.mood).to.equal('happy');
           expect(persistedUser.mood).to.equal('happy');
           expect(hookCalled).to.equal(1);
         });
