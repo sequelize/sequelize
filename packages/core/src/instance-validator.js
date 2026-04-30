@@ -383,6 +383,9 @@ export class InstanceValidator {
         validatorArgs = [validatorArgs, field, this.modelInstance];
       } else if (isLocalizedValidator || validatorType === 'isIP') {
         validatorArgs = [];
+      } else if (validatorType === 'isJSON' && validatorArgs === true) {
+        // validator.js v13+ expects an options object for isJSON, not a boolean
+        validatorArgs = [{}];
       } else {
         validatorArgs = [validatorArgs];
       }
