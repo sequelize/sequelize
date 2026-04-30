@@ -2175,10 +2175,6 @@ ${associationOwner._getAssociationDebugList()}`);
       options.fields = changed;
     }
 
-    if (options.validate) {
-      await instance.validate(options);
-    }
-
     // Map conflict fields to column names
     if (options.conflictFields) {
       options.conflictFields = options.conflictFields.map(attrName => {
@@ -2208,6 +2204,12 @@ ${associationOwner._getAssociationDebugList()}`);
       if (!fieldsSpecified) {
         options.fields = changed;
       }
+    }
+
+    // Validate after beforeUpsert so hook-driven mutations are validated
+    // before being written to the database.
+    if (options.validate) {
+      await instance.validate(options);
     }
 
     // Map field names
