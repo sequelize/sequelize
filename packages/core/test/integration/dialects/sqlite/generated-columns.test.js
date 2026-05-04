@@ -10,6 +10,7 @@ if (Support.getTestDialect() === 'sqlite3') {
 
     afterEach(async function () {
       await this.sequelize.query('DROP VIEW IF EXISTS `generated_columns_view`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_child`');
       await this.sequelize.queryInterface.dropTable(tableName);
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_audit`');
     });
@@ -117,6 +118,70 @@ if (Support.getTestDialect() === 'sqlite3') {
         'SELECT `name` FROM `generated_columns_audit` ORDER BY rowid',
       );
       expect(auditRows.at(-1)).to.deep.equal({ name: 'four' });
+    });
+
+    it('rejects an unsafe transactional rebuild of a referenced table before altering it', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        value: DataTypes.INTEGER,
+      });
+      await queryInterface.createTable('generated_columns_child', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        parentId: {
+          type: DataTypes.INTEGER,
+          references: { table: tableName, key: 'id' },
+        },
+      });
+      await this.sequelize.query(
+        'INSERT INTO generated_columns_test (`id`, `value`) VALUES (1, 10)',
+      );
+      await this.sequelize.query(
+        'INSERT INTO `generated_columns_child` (`id`, `parentId`) VALUES (1, 1)',
+      );
+
+      await expect(
+        this.sequelize.transaction(async transaction => {
+          await queryInterface.addColumn(
+            tableName,
+            'doubled',
+            {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('`value` * 2'),
+            },
+            { transaction },
+          );
+        }),
+      ).to.be.rejectedWith(
+        /cannot safely rebuild.*inside an existing transaction.*outside the transaction/i,
+      );
+
+      const [tableRows] = await this.sequelize.query('SELECT * FROM generated_columns_test');
+      expect(tableRows).to.deep.equal([{ id: 1, value: 10 }]);
+      const description = await queryInterface.describeTable(tableName);
+      expect(description).not.to.have.property('doubled');
+    });
+
+    it('allows a transactional rebuild when no table references the target', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, { value: DataTypes.INTEGER });
+      await queryInterface.bulkInsert(tableName, [{ value: 6 }]);
+
+      await this.sequelize.transaction(async transaction => {
+        await queryInterface.addColumn(
+          tableName,
+          'doubled',
+          {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('`value` * 2'),
+          },
+          { transaction },
+        );
+      });
+
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { value: 6, doubled: 12 },
+      ]);
     });
 
     it('preserves a generated column when rebuilding for an unrelated column', async function () {
