@@ -31,6 +31,52 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
   'restartIdentity',
 ]);
 
+function findClosingParenthesis(sql: string, openingParenthesis: number): number {
+  let depth = 0;
+  let closingQuote: string | undefined;
+
+  for (let index = openingParenthesis; index < sql.length; index++) {
+    const character = sql[index];
+
+    if (closingQuote) {
+      if (character === closingQuote) {
+        if (sql[index + 1] === closingQuote) {
+          index++;
+        } else {
+          closingQuote = undefined;
+        }
+      }
+
+      continue;
+    }
+
+    if (character === "'" || character === '"' || character === '`') {
+      closingQuote = character;
+    } else if (character === '[') {
+      closingQuote = ']';
+    } else if (character === '(') {
+      depth++;
+    } else if (character === ')' && --depth === 0) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+function replaceCreateTableName(createTableSql: string, replacement: string): string {
+  const tableName =
+    /^(\s*CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(?:"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[(?:[^\]]|\]\])*\]|[^\s(]+)/i.exec(
+      createTableSql,
+    );
+
+  if (!tableName) {
+    throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+  }
+
+  return `${tableName[1]}${replacement}${createTableSql.slice(tableName[0].length)}`;
+}
+
 /**
  * Temporary class to ease the TypeScript migration
  */
@@ -224,6 +270,55 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
     ];
+  }
+
+  _addColumnToTableQuery(
+    tableName: TableOrModel,
+    createTableSql: string,
+    columnName: string,
+    columnDefinition: string,
+    copiedColumnNames: readonly string[],
+    schemaObjectSql: readonly string[],
+    views: ReadonlyArray<{ name: string; sql: string }>,
+    viewTriggerSql: readonly string[],
+    autoincrementHighWater?: number,
+  ) {
+    const table = this.extractTableDetails(tableName);
+    const backupTable = this.extractTableDetails(
+      `${table.tableName}_${randomBytes(8).toString('hex')}`,
+      table,
+    );
+    const quotedTableName = this.quoteTable(table);
+    const quotedBackupTableName = this.quoteTable(backupTable);
+    const openingParenthesis = createTableSql.indexOf('(');
+    const closingParenthesis = findClosingParenthesis(createTableSql, openingParenthesis);
+
+    if (openingParenthesis === -1 || closingParenthesis === -1) {
+      throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+    }
+
+    const tableSqlWithColumn = `${createTableSql.slice(0, closingParenthesis)}, ${this.quoteIdentifier(columnName)} ${columnDefinition}${createTableSql.slice(closingParenthesis)}`;
+    const backupTableSql = replaceCreateTableName(tableSqlWithColumn, quotedBackupTableName);
+    const copiedColumns = copiedColumnNames.map(name => this.quoteIdentifier(name)).join(', ');
+    const queries = [
+      backupTableSql,
+      `INSERT INTO ${quotedBackupTableName} (${copiedColumns}) SELECT ${copiedColumns} FROM ${quotedTableName};`,
+      ...views.map(view => `DROP VIEW ${this.quoteIdentifier(view.name)};`),
+      `DROP TABLE ${quotedTableName};`,
+      `ALTER TABLE ${quotedBackupTableName} RENAME TO ${this.quoteIdentifier(table.tableName)};`,
+      ...views.map(view => view.sql),
+      ...viewTriggerSql,
+      ...schemaObjectSql,
+    ];
+
+    if (autoincrementHighWater !== undefined) {
+      queries.push(
+        `INSERT INTO sqlite_sequence (name, seq) SELECT ${this.escape(table.tableName)}, ${this.escape(autoincrementHighWater)} WHERE NOT EXISTS (SELECT 1 FROM sqlite_sequence WHERE name = ${this.escape(table.tableName)});`,
+        `UPDATE sqlite_sequence SET seq = MAX(seq, ${this.escape(autoincrementHighWater)}) WHERE name = ${this.escape(table.tableName)};`,
+      );
+    }
+
+    return queries;
   }
 
   private escapeTable(tableName: TableOrModel): string {

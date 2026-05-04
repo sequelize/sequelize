@@ -344,8 +344,11 @@ export class SqliteQueryInterface<
       normalizedAttribute.generatedAs !== undefined &&
       normalizedAttribute.generatedColumn !== 'VIRTUAL'
     ) {
-      const columns = await this.describeTable(tableName, options);
-      if (columns[columnName]) {
+      const columns = await this.sequelize.queryRaw<{ name: string }>(
+        this.queryGenerator.describeTableQuery(tableName),
+        { ...options, type: QueryTypes.SELECT },
+      );
+      if (columns.some(column => column.name === columnName)) {
         if (options.ifNotExists) {
           return;
         }
@@ -358,10 +361,14 @@ export class SqliteQueryInterface<
         );
       }
 
-      columns[columnName] = normalizedAttribute as (typeof columns)[string];
       const queryOptions = { ...options };
       delete queryOptions.ifNotExists;
-      await this.#internalQueryInterface.alterTableInternal(tableName, columns, queryOptions);
+      await this.#internalQueryInterface.addColumnInternal(
+        tableName,
+        columnName,
+        normalizedAttribute,
+        queryOptions,
+      );
 
       return;
     }

@@ -9,7 +9,9 @@ if (Support.getTestDialect() === 'sqlite3') {
     const tableName = 'generated_columns_test';
 
     afterEach(async function () {
+      await this.sequelize.query('DROP VIEW IF EXISTS `generated_columns_view`');
       await this.sequelize.queryInterface.dropTable(tableName);
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_audit`');
     });
 
     it('adds a STORED generated column to a populated table', async function () {
@@ -29,6 +31,92 @@ if (Support.getTestDialect() === 'sqlite3') {
       expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
         { price: 6, quantity: 7, total: 42 },
       ]);
+    });
+
+    it('preserves the complete table schema when adding a STORED generated column', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query('CREATE TABLE `generated_columns_audit` (`name` TEXT)');
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "quantity" INTEGER CHECK ("quantity" > 0),
+          "name" TEXT COLLATE NOCASE UNIQUE
+        ) STRICT
+      `);
+      await this.sequelize.query(
+        'CREATE INDEX generated_columns_expression ON generated_columns_test (lower(`name`))',
+      );
+      await this.sequelize.query(
+        'CREATE INDEX generated_columns_partial ON generated_columns_test (`quantity`) WHERE `quantity` > 1',
+      );
+      await this.sequelize.query(
+        'CREATE VIEW generated_columns_view AS SELECT `id`, `name` FROM generated_columns_test WHERE `quantity` > 1',
+      );
+      await this.sequelize.query(`
+        CREATE TRIGGER generated_columns_insert
+        AFTER INSERT ON generated_columns_test
+        BEGIN
+          INSERT INTO "generated_columns_audit" ("name") VALUES (NEW."name");
+        END
+      `);
+      await this.sequelize.query(
+        "INSERT INTO generated_columns_test (`quantity`, `name`) VALUES (1, 'one'), (2, 'two'), (3, 'three')",
+      );
+      await this.sequelize.query('DELETE FROM generated_columns_test WHERE `id` = 3');
+
+      await queryInterface.addColumn(tableName, 'doubled', {
+        type: DataTypes.INTEGER,
+        generatedAs: sql.literal('`quantity` * 2'),
+        generatedColumn: 'STORED',
+      });
+
+      const [schemaRows] = await this.sequelize.query(
+        `SELECT type, name, sql FROM sqlite_master WHERE name = '${tableName}' OR tbl_name = '${tableName}' ORDER BY type, name`,
+      );
+      const tableSql = schemaRows.find(row => row.type === 'table').sql;
+      expect(tableSql).to.include('AUTOINCREMENT');
+      expect(tableSql).to.include('CHECK ("quantity" > 0)');
+      expect(tableSql).to.include('COLLATE NOCASE');
+      expect(tableSql).to.match(/\) STRICT$/);
+      expect(tableSql).to.include('GENERATED ALWAYS AS (`quantity` * 2) STORED');
+      expect(schemaRows.find(row => row.name === 'generated_columns_expression').sql).to.include(
+        'lower(`name`)',
+      );
+      expect(schemaRows.find(row => row.name === 'generated_columns_partial').sql).to.include(
+        'WHERE `quantity` > 1',
+      );
+      expect(schemaRows.find(row => row.name === 'generated_columns_insert')).not.to.be.undefined;
+      const [[view]] = await this.sequelize.query(
+        "SELECT sql FROM sqlite_master WHERE type = 'view' AND name = 'generated_columns_view'",
+      );
+      expect(view.sql).to.include('FROM generated_columns_test');
+      const [viewRows] = await this.sequelize.query(
+        'SELECT `id`, `name` FROM generated_columns_view ORDER BY `id`',
+      );
+      expect(viewRows).to.deep.equal([{ id: 2, name: 'two' }]);
+
+      await expect(
+        this.sequelize.query(
+          "INSERT INTO generated_columns_test (`quantity`, `name`) VALUES (-1, 'invalid')",
+        ),
+      ).to.be.rejected;
+      await expect(
+        this.sequelize.query(
+          "INSERT INTO generated_columns_test (`quantity`, `name`) VALUES (4, 'ONE')",
+        ),
+      ).to.be.rejected;
+
+      await this.sequelize.query(
+        "INSERT INTO generated_columns_test (`quantity`, `name`) VALUES (4, 'four')",
+      );
+      const [[inserted]] = await this.sequelize.query(
+        "SELECT `id`, `doubled` FROM generated_columns_test WHERE `name` = 'four'",
+      );
+      expect(inserted).to.deep.equal({ id: 4, doubled: 8 });
+      const [auditRows] = await this.sequelize.query(
+        'SELECT `name` FROM `generated_columns_audit` ORDER BY rowid',
+      );
+      expect(auditRows.at(-1)).to.deep.equal({ name: 'four' });
     });
 
     it('preserves a generated column when rebuilding for an unrelated column', async function () {
