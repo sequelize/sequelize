@@ -151,12 +151,12 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   renameColumnQuery(
-    _tableName: TableOrModel,
-    _attrNameBefore: string,
-    _attrNameAfter: string,
+    tableName: TableOrModel,
+    attrNameBefore: string,
+    attrNameAfter: string,
     _attributes: SqliteColumnsDescription,
   ): string {
-    throw new Error(`renameColumnQuery is not supported in ${this.dialect.name}.`);
+    return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${this.quoteIdentifier(attrNameBefore)} TO ${this.quoteIdentifier(attrNameAfter)}`;
   }
 
   removeColumnQuery(

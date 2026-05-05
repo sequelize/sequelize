@@ -184,6 +184,54 @@ if (Support.getTestDialect() === 'sqlite3') {
       ]);
     });
 
+    it('renames a source column used by a generated expression without losing schema objects', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query('CREATE TABLE `generated_columns_audit` (`value` INTEGER)');
+      await queryInterface.createTable(tableName, {
+        source: DataTypes.INTEGER,
+        doubled: {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('`source` * 2'),
+        },
+      });
+      await this.sequelize.query(
+        `CREATE INDEX generated_columns_source_index ON ${tableName} (source)`,
+      );
+      await this.sequelize.query(`
+        CREATE TRIGGER generated_columns_source_update
+        AFTER UPDATE OF source ON ${tableName}
+        BEGIN
+          INSERT INTO generated_columns_audit (value) VALUES (NEW.source);
+        END
+      `);
+      await queryInterface.bulkInsert(tableName, [{ source: 4 }]);
+
+      await queryInterface.renameColumn(tableName, 'source', 'value');
+
+      const [schemaRows] = await this.sequelize.query(
+        `SELECT type, name, sql FROM sqlite_master WHERE name = '${tableName}' OR tbl_name = '${tableName}' ORDER BY type, name`,
+      );
+      for (const schemaRow of schemaRows) {
+        expect(schemaRow.sql).not.to.match(/\bsource\b/);
+      }
+
+      expect(schemaRows.find(row => row.type === 'table').sql).to.match(
+        /GENERATED ALWAYS AS \([`"]value[`"] \* 2\) STORED/,
+      );
+      expect(schemaRows.find(row => row.name === 'generated_columns_source_index')).not.to.be
+        .undefined;
+      expect(schemaRows.find(row => row.name === 'generated_columns_source_update')).not.to.be
+        .undefined;
+
+      await this.sequelize.query(`UPDATE ${tableName} SET value = 7`);
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { value: 7, doubled: 14 },
+      ]);
+      expect(await queryInterface.select(null, 'generated_columns_audit', {})).to.deep.equal([
+        { value: 7 },
+      ]);
+    });
+
     it('preserves a generated column when rebuilding for an unrelated column', async function () {
       const queryInterface = this.sequelize.queryInterface;
       await queryInterface.createTable(tableName, {

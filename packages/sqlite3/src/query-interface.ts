@@ -752,33 +752,25 @@ export class SqliteQueryInterface<
     await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);
   }
 
-  /**
-   * A wrapper that fixes SQLite's inability to rename columns from existing tables.
-   * It will create a backup of the table, drop the table afterwards and create a
-   * new table with the same name but with a renamed version of the respective column.
-   *
-   * @param tableName
-   * @param attrNameBefore
-   * @param attrNameAfter
-   * @param options
-   */
   async renameColumn(
     tableName: TableOrModel,
     attrNameBefore: string,
     attrNameAfter: string,
     options?: QueryRawOptions,
   ): Promise<void> {
-    const fields = await this.assertTableHasColumn(tableName, attrNameBefore, options);
-
-    fields[attrNameAfter] = { ...fields[attrNameBefore] };
-    delete fields[attrNameBefore];
-
-    const sql = this.queryGenerator._replaceColumnQuery(
-      tableName,
-      attrNameBefore,
-      attrNameAfter,
-      fields,
+    const table = this.queryGenerator.extractTableDetails(tableName);
+    const columns = await this.sequelize.queryRaw<{ name: string }>(
+      this.queryGenerator.describeTableQuery(tableName),
+      { ...options, type: QueryTypes.SELECT },
     );
-    await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
+
+    if (!columns.some(column => column.name === attrNameBefore)) {
+      throw new Error(`Table ${table.tableName} doesn't have the column ${attrNameBefore}`);
+    }
+
+    await this.sequelize.queryRaw(
+      this.queryGenerator.renameColumnQuery(tableName, attrNameBefore, attrNameAfter, {}),
+      options,
+    );
   }
 }
