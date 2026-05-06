@@ -162,6 +162,8 @@ describe('QueryGenerator#generateJoin', () => {
       {
         default:
           'LEFT OUTER JOIN [companyCar] AS [CompanyCar] ON [User].[carId] = [CompanyCar].[carId] AND [User].[externalId] = [CompanyCar].[externalId]',
+        oracle:
+          'LEFT OUTER JOIN "companyCar" "CompanyCar" ON "User"."carId" = "CompanyCar"."carId" AND "User"."externalId" = "CompanyCar"."externalId"',
       },
     );
   });
