@@ -179,7 +179,11 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'kcu.column_name AS "columnNames",',
       'ccu.table_schema AS "referencedTableSchema",',
       'ccu.table_name AS "referencedTableName",',
-      'ccu.column_name AS "referencedColumnNames",',
+      // Resolve the referenced column for each source column by position.
+      // `ccu.column_name` cross-joins with kcu, so for composite FKs the
+      // referenced columns become misaligned. `pgc.confkey` preserves the
+      // FK definition order (same indexing as `conkey` / `kcu.ordinal_position`).
+      '(SELECT a.attname FROM pg_attribute a WHERE a.attrelid = pgc.confrelid AND a.attnum = pgc.confkey[kcu.ordinal_position]) AS "referencedColumnNames",',
       'r.delete_rule AS "deleteAction",',
       'r.update_rule AS "updateAction",',
       'pg_get_expr(pgc.conbin, pgc.conrelid) AS "definition",',
