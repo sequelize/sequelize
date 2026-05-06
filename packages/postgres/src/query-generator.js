@@ -135,28 +135,36 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return query;
   }
 
-  changeColumnQuery(tableName, attributes) {
+  changeColumnQuery(tableName, attributes, rawAttributes = {}) {
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     for (const attributeName in attributes) {
-      let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
+      const initialDefinition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
+      const { definition: definitionWithoutReferences, referencesClause } =
+        this.#extractReferencesClause(initialDefinition);
+      const hasReferenceConstraint =
+        referencesClause.length > 0 || Boolean(rawAttributes[attributeName]?.references);
+      let definition = definitionWithoutReferences;
       let attrSql = '';
 
       if (definition.includes('NOT NULL')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
 
         definition = definition.replace('NOT NULL', '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      } else if (!hasReferenceConstraint) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
       }
 
-      if (definition.includes('DEFAULT')) {
+      const { definition: definitionWithoutDefault, defaultValue } =
+        this.#extractDefaultClause(definition);
+
+      if (defaultValue !== null) {
         attrSql += query(
-          `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
+          `${this.quoteIdentifier(attributeName)} SET DEFAULT ${defaultValue}`,
         );
 
-        definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+        definition = definitionWithoutDefault;
+      } else if (!hasReferenceConstraint) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
@@ -177,10 +185,9 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         );
       }
 
-      if (definition.includes('REFERENCES')) {
-        definition = definition.replace(/.+?(?=REFERENCES)/, '');
+      if (referencesClause) {
         attrSql += query(
-          `ADD FOREIGN KEY (${this.quoteIdentifier(attributeName)}) ${definition}`,
+          `ADD FOREIGN KEY (${this.quoteIdentifier(attributeName)}) ${referencesClause}`,
         ).replace('ALTER COLUMN', '');
       } else {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
@@ -190,6 +197,32 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return sql.join('');
+  }
+
+  #extractReferencesClause(definition) {
+    const referencesClauseMatch = definition.match(/\bREFERENCES\b[^;]*/);
+    if (!referencesClauseMatch) {
+      return { definition, referencesClause: '' };
+    }
+
+    return {
+      definition: definition.replace(referencesClauseMatch[0], '').trim(),
+      referencesClause: referencesClauseMatch[0].trim(),
+    };
+  }
+
+  #extractDefaultClause(definition) {
+    const defaultClauseMatch = definition.match(
+      /\bDEFAULT\b\s+(.+?)(?=;|\s+(?:UNIQUE|PRIMARY KEY)\b|$)/,
+    );
+    if (!defaultClauseMatch) {
+      return { definition, defaultValue: null };
+    }
+
+    return {
+      definition: definition.replace(defaultClauseMatch[0], '').trim(),
+      defaultValue: defaultClauseMatch[1],
+    };
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
