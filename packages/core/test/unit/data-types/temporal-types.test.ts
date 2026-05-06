@@ -108,6 +108,14 @@ describe('DataTypes.DATEONLY', () => {
     }
   });
 
+  describe('toBindableValue', () => {
+    if (dialect.name === 'oracle') {
+      it('wraps the normalized date in TO_DATE without recursing', () => {
+        expect(type.toBindableValue('2025-03-21')).to.equal("TO_DATE('2025/03/21','YYYY/MM/DD')");
+      });
+    }
+  });
+
   describe('sanitize', () => {
     it('sanitizes a Date object or string to a string', () => {
       expect(type.sanitize(now)).to.equal(nowDateOnly);
