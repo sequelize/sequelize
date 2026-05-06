@@ -231,7 +231,22 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       const enumType = arraySubtype || attribute.type;
       const values = enumType.options.values;
 
-      if (Array.isArray(values) && values.length > 0) {
+      if (enumType.options.enumName || enumType.options.enumSchema !== undefined) {
+        // When a custom enum name or schema is set, generate the final qualified type reference here
+        // so that dataTypeMapping does not lose the custom name/schema when it later
+        // replaces the ENUM(...) placeholder.
+        const tableName = options?.table;
+        const columnName = attribute.field || options?.key;
+        type = this.pgEnumName(tableName, columnName, {
+          enumName: enumType.options.enumName,
+          ...(enumType.options.enumSchema !== undefined && {
+            enumSchema: enumType.options.enumSchema,
+          }),
+        });
+        if (attribute.type instanceof DataTypes.ARRAY) {
+          type += '[]';
+        }
+      } else if (Array.isArray(values) && values.length > 0) {
         type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
 
         if (attribute.type instanceof DataTypes.ARRAY) {
