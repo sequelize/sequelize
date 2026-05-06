@@ -534,8 +534,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     // enumSchema overrides the table's schema when looking up the enum type
-    const schema =
-      options?.enumSchema !== undefined ? options.enumSchema : tableDetails.schema;
+    const schema = options?.enumSchema !== undefined ? options.enumSchema : tableDetails.schema;
 
     return (
       'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t ' +
@@ -548,7 +547,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   pgEnum(tableName, attr, dataType, options) {
     // Merge enumName/enumSchema from the DataType's options (lower priority than explicit options)
     const mergedOptions =
-      dataType instanceof ENUM && (dataType.options.enumName || dataType.options.enumSchema !== undefined)
+      dataType instanceof ENUM &&
+      (dataType.options.enumName || dataType.options.enumSchema !== undefined)
         ? {
             ...(dataType.options.enumName !== undefined && { enumName: dataType.options.enumName }),
             ...(dataType.options.enumSchema !== undefined && {

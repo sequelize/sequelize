@@ -162,7 +162,7 @@ describe('PostgresQueryGenerator', () => {
         }),
         {
           postgres:
-            "ALTER TYPE \"public\".\"mood_type\" ADD VALUE IF NOT EXISTS 'neutral' AFTER 'happy'",
+            'ALTER TYPE "public"."mood_type" ADD VALUE IF NOT EXISTS \'neutral\' AFTER \'happy\'',
         },
       );
     });
@@ -178,7 +178,7 @@ describe('PostgresQueryGenerator', () => {
         }),
         {
           postgres:
-            "ALTER TYPE \"shared\".\"mood_type\" ADD VALUE IF NOT EXISTS 'neutral' AFTER 'happy'",
+            'ALTER TYPE "shared"."mood_type" ADD VALUE IF NOT EXISTS \'neutral\' AFTER \'happy\'',
         },
       );
     });
@@ -228,18 +228,15 @@ describe('PostgresQueryGenerator', () => {
     it('uses custom enumName for type filter', () => {
       const { FooUser } = vars;
 
-      expectsql(
-        queryGenerator.pgListEnums(FooUser.table, 'mood', { enumName: 'mood_type' }),
-        {
-          postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+      expectsql(queryGenerator.pgListEnums(FooUser.table, 'mood', { enumName: 'mood_type' }), {
+        postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
                    FROM pg_type t
                           JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
                    WHERE n.nspname = 'foo'
                      AND t.typname='mood_type'
                    GROUP BY 1`,
-        },
-      );
+      });
     });
 
     it('uses enumSchema for schema filter', () => {
