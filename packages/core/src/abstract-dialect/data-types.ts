@@ -2220,10 +2220,28 @@ type EnumValues<Member extends string> = readonly Member[] | Record<Member, Memb
 
 export interface EnumOptions<Member extends string> {
   values: EnumValues<Member>;
+  /**
+   * A custom name for the enum type in the database.
+   * Currently only supported by PostgreSQL, where enum types are named objects.
+   * When set, this name is used instead of the auto-generated `enum_<table>_<column>` name,
+   * allowing the same enum type to be shared across multiple columns or models.
+   */
+  enumName?: string;
+  /**
+   * The schema that the enum type belongs to.
+   * Currently only supported by PostgreSQL.
+   * When set, this schema is used for the enum type instead of the table's schema.
+   * This is useful when an enum type lives in a shared schema that is different from
+   * the table's schema.
+   * Requires {@link enumName} to also be set.
+   */
+  enumSchema?: string;
 }
 
 export interface NormalizedEnumOptions<Member extends string> {
   values: readonly Member[];
+  enumName?: string;
+  enumSchema?: string;
 }
 
 /**
@@ -2264,6 +2282,16 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
     super();
 
     const values: readonly Member[] = this.#getEnumValues(args);
+    const [first] = args;
+    const isOptionsBag =
+      !isString(first) &&
+      !Array.isArray(first) &&
+      typeof first === 'object' &&
+      first !== null &&
+      'values' in first &&
+      typeof (first as { values?: unknown }).values !== 'string';
+    const enumName = isOptionsBag ? (first as EnumOptions<Member>).enumName : undefined;
+    const enumSchema = isOptionsBag ? (first as EnumOptions<Member>).enumSchema : undefined;
 
     if (values.length === 0) {
       throw new TypeError(
@@ -2303,6 +2331,8 @@ sequelize.define('MyModel', {
 
     this.options = {
       values,
+      ...(enumName !== undefined && { enumName }),
+      ...(enumSchema !== undefined && { enumSchema }),
     };
   }
 
