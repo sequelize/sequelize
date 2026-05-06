@@ -7,7 +7,7 @@ const Support = require('../../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, ValidationError } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.upserts) {
@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.User.upsert({
             name: 'Grumpy Cat',
           }),
-        ).not.to.be.rejectedWith(Sequelize.ValidationError);
+        ).not.to.be.rejectedWith(ValidationError);
       });
 
       it('creates new record with correct field names', async function () {

@@ -8,7 +8,14 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const {
+  ConnectionError,
+  DataTypes,
+  EmptyResultError,
+  Op,
+  QueryError,
+  sql,
+} = require('@sequelize/core');
 
 const dayjs = require('dayjs');
 const promiseProps = require('p-props');
@@ -63,7 +70,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should throw on an attempt to fetch no attributes', async function () {
       await expect(this.User.findAll({ attributes: [] })).to.be.rejectedWith(
-        Sequelize.QueryError,
+        QueryError,
         /^Attempted a SELECT query.+without selecting any columns$/,
       );
     });
@@ -84,7 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             model: Comment,
             as: 'comments',
-            attributes: [[Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'commentCount']],
+            attributes: [[sql.fn('COUNT', sql.col('comments.id')), 'commentCount']],
           },
         ],
       });
@@ -1457,7 +1464,7 @@ The following associations are defined on "Worker": "ToDos"`);
         expect(user).to.have.length(1);
       });
 
-      it('should be possible to order by sequelize.col()', async function () {
+      it('should be possible to order by sql.col()', async function () {
         const Company = this.sequelize.define('Company', {
           name: DataTypes.STRING,
         });
@@ -1465,7 +1472,7 @@ The following associations are defined on "Worker": "ToDos"`);
         await Company.sync();
 
         await Company.findAll({
-          order: [this.sequelize.col('name')],
+          order: [sql.col('name')],
         });
       });
 
@@ -1679,11 +1686,8 @@ The following associations are defined on "Worker": "ToDos"`);
 
     it('handles grouped rows', async function () {
       const info = await this.User.findAndCountAll({
-        attributes: [
-          [Sequelize.fn('sum', Sequelize.col('intVal')), 'sum'],
-          Sequelize.col('intVal'),
-        ],
-        group: [Sequelize.col('intVal')],
+        attributes: [[sql.fn('sum', sql.col('intVal')), 'sum'], sql.col('intVal')],
+        group: [sql.col('intVal')],
         countGroupedRows: true,
         raw: true,
       });
@@ -1761,7 +1765,7 @@ The following associations are defined on "Worker": "ToDos"`);
             username: 'some-username-that-is-not-used-anywhere',
           },
         }),
-      ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+      ).to.eventually.be.rejectedWith(EmptyResultError);
     });
 
     it('throws custom error with initialized', async () => {
@@ -1771,7 +1775,7 @@ The following associations are defined on "Worker": "ToDos"`);
           username: DataTypes.STRING(100),
         },
         {
-          rejectOnEmpty: new Sequelize.ConnectionError('Some Error'), // using custom error instance
+          rejectOnEmpty: new ConnectionError('Some Error'), // using custom error instance
         },
       );
 
@@ -1783,7 +1787,7 @@ The following associations are defined on "Worker": "ToDos"`);
             username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
           },
         }),
-      ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+      ).to.eventually.be.rejectedWith(ConnectionError);
     });
 
     it('throws custom error with instance', async () => {
@@ -1793,7 +1797,7 @@ The following associations are defined on "Worker": "ToDos"`);
           username: DataTypes.STRING(100),
         },
         {
-          rejectOnEmpty: Sequelize.ConnectionError, // using custom error instance
+          rejectOnEmpty: ConnectionError, // using custom error instance
         },
       );
 
@@ -1805,7 +1809,7 @@ The following associations are defined on "Worker": "ToDos"`);
             username: 'some-username-that-is-not-used-anywhere-for-sure-this-time',
           },
         }),
-      ).to.eventually.be.rejectedWith(Sequelize.ConnectionError);
+      ).to.eventually.be.rejectedWith(ConnectionError);
     });
   });
 });

@@ -34,6 +34,7 @@ import { Literal, literal } from './expression-builders/literal.js';
 import { sql } from './expression-builders/sql';
 import { Value } from './expression-builders/value';
 import { Where, where } from './expression-builders/where.js';
+import { GeoJsonType } from './geo-json';
 import { importModels } from './import-models.js';
 import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
@@ -53,9 +54,11 @@ import {
   noGetDialect,
   noGetQueryInterface,
   noSequelizeDataType,
+  noSequelizeInstanceProperty,
   noSequelizeIsDefined,
   noSequelizeModel,
   noSequelizeRandom,
+  noSequelizeStaticProperty,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
@@ -624,42 +627,455 @@ Use Sequelize#query if you wish to use replacements.`);
   }
 
   // Global exports
-  static Fn = Fn;
-  static Col = Col;
-  static Cast = Cast;
-  static Literal = Literal;
-  static Where = Where;
-  static List = List;
-  static Identifier = Identifier;
-  static Attribute = Attribute;
-  static Value = Value;
-  static AssociationPath = AssociationPath;
-  static JsonPath = JsonPath;
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Fn() {
+    noSequelizeStaticProperty('Fn');
 
-  static sql = sql;
+    return Fn;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Col() {
+    noSequelizeStaticProperty('Col');
+
+    return Col;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Cast() {
+    noSequelizeStaticProperty('Cast');
+
+    return Cast;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Literal() {
+    noSequelizeStaticProperty('Literal');
+
+    return Literal;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Where() {
+    noSequelizeStaticProperty('Where');
+
+    return Where;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get List() {
+    noSequelizeStaticProperty('List');
+
+    return List;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Identifier() {
+    noSequelizeStaticProperty('Identifier');
+
+    return Identifier;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Attribute() {
+    noSequelizeStaticProperty('Attribute');
+
+    return Attribute;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Value() {
+    noSequelizeStaticProperty('Value');
+
+    return Value;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get AssociationPath() {
+    noSequelizeStaticProperty('AssociationPath');
+
+    return AssociationPath;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get JsonPath() {
+    noSequelizeStaticProperty('JsonPath');
+
+    return JsonPath;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get sql() {
+    noSequelizeStaticProperty('sql');
+
+    return sql;
+  }
 
   // these are all available on the "sql" object, but are exposed for backwards compatibility
-  static fn = fn;
-  static col = col;
-  static cast = cast;
-  static literal = literal;
-  static json = json;
-  static where = where;
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get fn() {
+    noSequelizeStaticProperty('fn');
 
-  static and = and;
+    return fn;
+  }
 
-  static or = or;
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get col() {
+    noSequelizeStaticProperty('col');
 
-  static isModelStatic = isModelStatic;
+    return col;
+  }
 
-  static isSameInitialModel = isSameInitialModel;
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get cast() {
+    noSequelizeStaticProperty('cast');
 
-  static importModels = importModels;
+    return cast;
+  }
 
-  static TransactionNestMode = TransactionNestMode;
-  static TransactionType = TransactionType;
-  static Lock = Lock;
-  static IsolationLevel = IsolationLevel;
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get literal() {
+    noSequelizeStaticProperty('literal');
+
+    return literal;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get json() {
+    noSequelizeStaticProperty('json');
+
+    return json;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get where() {
+    noSequelizeStaticProperty('where');
+
+    return where;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get and() {
+    noSequelizeStaticProperty('and');
+
+    return and;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get or() {
+    noSequelizeStaticProperty('or');
+
+    return or;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get isModelStatic() {
+    noSequelizeStaticProperty('isModelStatic');
+
+    return isModelStatic;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get isSameInitialModel() {
+    noSequelizeStaticProperty('isSameInitialModel');
+
+    return isSameInitialModel;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get importModels() {
+    noSequelizeStaticProperty('importModels');
+
+    return importModels;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get TransactionNestMode() {
+    noSequelizeStaticProperty('TransactionNestMode');
+
+    return TransactionNestMode;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get TransactionType() {
+    noSequelizeStaticProperty('TransactionType');
+
+    return TransactionType;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Lock() {
+    noSequelizeStaticProperty('Lock');
+
+    return Lock;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get IsolationLevel() {
+    noSequelizeStaticProperty('IsolationLevel');
+
+    return IsolationLevel;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Op() {
+    noSequelizeStaticProperty('Op');
+
+    return Op;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get TableHints() {
+    noSequelizeStaticProperty('TableHints');
+
+    return TableHints;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get IndexHints() {
+    noSequelizeStaticProperty('IndexHints');
+
+    return IndexHints;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Transaction() {
+    noSequelizeStaticProperty('Transaction');
+
+    return Transaction;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get GeoJsonType() {
+    noSequelizeStaticProperty('GeoJsonType');
+
+    return GeoJsonType;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get QueryTypes() {
+    noSequelizeStaticProperty('QueryTypes');
+
+    return QueryTypes;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Validator() {
+    noSequelizeStaticProperty('Validator');
+
+    return Validator;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Model() {
+    noSequelizeStaticProperty('Model');
+
+    return Model;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get AbstractQueryInterface() {
+    noSequelizeStaticProperty('AbstractQueryInterface');
+
+    return AbstractQueryInterface;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get BelongsToAssociation() {
+    noSequelizeStaticProperty('BelongsToAssociation');
+
+    return BelongsToAssociation;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get HasOneAssociation() {
+    noSequelizeStaticProperty('HasOneAssociation');
+
+    return HasOneAssociation;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get HasManyAssociation() {
+    noSequelizeStaticProperty('HasManyAssociation');
+
+    return HasManyAssociation;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get BelongsToManyAssociation() {
+    noSequelizeStaticProperty('BelongsToManyAssociation');
+
+    return BelongsToManyAssociation;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get DataTypes() {
+    noSequelizeStaticProperty('DataTypes');
+
+    return DataTypes;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Deferrable() {
+    noSequelizeStaticProperty('Deferrable');
+
+    return Deferrable;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get ConstraintChecking() {
+    noSequelizeStaticProperty('ConstraintChecking');
+
+    return ConstraintChecking;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get Association() {
+    noSequelizeStaticProperty('Association');
+
+    return Association;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get useInflection() {
+    noSequelizeStaticProperty('useInflection');
+
+    return useInflection;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get SQL_NULL() {
+    noSequelizeStaticProperty('SQL_NULL');
+
+    return SQL_NULL;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get JSON_NULL() {
+    noSequelizeStaticProperty('JSON_NULL');
+
+    return JSON_NULL;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get ManualOnDelete() {
+    noSequelizeStaticProperty('ManualOnDelete');
+
+    return ManualOnDelete;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get ParameterStyle() {
+    noSequelizeStaticProperty('ParameterStyle');
+
+    return ParameterStyle;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get AbstractConnectionManager() {
+    noSequelizeStaticProperty('AbstractConnectionManager');
+
+    return AbstractConnectionManager;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get AbstractQueryGenerator() {
+    noSequelizeStaticProperty('AbstractQueryGenerator');
+
+    return AbstractQueryGenerator;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get AbstractQuery() {
+    noSequelizeStaticProperty('AbstractQuery');
+
+    return AbstractQuery;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  static get AbstractDialect() {
+    noSequelizeStaticProperty('AbstractDialect');
+
+    return AbstractDialect;
+  }
+
+  // Deprecated instance property aliases
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get fn() {
+    noSequelizeInstanceProperty('fn');
+
+    return fn;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get col() {
+    noSequelizeInstanceProperty('col');
+
+    return col;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get cast() {
+    noSequelizeInstanceProperty('cast');
+
+    return cast;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get literal() {
+    noSequelizeInstanceProperty('literal');
+
+    return literal;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get and() {
+    noSequelizeInstanceProperty('and');
+
+    return and;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get or() {
+    noSequelizeInstanceProperty('or');
+
+    return or;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get json() {
+    noSequelizeInstanceProperty('json');
+
+    return json;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get where() {
+    noSequelizeInstanceProperty('where');
+
+    return where;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get QueryTypes() {
+    noSequelizeInstanceProperty('QueryTypes');
+
+    return QueryTypes;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get Validator() {
+    noSequelizeInstanceProperty('Validator');
+
+    return Validator;
+  }
+
+  /** @deprecated Import directly from '@sequelize/core' instead */
+  get Association() {
+    noSequelizeInstanceProperty('Association');
+
+    return Association;
+  }
 
   log(...args) {
     let options;
@@ -735,15 +1151,7 @@ Remove the "values" property to resolve this issue.
   }
 }
 
-// Aliases
-Sequelize.prototype.fn = Sequelize.fn;
-Sequelize.prototype.col = Sequelize.col;
-Sequelize.prototype.cast = Sequelize.cast;
-Sequelize.prototype.literal = Sequelize.literal;
-Sequelize.prototype.and = Sequelize.and;
-Sequelize.prototype.or = Sequelize.or;
-Sequelize.prototype.json = Sequelize.json;
-Sequelize.prototype.where = Sequelize.where;
+// Deprecated instance property aliases
 Sequelize.prototype.validate = Sequelize.prototype.authenticate;
 
 /**
@@ -760,37 +1168,6 @@ Object.defineProperty(Sequelize, 'version', {
 });
 
 /**
- * Operators symbols to be used for querying data
- *
- * @see  {@link Operators}
- */
-Sequelize.Op = Op;
-
-/**
- * Available table hints to be used for querying data in mssql for table hints
- *
- * @see {@link TableHints}
- */
-Sequelize.TableHints = TableHints;
-
-/**
- * Available index hints to be used for querying data in mysql for index hints
- *
- * @see {@link IndexHints}
- */
-Sequelize.IndexHints = IndexHints;
-
-/**
- * A reference to the sequelize transaction class. Use this to access isolationLevels and types when creating a transaction
- *
- * @see {@link Transaction}
- * @see {@link Sequelize.transaction}
- */
-Sequelize.Transaction = Transaction;
-
-Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
-
-/**
  * A reference to Sequelize constructor from sequelize. Useful for accessing DataTypes, Errors etc.
  *
  * @see {@link Sequelize}
@@ -798,28 +1175,10 @@ Sequelize.GeoJsonType = require('./geo-json').GeoJsonType;
 Sequelize.prototype.Sequelize = Sequelize;
 
 /**
- * Available query types for use with `sequelize.query`
+ * Expose individual DataTypes on the Sequelize constructor.
  *
- * @see {@link QueryTypes}
+ * @deprecated Use DataTypes.X instead
  */
-Sequelize.prototype.QueryTypes = Sequelize.QueryTypes = QueryTypes;
-
-/**
- * Exposes the validator.js object, so you can extend it with custom validation functions. The validator is exposed both on the instance, and on the constructor.
- *
- * @see https://github.com/chriso/validator.js
- */
-Sequelize.prototype.Validator = Sequelize.Validator = Validator;
-
-Sequelize.Model = Model;
-
-Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsToAssociation = BelongsToAssociation;
-Sequelize.HasOneAssociation = HasOneAssociation;
-Sequelize.HasManyAssociation = HasManyAssociation;
-Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
-
-Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {
   Object.defineProperty(Sequelize, dataTypeName, {
     get() {
@@ -831,50 +1190,21 @@ for (const dataTypeName in DataTypes) {
 }
 
 /**
- * A reference to the deferrable collection. Use this to access the different deferrable options.
+ * Expose errors on the Sequelize constructor.
  *
- * @see {@link QueryInterface#addConstraint}
+ * @deprecated Import directly from '@sequelize/core' instead
  */
-Sequelize.Deferrable = Deferrable;
-
-/**
- * A reference to the deferrable collection. Use this to access the different deferrable options.
- *
- * @see {@link Transaction.Deferrable}
- * @see {@link Sequelize#transaction}
- */
-Sequelize.ConstraintChecking = ConstraintChecking;
-
-/**
- * A reference to the sequelize association class.
- *
- * @see {@link Association}
- */
-Sequelize.prototype.Association = Sequelize.Association = Association;
-
-/**
- * Provide alternative version of `inflection` module to be used by `pluralize` etc.
- *
- * @param {object} _inflection - `inflection` module
- */
-Sequelize.useInflection = useInflection;
-
-Sequelize.SQL_NULL = SQL_NULL;
-Sequelize.JSON_NULL = JSON_NULL;
-Sequelize.ManualOnDelete = ManualOnDelete;
-Sequelize.ParameterStyle = ParameterStyle;
-
-Sequelize.AbstractConnectionManager = AbstractConnectionManager;
-Sequelize.AbstractQueryGenerator = AbstractQueryGenerator;
-Sequelize.AbstractQuery = AbstractQuery;
-Sequelize.AbstractDialect = AbstractDialect;
-
-/**
- * Expose various errors available
- */
-
 for (const error of Object.keys(SequelizeErrors)) {
-  Sequelize[error] = SequelizeErrors[error];
+  const errorClass = SequelizeErrors[error];
+  Object.defineProperty(Sequelize, error, {
+    get() {
+      noSequelizeStaticProperty(error);
+
+      return errorClass;
+    },
+    enumerable: true,
+    configurable: true,
+  });
 }
 
 /**

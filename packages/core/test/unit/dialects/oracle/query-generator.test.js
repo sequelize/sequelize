@@ -5,7 +5,7 @@ const each = require('lodash/each');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 const { OracleQueryGenerator: QueryGenerator } = require('@sequelize/oracle');
 const Support = require('../../../support');
 
@@ -210,20 +210,20 @@ if (dialect.startsWith('oracle')) {
           title: 'functions work for group by',
           arguments: [
             'myTable',
-            sequelize => ({
-              group: [sequelize.fn('YEAR', sequelize.col('createdAt'))],
-            }),
+            {
+              group: [sql.fn('YEAR', sql.col('createdAt'))],
+            },
           ],
           expectation: 'SELECT * FROM "myTable" GROUP BY YEAR("createdAt");',
           needsSequelize: true,
         },
         {
-          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          title: 'It is possible to mix sql.fn and string arguments to group by',
           arguments: [
             'myTable',
-            sequelize => ({
-              group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title'],
-            }),
+            {
+              group: [sql.fn('YEAR', sql.col('createdAt')), 'title'],
+            },
           ],
           expectation: 'SELECT * FROM "myTable" GROUP BY YEAR("createdAt"), "title";',
           context: QueryGenerator,
@@ -398,9 +398,9 @@ if (dialect.startsWith('oracle')) {
         {
           arguments: [
             'myTable',
-            sequelize => ({
-              foo: sequelize.fn('NOW'),
-            }),
+            {
+              foo: sql.fn('NOW'),
+            },
           ],
           expectation: {
             query: 'INSERT INTO "myTable" ("foo") VALUES (NOW());',
@@ -630,9 +630,9 @@ if (dialect.startsWith('oracle')) {
         {
           arguments: [
             'myTable',
-            sequelize => ({
-              bar: sequelize.fn('NOW'),
-            }),
+            {
+              bar: sql.fn('NOW'),
+            },
             { name: 'foo' },
           ],
           expectation: {
@@ -644,9 +644,9 @@ if (dialect.startsWith('oracle')) {
         {
           arguments: [
             'myTable',
-            sequelize => ({
-              bar: sequelize.col('foo'),
-            }),
+            {
+              bar: sql.col('foo'),
+            },
             { name: 'foo' },
           ],
           expectation: {

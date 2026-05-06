@@ -7,7 +7,15 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { AggregateError, DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
+const {
+  AggregateError,
+  and,
+  DataTypes,
+  Op,
+  or,
+  sql,
+  UniqueConstraintError,
+} = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -324,7 +332,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
           ]);
         } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
+          if (!(error instanceof UniqueConstraintError)) {
             throw error;
           }
 
@@ -380,7 +388,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
           ]);
         } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
+          if (!(error instanceof UniqueConstraintError)) {
             throw error;
           }
 
@@ -1577,10 +1585,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail when array contains Sequelize.or / and', async function () {
       const res = await this.User.findAll({
-        where: [
-          this.sequelize.or({ username: 'vader' }, { username: 'luke' }),
-          this.sequelize.and({ id: [1, 2, 3] }),
-        ],
+        where: [or({ username: 'vader' }, { username: 'luke' }), and({ id: [1, 2, 3] })],
       });
 
       expect(res).to.have.length(2);
@@ -1588,7 +1593,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should not fail with an include', async function () {
       const users = await this.User.findAll({
-        where: this.sequelize.literal(
+        where: sql.literal(
           `${this.sequelize.queryGenerator.quoteIdentifiers('projects.title')} = ${this.sequelize.queryGenerator.escape('republic')}`,
         ),
         include: [{ model: this.Project }],
@@ -1606,7 +1611,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const users = await this.User.findAll({
         paranoid: false,
-        where: this.sequelize.literal(
+        where: sql.literal(
           `${tableName + this.sequelize.queryGenerator.quoteIdentifier('deletedAt')} IS NOT NULL `,
         ),
         include: [{ model: this.Project }],
@@ -1620,11 +1625,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const res = await this.User.findAll({
         paranoid: false,
         where: [
-          this.sequelize.or({ username: 'leia' }, { username: 'luke' }),
-          this.sequelize.and(
-            { id: [1, 2, 3] },
-            this.sequelize.or({ deletedAt: null }, { deletedAt: { [Op.gte]: new Date(0) } }),
-          ),
+          or({ username: 'leia' }, { username: 'luke' }),
+          and({ id: [1, 2, 3] }, or({ deletedAt: null }, { deletedAt: { [Op.gte]: new Date(0) } })),
         ],
       });
 

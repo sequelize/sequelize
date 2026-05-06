@@ -224,7 +224,7 @@ export class Sequelize<
   /**
    * Creates a object representing a database function. This can be used in search queries, both in where and
    * order parts, and as default values in column definitions. If you want to refer to columns in your
-   * function, you should use `sequelize.col`, so that the columns are properly interpreted as columns and
+   * function, you should use `sql.col`, so that the columns are properly interpreted as columns and
    * not a strings.
    *
    * Convert a user's username to upper case
@@ -249,7 +249,7 @@ export class Sequelize<
 
   /**
    * Creates a object representing a column in the DB. This is often useful in conjunction with
-   * `sequelize.fn`, since raw string arguments to fn will be escaped.
+   * `sql.fn`, since raw string arguments to fn will be escaped.
    *
    * @param col The name of the column
    *
@@ -349,13 +349,13 @@ export class Sequelize<
    * The attr can either be an object taken from `Model.rawAttributes` (for example `Model.rawAttributes.id`
    * or
    * `Model.rawAttributes.name`). The attribute should be defined in your model definition. The attribute can
-   * also be an object from one of the sequelize utility functions (`sequelize.fn`, `sequelize.col` etc.)
+   * also be an object from one of the sequelize utility functions (`sql.fn`, `sql.col` etc.)
    *
    * For string attributes, use the regular `{ where: { attr: something }}` syntax. If you don't want your
-   * string to be escaped, use `sequelize.literal`.
+   * string to be escaped, use `sql.literal`.
    *
    * @param attr The attribute, which can be either an attribute object from `Model.rawAttributes` or a
-   *   sequelize object, for example an instance of `sequelize.fn`. For simple string attributes, use the
+   *   sequelize object, for example an instance of `sql.fn`. For simple string attributes, use the
    *   POJO syntax
    * @param comparator Comparator
    * @param logic The condition. Can be both a simply type, or a further condition (`.or`, `.and`, `.literal`

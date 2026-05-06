@@ -5,7 +5,7 @@ const {
   DatabaseError,
   DataTypes,
   ForeignKeyConstraintError,
-  Sequelize,
+  QueryTypes,
   sql,
   UniqueConstraintError,
 } = require('@sequelize/core');
@@ -100,13 +100,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     describe('QueryTypes', () => {
       it('RAW', async function () {
         await this.sequelize.query(this.insertQuery, {
-          type: Sequelize.QueryTypes.RAW,
+          type: QueryTypes.RAW,
         });
 
         const [rows, count] = await this.sequelize.query(
           `SELECT * FROM ${qq(this.User.tableName)};`,
           {
-            type: Sequelize.QueryTypes.RAW,
+            type: QueryTypes.RAW,
           },
         );
 
@@ -143,7 +143,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               },
             },
           ),
-        ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+        ).to.be.rejectedWith(UniqueConstraintError);
         expect(spy.callCount).to.eql(['db2', 'ibmi'].includes(dialectName) ? 1 : 3);
       });
     });
@@ -782,7 +782,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       const expected = [{ foo: isBigInt ? '1' : 1, bar: isBigInt ? '2' : 2 }];
       const result = await this.sequelize.query(
         `select ? as ${queryGenerator.quoteIdentifier('foo')}, ? as ${queryGenerator.quoteIdentifier('bar')}${fromQuery()}`,
-        { type: this.sequelize.QueryTypes.SELECT, replacements: [1, 2] },
+        { type: QueryTypes.SELECT, replacements: [1, 2] },
       );
       expect(result).to.deep.equal(expected);
     });
@@ -848,7 +848,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         const result = await this.sequelize.query(
           `select $1${typeCast} as ${queryGenerator.quoteIdentifier('foo')}, $2${typeCast} as ${queryGenerator.quoteIdentifier('bar')}${fromQuery()}`,
           {
-            type: this.sequelize.QueryTypes.SELECT,
+            type: QueryTypes.SELECT,
             bind: [1, 2],
             logging(s) {
               logSql = s;

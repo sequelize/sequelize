@@ -7,7 +7,7 @@ const Support = require('../../support');
 const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
-const { DatabaseError, DataTypes, Op } = require('@sequelize/core');
+const { DatabaseError, DataTypes, Op, sql } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
@@ -261,7 +261,7 @@ if (dialect.startsWith('postgres')) {
       const baseTest = (
         await Foo.findAll({
           subQuery: false,
-          order: sequelizeMinifyAliases.literal(`"Foo".my_name`),
+          order: sql.literal(`"Foo".my_name`),
         })
       ).map(f => f.name);
       expect(baseTest[0]).to.equal('record1');
@@ -269,7 +269,7 @@ if (dialect.startsWith('postgres')) {
       const orderByAscSubquery = (
         await Foo.findAll({
           attributes: {
-            include: [[sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute']],
+            include: [[sql.literal(`"Foo".my_name`), 'customAttribute']],
           },
           subQuery: true,
           order: [['customAttribute']],
@@ -281,7 +281,7 @@ if (dialect.startsWith('postgres')) {
       const orderByDescSubquery = (
         await Foo.findAll({
           attributes: {
-            include: [[sequelizeMinifyAliases.literal(`"Foo".my_name`), 'customAttribute']],
+            include: [[sql.literal(`"Foo".my_name`), 'customAttribute']],
           },
           subQuery: true,
           order: [['customAttribute', 'DESC']],
@@ -489,7 +489,7 @@ if (dialect.startsWith('postgres')) {
       await Foo.findAll({
         subQuery: false,
         attributes: {
-          include: [[sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0']],
+          include: [[sql.literal('"Foo".my_name'), 'order_0']],
         },
         order: [['order_0', 'DESC']],
       });
