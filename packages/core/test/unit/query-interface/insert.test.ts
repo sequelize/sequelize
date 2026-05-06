@@ -4,6 +4,7 @@ import sinon from 'sinon';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#insert', () => {
+  const dialect = sequelize.dialect;
   const vars = beforeAll2(() => {
     const User = sequelize.define(
       'User',
@@ -22,6 +23,11 @@ describe('QueryInterface#insert', () => {
 
   // you'll find more replacement tests in query-generator tests
   it('does not parse replacements outside of raw sql', async () => {
+    // Oracle nedds bindDefinitions to be defined for outBinds which can't be obtained with bind and replacement present together.
+    if (dialect.name === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -77,6 +83,11 @@ describe('QueryInterface#insert', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
+    // Oracle doesn't recommend user defined bind. This can mess up the SQL statements leading to errors.
+    if (dialect.name === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 
@@ -109,6 +120,10 @@ describe('QueryInterface#insert', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
+    if (dialect.name === 'oracle') {
+      return;
+    }
+
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw');
 

@@ -18,6 +18,7 @@ import type { ValidationOptions } from '@sequelize/core/_non-semver-use-at-your-
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import { MySqlDialect } from '@sequelize/mysql';
 import { expectTypeOf } from 'expect-type';
+import type { WritableDeep } from 'type-fest';
 import type { SemiDeepWritable } from './type-helpers/deep-writable';
 
 {
@@ -122,21 +123,21 @@ import type { SemiDeepWritable } from './type-helpers/deep-writable';
     expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
   };
 
-  // hooks.beforeFind = (...args) => {
-  //   expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
-  // };
-  //
-  // hooks.beforeCount = (...args) => {
-  //   expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
-  // };
-  //
-  // hooks.beforeFindAfterExpandIncludeAll = (...args) => {
-  //   expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
-  // };
-  //
-  // hooks.beforeFindAfterOptions = (...args) => {
-  //   expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();
-  // };
+  hooks.beforeFind = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<WritableDeep<typeof args>>();
+  };
+
+  hooks.beforeCount = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<WritableDeep<typeof args>>();
+  };
+
+  hooks.beforeFindAfterExpandIncludeAll = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<WritableDeep<typeof args>>();
+  };
+
+  hooks.beforeFindAfterOptions = (...args) => {
+    expectTypeOf(args).toEqualTypeOf<WritableDeep<typeof args>>();
+  };
 
   hooks.beforeSync = (...args) => {
     expectTypeOf(args).toEqualTypeOf<SemiDeepWritable<typeof args>>();

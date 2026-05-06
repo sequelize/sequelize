@@ -26,7 +26,7 @@ interface Replaceable {
   /**
    * Only named replacements are allowed in query interface methods.
    */
-  replacements?: { [key: string]: unknown };
+  replacements?: Record<string, unknown>;
 }
 
 interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
@@ -127,7 +127,7 @@ export interface IndexOptions {
   type?: IndexType | undefined;
 
   /**
-   * Should the index by unique? Can also be triggered by setting type to `UNIQUE`
+   * Should the index be unique? Can also be triggered by setting type to `UNIQUE`
    *
    * @default false
    */

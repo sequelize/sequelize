@@ -8,7 +8,14 @@ import { DataTypes, Model, Op, sql } from '@sequelize/core';
 import { Attribute, BelongsTo } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import semver from 'semver';
-import { beforeAll2, beforeEach2, inlineErrorCause, sequelize, setResetMode } from './support';
+import {
+  beforeAll2,
+  beforeEach2,
+  inlineErrorCause,
+  isOracleJSONConstraintsSupported,
+  sequelize,
+  setResetMode,
+} from './support';
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -58,6 +65,10 @@ describe('JSON Manipulation', () => {
   });
 
   it('should be able to store strings that require escaping', async () => {
+    if (dialect.name === 'oracle' && !(await isOracleJSONConstraintsSupported())) {
+      return;
+    }
+
     const text = 'Multi-line \n \'$string\' needing "escaping" for $$ and $1 type values';
 
     await vars.User.create({ jsonAttr: text });
@@ -72,6 +83,16 @@ const JSON_STRING = 'kate';
 describe('JSON Querying', () => {
   if (!dialect.supports.dataTypes.JSON) {
     return;
+  }
+
+  if (dialect.name === 'oracle') {
+    before(async function checkOracleVersionForJSONSupport(this: Mocha.Context) {
+      return (async () => {
+        if (!(await isOracleJSONConstraintsSupported())) {
+          this.skip();
+        }
+      })();
+    });
   }
 
   setResetMode('none');

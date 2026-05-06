@@ -54,6 +54,10 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     groupedLimit: false,
     upserts: false,
     schemas: true,
+    inserts: {
+      updateOnDuplicate: '',
+      ignoreDuplicates: false,
+    },
     dataTypes: {
       COLLATE_BINARY: true,
     },
@@ -71,6 +75,7 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
       cascade: true,
       ifExists: true,
     },
+    select: { dummyTable: 'SYSIBM.SYSDUMMY1' },
   });
 
   readonly connectionManager: IBMiConnectionManager;

@@ -6,7 +6,7 @@ const { expect } = require('chai');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const queryGenerator = current.dialect.queryGenerator;
 const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -33,7 +33,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasTrigger: true,
       };
       expectsql(
-        sql.insertQuery(User.table, { user_name: 'triggertest' }, User.getAttributes(), options),
+        queryGenerator.insertQuery(
+          User.table,
+          { user_name: 'triggertest' },
+          User.getAttributes(),
+          options,
+        ),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
@@ -45,6 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name";',
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name" INTO :2,:3;`,
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
           bind: { sequelize_1: 'triggertest' },
@@ -61,7 +67,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       });
 
-      expectsql(sql.insertQuery(M.table, { id: 0 }, M.getAttributes()), {
+      expectsql(queryGenerator.insertQuery(M.table, { id: 0 }, M.getAttributes()), {
         query: {
           mssql:
             'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($sequelize_1); SET IDENTITY_INSERT [ms] OFF;',
@@ -69,6 +75,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES ($sequelize_1))',
           postgres: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
           snowflake: 'INSERT INTO "ms" ("id") VALUES ($sequelize_1);',
+          oracle: `INSERT INTO "ms" ("id") VALUES ($sequelize_1);`,
           default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1);',
         },
         bind: { sequelize_1: 0 },
@@ -111,7 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         let result;
 
         try {
-          result = sql.insertQuery(
+          result = queryGenerator.insertQuery(
             User.table,
             { user_name: 'testuser', pass_word: '12345' },
             User.fieldRawAttributesMap,
@@ -170,6 +177,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {
             query: {
               default: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+              oracle: `INSERT INTO "users" ("date") VALUES (:1);`,
             },
             bind: {
               // these dialects change the DB-side timezone, and the input doesn't specify the timezone offset, so we have to offset the value ourselves
@@ -179,6 +187,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
               // These dialects do specify the offset, so they can use whichever offset they want.
               postgres: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
+              oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20)) },
             },
           },
         );
@@ -212,6 +221,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("date") VALUES ($sequelize_1);`,
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -223,6 +233,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
+            oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20)) },
           },
         },
       );
@@ -255,6 +266,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("date") VALUES ($sequelize_1));',
             snowflake: 'INSERT INTO "users" ("date") VALUES ($sequelize_1);',
             mssql: 'INSERT INTO [users] ([date]) VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("date") VALUES ($sequelize_1);`,
             default: 'INSERT INTO `users` (`date`) VALUES ($sequelize_1);',
           },
           bind: {
@@ -266,6 +278,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
+            oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) },
           },
         },
       );
@@ -287,20 +300,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       );
 
-      expectsql(sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()), {
-        query: {
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
-          postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-          db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
-          snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-          mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
-          default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
+      expectsql(
+        queryGenerator.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()),
+        {
+          query: {
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1);`,
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
+          },
+          bind: {
+            postgres: { sequelize_1: 'null\u0000test' },
+            default: { sequelize_1: 'null\0test' },
+          },
         },
-        bind: {
-          postgres: { sequelize_1: 'null\u0000test' },
-          default: { sequelize_1: 'null\0test' },
-        },
-      });
+      );
     });
   });
 
@@ -336,7 +353,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       expectsql(
-        sql.bulkInsertQuery(
+        queryGenerator.bulkInsertQuery(
           User.table,
           [{ user_name: 'testuser', pass_word: '12345' }],
           { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys },
@@ -357,11 +374,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
           sqlite3:
             "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+          oracle: `INSERT INTO "users" ("user_name","pass_word") VALUES (:1,:2)`,
         },
       );
     });
 
-    it('allow bulk insert primary key with 0', () => {
+    (dialect.name !== 'oracle' ? it : it.skip)('allow bulk insert primary key with 0', () => {
       const M = Support.sequelize.define('m', {
         id: {
           type: DataTypes.INTEGER,
@@ -371,7 +389,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       expectsql(
-        sql.bulkInsertQuery(M.table, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
+        queryGenerator.bulkInsertQuery(
+          M.table,
+          [{ id: 0 }, { id: null }],
+          {},
+          M.fieldRawAttributesMap,
+        ),
         {
           query: {
             mssql:
@@ -426,7 +449,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         let result;
 
         try {
-          result = sql.bulkInsertQuery(
+          result = queryGenerator.bulkInsertQuery(
             User.table,
             [{ user_name: 'testuser', pass_word: '12345' }],
             {

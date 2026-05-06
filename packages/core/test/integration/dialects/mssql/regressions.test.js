@@ -56,12 +56,10 @@ if (dialect.startsWith('mssql')) {
       const nikita = await User.create({ UserName: 'Nikita' });
       const arya = await User.create({ UserName: 'Aryamaan' });
 
-      await Promise.all([
-        vyom.createLoginLog(),
-        shakti.createLoginLog(),
-        nikita.createLoginLog(),
-        arya.createLoginLog(),
-      ]);
+      await vyom.createLoginLog();
+      await shakti.createLoginLog();
+      await nikita.createLoginLog();
+      await arya.createLoginLog();
 
       const logs = await LoginLog.findAll({
         include: [

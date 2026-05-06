@@ -18,7 +18,7 @@ const { list } = sqlTag;
 
 const dialect = sequelize.dialect;
 
-const supportsNamedParameters = dialect.name === 'sqlite3' || dialect.name === 'mssql';
+const supportsNamedParameters = ['sqlite3', 'mssql'].includes(dialect.name);
 
 describe('mapBindParameters', () => {
   it('parses named bind parameters', () => {
@@ -32,6 +32,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT "$id" FROM users WHERE id = '$id' OR id = $1 OR id = '''$id'''`,
       sqlite3: `SELECT \`$id\` FROM users WHERE id = '$id' OR id = $id OR id = '''$id'''`,
       mssql: `SELECT [$id] FROM users WHERE id = '$id' OR id = @id OR id = '''$id'''`,
+      oracle: `SELECT "$id" FROM users WHERE id = '$id' OR id = :1 OR id = '''$id'''`,
     });
 
     if (supportsNamedParameters) {
@@ -52,6 +53,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = $1`,
       sqlite3: `SELECT * FROM users WHERE id = $1`,
       mssql: `SELECT * FROM users WHERE id = @1`,
+      oracle: `SELECT * FROM users WHERE id = :1`,
     });
 
     if (supportsNamedParameters) {
@@ -71,6 +73,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = $1::string`,
       sqlite3: `SELECT * FROM users WHERE id = $param::string`,
       mssql: `SELECT * FROM users WHERE id = @param::string`,
+      oracle: `SELECT * FROM users WHERE id = :1::string`,
     });
   });
 
@@ -82,6 +85,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE json_col->>$1`,
       sqlite3: `SELECT * FROM users WHERE json_col->>$key`,
       mssql: `SELECT * FROM users WHERE json_col->>@key`,
+      oracle: `SELECT * FROM users WHERE json_col->>:1`,
     });
   });
 
@@ -94,6 +98,7 @@ describe('mapBindParameters', () => {
       sqlite3: `SELECT * FROM users WHERE id = $id;`,
       mssql: `SELECT * FROM users WHERE id = @id;`,
       ibmi: `SELECT * FROM users WHERE id = ?;`, // 'default' removes the ; for ibmi
+      oracle: `SELECT * FROM users WHERE id = :1;`,
     });
   });
 
@@ -121,6 +126,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = $1`,
       sqlite3: `SELECT * FROM users WHERE id = $a`,
       mssql: `SELECT * FROM users WHERE id = @a`,
+      oracle: `SELECT * FROM users WHERE id = :1`,
     });
 
     if (supportsNamedParameters) {
@@ -143,11 +149,12 @@ describe('mapBindParameters', () => {
       postgres: `SELECT * FROM users WHERE id = fn($1) OR id = fn('a',$1) OR id=$1 OR id$id = 1 OR id = $1`,
       sqlite3: `SELECT * FROM users WHERE id = fn($id) OR id = fn('a',$id) OR id=$id OR id$id = 1 OR id = $id`,
       mssql: `SELECT * FROM users WHERE id = fn(@id) OR id = fn('a',@id) OR id=@id OR id$id = 1 OR id = @id`,
+      oracle: `SELECT * FROM users WHERE id = fn(:1) OR id = fn('a',:1) OR id=:1 OR id$id = 1 OR id = :1`,
     });
 
     if (supportsNamedParameters) {
       expect(bindOrder).to.be.null;
-    } else if (dialect.name === 'postgres') {
+    } else if (dialect.name === 'postgres' || dialect.name === 'oracle') {
       expect(bindOrder).to.deep.eq(['id']);
     } else {
       expect(bindOrder).to.deep.eq(['id', 'id', 'id', 'id']);
@@ -196,6 +203,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT z$$ $1 x$$ * FROM users`,
       sqlite3: `SELECT z$$ $id x$$ * FROM users`,
       mssql: `SELECT z$$ @id x$$ * FROM users`,
+      oracle: `SELECT z$$ :1 x$$ * FROM users`,
     });
 
     if (supportsNamedParameters) {
@@ -216,6 +224,7 @@ describe('mapBindParameters', () => {
       postgres: `SELECT $$ abc $$ AS string FROM users WHERE id = $1`,
       sqlite3: `SELECT $$ abc $$ AS string FROM users WHERE id = $id`,
       mssql: `SELECT $$ abc $$ AS string FROM users WHERE id = @id`,
+      oracle: `SELECT $$ abc $$ AS string FROM users WHERE id = :1`,
     });
 
     if (supportsNamedParameters) {
@@ -316,6 +325,7 @@ SELECT * FROM users WHERE id = e'\\' $id' OR id = $id`),
       postgres: `SELECT * FROM users WHERE id = '\\\\' OR id = $1`,
       sqlite3: `SELECT * FROM users WHERE id = '\\\\' OR id = $id`,
       mssql: `SELECT * FROM users WHERE id = '\\\\' OR id = @id`,
+      oracle: `SELECT * FROM users WHERE id = '\\\\' OR id = :1`,
     });
 
     if (supportsNamedParameters) {
@@ -365,6 +375,10 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
       mssql: `
         SELECT * FROM users -- WHERE id = $id
         WHERE id = @id
+      `,
+      oracle: `
+        SELECT * FROM users -- WHERE id = $id
+        WHERE id = :1
       `,
     });
   });
@@ -421,6 +435,12 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
         WHERE id = $id
         */
         WHERE id = @id
+      `,
+      oracle: `
+        SELECT * FROM users /*
+        WHERE id = $id
+        */
+        WHERE id = :1
       `,
     });
   });

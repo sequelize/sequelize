@@ -12,6 +12,7 @@ describe('QueryGenerator#versionQuery', () => {
       snowflake: 'SELECT CURRENT_VERSION() AS "version"',
       db2: 'select service_level as "version" from TABLE (sysproc.env_get_inst_info()) as A',
       ibmi: `SELECT CONCAT(OS_VERSION, CONCAT('.', OS_RELEASE)) AS "version" FROM SYSIBMADM.ENV_SYS_INFO`,
+      oracle: `SELECT VERSION_FULL AS "version" FROM PRODUCT_COMPONENT_VERSION WHERE PRODUCT LIKE 'Oracle%'`,
     });
   });
 });

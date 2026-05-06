@@ -281,7 +281,7 @@ export class Db2Query extends AbstractQuery {
     }
 
     match = err.message.match(
-      /SQL0803N {2}One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "(\d)+" constrains table "(.*)\.(.*)" from having duplicate values for the index key./,
+      /SQL0803N {2}An error or warning occurred. {2}One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "(\d)+" constrains table "(.*)\.(.*)" from having duplicate values for the index key./,
     );
     if (match && match.length > 0) {
       let uniqueIndexName = '';

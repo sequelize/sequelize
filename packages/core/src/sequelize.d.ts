@@ -30,7 +30,6 @@ import type {
   Poolable,
   Transactionable,
 } from './model';
-import type { SUPPORTED_DIALECTS } from './sequelize-typescript.js';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 
 export type RetryOptions = RetryAsPromisedOptions;
@@ -94,8 +93,6 @@ export interface NormalizedReplicationOptions<Dialect extends AbstractDialect> {
   write: ConnectionOptions<Dialect>;
 }
 
-export type DialectName = (typeof SUPPORTED_DIALECTS)[number];
-
 export interface LegacyDialectOptions {
   [key: string]: any;
   account?: string;
@@ -110,7 +107,7 @@ export interface LegacyDialectOptions {
 
 export interface SetSessionVariablesOptions extends Omit<QueryOptions, 'raw' | 'plain' | 'type'> {}
 
-export type BindOrReplacements = { [key: string]: unknown } | unknown[];
+export type BindOrReplacements = Record<string, unknown> | unknown[];
 type FieldMap = { [key: string]: string };
 
 /**

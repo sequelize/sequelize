@@ -117,6 +117,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'db2':
           assertVal = 'VARCHAR';
           break;
+        case 'oracle':
+          assertVal = 'NVARCHAR2';
+          break;
       }
 
       expect(username.type).to.equal(assertVal);
@@ -124,6 +127,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       switch (dialect) {
         case 'sqlite3':
+        case 'oracle':
           expect(username.defaultValue).to.be.undefined;
           break;
         default:
@@ -151,12 +155,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         case 'ibmi':
           assertVal = 'SMALLINT';
           break;
+        case 'oracle':
+          assertVal = 'CHAR';
+          break;
       }
 
       expect(isAdmin.type).to.equal(assertVal);
       expect(isAdmin.allowNull).to.be.true;
       switch (dialect) {
         case 'sqlite3':
+        case 'oracle':
           expect(isAdmin.defaultValue).to.be.undefined;
           break;
         default:
@@ -168,6 +176,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.special).to.have.length(2);
       } else if (dialect === 'mysql') {
         expect(enumVals.type).to.eql("ENUM('hello','world')");
+      } else if (dialect === 'oracle') {
+        expect(enumVals.type).to.eql('VARCHAR2');
       }
 
       if (['postgres', 'mysql', 'mssql'].includes(dialect)) {

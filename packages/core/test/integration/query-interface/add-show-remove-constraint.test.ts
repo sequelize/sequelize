@@ -78,6 +78,8 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             'Expected error to be an instance of AggregateError',
           );
           err = error.errors.at(-1);
+        } else if (dialect === 'oracle') {
+          expect(error).to.be.instanceOf(UnknownConstraintError);
         } else {
           assert(
             err instanceof UnknownConstraintError,
@@ -119,7 +121,6 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
       });
-
       await queryInterface.removeConstraint('actors', 'custom_constraint_name');
       const constraintsAfterRemove = await queryInterface.showConstraints('actors', {
         constraintName: 'custom_constraint_name',
@@ -296,7 +297,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             field: 'id',
           },
           onDelete: 'CASCADE',
-          onUpdate: 'CASCADE',
+          onUpdate: dialect !== 'oracle' ? 'CASCADE' : undefined,
         });
 
         const constraintType = await queryInterface.showConstraints('actors', {
@@ -344,8 +345,8 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         const constraintType = await queryInterface.showConstraints('actors', {
           constraintType: 'CHECK',
         });
-        if (dialect === 'postgres') {
-          // Postgres adds a CHECK constraint for each column with not null
+        if (dialect === 'postgres' || dialect === 'oracle') {
+          // These dialects add a CHECK constraint for each column with not null
           expect(constraintType).to.have.length(6);
           expect(constraintType[5].constraintType).to.equal('CHECK');
         } else {
@@ -359,6 +360,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
           ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          ...(['oracle'].includes(dialect) && { columnNames: ['age'] }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'CHECK',
@@ -368,7 +370,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           definition:
             dialect === 'mssql'
               ? '([age]>(10))'
-              : dialect === 'db2'
+              : dialect === 'db2' || dialect === 'oracle'
                 ? '"age" > 10'
                 : dialect === 'postgres'
                   ? '(age > 10)'

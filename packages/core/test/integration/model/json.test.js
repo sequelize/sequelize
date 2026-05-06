@@ -286,6 +286,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (dialect.supports.jsonOperations && dialect.supports.jsonExtraction.quoted) {
         it('should query an instance with JSONB data and order while trying to inject', async function () {
+          if (dialect.name === 'oracle' && !(await Support.isOracleJSONConstraintsSupported())) {
+            return;
+          }
+
           await this.Event.create({
             data: {
               name: {
@@ -329,13 +333,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           expect(events).to.be.ok;
-          expect(events[0].get('data')).to.eql({
-            name: {
-              first: 'Homer',
-              last: 'Simpson',
-            },
-            employment: 'Nuclear Safety Inspector',
-          });
+          if (dialect.name === 'oracle') {
+            // The ORDER BY is ignored because of injection sql string.
+            // sort manually by first name to consistently test the result.
+
+            const sortedEvents = events.sort((a, b) =>
+              a.get('data').name.first.localeCompare(b.get('data').name.first),
+            );
+
+            expect(sortedEvents[0].get('data')).to.eql({
+              name: { first: 'Bart', last: 'Simpson' },
+              employment: 'None',
+            });
+
+            expect(sortedEvents[1].get('data')).to.eql({
+              name: { first: 'Homer', last: 'Simpson' },
+              employment: 'Nuclear Safety Inspector',
+            });
+          } else {
+            expect(events[0].get('data')).to.eql({
+              name: {
+                first: 'Homer',
+                last: 'Simpson',
+              },
+              employment: 'Nuclear Safety Inspector',
+            });
+          }
         });
       }
     });

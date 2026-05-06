@@ -11,7 +11,42 @@ export type CommandFlags<Flags extends FlagInput> = Interfaces.InferredFlags<
   (typeof SequelizeCommand)['baseFlags'] & Flags
 >;
 
+/**
+ * Creates an umzug-compatible logger that routes output through the oclif command's
+ * own log/warn/error methods instead of the global console.
+ *
+ * @param cmd
+ */
+export function makeUmzugLogger(
+  cmd: Command,
+): Record<'info' | 'warn' | 'error' | 'debug', (message: Record<string, unknown>) => void> {
+  const fmt = (msg: Record<string, unknown>) =>
+    Object.entries(msg)
+      .map(([k, v]) => `${k}=${String(v)}`)
+      .join(' ');
+
+  return {
+    info: msg => cmd.log(fmt(msg)),
+    warn: msg => cmd.warn(fmt(msg)),
+    error: msg => cmd.error(fmt(msg), { exit: false }),
+    debug: msg => cmd.log(fmt(msg)),
+  };
+}
+
 export abstract class SequelizeCommand<Flags extends FlagInput> extends Command {
+  override toErrorJson(err: unknown) {
+    if (err instanceof Error) {
+      return {
+        error: {
+          message: err.message,
+          code: (err as NodeJS.ErrnoException).code,
+        },
+      };
+    }
+
+    return { error: err };
+  }
+
   static strict = false;
 
   static baseFlags = {
@@ -64,7 +99,7 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       return;
     }
 
-    // In interactive mode, we want to prompt the user for all flags that are not provided.
+    // In interactive mode, we want to prompt the user for all required flags that are not provided.
     // Mark all flags as optional and remove their default value before parsing,
     // then prompt all missing flags
 
@@ -81,6 +116,12 @@ export abstract class SequelizeCommand<Flags extends FlagInput> extends Command 
       }
 
       const flag = strictFlagConfig[flagKey];
+
+      // Only prompt for required flags; optional flags use their default (or undefined)
+      if (!flag.required) {
+        continue;
+      }
+
       switch (flag.type) {
         case 'option': {
           if (flag.options) {

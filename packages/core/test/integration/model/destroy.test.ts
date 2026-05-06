@@ -190,7 +190,7 @@ describe('destroy', () => {
       expect(await Log.findAll()).to.have.lengthOf(0);
     });
 
-    it('maps the the column name', async () => {
+    it('maps the column name', async () => {
       const UserProject = sequelize.define('UserProject', {
         userId: {
           type: DataTypes.INTEGER,

@@ -63,6 +63,9 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
       where: true,
       include: true,
     },
+    inserts: {
+      ignoreDuplicates: false,
+    },
     tmpTableTrigger: true,
     dataTypes: {
       JSON: true,
