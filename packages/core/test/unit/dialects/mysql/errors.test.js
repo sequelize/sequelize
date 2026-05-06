@@ -48,6 +48,24 @@ if (dialect === 'mysql') {
       expect(parsedErr.index).to.equal('brothers_ibfk_1');
     });
 
+    it('truncated FK error messages are parsed correctly', () => {
+      const fakeErr = new Error(
+        'Cannot add or update a child row: a foreign key constraint fails (`swch`.`merchant_site_to_merchant_site_tag_links`, CONSTRAINT `iamputtingjusttheboringeststuff8lettersandrandomshittyy` FOREIGN KEY (`merchant_site_tag_id`) REFERENCES `merchant_site_tags` (`i)',
+      );
+
+      fakeErr.code = 1452;
+
+      const parsedErr = queryProto.formatError(fakeErr);
+
+      expect(parsedErr).to.be.instanceOf(Sequelize.ForeignKeyConstraintError);
+      expect(parsedErr.cause).to.equal(fakeErr);
+      expect(parsedErr.reltype).to.equal('child');
+      expect(parsedErr.table).to.be.undefined;
+      expect(parsedErr.fields).to.be.an('array').to.deep.equal(['merchant_site_tag_id']);
+      expect(parsedErr.value).to.be.undefined;
+      expect(parsedErr.index).to.equal('iamputtingjusttheboringeststuff8lettersandrandomshittyy');
+    });
+
     it('newlines contained in err message are parsed correctly', () => {
       const fakeErr = new Error("Duplicate entry '13888888888\r' for key 'num'");
 
