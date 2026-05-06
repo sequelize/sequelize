@@ -306,7 +306,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       offset += 1000;
     }
 
-    return `${commands.join(';')};`;
+    return { query: `${commands.join(';')};` };
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {

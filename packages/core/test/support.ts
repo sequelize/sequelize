@@ -472,10 +472,15 @@ export function expectsql(
   }
 
   if ('bind' in assertions) {
-    const bind =
-      assertions.bind[sequelize.dialect.name as DialectName] ||
-      assertions.bind.default ||
-      assertions.bind;
+    let bind;
+    if (sequelize.dialect.name in assertions.bind) {
+      bind = assertions.bind[sequelize.dialect.name as DialectName];
+    } else if ('default' in assertions.bind) {
+      bind = assertions.bind.default;
+    } else {
+      bind = assertions.bind;
+    }
+
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
