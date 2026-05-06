@@ -2919,6 +2919,15 @@ ${associationOwner._getAssociationDebugList()}`);
     this._injectScope(options);
     this._optionsMustContainWhere(options);
 
+    options.model = this;
+
+    // Normalize and validate includes for JOIN-based filtering
+    this._conformIncludes(options, this);
+    if (options.include) {
+      this._expandIncludeAll(options, this);
+      _validateIncludedElements(options);
+    }
+
     const modelDefinition = this.modelDefinition;
 
     options = this._paranoidClause(
@@ -2961,8 +2970,6 @@ ${associationOwner._getAssociationDebugList()}`);
       values[updatedAtAttrName] = this._getDefaultTimestamp(updatedAtAttrName) || new Date();
     }
 
-    options.model = this;
-
     let valuesUse;
     // Validate
     if (options.validate) {
@@ -3000,6 +3007,7 @@ ${associationOwner._getAssociationDebugList()}`);
     if (options.individualHooks) {
       instances = await this.findAll({
         where: options.where,
+        include: options.include,
         connection: options.connection,
         transaction: options.transaction,
         logging: options.logging,
