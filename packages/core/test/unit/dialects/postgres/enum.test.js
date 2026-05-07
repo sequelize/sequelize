@@ -215,6 +215,42 @@ describe('PostgresQueryGenerator', () => {
     });
   });
 
+  describe('addColumnQuery', () => {
+    it('prepends pgEnum with custom name', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }),
+      });
+      const result = sq.dialect.queryGenerator.addColumnQuery(
+        User.table,
+        'mood',
+        User.getAttributes().mood,
+      );
+      // pgEnum CREATE TYPE statement should use the custom name
+      expect(result).to.include('CREATE TYPE "public"."mood_type"');
+      // ADD COLUMN should reference the custom type name
+      expect(result).to.match(/"mood" "public"\."mood_type"/);
+    });
+
+    it('prepends pgEnum with custom name and schema for ARRAY(ENUM)', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        moods: DataTypes.ARRAY(
+          DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'shared' }),
+        ),
+      });
+      const result = sq.dialect.queryGenerator.addColumnQuery(
+        User.table,
+        'moods',
+        User.getAttributes().moods,
+      );
+      // pgEnum CREATE TYPE statement should use the custom name in the custom schema
+      expect(result).to.include('CREATE TYPE "shared"."mood_type"');
+      // ADD COLUMN should reference the custom type as an array
+      expect(result).to.match(/"moods" "shared"\."mood_type"\[\]/);
+    });
+  });
+
   describe('pgEnumAdd', () => {
     it('creates alter type with exists', () => {
       const { PublicUser } = vars;
@@ -435,6 +471,36 @@ describe('PostgresQueryGenerator', () => {
       const drops = getDropTypeSqls(stub);
       expect(drops).to.have.length(1);
       expect(drops[0]).to.equal('DROP TYPE IF EXISTS "public"."mood_type"; ');
+    });
+
+    it('drops a named enum from an ARRAY(ENUM) column when used only by the dropped model', async () => {
+      const sq = createSequelizeInstance();
+      sq.define('user', {
+        moods: DataTypes.ARRAY(DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' })),
+      });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.dropTable('users');
+
+      const drops = getDropTypeSqls(stub);
+      expect(drops).to.have.length(1);
+      expect(drops[0]).to.equal('DROP TYPE IF EXISTS "public"."mood_type"; ');
+    });
+
+    it('does not drop a named enum from an ARRAY(ENUM) column when shared with another model', async () => {
+      const sq = createSequelizeInstance();
+      sq.define('user', {
+        moods: DataTypes.ARRAY(DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' })),
+      });
+      sq.define('profile', {
+        moods: DataTypes.ARRAY(DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' })),
+      });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.dropTable('users');
+
+      const drops = getDropTypeSqls(stub);
+      expect(drops).to.have.length(0);
     });
 
     it('drops a named enum when another model uses the same name in a different schema', async () => {

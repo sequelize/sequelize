@@ -322,11 +322,18 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
     const attributes = model.modelDefinition.attributes;
 
     for (const attribute of attributes.values()) {
-      if (!(attribute.type instanceof DataTypes.ENUM)) {
+      const enumType =
+        attribute.type instanceof DataTypes.ARRAY &&
+        attribute.type.options.type instanceof DataTypes.ENUM
+          ? attribute.type.options.type
+          : attribute.type instanceof DataTypes.ENUM
+            ? attribute.type
+            : null;
+
+      if (enumType === null) {
         continue;
       }
 
-      const enumType = attribute.type;
       let sql;
 
       if (enumType.options.name) {
@@ -341,6 +348,8 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
                 ? otherAttr.type.options.type
                 : otherAttr.type;
 
+            // Note: undefined schema (use table's default) and an explicit 'public'
+            // are treated as different here even if they resolve to the same schema.
             return (
               otherType instanceof DataTypes.ENUM &&
               otherType.options.name === enumType.options.name &&

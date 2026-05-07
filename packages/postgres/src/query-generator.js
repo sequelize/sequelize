@@ -167,6 +167,10 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           this.pgEnumName(tableName, attributeName, { schema: false }),
         );
         definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        // TODO: custom-named ENUMs (DataTypes.ENUM({ name: '...' })) produce a qualified
+        // identifier here rather than ENUM(...), so the USING cast is never added for them.
+        // Fixing this properly requires changeColumnQuery to receive DataType objects rather
+        // than pre-processed strings.
       }
 
       if (/UNIQUE;*$/.test(definition)) {
