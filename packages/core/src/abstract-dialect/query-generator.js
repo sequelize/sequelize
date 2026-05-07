@@ -2416,10 +2416,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           aliasCandidates.add(`${dottedTableSource}.${attrSource}`);
         }
 
-        if (association.sourceKeyField && association.sourceKeyField !== attrSource) {
-          aliasCandidates.add(association.sourceKeyField);
-          aliasCandidates.add(`${tableSource}.${association.sourceKeyField}`);
-          aliasCandidates.add(`${dottedTableSource}.${association.sourceKeyField}`);
+        // Use the indexed plural getter for composite associations; the singular
+        // `sourceKeyField` getter throws when no single sourceKey is defined.
+        const sourceKeyField = isCompositeKey
+          ? association.sourceKeyFields?.[i]
+          : association.sourceKeyField;
+
+        if (sourceKeyField && sourceKeyField !== attrSource) {
+          aliasCandidates.add(sourceKeyField);
+          aliasCandidates.add(`${tableSource}.${sourceKeyField}`);
+          aliasCandidates.add(`${dottedTableSource}.${sourceKeyField}`);
         }
 
         let aliasedSource = null;
@@ -2433,7 +2439,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
 
         if (!aliasedSource) {
-          const joinColumn = association.sourceKeyField || attrSource || identSources[i];
+          const joinColumn = sourceKeyField || attrSource || identSources[i];
 
           if (isRootParent) {
             sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
