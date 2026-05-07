@@ -7,7 +7,12 @@ export interface GetConnectionOptions {
   type: 'read' | 'write';
 
   /**
-   * Force master or write replica to get connection from
+   * Force the query to use the primary (write) pool, regardless of the query type.
+   */
+  usePrimary?: boolean;
+
+  /**
+   * @deprecated Use {@link GetConnectionOptions.usePrimary} instead.
    */
   useMaster?: boolean;
 }

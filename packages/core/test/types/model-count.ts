@@ -18,6 +18,6 @@ expectTypeOf(
         [Op.gte]: new Date(),
       },
     },
-    useMaster: false,
+    usePrimary: false,
   }),
 ).toEqualTypeOf<Promise<number>>();

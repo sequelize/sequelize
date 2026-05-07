@@ -145,3 +145,9 @@ export const noSequelizeRandom = deprecate(
   'Do not use sequelize.random(). Use sql.random instead, as it can be used without needing a reference to sequelize.',
   'SEQUELIZE0032',
 );
+
+export const useMasterToUsePrimary = deprecate(
+  noop,
+  'The "useMaster" option has been renamed to "usePrimary".',
+  'SEQUELIZE0033',
+);
