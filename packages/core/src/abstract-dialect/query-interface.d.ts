@@ -93,7 +93,13 @@ export interface IndexField {
   /**
    * The direction the column should be sorted in
    */
-  order?: 'ASC' | 'DESC';
+  order?:
+    | 'ASC'
+    | 'DESC'
+    | 'ASC NULLS FIRST'
+    | 'ASC NULLS LAST'
+    | 'DESC NULLS FIRST'
+    | 'DESC NULLS LAST';
 
   /**
    * The collation (sort order) for the column

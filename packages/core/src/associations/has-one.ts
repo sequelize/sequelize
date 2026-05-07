@@ -1,6 +1,6 @@
 import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
-import { AssociationError } from '../errors/index.js';
+import { AssociationError } from '../errors';
 import type {
   AttributeNames,
   Attributes,
@@ -52,6 +52,10 @@ export class HasOneAssociation<
     return this.inverse.foreignKey;
   }
 
+  get foreignKeys() {
+    return this.inverse.foreignKeys;
+  }
+
   /**
    * The column name of the foreign key (on the target model)
    */
@@ -72,7 +76,7 @@ export class HasOneAssociation<
    * The Column Name of the source key.
    */
   get sourceKeyField(): string {
-    return this.inverse.targetKeyField;
+    return this.inverse.targetKeyField(this.sourceKey);
   }
 
   /**
@@ -230,10 +234,20 @@ If having two associations does not make sense (for instance a "spouse" associat
 
     const where = Object.create(null);
 
-    if (instances.length > 1) {
+    if (instances.length > 1 && !Array.isArray(this.options.foreignKey.keys)) {
       where[this.foreignKey] = {
         [Op.in]: instances.map(instance => instance.get(this.sourceKey)),
       };
+    } else if (instances.length > 1 && Array.isArray(this.options.foreignKey.keys)) {
+      for (const key of this.foreignKeys) {
+        where[key.sourceKey] = {
+          [Op.in]: instances.map(instance => instance.get(key.targetKey)),
+        };
+      }
+    } else if (Array.isArray(this.options.foreignKey.keys)) {
+      for (const key of this.foreignKeys) {
+        where[key.sourceKey] = instances[0].get(key.targetKey);
+      }
     } else {
       where[this.foreignKey] = instances[0].get(this.sourceKey);
     }
@@ -248,8 +262,18 @@ If having two associations does not make sense (for instance a "spouse" associat
       const results = await Target.findAll(options);
       const result = new Map<any, T | null>();
 
+      const isComposite =
+        Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1;
+
       for (const targetInstance of results) {
-        result.set(targetInstance.get(this.foreignKey, { raw: true }), targetInstance);
+        if (isComposite) {
+          const mapKey = this.foreignKeys
+            .map(fk => targetInstance.get(fk.sourceKey, { raw: true }))
+            .join('&');
+          result.set(mapKey, targetInstance);
+        } else {
+          result.set(targetInstance.get(this.foreignKey, { raw: true }), targetInstance);
+        }
       }
 
       return result;
@@ -311,9 +335,14 @@ This option is only available in BelongsTo associations.`);
       return oldInstance;
     }
 
+    const isComposite =
+      Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1;
+
     if (oldInstance) {
-      const foreignKeyIsNullable =
-        this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
+      const targetAttributes = this.target.modelDefinition.attributes;
+      const foreignKeyIsNullable = isComposite
+        ? this.foreignKeys.every(fk => targetAttributes.get(fk.sourceKey)?.allowNull ?? true)
+        : (targetAttributes.get(this.foreignKey)?.allowNull ?? true);
 
       if (options.destroyPrevious || !foreignKeyIsNullable) {
         await oldInstance.destroy({
@@ -323,15 +352,14 @@ This option is only available in BelongsTo associations.`);
           transaction: options.transaction,
         });
       } else {
-        await oldInstance.update(
-          {
-            [this.foreignKey]: null,
-          },
-          {
-            ...options,
-            association: true,
-          },
-        );
+        const clearedForeignKeys: Record<string, null> = isComposite
+          ? Object.fromEntries(this.foreignKeys.map(fk => [fk.sourceKey, null]))
+          : { [this.foreignKey]: null };
+
+        await oldInstance.update(clearedForeignKeys, {
+          ...options,
+          association: true,
+        });
       }
     }
 
@@ -349,7 +377,13 @@ This option is only available in BelongsTo associations.`);
       }
 
       Object.assign(associatedInstance, this.scope);
-      associatedInstance.set(this.foreignKey, sourceInstance.get(this.sourceKeyAttribute));
+      if (isComposite) {
+        for (const fk of this.foreignKeys) {
+          associatedInstance.set(fk.sourceKey, sourceInstance.get(fk.targetKey));
+        }
+      } else {
+        associatedInstance.set(this.foreignKey, sourceInstance.get(this.sourceKeyAttribute));
+      }
 
       return associatedInstance.save(options);
     }
@@ -385,10 +419,20 @@ This option is only available in BelongsTo associations.`);
       }
     }
 
-    // @ts-expect-error -- implicit any, can't fix
-    values[this.foreignKey] = sourceInstance.get(this.sourceKeyAttribute);
-    if (options.fields) {
-      options.fields.push(this.foreignKey);
+    if (Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1) {
+      for (const foreignKey of this.options.foreignKey.keys) {
+        // @ts-expect-error -- implicit any, can't fix
+        values[foreignKey.sourceKey] = sourceInstance.get(foreignKey.targetKey);
+        if (options.fields) {
+          options.fields.push(foreignKey.sourceKey);
+        }
+      }
+    } else {
+      // @ts-expect-error -- implicit any, can't fix
+      values[this.foreignKey] = sourceInstance.get(this.sourceKeyAttribute);
+      if (options.fields) {
+        options.fields.push(this.foreignKey);
+      }
     }
 
     return this.target.create(values, options);

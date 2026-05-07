@@ -103,6 +103,8 @@ export abstract class Association<
 
   abstract foreignKey: ForeignKey;
 
+  abstract foreignKeys: Array<Key<string, string>>;
+
   /**
    * A reference to the association that created this one.
    */
@@ -270,6 +272,11 @@ export type MultiAssociationAccessors = {
   count: string;
 };
 
+export type Key<SourceKey extends string, TargetKey extends string> = {
+  sourceKey: SourceKey;
+  targetKey: TargetKey;
+};
+
 /** Foreign Key Options */
 export interface ForeignKeyOptions<ForeignKey extends string>
   extends PartialBy<AttributeOptions, 'type'> {
@@ -281,15 +288,31 @@ export interface ForeignKeyOptions<ForeignKey extends string>
   name?: ForeignKey;
 
   /**
+   * The pairs of the foreign key attributes used for composite foreign keys.
+   */
+  keys?: ForeignKey[] | Array<CompositeForeignKeysOptions<string, string>>;
+
+  /**
    * Alias of {@link ForeignKeyOptions#name}.
    *
    * @deprecated
    */
   fieldName?: string;
+
+  /**
+   * Name to give the constraint in the database
+   */
+  constraintName?: string;
 }
 
 export type NormalizedAssociationOptions<ForeignKey extends string> =
   NormalizeBaseAssociationOptions<AssociationOptions<ForeignKey>>;
+
+/** Foreign Key Options */
+export type CompositeForeignKeysOptions<
+  SourceKey extends string = string,
+  TargetKey extends string = string,
+> = Key<SourceKey, TargetKey>;
 
 /**
  * Options provided when associating models
