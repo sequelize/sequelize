@@ -222,6 +222,36 @@ describe('Model generated column safeguards', () => {
       });
     });
 
+    it('ignores generated attributes before invoking custom setters', () => {
+      let setterCalls = 0;
+      const TestModel = sequelize.define(
+        'GeneratedCustomSetter',
+        {
+          source: DataTypes.INTEGER,
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('source + 1'),
+            generatedColumn: supportedMode,
+            set(value: number) {
+              setterCalls++;
+              this.setDataValue('source', value);
+            },
+          },
+        },
+        { timestamps: false },
+      );
+
+      const instance = TestModel.build({ computed: 41 });
+      instance.set('computed', 42);
+
+      expect(setterCalls).to.equal(0);
+      expect(instance.getDataValue('source')).to.equal(undefined);
+      expect(instance.getDataValue('computed')).to.equal(undefined);
+
+      instance.set('computed', 43, { raw: true, comesFromDatabase: true });
+      expect(instance.getDataValue('computed')).to.equal(43);
+    });
+
     it('verifies existing generated columns during sync({ alter: true })', async () => {
       const TestModel = sequelize.define(
         'GeneratedSync',

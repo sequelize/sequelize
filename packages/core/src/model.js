@@ -3758,6 +3758,10 @@ Instead of specifying a Model, either:
 
     const attributeDefinition = modelDefinition.attributes.get(key);
 
+    if (!options.raw && modelDefinition.generatedAttributeNames.has(key)) {
+      return this;
+    }
+
     // If not raw, and there's a custom setter
     if (!options.raw && attributeDefinition?.set) {
       attributeDefinition.set.call(this, value, key);
@@ -3804,10 +3808,7 @@ Instead of specifying a Model, either:
         // TODO: throw an error when trying to set a read only attribute with to a different value
         // If attempting to set read only attributes, return
         const readOnlyAttributeNames = modelDefinition.readOnlyAttributeNames;
-        if (
-          readOnlyAttributeNames.has(key) &&
-          (!this.isNewRecord || modelDefinition.generatedAttributeNames.has(key))
-        ) {
+        if (readOnlyAttributeNames.has(key) && !this.isNewRecord) {
           return this;
         }
       }
