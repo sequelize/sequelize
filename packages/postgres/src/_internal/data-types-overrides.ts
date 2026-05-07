@@ -435,8 +435,8 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
     );
 
     return queryGenerator.pgEnumName(tableName, columnName, {
-      ...(this.options.enumName !== undefined && { enumName: this.options.enumName }),
-      ...(this.options.enumSchema !== undefined && { enumSchema: this.options.enumSchema }),
+      ...(this.options.name !== undefined && { enumName: this.options.name }),
+      ...(this.options.schema !== undefined && { enumSchema: this.options.schema }),
     });
   }
 }
