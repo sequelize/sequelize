@@ -240,13 +240,13 @@ If having two associations does not make sense (for instance a "spouse" associat
       };
     } else if (instances.length > 1 && Array.isArray(this.options.foreignKey.keys)) {
       for (const key of this.foreignKeys) {
-        where[key.targetKey] = {
-          [Op.in]: instances.map(instance => instance.get(key.sourceKey)),
+        where[key.sourceKey] = {
+          [Op.in]: instances.map(instance => instance.get(key.targetKey)),
         };
       }
     } else if (Array.isArray(this.options.foreignKey.keys)) {
       for (const key of this.foreignKeys) {
-        where[key.targetKey] = instances[0].get(key.sourceKey);
+        where[key.sourceKey] = instances[0].get(key.targetKey);
       }
     } else {
       where[this.foreignKey] = instances[0].get(this.sourceKey);
@@ -262,8 +262,18 @@ If having two associations does not make sense (for instance a "spouse" associat
       const results = await Target.findAll(options);
       const result = new Map<any, T | null>();
 
+      const isComposite =
+        Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1;
+
       for (const targetInstance of results) {
-        result.set(targetInstance.get(this.foreignKey, { raw: true }), targetInstance);
+        if (isComposite) {
+          const mapKey = this.foreignKeys
+            .map(fk => targetInstance.get(fk.sourceKey, { raw: true }))
+            .join('&');
+          result.set(mapKey, targetInstance);
+        } else {
+          result.set(targetInstance.get(this.foreignKey, { raw: true }), targetInstance);
+        }
       }
 
       return result;
@@ -402,7 +412,10 @@ This option is only available in BelongsTo associations.`);
     if (Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1) {
       for (const foreignKey of this.options.foreignKey.keys) {
         // @ts-expect-error -- implicit any, can't fix
-        values[foreignKey.targetKey] = sourceInstance.get(foreignKey.sourceKey);
+        values[foreignKey.sourceKey] = sourceInstance.get(foreignKey.targetKey);
+        if (options.fields) {
+          options.fields.push(foreignKey.sourceKey);
+        }
       }
     } else {
       // @ts-expect-error -- implicit any, can't fix

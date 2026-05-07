@@ -49,6 +49,40 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         expect(result.get(players[1].id).id).to.equal(players[1].user.id);
         expect(result.get(players[2].id)).to.equal(undefined);
       });
+
+      it('should fetch composite-key associations for multiple instances', async function () {
+        const User = this.sequelize.define(
+          'User',
+          { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER },
+          {
+            indexes: [{ unique: true, fields: ['userId', 'tenantId'] }],
+          },
+        );
+        const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+        const association = User.hasOne(Task, {
+          foreignKey: {
+            keys: [
+              { sourceKey: 'ownerId', targetKey: 'userId' },
+              { sourceKey: 'tenantId', targetKey: 'tenantId' },
+            ],
+          },
+        });
+
+        await this.sequelize.sync({ force: true });
+        const [user1, user2, user3] = await Promise.all([
+          User.create({ userId: 7, tenantId: 42 }),
+          User.create({ userId: 8, tenantId: 42 }),
+          User.create({ userId: 9, tenantId: 42 }),
+        ]);
+        await user1.createTask({ title: 'task-1' });
+        await user2.createTask({ title: 'task-2' });
+
+        const result = await association.get([user1, user2, user3]);
+        expect(result.get('7&42')).to.have.property('title', 'task-1');
+        expect(result.get('8&42')).to.have.property('title', 'task-2');
+        expect(result.get('9&42')).to.be.undefined;
+      });
     });
   });
 
@@ -174,6 +208,48 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       expect(task.title).to.equal('task');
       expect(task.userId).to.equal(1);
       expect(task.tenantId).to.equal(1);
+    });
+
+    it('creates an associated model instance with composite foreign keys whose source and target attribute names differ', async function () {
+      const User = this.sequelize.define(
+        'User',
+        { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER },
+        {
+          indexes: [
+            {
+              unique: true,
+              fields: ['userId', 'tenantId'],
+            },
+          ],
+        },
+      );
+      const Task = this.sequelize.define('Task', {
+        title: DataTypes.STRING,
+      });
+
+      User.hasOne(Task, {
+        foreignKey: {
+          keys: [
+            { sourceKey: 'ownerId', targetKey: 'userId' },
+            { sourceKey: 'tenantId', targetKey: 'tenantId' },
+          ],
+        },
+      });
+
+      await this.sequelize.sync({ force: true });
+      const user = await User.create({ userId: 7, tenantId: 42 });
+      await user.createTask({ title: 'task' });
+
+      const persistedTask = await Task.findOne({ where: { title: 'task' } });
+      expect(persistedTask).not.to.be.null;
+      expect(persistedTask.ownerId).to.equal(7);
+      expect(persistedTask.tenantId).to.equal(42);
+
+      const task = await user.getTask();
+      expect(task).not.to.be.null;
+      expect(task.title).to.equal('task');
+      expect(task.ownerId).to.equal(7);
+      expect(task.tenantId).to.equal(42);
     });
 
     if (current.dialect.supports.transactions) {
