@@ -747,6 +747,11 @@ export class SqliteQueryInterface<
       delete column.unique;
     }
 
+    if (normalizedAttribute.generatedAs === undefined) {
+      delete columns[columnName].generatedAs;
+      delete columns[columnName].generatedColumn;
+    }
+
     Object.assign(columns[columnName], normalizedAttribute);
 
     await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);

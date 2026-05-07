@@ -49,6 +49,45 @@ if (!dialect.supports.generatedColumns.stored && !dialect.supports.generatedColu
   });
 } else {
   describe('Generated Columns (integration)', () => {
+    if (dialect.name === 'sqlite3') {
+      it('converges generated expression drift with sync({ alter: true })', async () => {
+        const GeneratedSync = sequelize.define(
+          'GeneratedSyncAlter',
+          {
+            source: DataTypes.INTEGER,
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal(`${qi('source')} + 1`),
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+
+        await GeneratedSync.sync({ force: true });
+        const row = await GeneratedSync.create({ source: 2 });
+
+        GeneratedSync.modelDefinition.rawAttributes.computed.generatedAs = sql.literal(
+          `${qi('source')} + 2`,
+        );
+        GeneratedSync.modelDefinition.refreshAttributes();
+        await GeneratedSync.sync({ alter: true });
+
+        const refreshed = await GeneratedSync.findByPk(row.id);
+        expect(refreshed?.get('computed')).to.equal(4);
+
+        delete GeneratedSync.modelDefinition.rawAttributes.computed.generatedAs;
+        delete GeneratedSync.modelDefinition.rawAttributes.computed.generatedColumn;
+        GeneratedSync.modelDefinition.refreshAttributes();
+        await GeneratedSync.sync({ alter: true });
+
+        const columns = await sequelize.queryInterface.describeTable(GeneratedSync.table);
+        expect(columns.computed.generatedAs).to.equal(undefined);
+
+        await GeneratedSync.drop();
+      });
+    }
+
     if (dialect.supports.generatedColumns.stored) {
       describe('STORED generated columns', () => {
         setResetMode('destroy');

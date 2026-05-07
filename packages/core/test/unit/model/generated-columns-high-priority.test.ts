@@ -222,7 +222,7 @@ describe('Model generated column safeguards', () => {
       });
     });
 
-    it('does not alter existing generated columns during sync({ alter: true })', async () => {
+    it('verifies existing generated columns during sync({ alter: true })', async () => {
       const TestModel = sequelize.define(
         'GeneratedSync',
         {
@@ -241,17 +241,67 @@ describe('Model generated column safeguards', () => {
       sinon.stub(queryInterface, 'describeTable').resolves({
         id: {},
         source: {},
-        computed: {},
+        computed:
+          sequelize.dialect.name === 'sqlite3'
+            ? {
+                generatedAs: sql.literal('source + 1'),
+                generatedColumn: supportedMode,
+              }
+            : {},
       });
       sinon.stub(queryInterface, 'showConstraints').resolves([]);
       const changeColumn = sinon.stub(queryInterface, 'changeColumn').resolves();
       sinon.stub(queryInterface, 'showIndex').resolves([]);
 
-      await TestModel.sync({ alter: true, hooks: false });
+      const sync = TestModel.sync({ alter: true, hooks: false });
+
+      if (sequelize.dialect.name !== 'sqlite3') {
+        await expect(sync).to.be.rejectedWith(/generated column.*migration.*required/i);
+
+        return;
+      }
+
+      await sync;
 
       expect(changeColumn).to.have.been.calledOnce;
       expect(changeColumn.firstCall.args[1]).to.equal('source');
     });
+
+    if (sequelize.dialect.name === 'sqlite3') {
+      it('converges generated column drift during sync({ alter: true })', async () => {
+        const TestModel = sequelize.define(
+          'GeneratedSyncDrift',
+          {
+            source: DataTypes.INTEGER,
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('source + 1'),
+              generatedColumn: supportedMode,
+            },
+          },
+          { timestamps: false },
+        );
+        const queryInterface = sequelize.queryInterface;
+        sinon.stub(queryInterface, 'tableExists').resolves(true);
+        sinon.stub(queryInterface, 'ensureEnums').resolves();
+        sinon.stub(queryInterface, 'describeTable').resolves({
+          id: {},
+          source: {},
+          computed: {
+            generatedAs: sql.literal('source + 2'),
+            generatedColumn: supportedMode,
+          },
+        });
+        sinon.stub(queryInterface, 'showConstraints').resolves([]);
+        const changeColumn = sinon.stub(queryInterface, 'changeColumn').resolves();
+        sinon.stub(queryInterface, 'showIndex').resolves([]);
+
+        await TestModel.sync({ alter: true, hooks: false });
+
+        expect(changeColumn).to.have.been.calledTwice;
+        expect(changeColumn.secondCall.args[1]).to.equal('computed');
+      });
+    }
 
     if (sequelize.dialect.supports.inserts.updateOnDuplicate) {
       it('removes generated attributes from updateOnDuplicate', async () => {

@@ -929,10 +929,68 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
-          // Generated expressions cannot be changed in-place on every supported dialect, and an
-          // unchanged generated attribute does not need to be altered during sync.
+          const databaseAttribute = columns[columnName];
+
           if (currentAttribute.generatedAs !== undefined) {
-            continue;
+            const dialectCanInspectGeneratedColumns =
+              this.sequelize.dialect.name === 'sqlite3' ||
+              databaseAttribute.generatedAs !== undefined;
+
+            if (!dialectCanInspectGeneratedColumns) {
+              throw new Error(
+                `Generated column "${this.name}.${columnName}" cannot be verified by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to verify or change this column.`,
+              );
+            }
+
+            const expectedExpression = this.sequelize.queryGenerator.escape(
+              currentAttribute.generatedAs,
+              { model: this },
+            );
+            const actualExpression =
+              databaseAttribute.generatedAs === undefined
+                ? undefined
+                : this.sequelize.queryGenerator.escape(databaseAttribute.generatedAs, {
+                    model: this,
+                  });
+            const generatedDefinitionMatches =
+              actualExpression === expectedExpression &&
+              databaseAttribute.generatedColumn === currentAttribute.generatedColumn;
+
+            if (generatedDefinitionMatches) {
+              continue;
+            }
+
+            if (this.sequelize.dialect.name === 'sqlite3') {
+              await this.queryInterface.changeColumn(
+                tableName,
+                columnName,
+                currentAttribute,
+                options,
+              );
+
+              continue;
+            }
+
+            throw new Error(
+              `Generated column "${this.name}.${columnName}" differs from the model definition and cannot be changed safely by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to recreate this column.`,
+            );
+          }
+
+          if (databaseAttribute.generatedAs !== undefined) {
+            if (this.sequelize.dialect.name === 'sqlite3') {
+              await this.queryInterface.changeColumn(
+                tableName,
+                columnName,
+                currentAttribute,
+                options,
+              );
+
+              continue;
+            }
+
+            throw new Error(
+              `Column "${this.name}.${columnName}" is generated in the database but not in the model definition, and cannot be changed safely by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to recreate this column.`,
+            );
           }
 
           // Check foreign keys. If it's a foreign key, it should remove constraint first.

@@ -1,4 +1,5 @@
 import type { Deferrable } from '../deferrable';
+import type { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { QueryRawOptions } from '../sequelize';
 import type { IsolationLevel } from '../transaction';
 import type {
@@ -30,6 +31,8 @@ export interface ColumnDescription {
   primaryKey: boolean;
   autoIncrement: boolean;
   comment: string | null;
+  generatedAs?: BaseSqlExpression;
+  generatedColumn?: 'STORED' | 'VIRTUAL';
 }
 
 export type ColumnsDescription = Record<string, ColumnDescription>;
