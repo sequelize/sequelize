@@ -275,6 +275,44 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         await t.rollback();
       });
     }
+
+    it('sets and reassigns an associated model with composite foreign keys', async function () {
+      const User = this.sequelize.define(
+        'User',
+        { userId: DataTypes.INTEGER, tenantId: DataTypes.INTEGER },
+        {
+          indexes: [{ unique: true, fields: ['userId', 'tenantId'] }],
+        },
+      );
+      const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+
+      User.hasOne(Task, {
+        foreignKey: {
+          keys: [
+            { sourceKey: 'ownerId', targetKey: 'userId' },
+            { sourceKey: 'tenantId', targetKey: 'tenantId' },
+          ],
+        },
+      });
+
+      await this.sequelize.sync({ force: true });
+      const user = await User.create({ userId: 7, tenantId: 42 });
+      const task1 = await Task.create({ title: 'first' });
+      const task2 = await Task.create({ title: 'second' });
+
+      await user.setTask(task1);
+      await task1.reload();
+      expect(task1.ownerId).to.equal(7);
+      expect(task1.tenantId).to.equal(42);
+
+      await user.setTask(task2);
+      await task1.reload();
+      await task2.reload();
+      expect(task1.ownerId).to.be.null;
+      expect(task1.tenantId).to.be.null;
+      expect(task2.ownerId).to.equal(7);
+      expect(task2.tenantId).to.equal(42);
+    });
   });
 
   describe('foreign key', () => {

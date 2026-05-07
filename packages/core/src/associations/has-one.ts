@@ -335,9 +335,14 @@ This option is only available in BelongsTo associations.`);
       return oldInstance;
     }
 
+    const isComposite =
+      Array.isArray(this.options.foreignKey.keys) && this.options.foreignKey.keys.length > 1;
+
     if (oldInstance) {
-      const foreignKeyIsNullable =
-        this.target.modelDefinition.attributes.get(this.foreignKey)?.allowNull ?? true;
+      const targetAttributes = this.target.modelDefinition.attributes;
+      const foreignKeyIsNullable = isComposite
+        ? this.foreignKeys.every(fk => targetAttributes.get(fk.sourceKey)?.allowNull ?? true)
+        : (targetAttributes.get(this.foreignKey)?.allowNull ?? true);
 
       if (options.destroyPrevious || !foreignKeyIsNullable) {
         await oldInstance.destroy({
@@ -347,15 +352,14 @@ This option is only available in BelongsTo associations.`);
           transaction: options.transaction,
         });
       } else {
-        await oldInstance.update(
-          {
-            [this.foreignKey]: null,
-          },
-          {
-            ...options,
-            association: true,
-          },
-        );
+        const clearedForeignKeys: Record<string, null> = isComposite
+          ? Object.fromEntries(this.foreignKeys.map(fk => [fk.sourceKey, null]))
+          : { [this.foreignKey]: null };
+
+        await oldInstance.update(clearedForeignKeys, {
+          ...options,
+          association: true,
+        });
       }
     }
 
@@ -373,7 +377,13 @@ This option is only available in BelongsTo associations.`);
       }
 
       Object.assign(associatedInstance, this.scope);
-      associatedInstance.set(this.foreignKey, sourceInstance.get(this.sourceKeyAttribute));
+      if (isComposite) {
+        for (const fk of this.foreignKeys) {
+          associatedInstance.set(fk.sourceKey, sourceInstance.get(fk.targetKey));
+        }
+      } else {
+        associatedInstance.set(this.foreignKey, sourceInstance.get(this.sourceKeyAttribute));
+      }
 
       return associatedInstance.save(options);
     }
