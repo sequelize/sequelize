@@ -172,6 +172,22 @@ describe('PostgresQueryGenerator', () => {
         },
       );
     });
+
+    it('drops the correct type name when force: true with a custom name', () => {
+      const { CustomEnumSchemaUser } = vars;
+
+      expectsql(
+        queryGenerator.pgEnum(
+          CustomEnumSchemaUser.table,
+          'mood',
+          CustomEnumSchemaUser.getAttributes().mood.type,
+          { force: true },
+        ),
+        {
+          postgres: `DROP TYPE IF EXISTS "shared"."mood_type"; DO 'BEGIN CREATE TYPE "shared"."mood_type" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
+        },
+      );
+    });
   });
 
   describe('attributeToSQL (ENUM column type reference in CREATE TABLE)', () => {

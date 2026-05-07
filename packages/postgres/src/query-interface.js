@@ -133,6 +133,30 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
           const vals = enumType.options.values;
 
+          if (customEnumName) {
+            // Warn when the model declares values that don't exist in the shared named type.
+            // We can only add values (PostgreSQL has no DROP VALUE), so missing values silently
+            // become a superset — which is confusing when the name was shared by mistake.
+            const missingFromDb = vals.filter(v => !enumVals.includes(v));
+            const missingFromModel = enumVals.filter(v => !vals.includes(v));
+            if (missingFromModel.length > 0) {
+              console.warn(
+                `[Sequelize] ENUM type "${customEnumName}" in the database contains values not ` +
+                  `present in the model definition: ${missingFromModel.map(v => JSON.stringify(v)).join(', ')}. ` +
+                  `This can happen when multiple models share the same named ENUM type with different value sets.`,
+              );
+            }
+
+            if (missingFromDb.length > 0) {
+              console.warn(
+                `[Sequelize] ENUM type "${customEnumName}" in the database is missing values ` +
+                  `declared in the model: ${missingFromDb.map(v => JSON.stringify(v)).join(', ')}. ` +
+                  `These values will be added. If this ENUM is shared across models, ensure all ` +
+                  `models agree on the intended value set.`,
+              );
+            }
+          }
+
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values
           // Then we append the rest of new values AFTER the latest already existing value
@@ -303,23 +327,14 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       }
 
       const enumType = attribute.type;
-      let sql;
+
+      // Named enums are shared across tables by design — their lifecycle is managed
+      // independently, so we leave them in place when a table is dropped.
       if (enumType.options.name) {
-        // Custom enum name: compute the fully-qualified type name with optional schema override
-        const fullEnumName = this.queryGenerator.pgEnumName(
-          { tableName, schema: options?.schema },
-          attribute.attributeName,
-          {
-            enumName: enumType.options.name,
-            ...(enumType.options.schema !== undefined && {
-              enumSchema: enumType.options.schema,
-            }),
-          },
-        );
-        sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
-      } else {
-        sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+        continue;
       }
+
+      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
 
       promises.push(
         this.sequelize.queryRaw(sql, {
