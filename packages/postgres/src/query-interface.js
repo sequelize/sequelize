@@ -327,14 +327,44 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       }
 
       const enumType = attribute.type;
+      let sql;
 
-      // Named enums are shared across tables by design — their lifecycle is managed
-      // independently, so we leave them in place when a table is dropped.
       if (enumType.options.name) {
-        continue;
-      }
+        // A named enum may be shared with other models. Only drop it if no other
+        // registered model references the same name (and schema).
+        const isSharedWithOtherModel = [...this.sequelize.models].some(otherModel => {
+          if (otherModel === model) return false;
 
-      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+          return [...otherModel.modelDefinition.attributes.values()].some(otherAttr => {
+            const otherType =
+              otherAttr.type instanceof DataTypes.ARRAY
+                ? otherAttr.type.options.type
+                : otherAttr.type;
+
+            return (
+              otherType instanceof DataTypes.ENUM &&
+              otherType.options.name === enumType.options.name &&
+              otherType.options.schema === enumType.options.schema
+            );
+          });
+        });
+
+        if (isSharedWithOtherModel) {
+          continue;
+        }
+
+        const fullEnumName = this.queryGenerator.pgEnumName(
+          { tableName, schema: options?.schema },
+          attribute.attributeName,
+          {
+            enumName: enumType.options.name,
+            ...(enumType.options.schema !== undefined && { enumSchema: enumType.options.schema }),
+          },
+        );
+        sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
+      } else {
+        sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      }
 
       promises.push(
         this.sequelize.queryRaw(sql, {
