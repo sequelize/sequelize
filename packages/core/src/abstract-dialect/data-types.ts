@@ -2320,8 +2320,12 @@ sequelize.define('MyModel', {
     }
 
     const opts: NormalizedEnumOptions<Member> = { values };
-    if (options?.name !== undefined) opts.name = options.name;
-    if (options?.schema !== undefined) opts.schema = options.schema;
+    if (options?.name !== undefined) {
+      opts.name = options.name;
+    }
+    if (options?.schema !== undefined) {
+      opts.schema = options.schema;
+    }
     this.options = opts;
   }
 

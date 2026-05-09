@@ -427,7 +427,9 @@ describe('PostgresQueryGenerator', () => {
       const sq = createSequelizeInstance();
       const sharedEnum = DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' });
       sq.define('user', { mood: sharedEnum });
-      sq.define('profile', { feeling: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }) });
+      sq.define('profile', {
+        feeling: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }),
+      });
       stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
 
       await sq.queryInterface.dropTable('users');
@@ -445,7 +447,13 @@ describe('PostgresQueryGenerator', () => {
       );
       sq.define(
         'profile',
-        { feeling: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'shared' }) },
+        {
+          feeling: DataTypes.ENUM({
+            values: ['happy', 'sad'],
+            name: 'mood_type',
+            schema: 'shared',
+          }),
+        },
         { schema: 'bar' },
       );
       stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
@@ -509,7 +517,11 @@ describe('PostgresQueryGenerator', () => {
         mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'schema_a' }),
       });
       sq.define('profile', {
-        feeling: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'schema_b' }),
+        feeling: DataTypes.ENUM({
+          values: ['happy', 'sad'],
+          name: 'mood_type',
+          schema: 'schema_b',
+        }),
       });
       stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
 

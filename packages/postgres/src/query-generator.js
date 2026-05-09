@@ -124,13 +124,21 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType, { enumName: dataType.options.name, enumSchema: dataType.options.schema }) + query;
+      query =
+        this.pgEnum(table, key, dataType, {
+          enumName: dataType.options.name,
+          enumSchema: dataType.options.schema,
+        }) + query;
     } else if (
       dataType instanceof DataTypes.ARRAY &&
       dataType.options.type instanceof DataTypes.ENUM
     ) {
       const innerEnum = dataType.options.type;
-      query = this.pgEnum(table, key, innerEnum, { enumName: innerEnum.options.name, enumSchema: innerEnum.options.schema }) + query;
+      query =
+        this.pgEnum(table, key, innerEnum, {
+          enumName: innerEnum.options.name,
+          enumSchema: innerEnum.options.schema,
+        }) + query;
     }
 
     return query;
