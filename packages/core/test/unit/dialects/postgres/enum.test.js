@@ -434,7 +434,7 @@ describe('PostgresQueryGenerator', () => {
 
   // Helper: collect the SQL strings passed to queryRaw that contain DROP TYPE
   function getDropTypeSqls(stub) {
-    return stub.args.map(([sql]) => sql).filter(sql => sql.includes('DROP TYPE'));
+    return stub.args.map(([sql]) => sql).filter(sql => sql?.includes('DROP TYPE'));
   }
 
   // Helper: collect the SQL strings passed to queryRaw that contain CREATE TYPE
