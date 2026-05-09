@@ -131,13 +131,13 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses custom enumName', () => {
       const { CustomEnumUser } = vars;
+      const type = CustomEnumUser.getAttributes().mood.type;
 
       expectsql(
-        queryGenerator.pgEnum(
-          CustomEnumUser.table,
-          'mood',
-          CustomEnumUser.getAttributes().mood.type,
-        ),
+        queryGenerator.pgEnum(CustomEnumUser.table, 'mood', type, {
+          enumName: type.options.name,
+          enumSchema: type.options.schema,
+        }),
         {
           postgres: `DO 'BEGIN CREATE TYPE "public"."mood_type" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
         },
@@ -146,13 +146,13 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses custom enumName and enumSchema', () => {
       const { CustomEnumSchemaUser } = vars;
+      const type = CustomEnumSchemaUser.getAttributes().mood.type;
 
       expectsql(
-        queryGenerator.pgEnum(
-          CustomEnumSchemaUser.table,
-          'mood',
-          CustomEnumSchemaUser.getAttributes().mood.type,
-        ),
+        queryGenerator.pgEnum(CustomEnumSchemaUser.table, 'mood', type, {
+          enumName: type.options.name,
+          enumSchema: type.options.schema,
+        }),
         {
           postgres: `DO 'BEGIN CREATE TYPE "shared"."mood_type" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
         },
@@ -161,13 +161,13 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses enumSchema with auto-generated name when only enumSchema is provided', () => {
       const { EnumSchemaOnlyUser } = vars;
+      const type = EnumSchemaOnlyUser.getAttributes().mood.type;
 
       expectsql(
-        queryGenerator.pgEnum(
-          EnumSchemaOnlyUser.table,
-          'mood',
-          EnumSchemaOnlyUser.getAttributes().mood.type,
-        ),
+        queryGenerator.pgEnum(EnumSchemaOnlyUser.table, 'mood', type, {
+          enumName: type.options.name,
+          enumSchema: type.options.schema,
+        }),
         {
           postgres: `DO 'BEGIN CREATE TYPE "shared"."enum_users_mood" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
         },
@@ -176,14 +176,14 @@ describe('PostgresQueryGenerator', () => {
 
     it('drops the correct type name when force: true with a custom name', () => {
       const { CustomEnumSchemaUser } = vars;
+      const type = CustomEnumSchemaUser.getAttributes().mood.type;
 
       expectsql(
-        queryGenerator.pgEnum(
-          CustomEnumSchemaUser.table,
-          'mood',
-          CustomEnumSchemaUser.getAttributes().mood.type,
-          { force: true },
-        ),
+        queryGenerator.pgEnum(CustomEnumSchemaUser.table, 'mood', type, {
+          enumName: type.options.name,
+          enumSchema: type.options.schema,
+          force: true,
+        }),
         {
           postgres: `DROP TYPE IF EXISTS "shared"."mood_type"; DO 'BEGIN CREATE TYPE "shared"."mood_type" AS ENUM(''happy'', ''sad''); EXCEPTION WHEN duplicate_object THEN null; END';`,
         },

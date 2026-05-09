@@ -2281,14 +2281,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   constructor(...args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
-    const values: readonly Member[] = this.#getEnumValues(args);
-    const [first] = args;
-    const optionsBag =
-      !isString(first) && !Array.isArray(first) && 'values' in first && typeof (first as { values?: unknown }).values !== 'string'
-        ? (first as EnumOptions<Member>)
-        : null;
-    const enumName = optionsBag?.name;
-    const enumSchema = optionsBag?.schema;
+    const { values, optionsBag } = this._getEnumValues(args);
 
     if (values.length === 0) {
       throw new TypeError(
@@ -2326,24 +2319,23 @@ sequelize.define('MyModel', {
       }
     }
 
-    this.options = {
-      values,
-      ...(enumName !== undefined && { name: enumName }),
-      ...(enumSchema !== undefined && { schema: enumSchema }),
-    };
+    const opts: NormalizedEnumOptions<Member> = { values };
+    if (optionsBag?.name !== undefined) opts.name = optionsBag.name;
+    if (optionsBag?.schema !== undefined) opts.schema = optionsBag.schema;
+    this.options = opts;
   }
 
-  #getEnumValues(
+  protected _getEnumValues(
     args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]],
-  ): readonly Member[] {
+  ): { values: readonly Member[]; optionsBag: EnumOptions<Member> | null } {
     if (args.length === 0) {
-      return EMPTY_ARRAY;
+      return { values: EMPTY_ARRAY, optionsBag: null };
     }
 
     const [first, ...rest] = args;
 
     if (isString(first)) {
-      return [first, ...rest];
+      return { values: [first, ...rest], optionsBag: null };
     }
 
     if (rest.length > 0) {
@@ -2352,9 +2344,11 @@ sequelize.define('MyModel', {
       );
     }
 
+    let optionsBag: EnumOptions<Member> | null = null;
     let enumOrArray: EnumValues<Member>;
     if (!Array.isArray(first) && 'values' in first && typeof first.values !== 'string') {
       // This is the option bag
+      optionsBag = first as EnumOptions<Member>;
       // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
       enumOrArray = first.values;
     } else {
@@ -2363,7 +2357,7 @@ sequelize.define('MyModel', {
     }
 
     if (Array.isArray(enumOrArray)) {
-      return [...enumOrArray];
+      return { values: [...enumOrArray], optionsBag };
     }
 
     // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
@@ -2377,7 +2371,7 @@ sequelize.define('MyModel', {
       }
     }
 
-    return enumKeys;
+    return { values: enumKeys, optionsBag };
   }
 
   validate(value: any): asserts value is Member {
