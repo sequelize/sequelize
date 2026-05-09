@@ -2322,11 +2322,19 @@ sequelize.define('MyModel', {
     const opts: NormalizedEnumOptions<Member> = { values };
 
     if (options?.name !== undefined) {
+      if (!isString(options.name) || options.name.length === 0) {
+        throw new TypeError('DataTypes.ENUM option "name" must be a non-empty string.');
+      }
+
       opts.name = options.name;
     }
 
     if (options?.schema !== undefined) {
       opts.schema = options.schema;
+
+      if (!isString(options.schema) || options.schema.length === 0) {
+        throw new TypeError('DataTypes.ENUM option "schema" must be a non-empty string.');
+      }
     }
 
     this.options = opts;
