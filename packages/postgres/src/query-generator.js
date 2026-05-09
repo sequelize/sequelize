@@ -124,12 +124,13 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType) + query;
+      query = this.pgEnum(table, key, dataType, { enumName: dataType.options.name, enumSchema: dataType.options.schema }) + query;
     } else if (
       dataType instanceof DataTypes.ARRAY &&
       dataType.options.type instanceof DataTypes.ENUM
     ) {
-      query = this.pgEnum(table, key, dataType.options.type) + query;
+      const innerEnum = dataType.options.type;
+      query = this.pgEnum(table, key, innerEnum, { enumName: innerEnum.options.name, enumSchema: innerEnum.options.schema }) + query;
     }
 
     return query;
@@ -242,8 +243,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         const tableName = options?.table;
         const columnName = attribute.field || options?.key;
         type = this.pgEnumName(tableName, columnName, {
-          ...(enumType.options.name !== undefined && { enumName: enumType.options.name }),
-          ...(enumType.options.schema !== undefined && { enumSchema: enumType.options.schema }),
+          enumName: enumType.options.name,
+          enumSchema: enumType.options.schema,
         });
         if (attribute.type instanceof DataTypes.ARRAY) {
           type += '[]';
@@ -530,7 +531,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const escapedEnumName = this.quoteIdentifier(rawEnumName);
 
     // enumSchema overrides the table's schema for the enum type name prefix
-    const schema = 'enumSchema' in options ? options.enumSchema : tableDetails.schema;
+    const schema = options.enumSchema !== undefined ? options.enumSchema : tableDetails.schema;
     if (options.schema !== false && schema) {
       return this.quoteIdentifier(schema) + tableDetails.delimiter + escapedEnumName;
     }
@@ -562,17 +563,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   pgEnum(tableName, attr, dataType, options) {
-    // Merge enumName/enumSchema from the DataType's options (lower priority than explicit options)
-    const mergedOptions =
-      dataType instanceof ENUM &&
-      (dataType.options.name || dataType.options.schema !== undefined)
-        ? {
-            ...(dataType.options.name !== undefined && { enumName: dataType.options.name }),
-            ...(dataType.options.schema !== undefined && { enumSchema: dataType.options.schema }),
-            ...options,
-          }
-        : options;
-    const enumName = this.pgEnumName(tableName, attr, mergedOptions);
+    const enumName = this.pgEnumName(tableName, attr, options);
     let values;
 
     if (dataType instanceof ENUM && dataType.options.values) {

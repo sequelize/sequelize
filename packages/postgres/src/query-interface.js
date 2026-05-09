@@ -34,16 +34,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         (type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM) // ARRAY sub type is ENUM
       ) {
         const enumType = type instanceof DataTypes.ARRAY ? type.options.type : type;
-        const enumOptions =
-          enumType.options.name || enumType.options.schema !== undefined
-            ? {
-                ...options,
-                ...(enumType.options.name && { enumName: enumType.options.name }),
-                ...(enumType.options.schema !== undefined && {
-                  enumSchema: enumType.options.schema,
-                }),
-              }
-            : options;
+        const enumOptions = { ...options, enumName: enumType.options.name, enumSchema: enumType.options.schema };
         sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], enumOptions);
         promises.push(
           this.sequelize.queryRaw(sql, {
@@ -70,27 +61,13 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       enumName = undefined,
       enumSchema = undefined,
     ) => {
-      const valueOptions = { ...options };
-      if (enumName !== undefined) {
-        valueOptions.enumName = enumName;
-      }
-
-      if (enumSchema !== undefined) {
-        valueOptions.enumSchema = enumSchema;
-      }
-
-      valueOptions.before = null;
-      valueOptions.after = null;
-
-      switch (position) {
-        case 'after':
-          valueOptions.after = relativeValue;
-          break;
-        case 'before':
-        default:
-          valueOptions.before = relativeValue;
-          break;
-      }
+      const valueOptions = {
+        ...options,
+        enumName,
+        enumSchema,
+        before: position === 'before' ? relativeValue : null,
+        after: position === 'after' ? relativeValue : null,
+      };
 
       promises.splice(spliceStart, 0, () => {
         return this.sequelize.queryRaw(
@@ -112,14 +89,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       ) {
         const customEnumName = enumType.options.name;
         const customEnumSchema = enumType.options.schema;
-        const enumOptions =
-          customEnumName || customEnumSchema !== undefined
-            ? {
-                ...options,
-                ...(customEnumName && { enumName: customEnumName }),
-                ...(customEnumSchema !== undefined && { enumSchema: customEnumSchema }),
-              }
-            : options;
+        const enumOptions = { ...options, enumName: customEnumName, enumSchema: customEnumSchema };
 
         // If the enum type doesn't exist then create it
         if (!results[enumIdx]) {
@@ -365,10 +335,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         const fullEnumName = this.queryGenerator.pgEnumName(
           { tableName, schema: options?.schema },
           attribute.attributeName,
-          {
-            enumName: enumType.options.name,
-            ...(enumType.options.schema !== undefined && { enumSchema: enumType.options.schema }),
-          },
+          { enumName: enumType.options.name, enumSchema: enumType.options.schema },
         );
         sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
       } else {
