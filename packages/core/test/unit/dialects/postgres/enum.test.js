@@ -559,6 +559,25 @@ describe('PostgresQueryGenerator', () => {
       expect(drops).to.have.length(0);
     });
 
+    it('treats undefined schema and explicit "public" as the same when checking sharing', async () => {
+      const sq = createSequelizeInstance();
+      // user: schema undefined on enum (resolves to default 'public')
+      sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }),
+      });
+      // profile: schema explicitly 'public' on enum
+      sq.define('profile', {
+        feeling: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'public' }),
+      });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.dropTable('users');
+
+      // The enums are in the same effective schema ('public'), so it should NOT be dropped
+      const drops = getDropTypeSqls(stub);
+      expect(drops).to.have.length(0);
+    });
+
     it('drops a named enum when another model uses the same name in a different schema', async () => {
       const sq = createSequelizeInstance();
       sq.define('user', {

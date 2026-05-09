@@ -343,6 +343,16 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       if (enumType.options.name) {
         // A named enum may be shared with other models. Only drop it if no other
         // registered model references the same name (and schema).
+        //
+        // Resolve the effective schema: explicit options.schema > owning model's
+        // table schema > dialect default. This prevents mismatches between
+        // undefined and 'public' (or any other default) which resolve identically.
+        const defaultSchema = this.sequelize.dialect.getDefaultSchema();
+        const resolveEnumSchema = (et, ownerModel) =>
+          et.options.schema ?? ownerModel.table.schema ?? defaultSchema;
+
+        const currentEnumSchema = resolveEnumSchema(enumType, model);
+
         const isSharedWithOtherModel = [...this.sequelize.models].some(otherModel => {
           if (otherModel === model) {
             return false;
@@ -354,12 +364,10 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
                 ? otherAttr.type.options.type
                 : otherAttr.type;
 
-            // Note: undefined schema (use table's default) and an explicit 'public'
-            // are treated as different here even if they resolve to the same schema.
             return (
               otherType instanceof DataTypes.ENUM &&
               otherType.options.name === enumType.options.name &&
-              otherType.options.schema === enumType.options.schema
+              resolveEnumSchema(otherType, otherModel) === currentEnumSchema
             );
           });
         });
@@ -371,7 +379,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         const fullEnumName = this.queryGenerator.pgEnumName(
           { tableName, schema: options?.schema },
           attribute.attributeName,
-          { enumName: enumType.options.name, enumSchema: enumType.options.schema },
+          { enumName: enumType.options.name, enumSchema: currentEnumSchema },
         );
         sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
       } else {
