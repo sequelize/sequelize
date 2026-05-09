@@ -58,8 +58,8 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       relativeValue,
       position = 'before',
       spliceStart = promises.length,
-      enumName = undefined,
-      enumSchema = undefined,
+      enumName,
+      enumSchema,
     ) => {
       const valueOptions = {
         ...options,

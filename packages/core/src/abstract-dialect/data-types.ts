@@ -2283,15 +2283,12 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
 
     const values: readonly Member[] = this.#getEnumValues(args);
     const [first] = args;
-    const isOptionsBag =
-      !isString(first) &&
-      !Array.isArray(first) &&
-      typeof first === 'object' &&
-      first !== null &&
-      'values' in first &&
-      typeof (first as { values?: unknown }).values !== 'string';
-    const enumName = isOptionsBag ? (first as EnumOptions<Member>).name : undefined;
-    const enumSchema = isOptionsBag ? (first as EnumOptions<Member>).schema : undefined;
+    const optionsBag =
+      !isString(first) && !Array.isArray(first) && 'values' in first && typeof (first as { values?: unknown }).values !== 'string'
+        ? (first as EnumOptions<Member>)
+        : null;
+    const enumName = optionsBag?.name;
+    const enumSchema = optionsBag?.schema;
 
     if (values.length === 0) {
       throw new TypeError(
