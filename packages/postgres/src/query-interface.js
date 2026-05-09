@@ -314,7 +314,9 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         // A named enum may be shared with other models. Only drop it if no other
         // registered model references the same name (and schema).
         const isSharedWithOtherModel = [...this.sequelize.models].some(otherModel => {
-          if (otherModel === model) return false;
+          if (otherModel === model) {
+            return false;
+          }
 
           return [...otherModel.modelDefinition.attributes.values()].some(otherAttr => {
             const otherType =
