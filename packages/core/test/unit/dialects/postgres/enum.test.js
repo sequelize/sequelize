@@ -196,10 +196,12 @@ describe('PostgresQueryGenerator', () => {
       const { EnumSchemaOnlyUser } = vars;
       const moodAttr = EnumSchemaOnlyUser.modelDefinition.attributes.get('mood');
 
-      const result = queryGenerator.attributeToSQL(
+      const raw = queryGenerator.attributeToSQL(
         { type: moodAttr.type },
         { table: EnumSchemaOnlyUser.table, key: 'mood' },
       );
+      // dataTypeMapping strips the internal ENUM_NAMED() sentinel before emitting SQL
+      const result = queryGenerator.dataTypeMapping(EnumSchemaOnlyUser.table, 'mood', raw);
       expect(result).to.equal('"shared"."enum_users_mood"');
     });
 
@@ -207,10 +209,12 @@ describe('PostgresQueryGenerator', () => {
       const { CustomEnumSchemaUser } = vars;
       const moodAttr = CustomEnumSchemaUser.modelDefinition.attributes.get('mood');
 
-      const result = queryGenerator.attributeToSQL(
+      const raw = queryGenerator.attributeToSQL(
         { type: moodAttr.type },
         { table: CustomEnumSchemaUser.table, key: 'mood' },
       );
+      // dataTypeMapping strips the internal ENUM_NAMED() sentinel before emitting SQL
+      const result = queryGenerator.dataTypeMapping(CustomEnumSchemaUser.table, 'mood', raw);
       expect(result).to.equal('"shared"."mood_type"');
     });
   });
@@ -248,6 +252,50 @@ describe('PostgresQueryGenerator', () => {
       expect(result).to.include('CREATE TYPE "shared"."mood_type"');
       // ADD COLUMN should reference the custom type as an array
       expect(result).to.match(/"moods" "shared"\."mood_type"\[\]/);
+    });
+  });
+
+  describe('changeColumnQuery', () => {
+    it('adds USING cast for auto-named ENUM', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'] }),
+      });
+      const qg = sq.dialect.queryGenerator;
+      const attrs = qg.attributesToSQL(
+        { mood: User.modelDefinition.attributes.get('mood') },
+        { context: 'changeColumn', table: User.table },
+      );
+      const result = qg.changeColumnQuery(User.table, attrs);
+      expect(result).to.include('USING ("mood"::"public"."enum_users_mood")');
+    });
+
+    it('adds USING cast for custom-named ENUM', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }),
+      });
+      const qg = sq.dialect.queryGenerator;
+      const attrs = qg.attributesToSQL(
+        { mood: User.modelDefinition.attributes.get('mood') },
+        { context: 'changeColumn', table: User.table },
+      );
+      const result = qg.changeColumnQuery(User.table, attrs);
+      expect(result).to.include('USING ("mood"::"public"."mood_type")');
+    });
+
+    it('adds USING cast for custom-named ENUM with custom schema', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'shared' }),
+      });
+      const qg = sq.dialect.queryGenerator;
+      const attrs = qg.attributesToSQL(
+        { mood: User.modelDefinition.attributes.get('mood') },
+        { context: 'changeColumn', table: User.table },
+      );
+      const result = qg.changeColumnQuery(User.table, attrs);
+      expect(result).to.include('USING ("mood"::"shared"."mood_type")');
     });
   });
 

@@ -176,10 +176,10 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           this.pgEnumName(tableName, attributeName, { schema: false }),
         );
         definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
-        // TODO: custom-named ENUMs (DataTypes.ENUM({ name: '...' })) produce a qualified
-        // identifier here rather than ENUM(...), so the USING cast is never added for them.
-        // Fixing this properly requires changeColumnQuery to receive DataType objects rather
-        // than pre-processed strings.
+      } else if (attributes[attributeName].startsWith('ENUM_NAMED(')) {
+        // Custom-named ENUM: the type is managed externally; the type name is already in
+        // `definition` (ENUM_NAMED wrapper stripped by dataTypeMapping). Just add USING cast.
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${definition.trim()})`;
       }
 
       if (/UNIQUE;*$/.test(definition)) {
@@ -245,17 +245,19 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       const values = enumType.options.values;
 
       if (enumType.options.name || enumType.options.schema !== undefined) {
-        // When a custom enum name or schema is set, generate the final qualified type reference here
-        // so that dataTypeMapping does not lose the custom name/schema when it later
-        // replaces the ENUM(...) placeholder.
         const tableName = options?.table;
         const columnName = attribute.field || options?.key;
-        type = this.pgEnumName(tableName, columnName, {
+        const qualifiedName = this.pgEnumName(tableName, columnName, {
           enumName: enumType.options.name,
           enumSchema: enumType.options.schema,
         });
         if (attribute.type instanceof DataTypes.ARRAY) {
-          type += '[]';
+          // Arrays don't need a USING cast in changeColumnQuery, emit the type directly.
+          type = `${qualifiedName}[]`;
+        } else {
+          // Wrap in a sentinel so changeColumnQuery can detect this is an ENUM type and add
+          // the required USING cast. dataTypeMapping strips the wrapper before emitting SQL.
+          type = `ENUM_NAMED(${qualifiedName})`;
         }
       } else if (Array.isArray(values) && values.length > 0) {
         type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
@@ -650,7 +652,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       dataType = dataType.replace('NOT NULL', '');
     }
 
-    if (dataType.startsWith('ENUM(')) {
+    if (dataType.startsWith('ENUM_NAMED(')) {
+      // Strip the sentinel added by attributeToSQL for custom-named ENUMs,
+      // leaving just the qualified type identifier.
+      dataType = dataType.replace(/^ENUM_NAMED\((.+)\)/, '$1');
+    } else if (dataType.startsWith('ENUM(')) {
       dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr));
     }
 
