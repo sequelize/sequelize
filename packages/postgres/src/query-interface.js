@@ -8,9 +8,13 @@ import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.i
  */
 export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   /**
-   * Override changeColumn to ensure a custom-named ENUM type exists before the ALTER TABLE.
+   * Override changeColumn to ensure the ENUM type exists before the ALTER TABLE.
    * The abstract implementation converts attribute options to SQL strings before calling
    * changeColumnQuery, losing DataType objects. We handle pgEnum here while still having them.
+   *
+   * This is needed for any ENUM with a custom name OR a custom schema: attributeToSQL emits
+   * an ENUM_NAMED() sentinel in both cases, causing changeColumnQuery to reference the type
+   * by its schema-qualified name, which must already exist.
    *
    * @override
    */
@@ -24,7 +28,7 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
           ? rawType.options.type
           : null;
 
-    if (enumType?.options.name) {
+    if (enumType && (enumType.options.name || enumType.options.schema !== undefined)) {
       await this.sequelize.queryRaw(
         this.queryGenerator.pgEnum(tableName, attributeName, enumType, {
           enumName: enumType.options.name,

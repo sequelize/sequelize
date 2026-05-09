@@ -297,6 +297,21 @@ describe('PostgresQueryGenerator', () => {
       const result = qg.changeColumnQuery(User.table, attrs);
       expect(result).to.include('USING ("mood"::"shared"."mood_type")');
     });
+
+    it('adds USING cast for schema-only ENUM (no custom name, custom schema)', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], schema: 'shared' }),
+      });
+      const qg = sq.dialect.queryGenerator;
+      const attrs = qg.attributesToSQL(
+        { mood: User.modelDefinition.attributes.get('mood') },
+        { context: 'changeColumn', table: User.table },
+      );
+      const result = qg.changeColumnQuery(User.table, attrs);
+      // auto-generated name in the custom schema
+      expect(result).to.include('USING ("mood"::"shared"."enum_users_mood")');
+    });
   });
 
   describe('pgEnumAdd', () => {
@@ -421,6 +436,67 @@ describe('PostgresQueryGenerator', () => {
   function getDropTypeSqls(stub) {
     return stub.args.map(([sql]) => sql).filter(sql => sql.includes('DROP TYPE'));
   }
+
+  // Helper: collect the SQL strings passed to queryRaw that contain CREATE TYPE
+  function getCreateTypeSqls(stub) {
+    return stub.args.map(([sql]) => sql).filter(sql => sql?.includes('CREATE TYPE'));
+  }
+
+  describe('changeColumn (enum pre-create)', () => {
+    let stub;
+
+    afterEach(() => {
+      stub?.restore();
+    });
+
+    it('pre-creates the enum type before ALTER TABLE for a custom-named ENUM', async () => {
+      const sq = createSequelizeInstance();
+      sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }),
+      });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.changeColumn('users', 'mood', {
+        type: DataTypes.ENUM({ values: ['happy', 'sad', 'neutral'], name: 'mood_type' }),
+      });
+
+      const creates = getCreateTypeSqls(stub);
+      expect(creates).to.have.length(1);
+      expect(creates[0]).to.include('"public"."mood_type"');
+    });
+
+    it('pre-creates the enum type before ALTER TABLE for a schema-only ENUM (no custom name)', async () => {
+      const sq = createSequelizeInstance();
+      sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], schema: 'shared' }),
+      });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.changeColumn('users', 'mood', {
+        type: DataTypes.ENUM({ values: ['happy', 'sad', 'neutral'], schema: 'shared' }),
+      });
+
+      const creates = getCreateTypeSqls(stub);
+      expect(creates).to.have.length(1);
+      expect(creates[0]).to.include('"shared"."enum_users_mood"');
+    });
+
+    it('does not make a separate pre-create call for a plain auto-named ENUM', async () => {
+      const sq = createSequelizeInstance();
+      sq.define('user', { mood: DataTypes.ENUM('happy', 'sad') });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.changeColumn('users', 'mood', {
+        type: DataTypes.ENUM('happy', 'sad', 'neutral'),
+      });
+
+      // For auto-named ENUMs the CREATE TYPE is embedded in the ALTER TABLE statement
+      // by changeColumnQuery — there is no separate pre-create queryRaw call.
+      expect(stub.callCount).to.equal(1);
+      expect(stub.firstCall.args[0]).to.include('CREATE TYPE');
+      expect(stub.firstCall.args[0]).to.include('ALTER TABLE');
+    });
+  });
 
   describe('dropTable (enum cleanup)', () => {
     let stub;
