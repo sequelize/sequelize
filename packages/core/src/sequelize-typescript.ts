@@ -20,6 +20,8 @@ import type {
   DataType,
   DataTypeClassOrInstance,
   DestroyOptions,
+  FindOptions,
+  Model,
   ModelAttributes,
   ModelOptions,
   ModelStatic,
@@ -1214,7 +1216,10 @@ Connection options can be used at the root of the option bag, in the "replicatio
     return normalizeDataType(Type, this.dialect);
   }
 
-  async union(queries: { model: ModelStatic; options?: any }[], options: UnionOptions = {}): Promise<any[]> {
+  async union<T extends Model>(
+    queries: { model: ModelStatic<T>; options?: Omit<FindOptions<T>, 'include'> }[],
+    options: UnionOptions = {},
+  ): Promise<T[]> {
     if (!Array.isArray(queries) || queries.length === 0) {
       throw new TypeError('Sequelize#union requires an array of at least one query parameter.');
     }
@@ -1287,35 +1292,10 @@ Connection options can be used at the root of the option bag, in the "replicatio
         );
       }
 
-      for (let j = 0; j < referenceColumns.length; j++) {
-        const ref = referenceColumns[j];
-        const cur = columns[j];
-
-        if (ref.dataType && cur.dataType) {
-          const refConstructor = ref.dataType.constructor as any;
-          const curConstructor = cur.dataType.constructor as any;
-
-          if (refConstructor !== curConstructor) {
-             const refGroup = getTypeCompatibilityGroup(refConstructor);
-             const curGroup = getTypeCompatibilityGroup(curConstructor);
-
-             if (!refGroup || refGroup !== curGroup) {
-               throw new TypeError(
-                 `Sequelize#union: column at position ${j} has incompatible types: ` +
-                 `"${refConstructor.name}" (query 0, column "${ref.name}") vs ` +
-                 `"${curConstructor.name}" (query ${i}, column "${cur.name}"). ` +
-                 `Columns at the same position must have compatible types across all UNION queries.`,
-               );
-             }
-          }
-        }
-      }
+      assertColumnsCompatible(referenceColumns, columns, i);
     }
 
     const rawSqls = queryContexts.map(({ model, queryOptions }) => {
-      const tableNames: Record<string, boolean> = {};
-      tableNames[model.table] = true;
-
       return (this as any).queryInterface.queryGenerator.selectQuery(model.table, queryOptions, model);
     });
 
@@ -1354,4 +1334,34 @@ function getTypeCompatibilityGroup(DataTypeClass: Function): string {
   }
 
   return name;
+}
+
+function assertColumnsCompatible(
+  referenceColumns: UnionColumnDescriptor[],
+  columns: UnionColumnDescriptor[],
+  queryIndex: number,
+) {
+  for (let j = 0; j < referenceColumns.length; j++) {
+    const ref = referenceColumns[j];
+    const cur = columns[j];
+
+    if (ref.dataType && cur.dataType) {
+      const refConstructor = ref.dataType.constructor;
+      const curConstructor = cur.dataType.constructor;
+
+      if (refConstructor !== curConstructor) {
+        const refGroup = getTypeCompatibilityGroup(refConstructor);
+        const curGroup = getTypeCompatibilityGroup(curConstructor);
+
+        if (!refGroup || refGroup !== curGroup) {
+          throw new TypeError(
+            `Sequelize#union: column at position ${j} has incompatible types: ` +
+              `"${refConstructor.name}" (query 0, column "${ref.name}") vs ` +
+              `"${curConstructor.name}" (query ${queryIndex}, column "${cur.name}"). ` +
+              `Columns at the same position must have compatible types across all UNION queries.`,
+          );
+        }
+      }
+    }
+  }
 }

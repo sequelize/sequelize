@@ -62,8 +62,6 @@ import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
 import { validator as Validator } from './utils/validator-extras';
 
-
-
 /**
  * This is the main class, the entry point to sequelize.
  */
@@ -245,8 +243,6 @@ export class Sequelize extends SequelizeTypeScript {
 
     return this.queryRaw(sql, options);
   }
-
-
 
   async queryRaw(sql, options) {
     if (typeof sql !== 'string') {
