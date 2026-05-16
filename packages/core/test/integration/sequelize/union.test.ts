@@ -108,4 +108,58 @@ describe('Sequelize#union', () => {
     expect(results[0]).to.not.have.property('age');
     expect(results[0]).to.have.property('id');
   });
+
+  describe('column compatibility validation', () => {
+    it('throws when member queries have different column counts', async () => {
+      // User returns [id, name, age], Guest returns [id, name]
+      const promise = sequelize.union([
+        { model: vars.User },
+        { model: vars.Guest, options: { attributes: ['id', 'name'] } },
+      ]);
+
+      await expect(promise).to.be.rejectedWith(
+        TypeError,
+        'Sequelize#union: query 1 returns 2 column(s), but query 0 returns 3 column(s)',
+      );
+    });
+
+    it('throws when member queries have incompatible column types at the same position', async () => {
+      // Define a model with an incompatible type (e.g. name is INTEGER instead of STRING)
+      const WeirdGuest = sequelize.define(
+        'WeirdGuest',
+        {
+          name: DataTypes.INTEGER, // Incompatible with User.name (STRING)
+          age: DataTypes.INTEGER,
+        },
+        { timestamps: false },
+      );
+
+      const promise = sequelize.union([{ model: vars.User }, { model: WeirdGuest }]);
+
+      await expect(promise).to.be.rejectedWith(
+        TypeError,
+        'Sequelize#union: column at position 1 has incompatible types',
+      );
+    });
+
+    it('allows member queries with compatible column types at the same position', async () => {
+      // STRING and TEXT are considered compatible 'TEXT' types
+      const TextGuest = sequelize.define(
+        'TextGuest',
+        {
+          name: DataTypes.TEXT, // Compatible with User.name (STRING)
+          age: DataTypes.INTEGER,
+        },
+        { timestamps: false },
+      );
+
+      await sequelize.sync({ force: true });
+      await vars.User.create({ name: 'Alice', age: 20 });
+      await TextGuest.create({ name: 'Bob', age: 30 });
+
+      const results = await sequelize.union([{ model: vars.User }, { model: TextGuest }]);
+
+      expect(results).to.have.lengthOf(2);
+    });
+  });
 });

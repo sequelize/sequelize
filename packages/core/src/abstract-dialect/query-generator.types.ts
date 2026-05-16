@@ -1,3 +1,4 @@
+import type { AbstractDataType } from '../abstract-dialect/data-types.js';
 import type { Deferrable } from '../deferrable';
 import type { TableHints } from '../enums';
 import type { BaseSqlExpression } from '../expression-builders/base-sql-expression';
@@ -12,6 +13,11 @@ import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
 export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
+
+export interface UnionColumnDescriptor {
+  name: string;
+  dataType: AbstractDataType<any> | null;
+}
 
 export interface UnionOptions extends QueryRawOptions, AddLimitOffsetOptions {
   unionAll?: boolean;
