@@ -1,4 +1,4 @@
-import type { AbstractDataType } from '../abstract-dialect/data-types.js';
+import type { AbstractDataType } from './data-types.js';
 import type { Deferrable } from '../deferrable';
 import type { TableHints } from '../enums';
 import type { BaseSqlExpression } from '../expression-builders/base-sql-expression';

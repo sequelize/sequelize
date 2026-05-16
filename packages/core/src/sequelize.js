@@ -62,38 +62,7 @@ import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
 import { validator as Validator } from './utils/validator-extras';
 
-function getTypeCompatibilityGroup(DataTypeClass) {
-  const name = DataTypeClass.name;
-  if (
-    name === 'INTEGER' ||
-    name === 'BIGINT' ||
-    name === 'TINYINT' ||
-    name === 'SMALLINT' ||
-    name === 'MEDIUMINT'
-  ) {
-    return 'INTEGER';
-  }
 
-  if (
-    name === 'FLOAT' ||
-    name === 'DOUBLE' ||
-    name === 'REAL' ||
-    name === 'DECIMAL'
-  ) {
-    return 'DECIMAL';
-  }
-
-  if (
-    name === 'STRING' ||
-    name === 'TEXT' ||
-    name === 'CHAR' ||
-    name === 'CITEXT'
-  ) {
-    return 'TEXT';
-  }
-
-  return name;
-}
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -277,106 +246,7 @@ export class Sequelize extends SequelizeTypeScript {
     return this.queryRaw(sql, options);
   }
 
-  async union(queries, options = {}) {
-    if (!Array.isArray(queries) || queries.length === 0) {
-      throw new TypeError('Sequelize#union requires an array of at least one query parameter.');
-    }
 
-    for (const q of queries) {
-      if (!q || !q.model) {
-        throw new TypeError(
-          'Each query passed to Sequelize#union must be an object with a valid "model" property.',
-        );
-      }
-    }
-
-    const queryContexts = await Promise.all(
-      queries.map(async q => {
-        const model = q.model;
-        const queryOptions = { ...q.options };
-        queryOptions.model = model;
-
-        model._injectScope(queryOptions);
-        model._conformIncludes(queryOptions, model);
-        model._expandAttributes(queryOptions);
-        model._expandIncludeAll(queryOptions, model);
-
-        if (
-          queryOptions.attributes &&
-          !queryOptions.raw &&
-          model.primaryKeyAttribute &&
-          !queryOptions.attributes.includes(model.primaryKeyAttribute) &&
-          (!queryOptions.group ||
-            !queryOptions.hasSingleAssociation ||
-            queryOptions.hasMultiAssociation)
-        ) {
-          queryOptions.attributes = [model.primaryKeyAttribute].concat(queryOptions.attributes);
-        }
-
-        if (!queryOptions.attributes) {
-          queryOptions.attributes = Array.from(model.modelDefinition.attributes.keys());
-          queryOptions.originalAttributes = model._injectDependentVirtualAttributes(
-            queryOptions.attributes,
-          );
-        }
-
-        const attrMap = model.modelDefinition.attributes;
-        const columns = queryOptions.attributes.map(attr => {
-          const attrName = Array.isArray(attr) ? attr[0] : attr;
-          const def = attrMap.get(attrName);
-          return { name: attrName, dataType: def?.type ?? null };
-        });
-
-        return { model, queryOptions, columns };
-      }),
-    );
-
-    const referenceColumns = queryContexts[0].columns;
-    for (let i = 1; i < queryContexts.length; i++) {
-      const { columns } = queryContexts[i];
-
-      if (columns.length !== referenceColumns.length) {
-        throw new TypeError(
-          `Sequelize#union: query ${i} returns ${columns.length} column(s), ` +
-            `but query 0 returns ${referenceColumns.length} column(s). ` +
-            `All queries in a UNION must return the same number of columns.`,
-        );
-      }
-
-      for (let j = 0; j < referenceColumns.length; j++) {
-        const ref = referenceColumns[j];
-        const cur = columns[j];
-
-        if (ref.dataType && cur.dataType) {
-          const refConstructor = ref.dataType.constructor;
-          const curConstructor = cur.dataType.constructor;
-
-          if (refConstructor !== curConstructor) {
-             const refGroup = getTypeCompatibilityGroup(refConstructor);
-             const curGroup = getTypeCompatibilityGroup(curConstructor);
-
-             if (!refGroup || refGroup !== curGroup) {
-               throw new TypeError(
-                 `Sequelize#union: column at position ${j} has incompatible types: ` +
-                 `"${refConstructor.name}" (query 0, column "${ref.name}") vs ` +
-                 `"${curConstructor.name}" (query ${i}, column "${cur.name}"). ` +
-                 `Columns at the same position must have compatible types across all UNION queries.`,
-               );
-             }
-          }
-        }
-      }
-    }
-
-    const rawSqls = queryContexts.map(({ model, queryOptions }) => {
-      const tableNames = {};
-      tableNames[model.table] = true;
-
-      return this.queryInterface.queryGenerator.selectQuery(model.table, queryOptions, model);
-    });
-
-    return this.queryInterface.union(rawSqls, options);
-  }
 
   async queryRaw(sql, options) {
     if (typeof sql !== 'string') {

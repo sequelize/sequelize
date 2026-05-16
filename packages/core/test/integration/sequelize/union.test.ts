@@ -161,5 +161,17 @@ describe('Sequelize#union', () => {
 
       expect(results).to.have.lengthOf(2);
     });
+
+    it('throws when member queries use the include option', async () => {
+      const promise = sequelize.union([
+        { model: vars.User, options: { include: 'something' } },
+        { model: vars.Guest },
+      ]);
+
+      await expect(promise).to.be.rejectedWith(
+        TypeError,
+        'Sequelize.union: eager-loading via `include` is not supported',
+      );
+    });
   });
 });
