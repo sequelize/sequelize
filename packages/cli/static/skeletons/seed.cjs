@@ -1,7 +1,7 @@
 'use strict';
 
 module.exports = {
-  /** @type {import('@sequelize/cli').SeedFunction} */
+  /** @type {import('@sequelize/cli').MigrationFunction} */
   async up(queryInterface, sequelize) {
     /**
      * Add seed commands here.
@@ -14,7 +14,7 @@ module.exports = {
      */
   },
 
-  /** @type {import('@sequelize/cli').SeedFunction} */
+  /** @type {import('@sequelize/cli').MigrationFunction} */
   async down(queryInterface, sequelize) {
     /**
      * Add commands to revert seed here.

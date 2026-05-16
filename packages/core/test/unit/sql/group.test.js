@@ -3,14 +3,14 @@
 const { DataTypes } = require('@sequelize/core');
 const { beforeAll2, expectsql, sequelize } = require('../../support');
 
-const sql = sequelize.dialect.queryGenerator;
+const queryGenerator = sequelize.dialect.queryGenerator;
 
 describe('QueryGenerator#selectQuery with "group"', () => {
   function expectSelect(options, expectation) {
     const model = options.model;
 
     return expectsql(
-      sql.selectQuery(options.table || (model && model.table), options, options.model),
+      queryGenerator.selectQuery(options.table || (model && model.table), options, options.model),
       expectation,
     );
   }

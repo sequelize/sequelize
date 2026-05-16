@@ -8,6 +8,7 @@ import {
   sequelize as baseSequelize,
   createSingleTransactionalTestSequelizeInstance,
   getTestDialect,
+  sequelize,
   setResetMode,
 } from './support';
 
@@ -123,7 +124,7 @@ describe('Pool', () => {
         }
 
         if (dialectName === 'db2' || dialectName === 'mariadb' || dialectName === 'sqlite3') {
-          await sequelize.pool.destroy(connection);
+          await newSequelize.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');
           error.code = 'ECONNRESET';
@@ -133,90 +134,90 @@ describe('Pool', () => {
       }
 
       // This function makes
-      const sequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
+      const newSequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
         pool: { max: 1, idle: 5000 },
       });
 
-      const cm = sequelize.dialect.connectionManager;
+      const cm = newSequelize.dialect.connectionManager;
 
-      const firstConnection = await sequelize.pool.acquire();
+      const firstConnection = await newSequelize.pool.acquire();
       await simulateUnexpectedError(firstConnection);
-      expect(sequelize.pool.using).to.eq(
+      expect(newSequelize.pool.using).to.eq(
         0,
         'first connection should have errored and not be in use anymore',
       );
 
-      expect(sequelize.pool.size).to.eq(
+      expect(newSequelize.pool.size).to.eq(
         0,
         'first connection should have errored and not be in pool anymore',
       );
 
-      const secondConnection = await sequelize.pool.acquire();
+      const secondConnection = await newSequelize.pool.acquire();
 
       assertNewConnection(secondConnection, firstConnection);
 
-      expect(sequelize.pool.size).to.equal(
+      expect(newSequelize.pool.size).to.equal(
         1,
         'pool size should be 1 after new connection is acquired',
       );
       expect(cm.validate(firstConnection)).to.be.not.ok;
 
-      sequelize.pool.release(secondConnection);
+      newSequelize.pool.release(secondConnection);
     });
 
     it('should obtain new connection when released connection dies inside pool', async () => {
-      const sequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
+      const newSequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
         pool: { max: 1, idle: 5000 },
       });
 
-      const cm = sequelize.dialect.connectionManager;
+      const cm = newSequelize.dialect.connectionManager;
 
-      const oldConnection = await sequelize.pool.acquire();
-      sequelize.pool.release(oldConnection);
+      const oldConnection = await newSequelize.pool.acquire();
+      newSequelize.pool.release(oldConnection);
       attachMSSQLUniqueId(oldConnection);
-      await sequelize.dialect.connectionManager.disconnect(oldConnection);
-      const newConnection = await sequelize.pool.acquire();
+      await newSequelize.dialect.connectionManager.disconnect(oldConnection);
+      const newConnection = await newSequelize.pool.acquire();
 
       assertNewConnection(newConnection, oldConnection);
-      expect(sequelize.pool.size).to.equal(1);
+      expect(newSequelize.pool.size).to.equal(1);
       expect(cm.validate(oldConnection)).to.be.not.ok;
 
-      sequelize.pool.release(newConnection);
+      newSequelize.pool.release(newConnection);
     });
   });
 
   describe('idle', () => {
     it('should maintain connection within idle range', async () => {
-      const sequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
+      const newSequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
         pool: { max: 1, idle: 100 },
       });
 
-      const cm = sequelize.dialect.connectionManager;
+      const cm = newSequelize.dialect.connectionManager;
 
-      const firstConnection = await sequelize.pool.acquire();
+      const firstConnection = await newSequelize.pool.acquire();
 
       attachMSSQLUniqueId(firstConnection);
 
       // returning connection to the pool
-      sequelize.pool.release(firstConnection);
+      newSequelize.pool.release(firstConnection);
 
       // Wait a little and then get next available connection
       await delay(90);
-      const secondConnection = await sequelize.pool.acquire();
+      const secondConnection = await newSequelize.pool.acquire();
 
       assertSameConnection(secondConnection, firstConnection);
       expect(cm.validate(firstConnection)).to.be.ok;
 
-      sequelize.pool.release(secondConnection);
+      newSequelize.pool.release(secondConnection);
     });
 
     it('should get new connection beyond idle range', async () => {
-      const sequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
+      const newSequelize = await createSingleTransactionalTestSequelizeInstance(baseSequelize, {
         pool: { max: 1, idle: 100, evict: 10 },
       });
 
-      const pool = sequelize.pool;
-      const cm = sequelize.dialect.connectionManager;
+      const pool = newSequelize.pool;
+      const cm = newSequelize.dialect.connectionManager;
 
       const firstConnection = await pool.acquire();
 
@@ -240,7 +241,7 @@ describe('Pool', () => {
   describe('acquire', () => {
     it('rejects with ConnectionAcquireTimeoutError when unable to acquire connection', async () => {
       const testInstance = new Sequelize({
-        dialect: dialectName,
+        dialect: sequelize.rawOptions.dialect,
         databaseVersion: baseSequelize.dialect.minimumDatabaseVersion,
         pool: {
           acquire: 10,

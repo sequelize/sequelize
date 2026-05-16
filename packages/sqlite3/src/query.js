@@ -10,6 +10,7 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { pojo } from '@sequelize/utils';
 import isEqual from 'lodash/isEqual';
 import isPlainObject from 'lodash/isPlainObject';
 import merge from 'lodash/merge';
@@ -174,7 +175,7 @@ export class SqliteQuery extends AbstractQuery {
       }
 
       if (isPlainObject(parameters)) {
-        const newParameters = Object.create(null);
+        const newParameters = pojo();
 
         for (const key of Object.keys(parameters)) {
           newParameters[`$${key}`] = stringifyIfBigint(parameters[key]);

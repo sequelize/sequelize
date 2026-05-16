@@ -21,12 +21,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
     name: Upload install and build artifact (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
@@ -38,7 +38,7 @@ jobs:
         run: yarn nx reset
       - name: Compress artifact
         run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/*/lib ./node_modules ./packages/*/node_modules
-      - uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
@@ -49,31 +49,31 @@ jobs:
     needs: install-and-build
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: 20.20.0
+          node-version: 24.14.0
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: install-build-artifact-node-20
+          name: install-build-artifact-node-24
       - name: Extract artifact
-        run: tar -xf install-build-node-20.tar
+        run: tar -xf install-build-node-24.tar
       - run: yarn test:format
   unit-test:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
     name: Unit test all dialects (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: lint
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -82,8 +82,6 @@ jobs:
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
         run: yarn lerna run test-unit --scope=@sequelize/validator.js
-      - name: Unit tests (cli)
-        run: yarn lerna run test-unit --scope=@sequelize/cli
       - name: Unit tests (utils)
         run: yarn lerna run test-unit --scope=@sequelize/utils
       - name: Unit tests (core - mariadb)
@@ -114,19 +112,21 @@ jobs:
         run: yarn lerna run test-unit-oracle --scope=@sequelize/core
       - name: Unit tests (oracle package)
         run: yarn lerna run test-unit --scope=@sequelize/oracle
+      - name: Unit tests (cli)
+        run: yarn lerna run test-unit --scope=@sequelize/cli
       - name: SQLite SSCCE
         run: yarn sscce-sqlite3
   test-win:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
     name: Build and test on Windows (Node ${{ matrix.node-version }})
     runs-on: windows-latest
     needs: lint # don't bother running if lint tests fail
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
@@ -146,15 +146,15 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: 20.20.0
+          node-version: 24.14.0
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: install-build-artifact-node-20
+          name: install-build-artifact-node-24
       - name: Extract artifact
-        run: tar -xf install-build-node-20.tar
+        run: tar -xf install-build-node-24.tar
       - run: yarn docs
   test-typings:
     strategy:
@@ -166,15 +166,15 @@ jobs:
     needs: lint
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: 20.20.0
+          node-version: 24.14.0
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: install-build-artifact-node-20
+          name: install-build-artifact-node-24
       - name: Extract artifact
-        run: tar -xf install-build-node-20.tar
+        run: tar -xf install-build-node-24.tar
       - name: Install TypeScript
         run: yarn add typescript@~${{ matrix.ts-version }}
       - name: Typing Tests
@@ -183,7 +183,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
     name: sqlite3 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [unit-test, test-typings]
@@ -191,11 +191,11 @@ jobs:
       DIALECT: sqlite3
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -206,7 +206,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
         postgres-version: [oldest, latest]
         minify-aliases: [true, false]
         native: [true, false]
@@ -218,11 +218,11 @@ jobs:
       SEQ_PG_MINIFY_ALIASES: ${{ matrix.minify-aliases && '1' || '' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -237,7 +237,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
         database-version: [oldest, latest]
         dialect: [mysql, mariadb, db2, oracle]
     name: ${{ matrix.dialect }} ${{ matrix.database-version }} (Node ${{ matrix.node-version }})
@@ -247,11 +247,11 @@ jobs:
       DIALECT: ${{ matrix.dialect }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -263,7 +263,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [18, 20]
+        node-version: [20, 22, 24]
     name: mssql latest (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     needs: [unit-test, test-typings]
@@ -271,11 +271,11 @@ jobs:
       DIALECT: mssql
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
       - name: Extract artifact
@@ -288,7 +288,7 @@ jobs:
   #   strategy:
   #     fail-fast: false
   #     matrix:
-  #       node-version: [18, 20]
+  #       node-version: [20, 22, 24]
   #   name: mssql oldest (Node ${{ matrix.node-version }})
   #   runs-on: ubuntu-20.04
   #   needs: [unit-test, test-typings]
@@ -320,7 +320,7 @@ jobs:
     steps:
       - name: Generate Sequelize Bot Token
         id: generate-token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
@@ -333,15 +333,15 @@ jobs:
           # Lerna will use the same credentials later for "git push".
           # This must be done using the Sequelize bot.
           token: '${{ steps.generate-token.outputs.token }}'
-      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
-          node-version: 20.20.0
+          node-version: 24.14.0
           cache: yarn
-      - uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: install-build-artifact-node-20
+          name: install-build-artifact-node-24
       - name: Extract artifact
-        run: tar -xf install-build-node-20.tar
+        run: tar -xf install-build-node-24.tar
       - name: Configure git
         run: |
           git config --global user.name "github-actions[bot]"

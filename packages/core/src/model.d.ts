@@ -22,7 +22,10 @@ import type {
 } from './associations/index';
 import type { Deferrable } from './deferrable';
 import type { IndexHints } from './enums.js';
-import type { DynamicSqlExpression } from './expression-builders/base-sql-expression.js';
+import type {
+  BaseSqlExpression,
+  DynamicSqlExpression,
+} from './expression-builders/base-sql-expression.js';
 import type { Cast } from './expression-builders/cast.js';
 import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
@@ -279,7 +282,7 @@ type StaticValues<Type> =
 /**
  * Operators that can be used in {@link WhereOptions}
  *
- * @typeParam AttributeType - The JS type of the attribute the operator is operating on.
+ * @template AttributeType - The JS type of the attribute the operator is operating on.
  *
  * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators
  */
@@ -757,21 +760,27 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
   subQuery?: boolean;
 }
 
+type AssociationName = string;
 type OrderItemAssociation =
   | Association
-  | ModelStatic<Model>
-  | { model: ModelStatic<Model>; as: string }
-  | string;
-type OrderItemColumn = string | Col | Fn | Literal;
+  | ModelStatic
+  | { model: ModelStatic; as: AssociationName }
+  | AssociationName;
+type OrderItemColumn = string | BaseSqlExpression;
+type OrderDirection =
+  | 'ASC'
+  | 'DESC'
+  | 'ASC NULLS LAST'
+  | 'DESC NULLS LAST'
+  | 'ASC NULLS FIRST'
+  | 'DESC NULLS FIRST'
+  | 'NULLS FIRST'
+  | 'NULLS LAST';
 export type OrderItem =
-  | string
-  | Fn
-  | Col
-  | Literal
-  | [OrderItemColumn, string]
-  | [OrderItemAssociation, OrderItemColumn]
-  | [...OrderItemAssociation[], OrderItemColumn, string];
-export type Order = Fn | Col | Literal | OrderItem[];
+  | OrderItemColumn
+  | [...OrderItemAssociation[], OrderItemColumn]
+  | [...OrderItemAssociation[], OrderItemColumn, OrderDirection];
+export type Order = BaseSqlExpression | OrderItem[];
 
 /**
  * Please note if this is used the aliased property will not be available on the model instance
@@ -783,14 +792,14 @@ export type ProjectionAlias = readonly [
 ];
 
 export type FindAttributeOptions<TAttributes = any> =
-  | Array<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
+  | ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias | Literal>
   | {
-      exclude: Array<Extract<keyof TAttributes, string>>;
-      include?: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+      exclude: ReadonlyArray<Extract<keyof TAttributes, string>>;
+      include?: ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias>;
     }
   | {
-      exclude?: Array<Extract<keyof TAttributes, string>>;
-      include: Array<Extract<keyof TAttributes, string> | ProjectionAlias>;
+      exclude?: ReadonlyArray<Extract<keyof TAttributes, string>>;
+      include: ReadonlyArray<Extract<keyof TAttributes, string> | ProjectionAlias>;
     };
 
 export interface IndexHint {

@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [7.0.0-alpha.48](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.47...v7.0.0-alpha.48) (2026-02-04)
+
+### Bug Fixes
+
+- **db2:** update ibm_db and remove @types/ibm_db ([#18001](https://github.com/sequelize/sequelize/issues/18001)) ([187e052](https://github.com/sequelize/sequelize/commit/187e052d4008626d73f6124472816a5ce09bffb0))
+
+### Features
+
+- **oracle:** Add support for oracle dialect in v7 ([#18050](https://github.com/sequelize/sequelize/issues/18050)) ([3a92f26](https://github.com/sequelize/sequelize/commit/3a92f263a6707469839160849b87229985f5f280))
+
 # [7.0.0-alpha.47](https://github.com/sequelize/sequelize/compare/v7.0.0-alpha.46...v7.0.0-alpha.47) (2025-10-25)
 
 ### Bug Fixes

@@ -596,8 +596,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'sqlite3':
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
             );
             expect(error.errors[0].path).to.equal('username');
             expect(error.errors[0].message).to.equal('username must be unique');
@@ -674,8 +676,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
             break;
 
           case 'sqlite3':
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: UNIQUE constraint failed: Users.username',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and `@vscode/sqlite3`
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
             );
             break;
 
@@ -755,8 +759,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'sqlite3':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
             );
             break;
 
@@ -838,8 +844,10 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           case 'sqlite3':
             expect(error.table).to.be.undefined;
             expect(error.fields).to.be.undefined;
-            expect(error.cause.message).to.equal(
-              'SQLITE_CONSTRAINT: FOREIGN KEY constraint failed',
+            // https://github.com/sequelize/sequelize/pull/18117
+            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+            expect(error.cause.message).to.match(
+              /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
             );
             break;
 

@@ -1,3 +1,4 @@
+import { pojo } from '@sequelize/utils';
 import isPlainObject from 'lodash/isPlainObject';
 import type { AbstractDialect, BindCollector } from '../abstract-dialect/dialect.js';
 import type { EscapeOptions } from '../abstract-dialect/query-generator-typescript.js';
@@ -460,7 +461,7 @@ export function combineBinds(bindA: BindOrReplacements, bindB: { [key: string]: 
 }
 
 function arrayBindToNamedBind(bind: unknown[]): { [key: string]: unknown } {
-  const out = Object.create(null);
+  const out = pojo<Record<string, unknown>>();
 
   // eslint-disable-next-line unicorn/no-for-loop -- too slow.
   for (let i = 0; i < bind.length; i++) {

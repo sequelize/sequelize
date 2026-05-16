@@ -180,7 +180,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM SYSCAT.TABCONST c',
       'LEFT JOIN SYSCAT.REFERENCES r ON c.CONSTNAME = r.CONSTNAME AND c.TABNAME = r.TABNAME AND c.TABSCHEMA = r.TABSCHEMA',
       'LEFT JOIN SYSCAT.KEYCOLUSE k ON c.CONSTNAME = k.CONSTNAME AND c.TABNAME = k.TABNAME AND c.TABSCHEMA = k.TABSCHEMA',
-      'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME',
+      'LEFT JOIN SYSCAT.KEYCOLUSE fk ON r.REFKEYNAME = fk.CONSTNAME AND r.REFTABNAME = fk.TABNAME AND r.REFTABSCHEMA = fk.TABSCHEMA',
       'LEFT JOIN SYSCAT.CHECKS ck ON c.CONSTNAME = ck.CONSTNAME AND c.TABNAME = ck.TABNAME AND c.TABSCHEMA = ck.TABSCHEMA',
       `WHERE c.TABNAME = ${this.escape(table.tableName)}`,
       `AND c.TABSCHEMA = ${this.escape(table.schema)}`,
@@ -254,5 +254,9 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   generateTransactionId(): string {
     return randomBytes(10).toString('hex');
+  }
+
+  getRandomFloatFunctionCall(): string {
+    return 'RAND()';
   }
 }
