@@ -1,4 +1,3 @@
-import type { AbstractDataType } from './data-types.js';
 import type { Deferrable } from '../deferrable';
 import type { TableHints } from '../enums';
 import type { BaseSqlExpression } from '../expression-builders/base-sql-expression';
@@ -7,6 +6,7 @@ import type { Filterable, IndexHintable, ModelStatic, ReferentialAction } from '
 import type { ModelDefinition } from '../model-definition.js';
 import type { QueryRawOptions } from '../sequelize';
 import type { TransactionType } from '../transaction';
+import type { AbstractDataType } from './data-types.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { TableName } from './query-interface.js';
 import type { ConstraintType } from './query-interface.types';

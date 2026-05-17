@@ -39,7 +39,10 @@ import { normalizeDataType, validateDataType } from './abstract-dialect/data-typ
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
-import type { UnionColumnDescriptor, UnionOptions } from './abstract-dialect/query-generator.types.js';
+import type {
+  UnionColumnDescriptor,
+  UnionOptions,
+} from './abstract-dialect/query-generator.types.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';
 import type { AcquireConnectionOptions } from './abstract-dialect/replication-pool.js';
@@ -1204,7 +1207,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   }
 
   async union<T extends Model>(
-    queries: { model: ModelStatic<T>; options?: Omit<FindOptions<T>, 'include'> }[],
+    queries: Array<{ model: ModelStatic<T>; options?: Omit<FindOptions<T>, 'include'> }>,
     options: UnionOptions = {},
   ): Promise<T[]> {
     if (!Array.isArray(queries) || queries.length === 0) {
@@ -1243,11 +1246,11 @@ Connection options can be used at the root of the option bag, in the "replicatio
             !queryOptions.hasSingleAssociation ||
             queryOptions.hasMultiAssociation)
         ) {
-          queryOptions.attributes = [model.primaryKeyAttribute].concat(queryOptions.attributes);
+          queryOptions.attributes = [model.primaryKeyAttribute, ...queryOptions.attributes];
         }
 
         if (!queryOptions.attributes) {
-          queryOptions.attributes = Array.from(model.modelDefinition.attributes.keys());
+          queryOptions.attributes = [...model.modelDefinition.attributes.keys()];
           queryOptions.originalAttributes = model._injectDependentVirtualAttributes(
             queryOptions.attributes,
           );
@@ -1283,7 +1286,11 @@ Connection options can be used at the root of the option bag, in the "replicatio
     }
 
     const rawSqls = queryContexts.map(({ model, queryOptions }) => {
-      return (this as any).queryInterface.queryGenerator.selectQuery(model.table, queryOptions, model);
+      return (this as any).queryInterface.queryGenerator.selectQuery(
+        model.table,
+        queryOptions,
+        model,
+      );
     });
 
     return (this as any).queryInterface.union(rawSqls, options);
@@ -1302,21 +1309,11 @@ function getTypeCompatibilityGroup(DataTypeClass: Function): string {
     return 'INTEGER';
   }
 
-  if (
-    name === 'FLOAT' ||
-    name === 'DOUBLE' ||
-    name === 'REAL' ||
-    name === 'DECIMAL'
-  ) {
+  if (name === 'FLOAT' || name === 'DOUBLE' || name === 'REAL' || name === 'DECIMAL') {
     return 'DECIMAL';
   }
 
-  if (
-    name === 'STRING' ||
-    name === 'TEXT' ||
-    name === 'CHAR' ||
-    name === 'CITEXT'
-  ) {
+  if (name === 'STRING' || name === 'TEXT' || name === 'CHAR' || name === 'CITEXT') {
     return 'TEXT';
   }
 
@@ -1328,8 +1325,7 @@ function assertColumnsCompatible(
   columns: UnionColumnDescriptor[],
   queryIndex: number,
 ) {
-  for (let j = 0; j < referenceColumns.length; j++) {
-    const ref = referenceColumns[j];
+  for (const [j, ref] of referenceColumns.entries()) {
     const cur = columns[j];
 
     if (ref.dataType && cur.dataType) {
