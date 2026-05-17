@@ -157,7 +157,9 @@ describe('Sequelize#union', () => {
       await vars.User.create({ name: 'Alice', age: 20 });
       await TextGuest.create({ name: 'Bob', age: 30 });
 
-      const results = await sequelize.union([{ model: vars.User }, { model: TextGuest }]);
+      const results = await sequelize.union([{ model: vars.User }, { model: TextGuest }], {
+        unionAll: true,
+      });
 
       expect(results).to.have.lengthOf(2);
     });

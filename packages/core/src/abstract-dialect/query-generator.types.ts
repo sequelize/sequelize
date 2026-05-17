@@ -22,6 +22,7 @@ export interface UnionColumnDescriptor {
 export interface UnionOptions extends QueryRawOptions, AddLimitOffsetOptions {
   unionAll?: boolean;
   order?: string | [string, string] | Array<string | [string, string]>;
+  minifyAliases?: boolean;
 }
 
 export interface BoundQuery {

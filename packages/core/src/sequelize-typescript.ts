@@ -1225,7 +1225,10 @@ Connection options can be used at the root of the option bag, in the "replicatio
     const queryContexts = await Promise.all(
       queries.map(async q => {
         const model = q.model as any;
-        const queryOptions: any = { ...q.options };
+        const queryOptions: any = {
+          minifyAliases: options.minifyAliases ?? (this as any).options.minifyAliases,
+          ...q.options,
+        };
         queryOptions.model = model;
 
         model._injectScope(queryOptions);
@@ -1294,7 +1297,13 @@ Connection options can be used at the root of the option bag, in the "replicatio
       );
     });
 
-    return (this as any).queryInterface.union(rawSqls, options);
+    const unionOptions = {
+      minifyAliases: options.minifyAliases ?? (this as any).options.minifyAliases,
+      aliasesMapping: queryContexts[0]?.queryOptions?.aliasesMapping,
+      ...options,
+    };
+
+    return (this as any).queryInterface.union(rawSqls, unionOptions);
   }
 }
 
