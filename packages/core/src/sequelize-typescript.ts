@@ -1228,11 +1228,12 @@ Connection options can be used at the root of the option bag, in the "replicatio
         const queryOptions: any = { ...q.options };
         queryOptions.model = model;
 
+        model._injectScope(queryOptions);
+
         if (queryOptions.include) {
           throw new TypeError('Sequelize.union: eager-loading via `include` is not supported');
         }
 
-        model._injectScope(queryOptions);
         model._conformIncludes(queryOptions, model);
         model._expandAttributes(queryOptions);
         model._expandIncludeAll(queryOptions, model);
