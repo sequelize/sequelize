@@ -14,6 +14,42 @@ function generatedAttribute(overrides: Record<string, unknown> = {}) {
 }
 
 describe('generated columns dialect edge cases', () => {
+  if (
+    sequelize.dialect.supports.generatedColumns.stored ||
+    sequelize.dialect.supports.generatedColumns.virtual
+  ) {
+    it('does not parse constraint keywords inside generated expressions', () => {
+      const attributes = sequelize.queryGenerator.attributesToSQL(
+        {
+          computed: generatedAttribute({
+            type: sequelize.normalizeDataType(DataTypes.STRING),
+            generatedAs: sql.literal("'PRIMARY KEY REFERENCES COMMENT )'"),
+            generatedColumn: sequelize.dialect.supports.generatedColumns.stored
+              ? 'STORED'
+              : 'VIRTUAL',
+          }),
+        },
+        { context: 'createTable' },
+      );
+      const definition = attributes.computed;
+      const ddl = sequelize.queryGenerator.createTableQuery(
+        'generated_keyword_test',
+        attributes,
+        {},
+      );
+      const ddlForAssertion = dialectName === 'oracle' ? ddl.replaceAll("''", "'") : ddl;
+
+      expect(ddlForAssertion).to.include(
+        `${sequelize.queryGenerator.quoteIdentifier('computed')} ${definition}`,
+      );
+
+      const ddlWithoutGeneratedDefinition = ddlForAssertion.replace(definition, '');
+      expect(ddlWithoutGeneratedDefinition).not.to.include('PRIMARY KEY');
+      expect(ddlWithoutGeneratedDefinition).not.to.include('REFERENCES');
+      expect(ddlWithoutGeneratedDefinition).not.to.include('COMMENT');
+    });
+  }
+
   if (dialectName === 'postgres') {
     it('formats database function expressions', () => {
       const FunctionExpressionModel = sequelize.define(

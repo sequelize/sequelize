@@ -10,6 +10,12 @@ import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtLastTopLevelKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
@@ -49,36 +55,36 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     for (const attr in attributes) {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
-        let match;
 
-        if (dataType.includes('COMMENT ')) {
-          const commentMatch = dataType.match(/^(.+) (COMMENT.*)$/);
-          const commentText = commentMatch[2].replace('COMMENT', '').trim();
+        const commentParts = splitSqlAtLastTopLevelKeyword(dataType, 'COMMENT', this.dialect);
+        if (commentParts) {
+          const commentText = commentParts[1].slice('COMMENT'.length).trim();
           commentStr += this.commentTemplate(commentText, tableName, attr);
           // remove comment related substring from dataType
-          dataType = commentMatch[1];
+          dataType = commentParts[0];
         }
 
-        if (dataType.includes('PRIMARY KEY')) {
+        const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
+        const hasPrimaryKey = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1;
+
+        if (hasPrimaryKey) {
           primaryKeys.push(attr);
 
-          if (dataType.includes('REFERENCES')) {
+          if (referenceParts) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
-            match = dataType.match(/^(.+) (REFERENCES.*)$/);
             attributesClauseParts.push(
-              `${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`,
+              `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(referenceParts[0], 'PRIMARY KEY', this.dialect)}`,
             );
-            foreignKeys[attr] = match[2];
+            foreignKeys[attr] = referenceParts[1];
           } else {
             attributesClauseParts.push(
-              `${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`,
+              `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect)}`,
             );
           }
-        } else if (dataType.includes('REFERENCES')) {
+        } else if (referenceParts) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
-          foreignKeys[attr] = match[2];
+          attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${referenceParts[0]}`);
+          foreignKeys[attr] = referenceParts[1];
         } else {
           attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType}`);
         }

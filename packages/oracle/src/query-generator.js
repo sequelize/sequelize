@@ -17,6 +17,11 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import {
   EMPTY_OBJECT,
@@ -200,27 +205,31 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
       const dataType = attributes[attr];
       attr = this.quoteIdentifier(attr);
+      const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
+      const hasPrimaryKey = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1;
 
       // ORACLE doesn't support inline REFERENCES declarations: move to the end
-      if (dataType.includes('PRIMARY KEY')) {
+      if (hasPrimaryKey) {
         // Primary key
         primaryKeys.push(attr);
-        if (dataType.includes('REFERENCES')) {
-          const match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
+        if (referenceParts) {
+          attrStr.push(
+            `${attr} ${removeTopLevelSqlKeyword(referenceParts[0], 'PRIMARY KEY', this.dialect)}`,
+          );
 
-          // match[2] already has foreignKeys in correct format so we don't need to replace
-          foreignKeys[attr] = match[2];
+          // referenceParts[1] already has foreignKeys in correct format so we don't need to replace
+          foreignKeys[attr] = referenceParts[1];
         } else {
-          attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
+          attrStr.push(
+            `${attr} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect).trim()}`,
+          );
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (referenceParts) {
         // Foreign key
-        const match = dataType.match(/^(.+) (REFERENCES.*)$/);
-        attrStr.push(`${attr} ${match[1]}`);
+        attrStr.push(`${attr} ${referenceParts[0]}`);
 
-        // match[2] already has foreignKeys in correct format so we don't need to replace
-        foreignKeys[attr] = match[2];
+        // referenceParts[1] already has foreignKeys in correct format so we don't need to replace
+        foreignKeys[attr] = referenceParts[1];
       } else {
         attrStr.push(`${attr} ${dataType}`);
       }

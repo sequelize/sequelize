@@ -7,6 +7,11 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
@@ -33,33 +38,37 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     const primaryKeys = [];
     const needsMultiplePrimaryKeys =
-      Object.values(attributes).filter(definition => definition.includes('PRIMARY KEY')).length > 1;
+      Object.values(attributes).filter(
+        definition => findTopLevelSqlKeyword(definition, 'PRIMARY KEY', this.dialect) !== -1,
+      ).length > 1;
     const attrArray = [];
 
     for (const attr in attributes) {
       if (Object.hasOwn(attributes, attr)) {
         const dataType = attributes[attr];
         const containsAutoIncrement = dataType.includes('AUTOINCREMENT');
+        const primaryKeyIndex = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect);
+        const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
 
         let dataTypeString = dataType;
-        if (dataType.includes('PRIMARY KEY')) {
+        if (primaryKeyIndex !== -1) {
           if (dataType.includes('INT')) {
             // Only INTEGER is allowed for primary key, see https://github.com/sequelize/sequelize/issues/969 (no lenght, unsigned etc)
             dataTypeString = containsAutoIncrement
               ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
               : 'INTEGER PRIMARY KEY';
 
-            if (dataType.includes(' REFERENCES')) {
-              dataTypeString += dataType.slice(dataType.indexOf(' REFERENCES'));
+            if (referenceParts) {
+              dataTypeString += ` ${referenceParts[1]}`;
             }
           }
 
           if (needsMultiplePrimaryKeys) {
             primaryKeys.push(attr);
             if (dataType.includes('NOT NULL')) {
-              dataTypeString = dataType.replace(' PRIMARY KEY', '');
+              dataTypeString = removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect);
             } else {
-              dataTypeString = dataType.replace('PRIMARY KEY', 'NOT NULL');
+              dataTypeString = `${dataType.slice(0, primaryKeyIndex)}NOT NULL${dataType.slice(primaryKeyIndex + 'PRIMARY KEY'.length)}`;
             }
           }
         }

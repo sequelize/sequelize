@@ -12,6 +12,10 @@ import {
 import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { conformIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import {
@@ -52,9 +56,11 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
       const dataType = attributes[attr];
 
-      if (dataType.includes('PRIMARY KEY')) {
+      if (findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1) {
         primaryKeys.push(attr);
-        attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
+        attrStr.push(
+          `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect)}`,
+        );
       } else {
         attrStr.push(`${this.quoteIdentifier(attr)} ${dataType}`);
       }

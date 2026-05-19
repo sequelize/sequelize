@@ -7,6 +7,11 @@ import {
 import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
@@ -36,24 +41,27 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       }
 
       const dataType = attributes[attr];
-      let match;
+      const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
+      const hasPrimaryKey = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1;
 
-      if (dataType.includes('PRIMARY KEY')) {
+      if (hasPrimaryKey) {
         primaryKeys.push(attr);
 
-        if (dataType.includes('REFERENCES')) {
+        if (referenceParts) {
           // MySQL doesn't support inline REFERENCES declarations: move to the end
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
-          foreignKeys[attr] = match[2];
+          attrStr.push(
+            `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(referenceParts[0], 'PRIMARY KEY', this.dialect)}`,
+          );
+          foreignKeys[attr] = referenceParts[1];
         } else {
-          attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
+          attrStr.push(
+            `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect)}`,
+          );
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (referenceParts) {
         // MySQL doesn't support inline REFERENCES declarations: move to the end
-        match = dataType.match(/^(.+) (REFERENCES.*)$/);
-        attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
-        foreignKeys[attr] = match[2];
+        attrStr.push(`${this.quoteIdentifier(attr)} ${referenceParts[0]}`);
+        foreignKeys[attr] = referenceParts[1];
       } else {
         attrStr.push(`${this.quoteIdentifier(attr)} ${dataType}`);
       }

@@ -4,6 +4,11 @@ import { DataTypes } from '@sequelize/core';
 import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
@@ -66,12 +71,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     for (const attr in attributes) {
       const quotedAttr = this.quoteIdentifier(attr);
-      const i = attributes[attr].indexOf('COMMENT ');
-      if (i !== -1) {
+      const commentParts = splitSqlAtTopLevelKeyword(attributes[attr], 'COMMENT', this.dialect);
+      if (commentParts) {
         // Move comment to a separate query
-        const escapedCommentText = this.escape(attributes[attr].slice(Math.max(0, i + 8)));
+        const escapedCommentText = this.escape(commentParts[1].slice('COMMENT'.length).trim());
         columnComments += `; COMMENT ON COLUMN ${quotedTable}.${quotedAttr} IS ${escapedCommentText}`;
-        attributes[attr] = attributes[attr].slice(0, Math.max(0, i));
+        attributes[attr] = commentParts[0];
       }
 
       const dataType = this.dataTypeMapping(tableName, attr, attributes[attr]);
@@ -95,7 +100,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const pks = reduce(
       attributes,
       (acc, attribute, key) => {
-        if (attribute.includes('PRIMARY KEY')) {
+        if (findTopLevelSqlKeyword(attribute, 'PRIMARY KEY', this.dialect) !== -1) {
           acc.push(this.quoteIdentifier(key));
         }
 
@@ -612,8 +617,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   dataTypeMapping(tableName, attr, dataType) {
-    if (dataType.includes('PRIMARY KEY')) {
-      dataType = dataType.replace('PRIMARY KEY', '');
+    if (findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1) {
+      dataType = removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect);
     }
 
     if (dataType.includes('SERIAL')) {

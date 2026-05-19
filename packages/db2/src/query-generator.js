@@ -11,6 +11,12 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtLastTopLevelKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
@@ -63,41 +69,43 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     for (const attr in attributes) {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
-        let match;
 
-        if (dataType.includes('COMMENT ')) {
-          const commentMatch = dataType.match(/^(.+) (COMMENT.*)$/);
-          if (commentMatch && commentMatch.length > 2) {
-            const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
-            commentStr += template(
-              commentTemplate,
-              this._templateSettings,
-            )({
-              table: this.quoteTable(tableName),
-              comment: this.escape(commentText),
-              column: this.quoteIdentifier(attr),
-            });
-            // remove comment related substring from dataType
-            dataType = commentMatch[1];
-          }
+        const commentParts = splitSqlAtLastTopLevelKeyword(dataType, 'COMMENT', this.dialect);
+        if (commentParts) {
+          const commentText = commentParts[1].slice('COMMENT'.length).trim();
+          commentStr += template(
+            commentTemplate,
+            this._templateSettings,
+          )({
+            table: this.quoteTable(tableName),
+            comment: this.escape(commentText),
+            column: this.quoteIdentifier(attr),
+          });
+          // remove comment related substring from dataType
+          dataType = commentParts[0];
         }
 
-        if (includes(dataType, 'PRIMARY KEY')) {
+        const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
+        const hasPrimaryKey = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1;
+
+        if (hasPrimaryKey) {
           primaryKeys.push(attr);
 
-          if (includes(dataType, 'REFERENCES')) {
+          if (referenceParts) {
             // Db2 doesn't support inline REFERENCES declarations: move to the end
-            match = dataType.match(/^(.+) (REFERENCES.*)$/);
-            attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace(/PRIMARY KEY/, '')}`);
-            foreignKeys[attr] = match[2];
+            attrStr.push(
+              `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(referenceParts[0], 'PRIMARY KEY', this.dialect)}`,
+            );
+            foreignKeys[attr] = referenceParts[1];
           } else {
-            attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace(/PRIMARY KEY/, '')}`);
+            attrStr.push(
+              `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect)}`,
+            );
           }
-        } else if (includes(dataType, 'REFERENCES')) {
+        } else if (referenceParts) {
           // Db2 doesn't support inline REFERENCES declarations: move to the end
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
-          foreignKeys[attr] = match[2];
+          attrStr.push(`${this.quoteIdentifier(attr)} ${referenceParts[0]}`);
+          foreignKeys[attr] = referenceParts[1];
         } else {
           if (options && options.uniqueKeys) {
             for (const ukey in options.uniqueKeys) {
