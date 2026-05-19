@@ -265,7 +265,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (attribute.generatedAs !== undefined) {
       const expr = this.escape(attribute.generatedAs, { model: options?.model });
-      sql += ` GENERATED ALWAYS AS (${expr}) STORED`;
+      const mode = attribute.generatedColumn === 'VIRTUAL' ? 'VIRTUAL' : 'STORED';
+      sql += ` GENERATED ALWAYS AS (${expr}) ${mode}`;
     } else {
       if (attribute.autoIncrement) {
         if (attribute.autoIncrementIdentity) {

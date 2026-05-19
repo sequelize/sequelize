@@ -1,3 +1,4 @@
+import semver from 'semver';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import { VIRTUAL } from '../data-types.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
@@ -79,6 +80,15 @@ export function validateGeneratedColumnOptions(
   }
 
   const supports = dialect.supports.generatedColumns;
+  const minimumVersion = mode === 'STORED' ? supports.storedMinVersion : supports.virtualMinVersion;
+  const databaseVersion = dialect.sequelize.getDatabaseVersionIfExist();
+  if (minimumVersion && databaseVersion && semver.lt(databaseVersion, minimumVersion)) {
+    const databaseName = dialect.name === 'postgres' ? 'PostgreSQL' : dialect.name;
+    throw new Error(
+      `${attributeDescription}: ${databaseName} ${minimumVersion} or newer is required for ${mode} generated columns, but the configured database version is ${databaseVersion}.`,
+    );
+  }
+
   if (!supports.stored && !supports.virtual) {
     throw new Error(
       `${attributeDescription}: The ${dialect.name} dialect does not support generated columns.`,

@@ -167,7 +167,9 @@ export class PostgresDialect extends AbstractDialect<
     },
     generatedColumns: {
       stored: true,
-      virtual: false,
+      storedMinVersion: '12.0.0',
+      virtual: true,
+      virtualMinVersion: '18.0.0',
     },
   });
 
@@ -182,7 +184,7 @@ export class PostgresDialect extends AbstractDialect<
       dataTypeOverrides: DataTypes,
       options,
       name: 'postgres',
-      minimumDatabaseVersion: '12.0.0',
+      minimumDatabaseVersion: '11.0.0',
       identifierDelimiter: '"',
       dataTypesDocumentationUrl: 'https://www.postgresql.org/docs/current/datatype.html',
     });

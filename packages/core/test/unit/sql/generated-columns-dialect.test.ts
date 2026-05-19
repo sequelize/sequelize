@@ -72,9 +72,7 @@ describe('generated columns dialect edge cases', () => {
       expect(definition).to.include('resolve_parent_id("source_value")');
     });
 
-    it('requires PostgreSQL 12 and preserves generated foreign keys', () => {
-      expect(sequelize.dialect.minimumDatabaseVersion).to.equal('12.0.0');
-
+    it('preserves generated foreign keys', () => {
       const definition = sequelize.queryGenerator.attributeToSQL(
         generatedAttribute({ references: { table: 'parents', key: 'id' } }),
         {},

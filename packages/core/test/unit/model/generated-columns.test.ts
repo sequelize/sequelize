@@ -130,9 +130,11 @@ describe('Model - Generated Columns (unit)', () => {
 
     // Per-dialect flag verification
     if (dialectName === 'postgres') {
-      it('postgres supports STORED but not VIRTUAL generated columns', () => {
+      it('postgres supports STORED and version-gated VIRTUAL generated columns', () => {
         expect(sequelize.dialect.supports.generatedColumns.stored).to.equal(true);
-        expect(sequelize.dialect.supports.generatedColumns.virtual).to.equal(false);
+        expect(sequelize.dialect.supports.generatedColumns.virtual).to.equal(true);
+        expect(sequelize.dialect.supports.generatedColumns.storedMinVersion).to.equal('12.0.0');
+        expect(sequelize.dialect.supports.generatedColumns.virtualMinVersion).to.equal('18.0.0');
       });
     }
 

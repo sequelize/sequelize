@@ -90,6 +90,12 @@ if (!dialect.supports.generatedColumns.stored && !dialect.supports.generatedColu
 
     if (dialect.supports.generatedColumns.stored) {
       describe('STORED generated columns', () => {
+        before(function () {
+          if (!dialect.supports.generatedColumns.stored) {
+            this.skip();
+          }
+        });
+
         setResetMode('destroy');
 
         const vars = beforeAll2(async () => {
@@ -391,6 +397,12 @@ if (!dialect.supports.generatedColumns.stored && !dialect.supports.generatedColu
 
     if (dialect.supports.generatedColumns?.virtual) {
       describe('VIRTUAL generated columns', () => {
+        before(function () {
+          if (!dialect.supports.generatedColumns.virtual) {
+            this.skip();
+          }
+        });
+
         setResetMode('destroy');
 
         const vars = beforeAll2(async () => {
