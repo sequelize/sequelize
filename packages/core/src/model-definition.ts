@@ -466,6 +466,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
     this.#jsonAttributeNames.clear();
     this.#virtualAttributeNames.clear();
     this.#generatedAttributeNames.clear();
+    this.#readOnlyAttributeNames.clear();
     this.#physicalAttributes.clear();
     this.#defaultValues.clear();
     this.#columns.clear();
@@ -473,6 +474,14 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
     this.#autoIncrementAttributeName = null;
     this.#attributesWithGetters.clear();
     this.#attributesWithSetters.clear();
+
+    for (const timestampAttributeName of Object.values(this.timestampAttributeNames)) {
+      this.#readOnlyAttributeNames.add(timestampAttributeName);
+    }
+
+    if (this.#versionAttributeName) {
+      this.#readOnlyAttributeNames.add(this.#versionAttributeName);
+    }
 
     // indexes defined through attributes
     const attributeIndexes: IndexOptions[] = [];

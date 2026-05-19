@@ -252,6 +252,45 @@ describe('Model generated column safeguards', () => {
       expect(instance.getDataValue('computed')).to.equal(43);
     });
 
+    it('rebuilds generated and managed readonly attributes during refreshAttributes', () => {
+      const TestModel = sequelize.define(
+        'GeneratedRefreshReadonly',
+        {
+          source: DataTypes.INTEGER,
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('source + 1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { version: true },
+      );
+      const modelDefinition = TestModel.modelDefinition;
+
+      expect([...modelDefinition.readOnlyAttributeNames]).to.include.members([
+        'computed',
+        'createdAt',
+        'updatedAt',
+        'version',
+      ]);
+
+      delete modelDefinition.rawAttributes.computed.generatedAs;
+      delete modelDefinition.rawAttributes.computed.generatedColumn;
+      modelDefinition.refreshAttributes();
+
+      expect(modelDefinition.generatedAttributeNames.has('computed')).to.equal(false);
+      expect(modelDefinition.readOnlyAttributeNames.has('computed')).to.equal(false);
+      expect([...modelDefinition.readOnlyAttributeNames]).to.include.members([
+        'createdAt',
+        'updatedAt',
+        'version',
+      ]);
+
+      const instance = TestModel.build({}, { isNewRecord: false });
+      instance.set('computed', 7);
+      expect(instance.getDataValue('computed')).to.equal(7);
+    });
+
     it('verifies existing generated columns during sync({ alter: true })', async () => {
       const TestModel = sequelize.define(
         'GeneratedSync',
