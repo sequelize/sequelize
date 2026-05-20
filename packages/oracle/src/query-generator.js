@@ -33,6 +33,42 @@ import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.int
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 const VECTOR_ORGANIZATION_DEFAULT = 'hnsw';
+const VECTOR_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set([
+  'name',
+  'parser',
+  'type',
+  'unique',
+  'msg',
+  'concurrently',
+  'fields',
+  'using',
+  'operator',
+  'where',
+  'prefix',
+  'distance',
+  'accuracy',
+  'parameter',
+  'include',
+]);
+const VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS = new Set([
+  'name',
+  'type',
+  'fields',
+  'using',
+  'prefix',
+  'distance',
+  'accuracy',
+  'parameter',
+]);
+const VECTOR_INDEX_USING = new Set(['hnsw', 'ivf']);
+const VECTOR_INDEX_DISTANCE_METRICS = new Set([
+  'COSINE',
+  'DOT',
+  'EUCLIDEAN',
+  'EUCLIDEAN_SQUARED',
+  'HAMMING',
+  'MANHATTAN',
+]);
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -470,6 +506,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       throw new Error('Vector indexes require at least one indexed field.');
     }
 
+    rejectInvalidOptions(
+      'addIndexQuery',
+      this.dialect,
+      VECTOR_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS,
+      normalizedOptions,
+    );
+
     const fieldsSql = fields.map(field => {
       if (field instanceof BaseSqlExpression) {
         return this.formatSqlExpression(field);
@@ -496,6 +540,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
     const finalizedOptions = conformIndex(normalizedOptions);
     const using = toLowerCaseIfString(finalizedOptions.using) ?? VECTOR_ORGANIZATION_DEFAULT;
+    validateVectorIndexUsing(using);
+    const distance = normalizeVectorIndexDistance(finalizedOptions.distance);
+    const accuracy = validateVectorIndexPositiveNumber(finalizedOptions.accuracy, 'accuracy', {
+      max: 100,
+    });
     const usingIsHnsw = using === 'hnsw';
     const parameterFragments = buildVectorParameters(finalizedOptions.parameter, usingIsHnsw);
 
@@ -503,12 +552,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       name: finalizedOptions.name,
       fieldsSql,
       usingIsHnsw,
-      distance: finalizedOptions.distance
-        ? `WITH DISTANCE ${finalizedOptions.distance}`
-        : undefined,
-      accuracy: finalizedOptions.accuracy
-        ? `WITH TARGET ACCURACY ${finalizedOptions.accuracy}`
-        : undefined,
+      distance: distance ? `WITH DISTANCE ${distance}` : undefined,
+      accuracy: accuracy ? `WITH TARGET ACCURACY ${accuracy}` : undefined,
       parameters:
         parameterFragments.length > 0 ? `PARAMETERS (${parameterFragments.join(', ')})` : undefined,
     };
@@ -1135,7 +1180,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   dropConstraintQuery(tableName, constraintName) {
-    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${constraintName}`;
+    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${this.quoteIdentifier(constraintName, true)}`;
   }
 
   _checkValidJsonStatement(stmt) {
@@ -1292,31 +1337,95 @@ function buildVectorParameters(parameter, usingIsHnsw) {
 
   if (usingIsHnsw) {
     parameters.push('type hnsw');
-    if (parameter.neighbor) {
-      parameters.push(`neighbor ${parameter.neighbor}`);
+    const neighbor = validateVectorIndexPositiveInteger(parameter.neighbor, 'parameter.neighbor');
+    const efconstruction = validateVectorIndexPositiveInteger(
+      parameter.efconstruction,
+      'parameter.efconstruction',
+    );
+
+    if (neighbor) {
+      parameters.push(`neighbor ${neighbor}`);
     }
 
-    if (parameter.efconstruction) {
-      parameters.push(`efconstruction ${parameter.efconstruction}`);
+    if (efconstruction) {
+      parameters.push(`efconstruction ${efconstruction}`);
     }
 
     return parameters;
   }
 
   parameters.push('type ivf');
-  if (parameter.partitions) {
-    parameters.push(`NEIGHBOR PARTITION ${parameter.partitions}`);
+  const partitions = validateVectorIndexPositiveInteger(parameter.partitions, 'parameter.partitions');
+  const samplesPerPartition = validateVectorIndexPositiveInteger(
+    parameter.samplesPerPartition,
+    'parameter.samplesPerPartition',
+  );
+  const minVectors = validateVectorIndexPositiveInteger(parameter.minVectors, 'parameter.minVectors');
+
+  if (partitions) {
+    parameters.push(`NEIGHBOR PARTITION ${partitions}`);
   }
 
-  if (parameter.samplesPerPartition) {
-    parameters.push(`SAMPLES_PER_PARTITION ${parameter.samplesPerPartition}`);
+  if (samplesPerPartition) {
+    parameters.push(`SAMPLES_PER_PARTITION ${samplesPerPartition}`);
   }
 
-  if (parameter.minVectors) {
-    parameters.push(`MIN_VECTORS_PER_PARTITION ${parameter.minVectors}`);
+  if (minVectors) {
+    parameters.push(`MIN_VECTORS_PER_PARTITION ${minVectors}`);
   }
 
   return parameters;
+}
+
+function validateVectorIndexUsing(using) {
+  if (VECTOR_INDEX_USING.has(using)) {
+    return;
+  }
+
+  throw new TypeError('Oracle VECTOR index using must be either "hnsw" or "ivf".');
+}
+
+function normalizeVectorIndexDistance(distance) {
+  if (distance == null) {
+    return undefined;
+  }
+
+  if (typeof distance !== 'string') {
+    throw new TypeError('Oracle VECTOR index distance must be a string.');
+  }
+
+  const normalizedDistance = distance.toUpperCase();
+  if (VECTOR_INDEX_DISTANCE_METRICS.has(normalizedDistance)) {
+    return normalizedDistance;
+  }
+
+  throw new TypeError(
+    `Oracle VECTOR index distance must be one of: ${[...VECTOR_INDEX_DISTANCE_METRICS].join(', ')}.`,
+  );
+}
+
+function validateVectorIndexPositiveInteger(value, optionName) {
+  return validateVectorIndexPositiveNumber(value, optionName, { integer: true });
+}
+
+function validateVectorIndexPositiveNumber(value, optionName, { integer = false, max } = {}) {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (
+    typeof value !== 'number' ||
+    !Number.isFinite(value) ||
+    value <= 0 ||
+    (integer && !Number.isSafeInteger(value)) ||
+    (max != null && value > max)
+  ) {
+    const type = integer ? 'positive integer' : 'positive number';
+    const suffix = max == null ? '' : ` less than or equal to ${max}`;
+    throw new TypeError(`Oracle VECTOR index ${optionName} must be a ${type}${suffix}.`);
+  }
+
+  return value;
 }
 
 /* istanbul ignore next */

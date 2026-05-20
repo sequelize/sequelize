@@ -4,6 +4,9 @@ const util = require('node:util');
 const Support = require('../../../support');
 const { DataTypes, Op, sql } = require('@sequelize/core');
 const BaseTypes = require('@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js');
+const {
+  buildInvalidOptionReceivedError,
+} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js');
 const { OracleQuery } = require('@sequelize/oracle');
 const { expect } = require('chai');
 
@@ -114,17 +117,13 @@ if (current.dialect.name === 'oracle') {
         );
       });
 
-      it('treats non-hnsw using as ivf organization', () => {
-        expectsql(
+      it('rejects unsupported vector index using values', () => {
+        expect(() =>
           queryGenerator.addIndexQuery('foo', ['vec1'], {
             type: 'VECTOR',
             using: 'btree',
           }),
-          {
-            default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITION GRAPH',
-          },
-        );
+        ).to.throw(TypeError, 'Oracle VECTOR index using must be either "hnsw" or "ivf".');
       });
 
       it('accepts uppercase using value', () => {
@@ -195,6 +194,45 @@ if (current.dialect.name === 'oracle') {
         );
       });
 
+      it('rejects unsupported vector index options instead of ignoring them', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            unique: true,
+          }),
+        ).to.throw(buildInvalidOptionReceivedError('addIndexQuery', 'oracle', ['unique']).message);
+      });
+
+      it('rejects unsafe vector index distance fragments', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            distance: 'COSINE) PARAMETERS (type hnsw',
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index distance must be one of');
+      });
+
+      it('rejects unsafe vector index accuracy fragments', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            accuracy: '95) PARAMETERS (type hnsw',
+          }),
+        ).to.throw(
+          TypeError,
+          'Oracle VECTOR index accuracy must be a positive number less than or equal to 100.',
+        );
+      });
+
+      it('rejects unsafe vector index parameter fragments', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            parameter: { neighbor: '8) PARAMETERS (type ivf' },
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index parameter.neighbor must be a positive integer.');
+      });
+
       it('supports ordered index fields', () => {
         expectsql(
           queryGenerator.addIndexQuery('foo', {
@@ -236,6 +274,14 @@ if (current.dialect.name === 'oracle') {
             type: 'VECTOR',
           }),
         ).to.throw(Error, 'The following index field has no name');
+      });
+    });
+
+    describe('dropConstraintQuery', () => {
+      it('quotes constraint names', () => {
+        expectsql(queryGenerator.dropConstraintQuery('foo', 'my_constraint'), {
+          default: 'ALTER TABLE "foo" DROP CONSTRAINT "my_constraint"',
+        });
       });
     });
 
