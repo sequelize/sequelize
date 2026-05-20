@@ -1,14 +1,66 @@
 {
   "name": "sequelize",
-  "description": "Multi dialect ORM for Node.JS",
   "version": "400.45.0",
+  "description": "Multi dialect ORM for Node.JS",
+  "keywords": [
+    "mssql",
+    "mysql",
+    "nodejs",
+    "object relational mapper",
+    "orm",
+    "postgres",
+    "postgresql",
+    "sqlite"
+  ],
+  "bugs": {
+    "url": "https://github.com/sequelize/sequelize/issues"
+  },
+  "license": "MIT",
   "author": "Sascha Depold <sascha@depold.com>",
   "repository": {
     "type": "git",
     "url": "https://github.com/sequelize/sequelize.git"
   },
-  "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
+  "files": [
+    "lib",
+    "index.js"
+  ],
+  "main": "index",
+  "scripts": {
+    "lint": "npx eslint lib test --quiet",
+    "fmt": "oxfmt --write lib test",
+    "fmt:check": "oxfmt --check lib test",
+    "test": "npm run teaser && npm run test-unit && npm run test-integration",
+    "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
+    "test-docker-unit": "npm run test-unit",
+    "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
+    "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
+    "test-unit": "mocha --globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
+    "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
+    "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
+    "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
+    "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
+    "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
+    "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
+    "test-integration": "mocha --globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
+    "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
+    "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
+    "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
+    "test-integration-sqlite": "cross-env DIALECT=sqlite npm run test-integration",
+    "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
+    "test-integration-all": "npm run test-integration-mysql && npm run test-integration-postgres && npm run test-integration-postgres-native && npm run test-integration-mssql && npm run test-integration-sqlite",
+    "test-mysql": "cross-env DIALECT=mysql npm test",
+    "test-sqlite": "cross-env DIALECT=sqlite npm test",
+    "test-postgres": "cross-env DIALECT=postgres npm test",
+    "test-pgsql": "npm run test-postgres",
+    "test-postgres-native": "cross-env DIALECT=postgres-native npm test",
+    "test-postgresn": "npm run test-postgres-native",
+    "test-mssql": "cross-env DIALECT=mssql npm test",
+    "test-all": "npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
+    "sscce": "env-cmd $npm_package_options_env_cmd node sscce.js",
+    "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
+    "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
+    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
   },
   "dependencies": {
     "bluebird": "^3.7.2",
@@ -58,63 +110,11 @@
   "peerDependencies": {
     "pg": "^8.19.0"
   },
-  "keywords": [
-    "mysql",
-    "sqlite",
-    "postgresql",
-    "postgres",
-    "mssql",
-    "orm",
-    "nodejs",
-    "object relational mapper"
-  ],
-  "main": "index",
-  "files": [
-    "lib",
-    "index.js"
-  ],
-  "options": {
-    "env_cmd": "./test/config/.docker.env",
-    "mocha": "--globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec"
-  },
-  "scripts": {
-    "lint": "npx eslint lib test --quiet",
-    "fmt": "oxfmt --write lib test",
-    "fmt:check": "oxfmt --check lib test",
-    "test": "npm run teaser && npm run test-unit && npm run test-integration",
-    "test-docker": "npm run test-docker-unit && npm run test-docker-integration",
-    "test-docker-unit": "npm run test-unit",
-    "test-docker-integration": "env-cmd ./test/config/.docker.env npm run test-integration",
-    "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
-    "test-unit": "mocha --globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
-    "test-unit-mysql": "cross-env DIALECT=mysql npm run test-unit",
-    "test-unit-postgres": "cross-env DIALECT=postgres npm run test-unit",
-    "test-unit-postgres-native": "cross-env DIALECT=postgres-native npm run test-unit",
-    "test-unit-sqlite": "cross-env DIALECT=sqlite npm run test-unit",
-    "test-unit-mssql": "cross-env DIALECT=mssql npm run test-unit",
-    "test-unit-all": "npm run test-unit-mysql && npm run test-unit-postgres && npm run test-unit-postgres-native && npm run test-unit-mssql && npm run test-unit-sqlite",
-    "test-integration": "mocha --globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
-    "test-integration-mysql": "cross-env DIALECT=mysql npm run test-integration",
-    "test-integration-postgres": "cross-env DIALECT=postgres npm run test-integration",
-    "test-integration-postgres-native": "cross-env DIALECT=postgres-native npm run test-integration",
-    "test-integration-sqlite": "cross-env DIALECT=sqlite npm run test-integration",
-    "test-integration-mssql": "cross-env DIALECT=mssql npm run test-integration",
-    "test-integration-all": "npm run test-integration-mysql && npm run test-integration-postgres && npm run test-integration-postgres-native && npm run test-integration-mssql && npm run test-integration-sqlite",
-    "test-mysql": "cross-env DIALECT=mysql npm test",
-    "test-sqlite": "cross-env DIALECT=sqlite npm test",
-    "test-postgres": "cross-env DIALECT=postgres npm test",
-    "test-pgsql": "npm run test-postgres",
-    "test-postgres-native": "cross-env DIALECT=postgres-native npm test",
-    "test-postgresn": "npm run test-postgres-native",
-    "test-mssql": "cross-env DIALECT=mssql npm test",
-    "test-all": "npm run test-mysql && npm run test-sqlite && npm run test-postgres && npm run test-postgres-native && npm run test-mssql",
-    "sscce": "env-cmd $npm_package_options_env_cmd node sscce.js",
-    "sscce-mysql": "cross-env DIALECT=mysql npm run sscce",
-    "sscce-postgres": "cross-env DIALECT=postgres npm run sscce",
-    "sscce-sqlite": "cross-env DIALECT=sqlite npm run sscce"
-  },
   "engines": {
     "node": ">=20.20.0"
   },
-  "license": "MIT"
+  "options": {
+    "env_cmd": "./test/config/.docker.env",
+    "mocha": "--globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec"
+  }
 }
