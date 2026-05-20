@@ -1355,12 +1355,18 @@ function buildVectorParameters(parameter, usingIsHnsw) {
   }
 
   parameters.push('type ivf');
-  const partitions = validateVectorIndexPositiveInteger(parameter.partitions, 'parameter.partitions');
+  const partitions = validateVectorIndexPositiveInteger(
+    parameter.partitions,
+    'parameter.partitions',
+  );
   const samplesPerPartition = validateVectorIndexPositiveInteger(
     parameter.samplesPerPartition,
     'parameter.samplesPerPartition',
   );
-  const minVectors = validateVectorIndexPositiveInteger(parameter.minVectors, 'parameter.minVectors');
+  const minVectors = validateVectorIndexPositiveInteger(
+    parameter.minVectors,
+    'parameter.minVectors',
+  );
 
   if (partitions) {
     parameters.push(`NEIGHBOR PARTITION ${partitions}`);
