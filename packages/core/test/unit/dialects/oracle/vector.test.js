@@ -68,6 +68,19 @@ if (current.dialect.name === 'oracle') {
         });
       });
 
+      it('defaults using to hnsw when not provided', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('foo', {
+            fields: ['vec1'],
+            type: 'VECTOR',
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION INMEMORY NEIGHBOR GRAPH',
+          },
+        );
+      });
+
       it('accepts lowercase vector type', () => {
         expectsql(queryGenerator.addIndexQuery('Foo', ['vec1'], { type: 'vector' }), {
           default:
@@ -251,6 +264,19 @@ if (current.dialect.name === 'oracle') {
           {
             default:
               'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" DESC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
+          },
+        );
+      });
+
+      it('normalizes lowercase index field order to uppercase', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('foo', {
+            fields: [{ name: 'vec1', order: 'asc' }],
+            type: 'VECTOR',
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" ASC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
           },
         );
       });

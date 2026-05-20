@@ -61,6 +61,7 @@ const VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS = new Set([
   'parameter',
 ]);
 const VECTOR_INDEX_USING = new Set(['hnsw', 'ivf']);
+const VECTOR_INDEX_USING_ERROR = 'Oracle VECTOR index using must be either "hnsw" or "ivf".';
 const VECTOR_INDEX_DISTANCE_METRICS = new Set([
   'COSINE',
   'DOT',
@@ -69,6 +70,9 @@ const VECTOR_INDEX_DISTANCE_METRICS = new Set([
   'HAMMING',
   'MANHATTAN',
 ]);
+const VECTOR_INDEX_FIELD_ORDERS = new Set(['ASC', 'DESC']);
+const VECTOR_INDEX_FIELD_ORDER_ERROR =
+  'Oracle VECTOR index field order must be either "ASC" or "DESC".';
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -545,7 +549,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const finalizedOptions = conformIndex(normalizedOptions);
     const rawUsing = finalizedOptions.using;
     if (rawUsing != null && typeof rawUsing !== 'string') {
-      throw new TypeError('Oracle VECTOR index using must be either "hnsw" or "ivf".');
+      throw new TypeError(VECTOR_INDEX_USING_ERROR);
     }
 
     const using = rawUsing == null ? VECTOR_ORGANIZATION_DEFAULT : rawUsing.toLowerCase();
@@ -1393,20 +1397,20 @@ function validateVectorIndexUsing(using) {
     return;
   }
 
-  throw new TypeError('Oracle VECTOR index using must be either "hnsw" or "ivf".');
+  throw new TypeError(VECTOR_INDEX_USING_ERROR);
 }
 
 function normalizeVectorIndexFieldOrder(order) {
   if (typeof order !== 'string') {
-    throw new TypeError('Oracle VECTOR index field order must be either "ASC" or "DESC".');
+    throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
   }
 
   const normalizedOrder = order.toUpperCase();
-  if (['ASC', 'DESC'].includes(normalizedOrder)) {
+  if (VECTOR_INDEX_FIELD_ORDERS.has(normalizedOrder)) {
     return normalizedOrder;
   }
 
-  throw new TypeError('Oracle VECTOR index field order must be either "ASC" or "DESC".');
+  throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
 }
 
 function normalizeVectorIndexDistance(distance) {
