@@ -253,16 +253,13 @@ if (getTestDialect() === 'oracle') {
         expect(Array.from(item.getDataValue('embeddings'))).to.deep.equal([4, 5, 6]);
       });
 
-      for (const [name, value] of [
-        ['DataView', new DataView(new ArrayBuffer(3))],
-        ['string', '1,2,3'],
-        ['non-number array', [1, '2', 3]],
+      for (const [name, value, error] of [
+        ['DataView', new DataView(new ArrayBuffer(3)), 'is not a valid vector'],
+        ['string', '1,2,3', 'is not a valid vector'],
+        ['non-number array', [1, 'a', 3], 'ORA-51805'],
       ]) {
         it(`rejects ${name} input`, async function () {
-          await expect(this.Item.create({ embeddings: value })).to.be.rejectedWith(
-            Error,
-            'is not a valid vector',
-          );
+          await expect(this.Item.create({ embeddings: value })).to.be.rejectedWith(Error, error);
         });
       }
 
