@@ -4177,7 +4177,7 @@ Instead of specifying a Model, either:
         !modelDefinition.virtualAttributeNames.has(attributeName) &&
         !modelDefinition.generatedAttributeNames.has(attributeName),
     );
-    if (realFields.length === 0) {
+    if (realFields.length === 0 && !this.isNewRecord) {
       return this;
     }
 

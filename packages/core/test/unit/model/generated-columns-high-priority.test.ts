@@ -291,6 +291,36 @@ describe('Model generated column safeguards', () => {
       expect(instance.getDataValue('computed')).to.equal(7);
     });
 
+    it('issues an empty insert for new records with only generated attributes', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedOnlyRecord',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            generatedAs: sql.literal('1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { timestamps: false },
+      );
+      let insertedValues: Record<string, unknown> | undefined;
+      const insert = sinon
+        .stub(sequelize.queryInterface, 'insert')
+        .callsFake(async (instance, _tableName, values) => {
+          insertedValues = { ...values };
+
+          return [instance, 1];
+        });
+      const instance = TestModel.build();
+
+      await instance.save({ hooks: false, validate: false });
+
+      expect(insert).to.have.been.calledOnce;
+      expect(insertedValues).to.deep.equal({});
+      expect(instance.isNewRecord).to.equal(false);
+    });
+
     it('verifies existing generated columns during sync({ alter: true })', async () => {
       const TestModel = sequelize.define(
         'GeneratedSync',
