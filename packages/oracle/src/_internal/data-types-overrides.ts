@@ -184,10 +184,18 @@ export class DATE extends BaseTypes.DATE {
 
 type AcceptedNumber = number | bigint | boolean | string | null;
 export type OracleVectorFormat = 'INT8' | 'FLOAT32' | 'FLOAT64' | 'BINARY' | '*';
+export type OracleVectorStorage = 'SPARSE';
 
 export interface OracleVectorOptions {
   dimension?: number | '*';
   format?: OracleVectorFormat;
+  storage?: OracleVectorStorage;
+}
+
+export interface OracleSparseVectorInput {
+  values: number[] | BaseTypes.NumericTypedArray;
+  indices: number[] | Uint32Array;
+  numDimensions: number;
 }
 
 export class DECIMAL extends BaseTypes.DECIMAL {
@@ -426,7 +434,51 @@ export class DATEONLY extends BaseTypes.DATEONLY {
   }
 }
 
-export class VECTOR extends BaseTypes.VECTOR {
+export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
+  /** @hidden */
+  static readonly [BaseTypes.DataTypeIdentifier]: string = 'VECTOR';
+
+  readonly options: OracleVectorOptions;
+
+  constructor();
+  constructor(dimension: number | '*', format?: string, storage?: string);
+  constructor(options: OracleVectorOptions);
+  constructor(
+    dimensionOrOptions?: number | '*' | OracleVectorOptions,
+    format?: string,
+    storage?: string,
+  ) {
+    super();
+
+    if (typeof dimensionOrOptions === 'object' && dimensionOrOptions !== null) {
+      this.options = {
+        ...(dimensionOrOptions.dimension !== undefined
+          ? { dimension: this._validateOracleDimension(dimensionOrOptions.dimension) }
+          : {}),
+        ...(dimensionOrOptions.format !== undefined
+          ? { format: this._validateFormat(dimensionOrOptions.format) }
+          : {}),
+        ...(dimensionOrOptions.storage !== undefined
+          ? { storage: this._validateStorage(dimensionOrOptions.storage) }
+          : {}),
+      };
+
+      return;
+    }
+
+    this.options = {
+      ...(dimensionOrOptions !== undefined
+        ? { dimension: this._validateOracleDimension(dimensionOrOptions) }
+        : {}),
+      ...(format !== undefined ? { format: this._validateFormat(format) } : {}),
+      ...(storage !== undefined ? { storage: this._validateStorage(storage) } : {}),
+    };
+  }
+
+  protected _getTypeName(): string {
+    return 'VECTOR';
+  }
+
   protected _validateFormat(format: string): OracleVectorFormat {
     const normalized = format.trim().toUpperCase();
 
@@ -450,18 +502,38 @@ export class VECTOR extends BaseTypes.VECTOR {
     return this._validateDimension(dimension);
   }
 
+  protected _validateStorage(storage: string): OracleVectorStorage {
+    const normalized = storage.trim().toUpperCase();
+
+    switch (normalized) {
+      case 'SPARSE':
+        return normalized;
+      default:
+        throw new TypeError(`Invalid Oracle VECTOR storage: ${storage}`);
+    }
+  }
+
   protected _getSqlOptionParts(): string[] {
-    const options = this.options as OracleVectorOptions;
+    const options = this.options;
 
     return [
       ...(options.dimension !== undefined
         ? [String(this._validateOracleDimension(options.dimension))]
         : []),
       ...(options.format !== undefined ? [this._validateFormat(options.format)] : []),
+      ...(options.storage !== undefined ? [this._validateStorage(options.storage)] : []),
     ];
   }
 
-  toBindableValue(value: BaseTypes.Vector) {
+  validate(value: unknown): asserts value is BaseTypes.VectorValue | OracleSparseVectorInput {
+    if (isOracleSparseVectorInput(value)) {
+      return;
+    }
+
+    super.validate(value);
+  }
+
+  toBindableValue(value: BaseTypes.VectorValue | OracleSparseVectorInput) {
     if (Array.isArray(value)) {
       return Float64Array.from(value);
     }
@@ -472,4 +544,40 @@ export class VECTOR extends BaseTypes.VECTOR {
   _getBindDef(oracledb: Lib) {
     return { type: oracledb.DB_TYPE_VECTOR };
   }
+}
+
+function isOracleSparseVectorInput(value: unknown): value is OracleSparseVectorInput {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const sparseVector = value as Partial<OracleSparseVectorInput>;
+  const { indices, numDimensions, values } = sparseVector;
+
+  return (
+    isVectorComponent(values) &&
+    isVectorComponent(indices) &&
+    Number.isInteger(numDimensions) &&
+    numDimensions !== undefined &&
+    numDimensions > 0 &&
+    values.length === indices.length
+  );
+}
+
+function isVectorComponent(value: unknown): value is number[] | BaseTypes.NumericTypedArray {
+  return Array.isArray(value) || isNumericTypedArray(value);
+}
+
+function isNumericTypedArray(value: unknown): value is BaseTypes.NumericTypedArray {
+  return (
+    value instanceof Int8Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint8ClampedArray ||
+    value instanceof Int16Array ||
+    value instanceof Uint16Array ||
+    value instanceof Int32Array ||
+    value instanceof Uint32Array ||
+    value instanceof Float32Array ||
+    value instanceof Float64Array
+  );
 }

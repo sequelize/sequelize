@@ -149,6 +149,7 @@ if (getTestDialect() === 'oracle') {
         );
 
         expect(rows).to.have.length(1);
+        expect(rows[0].id).to.equal(4);
       });
 
       it('accepts valid VECTOR literal strings in vector functions', async function () {

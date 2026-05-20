@@ -1,6 +1,6 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { DataTypes, Op, Options, QueryTypes } from '.';
-import type { DataType } from './abstract-dialect/data-types.js';
+import type { DataType, VectorValue } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
@@ -619,15 +619,15 @@ export class Sequelize<
    * @param column column name or identifier to compare against
    * @param value reference vector as a plain numeric array or typed array
    */
-  cosineDistance(column: string, value: number[] | Exclude<ArrayBufferView, DataView>): Fn;
+  cosineDistance(column: string, value: VectorValue): Fn;
 
-  innerProduct(column: string, value: number[] | Exclude<ArrayBufferView, DataView>): Fn;
+  innerProduct(column: string, value: VectorValue): Fn;
 
-  l1Distance(column: string, value: number[] | Exclude<ArrayBufferView, DataView>): Fn;
+  l1Distance(column: string, value: VectorValue): Fn;
 
-  l2Distance(column: string, value: number[] | Exclude<ArrayBufferView, DataView>): Fn;
+  l2Distance(column: string, value: VectorValue): Fn;
 
-  vectorDistance(column: string, value: number[] | Exclude<ArrayBufferView, DataView>): Fn;
+  vectorDistance(column: string, value: VectorValue): Fn;
 
   /**
    * Execute a query which would set an environment or user variable. The variables are set per connection,

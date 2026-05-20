@@ -112,7 +112,7 @@ export class VECTOR extends BaseTypes.VECTOR {
     return [options.format, String(options.dimension)];
   }
 
-  validate(value: unknown): asserts value is BaseTypes.Vector {
+  validate(value: unknown): asserts value is BaseTypes.VectorValue {
     super.validate(value);
     const options = this.#getSnowflakeOptions();
 
@@ -133,52 +133,25 @@ export class VECTOR extends BaseTypes.VECTOR {
 
     switch (normalized) {
       case 'INT':
+      case 'INT8':
+      case 'INT16':
+      case 'INT32':
+        return 'INT';
       case 'FLOAT':
-        return normalized;
+      case 'FLOAT32':
+      case 'FLOAT64':
+        return 'FLOAT';
       default:
         throw new TypeError(`Invalid Snowflake VECTOR format: ${format}`);
     }
   }
 
-  #getVectorLength(value: BaseTypes.Vector): number {
+  #getVectorLength(value: BaseTypes.VectorValue): number {
     if (Array.isArray(value)) {
       return value.length;
     }
 
-    if (
-      value instanceof Int8Array ||
-      value instanceof Uint8Array ||
-      value instanceof Uint8ClampedArray ||
-      value instanceof Int16Array ||
-      value instanceof Uint16Array ||
-      value instanceof Int32Array ||
-      value instanceof Uint32Array ||
-      value instanceof Float32Array ||
-      value instanceof Float64Array ||
-      value instanceof BigInt64Array ||
-      value instanceof BigUint64Array
-    ) {
-      return value.length;
-    }
-
-    throw new TypeError('Unsupported vector container type');
-  }
-
-  protected _validateVectorElement(item: unknown): number {
-    const numeric = super._validateVectorElement(item);
-    const options = this.#getSnowflakeOptions();
-
-    if (options.format === 'INT' && !Number.isInteger(numeric)) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format(
-          'VECTOR(INT, %d) only accepts integers, but received %O',
-          options.dimension,
-          numeric,
-        ),
-      );
-    }
-
-    return numeric;
+    return value.length;
   }
 
   #getSnowflakeOptions(): SnowflakeVectorOptions {

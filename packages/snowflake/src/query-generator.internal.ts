@@ -75,8 +75,9 @@ export class SnowflakeQueryGeneratorInternal<
 
     if (typeof arg === 'string') {
       const trimmed = arg.trim();
-      if (this.#looksLikeVectorLiteral(trimmed)) {
-        return trimmed;
+      const literal = this.#parseVectorLiteral(trimmed);
+      if (literal) {
+        return literal;
       }
 
       if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
@@ -96,15 +97,34 @@ export class SnowflakeQueryGeneratorInternal<
     );
   }
 
-  // Snowflake users can still pass explicit SQL snippets (for instance reusing the result of TO_VECTOR);
-  // keep the heuristics generous so we do not re-wrap values that already carry proper typing.
-  #looksLikeVectorLiteral(literal: string): boolean {
-    return (
-      literal.toUpperCase().includes('::VECTOR') ||
-      literal.startsWith('[') ||
-      literal.startsWith('(') ||
-      literal.startsWith('VECTOR_')
+  #parseVectorLiteral(literal: string): string | null {
+    const match = literal.match(
+      /^(\[[^\]]+\])\s*::\s*VECTOR\s*\(\s*(FLOAT|INT)\s*,\s*(\d+)\s*\)$/i,
     );
+    if (!match) {
+      return null;
+    }
+
+    const [, body, elementType, dimension] = match;
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      return null;
+    }
+
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+
+    if (parsed.length !== Number(dimension)) {
+      throw new Error(
+        `Vector literal dimension ${dimension} does not match ${parsed.length} values`,
+      );
+    }
+
+    return this.#formatVectorFromArray(parsed, elementType.toUpperCase() as 'FLOAT' | 'INT');
   }
 
   // Snowflake documents vector literals as ARRAY values cast with ::VECTOR(type, dimension),

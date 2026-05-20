@@ -2860,9 +2860,20 @@ export interface VectorOptions {
   format?: string;
 }
 
-// Dialects may accept plain arrays or any numeric typed array. The generic validator
-// inspects ArrayBufferView instances without having to enumerate every concrete type here.
-export type Vector = number[] | ArrayBufferView;
+export type NumericTypedArray =
+  | Int8Array
+  | Uint8Array
+  | Uint8ClampedArray
+  | Int16Array
+  | Uint16Array
+  | Int32Array
+  | Uint32Array
+  | Float32Array
+  | Float64Array;
+
+// Dialects may accept plain arrays or any number-backed typed array. The generic validator
+// checks only the container shape; dialects are responsible for validating dimensions and values.
+export type VectorValue = number[] | NumericTypedArray;
 
 /**
  * The VECTOR type stores ordered numeric vectors.
@@ -2873,28 +2884,28 @@ export type Vector = number[] | ArrayBufferView;
  * __Fallback policy:__
  * If this type is not supported, an error will be raised.
  *
+ * This shared base exists for dialect-specific VECTOR implementations. Dialects that can use Sequelize's
+ * generic {@link VectorOptions} may extend {@link VECTOR}; dialects with a different option shape may extend
+ * this class directly with their own options type.
+ *
  * @example
  * ```ts
  * DataTypes.VECTOR
  * DataTypes.VECTOR(1536)
  * DataTypes.VECTOR(1536, 'float32')
- * DataTypes.VECTOR({ dimension: 1024, format: 'int' })
+ * DataTypes.VECTOR({ dimension: 1024, format: 'int8' })
  * DataTypes.VECTOR({ dimension: 2048 })
  * ```
  *
  * @category DataTypes
  */
-export abstract class AbstractVECTORBase<TOptions extends object> extends AbstractDataType<Vector> {
+export abstract class AbstractVECTORBase<
+  TOptions extends object,
+> extends AbstractDataType<VectorValue> {
   readonly options!: TOptions;
 
-  validate(value: unknown): asserts value is Vector {
-    const iterable = this._getVectorIterable(value);
-
-    if (iterable) {
-      for (const item of iterable) {
-        this._validateVectorElement(item);
-      }
-
+  validate(value: unknown): asserts value is VectorValue {
+    if (this._getVectorIterable(value)) {
       return;
     }
 
@@ -2903,7 +2914,7 @@ export abstract class AbstractVECTORBase<TOptions extends object> extends Abstra
     );
   }
 
-  protected _getVectorIterable(value: unknown): Iterable<unknown> | null {
+  protected _getVectorIterable(value: unknown): VectorValue | null {
     if (Array.isArray(value) || isTypedArrayIterable(value)) {
       return value;
     }
@@ -2952,6 +2963,10 @@ export abstract class AbstractVECTORBase<TOptions extends object> extends Abstra
   }
 }
 
+/**
+ * Generic VECTOR implementation used by dialects whose options fit {@link VectorOptions}.
+ * Dialects with stricter option models can extend {@link AbstractVECTORBase} directly.
+ */
 export class VECTOR extends AbstractVECTORBase<VectorOptions> {
   /** @hidden */
   static readonly [DataTypeIdentifier]: string = 'VECTOR';
@@ -3001,8 +3016,10 @@ export class VECTOR extends AbstractVECTORBase<VectorOptions> {
     const normalized = format.trim().toLowerCase();
 
     switch (normalized) {
+      case 'float':
       case 'float32':
       case 'float64':
+      case 'int':
       case 'int8':
       case 'int16':
       case 'int32':
@@ -3021,8 +3038,18 @@ export class VECTOR extends AbstractVECTORBase<VectorOptions> {
   }
 }
 
-function isTypedArrayIterable(value: unknown): value is ArrayBufferView & Iterable<unknown> {
-  return ArrayBuffer.isView(value) && !(value instanceof DataView);
+function isTypedArrayIterable(value: unknown): value is NumericTypedArray {
+  return (
+    value instanceof Int8Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint8ClampedArray ||
+    value instanceof Int16Array ||
+    value instanceof Uint16Array ||
+    value instanceof Int32Array ||
+    value instanceof Uint32Array ||
+    value instanceof Float32Array ||
+    value instanceof Float64Array
+  );
 }
 
 function rejectBlobs(value: unknown) {

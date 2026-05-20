@@ -339,13 +339,10 @@ if (sequelize.dialect.supports?.dataTypes?.VECTOR) {
         expect(() => type.validate(new Float32Array([1, 2, 3]))).not.to.throw();
       });
 
-      it('should throw if value contains non-finite numbers', () => {
+      it('should not validate vector elements in the base type', () => {
         const type: DataTypeInstance = DataTypes.VECTOR();
 
-        expect(() => type.validate([1, Infinity, 3])).to.throw(
-          ValidationErrorItem,
-          'is not a valid vector',
-        );
+        expect(() => type.validate([1, Infinity, 3])).not.to.throw();
       });
     });
   });

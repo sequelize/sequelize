@@ -80,8 +80,9 @@ export class PostgresQueryGeneratorInternal<
 
     if (typeof arg === 'string') {
       const trimmed = arg.trim();
-      if (this.#looksLikeVectorLiteral(trimmed)) {
-        return trimmed;
+      const literal = this.#parseVectorLiteral(trimmed);
+      if (literal) {
+        return literal;
       }
 
       if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
@@ -101,8 +102,35 @@ export class PostgresQueryGeneratorInternal<
     );
   }
 
-  #looksLikeVectorLiteral(literal: string): boolean {
-    return /^'.*'\s*::\s*vector(?:\s*\(\s*\d+\s*\))?$/i.test(literal);
+  #parseVectorLiteral(literal: string): string | null {
+    const match = literal.match(/^'([^']+)'\s*::\s*vector(?:\s*\(\s*(\d+)\s*\))?$/i);
+    if (!match) {
+      return null;
+    }
+
+    const [, body, dimension] = match;
+    if (!body.startsWith('[') || !body.endsWith(']')) {
+      return null;
+    }
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(body);
+    } catch {
+      return null;
+    }
+
+    if (!Array.isArray(parsed)) {
+      return null;
+    }
+
+    if (dimension != null && parsed.length !== Number(dimension)) {
+      throw new Error(
+        `Vector literal dimension ${dimension} does not match ${parsed.length} values`,
+      );
+    }
+
+    return this.#formatVectorFromArray(parsed);
   }
 
   #formatVectorFromArray(values: unknown[]): string {

@@ -315,7 +315,7 @@ export class VECTOR extends BaseTypes.VECTOR {
     }
   }
 
-  validate(value: unknown): asserts value is BaseTypes.Vector {
+  validate(value: unknown): asserts value is BaseTypes.VectorValue {
     super.validate(value);
     const options = this.#getPgOptions();
 
@@ -328,13 +328,12 @@ export class VECTOR extends BaseTypes.VECTOR {
       return;
     }
 
-    const values = [...iterable];
-    if (values.length !== options.dimension) {
+    if (iterable.length !== options.dimension) {
       ValidationErrorItem.throwDataTypeValidationError(
         util.format(
           'VECTOR expects values of length %d, but received %d',
           options.dimension,
-          values.length,
+          iterable.length,
         ),
       );
     }
@@ -352,7 +351,7 @@ export class VECTOR extends BaseTypes.VECTOR {
     return numeric;
   }
 
-  toBindableValue(value: BaseTypes.Vector): string {
+  toBindableValue(value: BaseTypes.VectorValue): string {
     const iterable = this._getVectorIterable(value);
     if (iterable == null) {
       throw new TypeError('Unsupported vector container type');
@@ -365,11 +364,11 @@ export class VECTOR extends BaseTypes.VECTOR {
     return `[${values.join(',')}]`;
   }
 
-  escape(value: BaseTypes.Vector): string {
+  escape(value: BaseTypes.VectorValue): string {
     return `${this._getDialect().escapeString(this.toBindableValue(value))}::vector`;
   }
 
-  getBindParamSql(value: BaseTypes.Vector, options: BindParamOptions): string {
+  getBindParamSql(value: BaseTypes.VectorValue, options: BindParamOptions): string {
     return `${options.bindParam(this.toBindableValue(value))}::vector`;
   }
 

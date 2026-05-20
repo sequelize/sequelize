@@ -16,6 +16,15 @@ if (current.dialect.name === 'snowflake') {
       expect(type.toSql()).to.equal('VECTOR(FLOAT, 3)');
     });
 
+    it('normalizes Snowflake vector format aliases', () => {
+      expect(DataTypes.VECTOR(3, 'int').toDialectDataType(current.dialect).toSql()).to.equal(
+        'VECTOR(INT, 3)',
+      );
+      expect(DataTypes.VECTOR(3, 'float32').toDialectDataType(current.dialect).toSql()).to.equal(
+        'VECTOR(FLOAT, 3)',
+      );
+    });
+
     it('rejects dimensions above Snowflake max size', () => {
       const type = DataTypes.VECTOR(4097).toDialectDataType(current.dialect);
 
@@ -72,7 +81,7 @@ if (current.dialect.name === 'snowflake') {
       });
 
       expectsql(queryGenerator.whereItemsQuery(where), {
-        snowflake: 'VECTOR_L2_DISTANCE("embedding", [1,2,3]) < 10',
+        snowflake: 'VECTOR_L2_DISTANCE("embedding", [1,2,3]::VECTOR(FLOAT, 3)) < 10',
       });
     });
 
@@ -84,6 +93,21 @@ if (current.dialect.name === 'snowflake') {
       expectsql(queryGenerator.whereItemsQuery(where), {
         snowflake: 'VECTOR_L2_DISTANCE("embedding", [1,2,3]::VECTOR(FLOAT, 3)) < 10',
       });
+    });
+
+    it('rejects unsafe VECTOR literal strings', () => {
+      for (const payload of [
+        '[1,2,3]); DROP TABLE users; --',
+        '[1,2,3]::VECTOR(FLOAT, 3); DROP TABLE users; --',
+        'VECTOR_L2_DISTANCE("embedding", [1,2,3]::VECTOR(FLOAT, 3))',
+      ]) {
+        expect(() =>
+          queryGenerator.formatSqlExpression(current.l2Distance('embedding', payload)),
+        ).to.throw(
+          Error,
+          'L2_DISTANCE expects the second argument to be a number array, typed array, or VECTOR-compatible SQL literal',
+        );
+      }
     });
 
     it('throws when vector function has too few arguments', () => {

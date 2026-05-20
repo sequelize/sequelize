@@ -3,6 +3,7 @@
 const util = require('node:util');
 const Support = require('../../../support');
 const { DataTypes, Op, sql } = require('@sequelize/core');
+const BaseTypes = require('@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js');
 const { OracleQuery } = require('@sequelize/oracle');
 const { expect } = require('chai');
 
@@ -358,6 +359,30 @@ if (current.dialect.name === 'oracle') {
         expect(type.toBindableValue(typed)).to.equal(typed);
       });
 
+      it('accepts SparseVector-like input and keeps it as-is for binding', () => {
+        const type = DataTypes.VECTOR(5).toDialectDataType(current.dialect);
+        const sparseVector = {
+          values: new Float64Array([1, 2]),
+          indices: new Uint32Array([2, 4]),
+          numDimensions: 5,
+        };
+
+        expect(() => type.validate(sparseVector)).not.to.throw();
+        expect(type.toBindableValue(sparseVector)).to.equal(sparseVector);
+      });
+
+      it('rejects invalid SparseVector-like input', () => {
+        const type = DataTypes.VECTOR(5).toDialectDataType(current.dialect);
+
+        expect(() =>
+          type.validate({
+            values: new Float64Array([1, 2]),
+            indices: new Uint32Array([2]),
+            numDimensions: 5,
+          }),
+        ).to.throw(Error, 'is not a valid vector');
+      });
+
       it('returns the Oracle VECTOR bind definition', () => {
         const type = DataTypes.VECTOR(3).toDialectDataType(current.dialect);
 
@@ -392,12 +417,28 @@ if (current.dialect.name === 'oracle') {
 
         expect(type.toSql()).to.equal('VECTOR(24)');
       });
+
+      it('renders Oracle-specific sparse storage when using the Oracle VECTOR override directly', () => {
+        const OracleVector = current.dialect.getDataTypeForDialect(BaseTypes.VECTOR);
+        const type = new OracleVector({ dimension: 8, format: 'int8', storage: 'sparse' });
+
+        expect(type.toSql()).to.equal('VECTOR(8, INT8, SPARSE)');
+      });
+
+      it('rejects unsupported Oracle VECTOR storage options', () => {
+        const OracleVector = current.dialect.getDataTypeForDialect(BaseTypes.VECTOR);
+
+        expect(() => new OracleVector({ dimension: 8, storage: 'dense' })).to.throw(
+          TypeError,
+          'Invalid Oracle VECTOR storage: dense',
+        );
+      });
     });
 
     describe('Vector where clause', () => {
       const queryVector = [1, 2, 3];
 
-      const testsql = function (key, value, options, expectation) {
+      const testsql = (key, value, options, expectation) => {
         if (expectation === undefined) {
           expectation = options;
           options = undefined;
@@ -490,6 +531,22 @@ if (current.dialect.name === 'oracle') {
             }),
           ),
         ).to.throw(Error, 'Invalid value received for the "where" option');
+      });
+
+      it('throws for unsafe VECTOR literal strings', () => {
+        for (const payload of [
+          `VECTOR('[1,2,3]'); DROP TABLE users; --')`,
+          `VECTOR('[1,2,3]') || 'x'`,
+          `VECTOR_DISTANCE("embedding", VECTOR('[1,2,3]'))`,
+        ]) {
+          expect(() =>
+            queryGenerator.whereItemsQuery(
+              sql.where(sql.fn('VECTOR_DISTANCE', sql.attribute('embedding'), payload), {
+                [Op.lt]: 2,
+              }),
+            ),
+          ).to.throw(Error, 'Invalid value received for the "where" option');
+        }
       });
 
       it('throws for malformed VECTOR literal payloads', () => {

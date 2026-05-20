@@ -42,10 +42,16 @@ if (current.dialect.name === 'postgres') {
         );
       });
 
-      it('rejects non-finite values', () => {
+      it('does not validate elements when validating dimensions', () => {
         const type = DataTypes.VECTOR(3).toDialectDataType(current.dialect);
 
-        expect(() => type.validate([1, Infinity, 3])).to.throw(Error, 'is not a valid vector');
+        expect(() => type.validate([1, Infinity, 3])).not.to.throw();
+      });
+
+      it('rejects non-finite values when serializing values', () => {
+        expect(() =>
+          queryGenerator.escape([1, Infinity, 3], { type: DataTypes.VECTOR(3) }),
+        ).to.throw(Error, 'is not a valid vector');
       });
 
       it('rejects dimensions above pgvector max size', () => {
@@ -133,6 +139,21 @@ if (current.dialect.name === 'postgres') {
         expectsql(queryGenerator.whereItemsQuery(where), {
           postgres: `("embedding" <-> '[1,2,3]'::vector) < 2`,
         });
+      });
+
+      it('rejects unsafe pgvector literal strings', () => {
+        for (const payload of [
+          "'[1,2,3]'); DROP TABLE users; --'::vector",
+          "'[1,2,3]'::vector; DROP TABLE users; --",
+          '[1,2,3]; DROP TABLE users; --',
+        ]) {
+          expect(() =>
+            queryGenerator.formatSqlExpression(current.l2Distance('embedding', payload)),
+          ).to.throw(
+            Error,
+            'L2_DISTANCE expects the second argument to be a number array, typed array, or pgvector literal string',
+          );
+        }
       });
 
       it('accepts JSON array strings by normalizing to pgvector literals', () => {
