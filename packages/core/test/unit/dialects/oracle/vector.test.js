@@ -126,6 +126,15 @@ if (current.dialect.name === 'oracle') {
         ).to.throw(TypeError, 'Oracle VECTOR index using must be either "hnsw" or "ivf".');
       });
 
+      it('rejects non-string vector index using values', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            using: 123,
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index using must be either "hnsw" or "ivf".');
+      });
+
       it('accepts uppercase using value', () => {
         expectsql(
           queryGenerator.addIndexQuery('foo', ['vec1'], {
@@ -244,6 +253,15 @@ if (current.dialect.name === 'oracle') {
               'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" DESC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
           },
         );
+      });
+
+      it('rejects unsafe vector index field order fragments', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', {
+            fields: [{ name: 'vec1', order: 'DESC) PARAMETERS (type ivf --' }],
+            type: 'VECTOR',
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index field order must be either "ASC" or "DESC".');
       });
 
       it('supports SQL expression index fields', () => {
