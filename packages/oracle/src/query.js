@@ -684,7 +684,7 @@ export class OracleQuery extends AbstractQuery {
 
         if (oracleIndexType === 'VECTOR') {
           type = 'VECTOR';
-          method = this.#determineVectorMethod(indexRecord.PARAMETERS_LOWER);
+          method = this.#determineVectorMethod(indexRecord.INDEX_SUBTYPE);
         } else if (oracleIndexType === 'NORMAL' || !oracleIndexType) {
           type = undefined;
         } else {
@@ -735,17 +735,15 @@ export class OracleQuery extends AbstractQuery {
     return returnIndexes;
   }
 
-  // Oracle surfaces vector index configuration as a lower-cased parameter string.
-  // Parse out the declared index type so consumers can see whether the index is IVF or HNSW.
-  #determineVectorMethod(parametersLower) {
-    if (typeof parametersLower !== 'string') {
-      return;
+  // Oracle exposes vector index method in INDEX_SUBTYPE.
+  #determineVectorMethod(indexSubtype) {
+    const subtype = typeof indexSubtype === 'string' ? indexSubtype.toLowerCase() : undefined;
+    if (subtype?.includes('hnsw')) {
+      return 'hnsw';
     }
 
-    for (const type of ['ivf', 'hnsw']) {
-      if (parametersLower.includes(`type ${type}`)) {
-        return type;
-      }
+    if (subtype?.includes('ivf')) {
+      return 'ivf';
     }
   }
 

@@ -109,7 +109,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   showIndexesQuery(table: TableNameWithSchema) {
     const [tableName, owner] = this.getSchemaNameAndTableName(table);
     const sql = [
-      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type, u.ityp_name, i.descend, c.constraint_type ',
+      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type, u.index_subtype, u.ityp_name, i.descend, c.constraint_type ',
       'FROM all_ind_columns i ',
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',

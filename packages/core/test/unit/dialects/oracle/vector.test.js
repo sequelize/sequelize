@@ -294,13 +294,13 @@ if (current.dialect.name === 'oracle') {
           {
             INDEX_NAME: 'IDX_HNSW',
             INDEX_TYPE: 'VECTOR',
+            INDEX_SUBTYPE: 'INMEMORY_NEIGHBOR_GRAPH_HNSW',
             ITYP_NAME: null,
             UNIQUENESS: 'NONUNIQUE',
             CONSTRAINT_TYPE: null,
             TABLE_NAME: 'FOO',
             COLUMN_NAME: 'EMBEDDING',
             DESCEND: null,
-            PARAMETERS_LOWER: 'type hnsw neighbor 10',
           },
         ];
 
@@ -314,13 +314,13 @@ if (current.dialect.name === 'oracle') {
           {
             INDEX_NAME: 'IDX_IVF',
             INDEX_TYPE: 'VECTOR',
+            INDEX_SUBTYPE: 'NEIGHBOR_PARTITION_GRAPH_IVF',
             ITYP_NAME: null,
             UNIQUENESS: 'NONUNIQUE',
             CONSTRAINT_TYPE: null,
             TABLE_NAME: 'FOO',
             COLUMN_NAME: 'EMBEDDING',
             DESCEND: null,
-            PARAMETERS_LOWER: 'type ivf neighbor partition 8',
           },
         ];
 
@@ -340,7 +340,6 @@ if (current.dialect.name === 'oracle') {
             TABLE_NAME: 'FOO',
             COLUMN_NAME: 'EMBEDDING',
             DESCEND: null,
-            PARAMETERS_LOWER: null,
           },
         ];
 
@@ -360,7 +359,6 @@ if (current.dialect.name === 'oracle') {
             TABLE_NAME: 'FOO',
             COLUMN_NAME: 'ID',
             DESCEND: null,
-            PARAMETERS_LOWER: null,
           },
         ];
 
@@ -380,7 +378,6 @@ if (current.dialect.name === 'oracle') {
             TABLE_NAME: 'FOO',
             COLUMN_NAME: 'ID',
             DESCEND: null,
-            PARAMETERS_LOWER: null,
           },
         ];
 
