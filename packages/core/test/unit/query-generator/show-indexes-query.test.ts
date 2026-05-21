@@ -47,7 +47,7 @@ describe('QueryGenerator#showIndexesQuery', () => {
     const oracle19QueryGenerator = oracle19Sequelize.queryGenerator;
 
     expectsql(() => oracle19QueryGenerator.showIndexesQuery('myTable'), {
-      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type, NULL AS index_subtype, u.ityp_name, i.descend, c.constraint_type 
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type, u.ityp_name, i.descend, c.constraint_type 
         FROM all_ind_columns i
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
