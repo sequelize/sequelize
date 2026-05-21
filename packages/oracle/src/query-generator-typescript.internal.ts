@@ -108,13 +108,11 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   showIndexesQuery(table: TableNameWithSchema) {
     const [tableName, owner] = this.getSchemaNameAndTableName(table);
-    const indexSubtypeSelection = this.#supportsIndexSubtypeColumn()
-      ? 'u.index_subtype'
-      : 'NULL AS index_subtype';
+    const indexSubtypeColumn = this.#supportsIndexSubtypeColumn() ? ', u.index_subtype' : '';
     const sql = [
       // INDEX_SUBTYPE is available on newer Oracle versions (e.g. 23c+).
       // Older versions (e.g. 19c) do not expose this column in ALL_INDEXES.
-      `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type, ${indexSubtypeSelection}, u.ityp_name, i.descend, c.constraint_type `,
+      `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type${indexSubtypeColumn}, u.ityp_name, i.descend, c.constraint_type `,
       'FROM all_ind_columns i ',
       'INNER JOIN all_indexes u ',
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
