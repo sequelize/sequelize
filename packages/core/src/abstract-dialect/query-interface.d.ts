@@ -168,50 +168,6 @@ export interface IndexOptions {
   prefix?: string;
 
   /**
-   * Oracle vector index distance metric.
-   */
-  distance?: string;
-
-  /**
-   * Oracle vector index target accuracy.
-   */
-  accuracy?: number;
-
-  /**
-   * Implementation-specific options for Oracle VECTOR indexes.
-   *
-   * Acronyms:
-   * - HNSW: Hierarchical Navigable Small World
-   * - IVF: Inverted File Flat
-   */
-  parameter?: {
-    /**
-     * Neighbor list size (HNSW).
-     */
-    neighbor?: number;
-
-    /**
-     * Graph construction effort (HNSW).
-     */
-    efconstruction?: number;
-
-    /**
-     * Number of partitions (IVF).
-     */
-    partitions?: number;
-
-    /**
-     * Sample count per partition (IVF).
-     */
-    samplesPerPartition?: number;
-
-    /**
-     * Minimum vectors per partition (IVF).
-     */
-    minVectors?: number;
-  };
-
-  /**
    * Non-key columns to be added to the lead level of the nonclustered index.
    */
   include?: Literal | Array<string | Literal>;
