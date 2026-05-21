@@ -37,6 +37,24 @@ describe('QueryGenerator#showIndexesQuery', () => {
     });
   });
 
+  it('uses a compatibility projection for Oracle versions without INDEX_SUBTYPE', () => {
+    if (dialect.name !== 'oracle') {
+      return;
+    }
+
+    const oracle19Sequelize = createSequelizeInstance();
+    oracle19Sequelize.setDatabaseVersion('19.0.0');
+    const oracle19QueryGenerator = oracle19Sequelize.queryGenerator;
+
+    expectsql(() => oracle19QueryGenerator.showIndexesQuery('myTable'), {
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, u.index_type, NULL AS index_subtype, u.ityp_name, i.descend, c.constraint_type 
+        FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+        WHERE i.table_name = 'myTable' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
+    });
+  });
+
   it('produces a SHOW INDEX query from a model', () => {
     const MyModel = sequelize.define('MyModel', {});
 
