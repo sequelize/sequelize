@@ -61,6 +61,7 @@ const VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS = new Set([
   'parameter',
 ]);
 const VECTOR_INDEX_USING = new Set(['hnsw', 'ivf']);
+const VECTOR_INDEX_USING_ERROR = 'Oracle VECTOR index using must be either "hnsw" or "ivf".';
 const VECTOR_INDEX_DISTANCE_METRICS = new Set([
   'COSINE',
   'DOT',
@@ -69,6 +70,9 @@ const VECTOR_INDEX_DISTANCE_METRICS = new Set([
   'HAMMING',
   'MANHATTAN',
 ]);
+const VECTOR_INDEX_FIELD_ORDERS = new Set(['ASC', 'DESC']);
+const VECTOR_INDEX_FIELD_ORDER_ERROR =
+  'Oracle VECTOR index field order must be either "ASC" or "DESC".';
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -529,9 +533,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         throw new Error(`The following index field has no name: ${util.inspect(field)}`);
       }
 
-      return normalizedField.order
-        ? `${this.quoteIdentifier(normalizedField.name)} ${normalizedField.order}`
-        : this.quoteIdentifier(normalizedField.name);
+      if (!normalizedField.order) {
+        return this.quoteIdentifier(normalizedField.name);
+      }
+
+      const order = normalizeVectorIndexFieldOrder(normalizedField.order);
+
+      return `${this.quoteIdentifier(normalizedField.name)} ${order}`;
     });
 
     if (!normalizedOptions.name) {
@@ -539,7 +547,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     const finalizedOptions = conformIndex(normalizedOptions);
-    const using = toLowerCaseIfString(finalizedOptions.using) ?? VECTOR_ORGANIZATION_DEFAULT;
+    const rawUsing = finalizedOptions.using;
+    if (rawUsing != null && typeof rawUsing !== 'string') {
+      throw new TypeError(VECTOR_INDEX_USING_ERROR);
+    }
+
+    const using = rawUsing == null ? VECTOR_ORGANIZATION_DEFAULT : rawUsing.toLowerCase();
     validateVectorIndexUsing(using);
     const distance = normalizeVectorIndexDistance(finalizedOptions.distance);
     const accuracy = validateVectorIndexPositiveNumber(finalizedOptions.accuracy, 'accuracy', {
@@ -1317,10 +1330,6 @@ function toUpperCaseIfString(value) {
   return typeof value === 'string' ? value.toUpperCase() : undefined;
 }
 
-function toLowerCaseIfString(value) {
-  return typeof value === 'string' ? value.toLowerCase() : undefined;
-}
-
 function sanitizePrefix(prefix) {
   if (typeof prefix !== 'string') {
     return prefix;
@@ -1355,12 +1364,18 @@ function buildVectorParameters(parameter, usingIsHnsw) {
   }
 
   parameters.push('type ivf');
-  const partitions = validateVectorIndexPositiveInteger(parameter.partitions, 'parameter.partitions');
+  const partitions = validateVectorIndexPositiveInteger(
+    parameter.partitions,
+    'parameter.partitions',
+  );
   const samplesPerPartition = validateVectorIndexPositiveInteger(
     parameter.samplesPerPartition,
     'parameter.samplesPerPartition',
   );
-  const minVectors = validateVectorIndexPositiveInteger(parameter.minVectors, 'parameter.minVectors');
+  const minVectors = validateVectorIndexPositiveInteger(
+    parameter.minVectors,
+    'parameter.minVectors',
+  );
 
   if (partitions) {
     parameters.push(`NEIGHBOR PARTITION ${partitions}`);
@@ -1382,7 +1397,20 @@ function validateVectorIndexUsing(using) {
     return;
   }
 
-  throw new TypeError('Oracle VECTOR index using must be either "hnsw" or "ivf".');
+  throw new TypeError(VECTOR_INDEX_USING_ERROR);
+}
+
+function normalizeVectorIndexFieldOrder(order) {
+  if (typeof order !== 'string') {
+    throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
+  }
+
+  const normalizedOrder = order.toUpperCase();
+  if (VECTOR_INDEX_FIELD_ORDERS.has(normalizedOrder)) {
+    return normalizedOrder;
+  }
+
+  throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
 }
 
 function normalizeVectorIndexDistance(distance) {

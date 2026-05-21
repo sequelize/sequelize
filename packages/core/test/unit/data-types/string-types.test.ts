@@ -306,7 +306,7 @@ if (sequelize.dialect.supports?.dataTypes?.VECTOR) {
   See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
         oracle: 'VECTOR(3, FLOAT32)',
         postgres: 'VECTOR(3)',
-        snowflake: new Error('Invalid Snowflake VECTOR format: float32'),
+        snowflake: 'VECTOR(FLOAT, 3)',
       });
 
       testDataTypeSql("VECTOR(24, 'binary')", DataTypes.VECTOR(24, 'binary'), {

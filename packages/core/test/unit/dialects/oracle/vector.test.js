@@ -68,6 +68,19 @@ if (current.dialect.name === 'oracle') {
         });
       });
 
+      it('defaults using to hnsw when not provided', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('foo', {
+            fields: ['vec1'],
+            type: 'VECTOR',
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION INMEMORY NEIGHBOR GRAPH',
+          },
+        );
+      });
+
       it('accepts lowercase vector type', () => {
         expectsql(queryGenerator.addIndexQuery('Foo', ['vec1'], { type: 'vector' }), {
           default:
@@ -122,6 +135,15 @@ if (current.dialect.name === 'oracle') {
           queryGenerator.addIndexQuery('foo', ['vec1'], {
             type: 'VECTOR',
             using: 'btree',
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index using must be either "hnsw" or "ivf".');
+      });
+
+      it('rejects non-string vector index using values', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            using: 123,
           }),
         ).to.throw(TypeError, 'Oracle VECTOR index using must be either "hnsw" or "ivf".');
       });
@@ -244,6 +266,28 @@ if (current.dialect.name === 'oracle') {
               'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" DESC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
           },
         );
+      });
+
+      it('normalizes lowercase index field order to uppercase', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('foo', {
+            fields: [{ name: 'vec1', order: 'asc' }],
+            type: 'VECTOR',
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" ASC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
+          },
+        );
+      });
+
+      it('rejects unsafe vector index field order fragments', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', {
+            fields: [{ name: 'vec1', order: 'DESC) PARAMETERS (type ivf --' }],
+            type: 'VECTOR',
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index field order must be either "ASC" or "DESC".');
       });
 
       it('supports SQL expression index fields', () => {

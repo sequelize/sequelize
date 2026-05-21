@@ -663,10 +663,6 @@ export class OracleQuery extends AbstractQuery {
     return new DatabaseError(err);
   }
 
-  isShowIndexesQuery() {
-    return this.sql.includes('SELECT i.index_name,i.table_name, i.column_name, u.uniqueness');
-  }
-
   isSelectCountQuery() {
     return this.sql.toUpperCase().includes('SELECT COUNT(');
   }
