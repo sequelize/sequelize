@@ -6,16 +6,6 @@ import intersection from 'lodash/intersection.js';
 import uniq from 'lodash/uniq.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
-  async showIndex(tableName, options) {
-    if (this.sequelize.getDatabaseVersionIfExist() == null) {
-      // Ensure version is initialized before SQL generation so showIndexesQuery
-      // can check INDEX_SUBTYPE usage by Oracle version.
-      await this.sequelize.authenticate();
-    }
-
-    return super.showIndex(tableName, options);
-  }
-
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
