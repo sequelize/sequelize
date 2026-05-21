@@ -81,6 +81,19 @@ if (current.dialect.name === 'oracle') {
         );
       });
 
+      it('sanitizes dotted and quoted prefixes when generating vector index names', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('ignored', ['vec1'], {
+            type: 'VECTOR',
+            prefix: '"schema"."foo"',
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "schema_foo_vec1" ON "ignored" ("vec1") ORGANIZATION INMEMORY NEIGHBOR GRAPH',
+          },
+        );
+      });
+
       it('accepts lowercase vector type', () => {
         expectsql(queryGenerator.addIndexQuery('Foo', ['vec1'], { type: 'vector' }), {
           default:

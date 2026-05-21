@@ -1420,24 +1420,24 @@ function normalizeVectorIndexDistance(distance) {
 }
 
 function validateVectorIndexPositiveInteger(value, optionName) {
-  return validateVectorIndexPositiveNumber(value, optionName, { integer: true });
-}
-
-function validateVectorIndexPositiveNumber(value, optionName, { integer = false, max } = {}) {
   if (value == null) {
     return undefined;
   }
 
-  if (
-    typeof value !== 'number' ||
-    !Number.isFinite(value) ||
-    value <= 0 ||
-    (integer && !Number.isSafeInteger(value)) ||
-    (max != null && value > max)
-  ) {
-    const type = integer ? 'positive integer' : 'positive number';
-    const suffix = max == null ? '' : ` less than or equal to ${max}`;
-    throw new TypeError(`Oracle VECTOR index ${optionName} must be a ${type}${suffix}.`);
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0) {
+    throw new TypeError(`Oracle VECTOR index ${optionName} must be a positive integer.`);
+  }
+
+  return value;
+}
+
+function validateVectorIndexPositiveNumber(value, optionName) {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new TypeError(`Oracle VECTOR index ${optionName} must be a positive number.`);
   }
 
   return value;
