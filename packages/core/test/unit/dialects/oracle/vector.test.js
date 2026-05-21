@@ -97,7 +97,7 @@ if (current.dialect.name === 'oracle') {
           }),
           {
             default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "Foo" ("vec1") ORGANIZATION NEIGHBOR PARTITION GRAPH',
+              'CREATE VECTOR INDEX "foo_vec1" ON "Foo" ("vec1") ORGANIZATION NEIGHBOR PARTITIONS',
           },
         );
       });
@@ -112,7 +112,7 @@ if (current.dialect.name === 'oracle') {
           }),
           {
             default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITION GRAPH WITH TARGET ACCURACY 95 PARAMETERS (type ivf, NEIGHBOR PARTITION 5, SAMPLES_PER_PARTITION 10, MIN_VECTORS_PER_PARTITION 10)',
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITIONS WITH TARGET ACCURACY 95 PARAMETERS (type ivf, NEIGHBOR PARTITIONS 5, SAMPLES_PER_PARTITION 10, MIN_VECTORS_PER_PARTITION 10)',
           },
         );
       });
@@ -169,7 +169,7 @@ if (current.dialect.name === 'oracle') {
           }),
           {
             default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITION GRAPH',
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITIONS',
           },
         );
       });
@@ -197,7 +197,7 @@ if (current.dialect.name === 'oracle') {
           }),
           {
             default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITION GRAPH PARAMETERS (type ivf)',
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITIONS PARAMETERS (type ivf)',
           },
         );
       });
@@ -212,6 +212,20 @@ if (current.dialect.name === 'oracle') {
           {
             default:
               'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION INMEMORY NEIGHBOR GRAPH PARAMETERS (type hnsw, neighbor 8, efconstruction 32)',
+          },
+        );
+      });
+
+      it('supports parallel degree in SQL', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            using: 'ivf',
+            parallel: 4,
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION NEIGHBOR PARTITIONS PARALLEL 4',
           },
         );
       });
@@ -242,7 +256,7 @@ if (current.dialect.name === 'oracle') {
           }),
         ).to.throw(
           TypeError,
-          'Oracle VECTOR index accuracy must be a positive number less than or equal to 100.',
+          'Oracle VECTOR index accuracy must be a positive number.',
         );
       });
 
@@ -255,39 +269,22 @@ if (current.dialect.name === 'oracle') {
         ).to.throw(TypeError, 'Oracle VECTOR index parameter.neighbor must be a positive integer.');
       });
 
-      it('supports ordered index fields', () => {
-        expectsql(
+      it('rejects unsafe vector index parallel fragments', () => {
+        expect(() =>
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            parallel: '4 PARAMETERS (type hnsw)',
+          }),
+        ).to.throw(TypeError, 'Oracle VECTOR index parallel must be a positive integer.');
+      });
+
+      it('rejects ordered vector index fields', () => {
+        expect(() =>
           queryGenerator.addIndexQuery('foo', {
             fields: [{ name: 'vec1', order: 'DESC' }],
             type: 'VECTOR',
           }),
-          {
-            default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" DESC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
-          },
-        );
-      });
-
-      it('normalizes lowercase index field order to uppercase', () => {
-        expectsql(
-          queryGenerator.addIndexQuery('foo', {
-            fields: [{ name: 'vec1', order: 'asc' }],
-            type: 'VECTOR',
-          }),
-          {
-            default:
-              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1" ASC) ORGANIZATION INMEMORY NEIGHBOR GRAPH',
-          },
-        );
-      });
-
-      it('rejects unsafe vector index field order fragments', () => {
-        expect(() =>
-          queryGenerator.addIndexQuery('foo', {
-            fields: [{ name: 'vec1', order: 'DESC) PARAMETERS (type ivf --' }],
-            type: 'VECTOR',
-          }),
-        ).to.throw(TypeError, 'Oracle VECTOR index field order must be either "ASC" or "DESC".');
+        ).to.throw(TypeError, 'Oracle VECTOR indexes do not support ordered fields.');
       });
 
       it('supports SQL expression index fields', () => {

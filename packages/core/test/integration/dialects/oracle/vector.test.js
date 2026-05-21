@@ -339,6 +339,33 @@ if (getTestDialect() === 'oracle') {
           }
         }
       });
+
+      it('rejects ordered vector index fields during sync', async () => {
+        const IndexedItem = sequelize.define(
+          'VectorOrderedIndexedItem',
+          {
+            embeddings: DataTypes.VECTOR(3),
+          },
+          {
+            indexes: [
+              {
+                name: 'vector_input_item_embeddings_desc_idx',
+                type: 'VECTOR',
+                fields: [{ name: 'embeddings', order: 'desc' }],
+                using: 'hnsw',
+              },
+            ],
+          },
+        );
+
+        try {
+          await expect(IndexedItem.sync({ force: true })).to.be.rejectedWith(
+            'Oracle VECTOR indexes do not support ordered fields.',
+          );
+        } finally {
+          await IndexedItem.drop();
+        }
+      });
     });
   });
 }

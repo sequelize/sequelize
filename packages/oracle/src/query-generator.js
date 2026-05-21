@@ -48,6 +48,7 @@ const VECTOR_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'distance',
   'accuracy',
   'parameter',
+  'parallel',
   'include',
 ]);
 const VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS = new Set([
@@ -59,6 +60,7 @@ const VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS = new Set([
   'distance',
   'accuracy',
   'parameter',
+  'parallel',
 ]);
 const VECTOR_INDEX_USING = new Set(['hnsw', 'ivf']);
 const VECTOR_INDEX_USING_ERROR = 'Oracle VECTOR index using must be either "hnsw" or "ivf".';
@@ -70,9 +72,8 @@ const VECTOR_INDEX_DISTANCE_METRICS = new Set([
   'HAMMING',
   'MANHATTAN',
 ]);
-const VECTOR_INDEX_FIELD_ORDERS = new Set(['ASC', 'DESC']);
 const VECTOR_INDEX_FIELD_ORDER_ERROR =
-  'Oracle VECTOR index field order must be either "ASC" or "DESC".';
+  'Oracle VECTOR indexes do not support ordered fields.';
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -476,10 +477,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       `ON ${this.quoteTable(tableName)}`,
       `(${normalizedOptions.fieldsSql.join(', ')})`,
       'ORGANIZATION',
-      normalizedOptions.usingIsHnsw ? 'INMEMORY NEIGHBOR GRAPH' : 'NEIGHBOR PARTITION GRAPH',
+      normalizedOptions.usingIsHnsw ? 'INMEMORY NEIGHBOR GRAPH' : 'NEIGHBOR PARTITIONS',
       normalizedOptions.distance,
       normalizedOptions.accuracy,
       normalizedOptions.parameters,
+      normalizedOptions.parallel,
     ]);
   }
 
@@ -533,13 +535,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         throw new Error(`The following index field has no name: ${util.inspect(field)}`);
       }
 
-      if (!normalizedField.order) {
-        return this.quoteIdentifier(normalizedField.name);
+      if (normalizedField.order) {
+        throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
       }
 
-      const order = normalizeVectorIndexFieldOrder(normalizedField.order);
-
-      return `${this.quoteIdentifier(normalizedField.name)} ${order}`;
+      return this.quoteIdentifier(normalizedField.name);
     });
 
     if (!normalizedOptions.name) {
@@ -555,9 +555,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const using = rawUsing == null ? VECTOR_ORGANIZATION_DEFAULT : rawUsing.toLowerCase();
     validateVectorIndexUsing(using);
     const distance = normalizeVectorIndexDistance(finalizedOptions.distance);
-    const accuracy = validateVectorIndexPositiveNumber(finalizedOptions.accuracy, 'accuracy', {
-      max: 100,
-    });
+    const accuracy = validateVectorIndexPositiveNumber(finalizedOptions.accuracy, 'accuracy');
+    const parallel = validateVectorIndexPositiveInteger(finalizedOptions.parallel, 'parallel');
     const usingIsHnsw = using === 'hnsw';
     const parameterFragments = buildVectorParameters(finalizedOptions.parameter, usingIsHnsw);
 
@@ -569,6 +568,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       accuracy: accuracy ? `WITH TARGET ACCURACY ${accuracy}` : undefined,
       parameters:
         parameterFragments.length > 0 ? `PARAMETERS (${parameterFragments.join(', ')})` : undefined,
+      parallel: parallel ? `PARALLEL ${parallel}` : undefined,
     };
   }
 
@@ -1378,7 +1378,7 @@ function buildVectorParameters(parameter, usingIsHnsw) {
   );
 
   if (partitions) {
-    parameters.push(`NEIGHBOR PARTITION ${partitions}`);
+    parameters.push(`NEIGHBOR PARTITIONS ${partitions}`);
   }
 
   if (samplesPerPartition) {
@@ -1398,19 +1398,6 @@ function validateVectorIndexUsing(using) {
   }
 
   throw new TypeError(VECTOR_INDEX_USING_ERROR);
-}
-
-function normalizeVectorIndexFieldOrder(order) {
-  if (typeof order !== 'string') {
-    throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
-  }
-
-  const normalizedOrder = order.toUpperCase();
-  if (VECTOR_INDEX_FIELD_ORDERS.has(normalizedOrder)) {
-    return normalizedOrder;
-  }
-
-  throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
 }
 
 function normalizeVectorIndexDistance(distance) {
