@@ -72,8 +72,7 @@ const VECTOR_INDEX_DISTANCE_METRICS = new Set([
   'HAMMING',
   'MANHATTAN',
 ]);
-const VECTOR_INDEX_FIELD_ORDER_ERROR =
-  'Oracle VECTOR indexes do not support ordered fields.';
+const VECTOR_INDEX_FIELD_ORDER_ERROR = 'Oracle VECTOR indexes do not support ordered fields.';
 
 /**
  * list of reserved words in Oracle DB 21c

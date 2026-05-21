@@ -280,10 +280,7 @@ if (current.dialect.name === 'oracle') {
             type: 'VECTOR',
             accuracy: '95) PARAMETERS (type hnsw',
           }),
-        ).to.throw(
-          TypeError,
-          'Oracle VECTOR index accuracy must be a positive number.',
-        );
+        ).to.throw(TypeError, 'Oracle VECTOR index accuracy must be a positive number.');
       });
 
       it('rejects unsafe vector index parameter fragments', () => {
