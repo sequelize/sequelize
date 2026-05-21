@@ -130,6 +130,19 @@ if (current.dialect.name === 'oracle') {
         );
       });
 
+      it('normalizes lowercase vector distance metric', () => {
+        expectsql(
+          queryGenerator.addIndexQuery('foo', ['vec1'], {
+            type: 'VECTOR',
+            distance: 'cosine',
+          }),
+          {
+            default:
+              'CREATE VECTOR INDEX "foo_vec1" ON "foo" ("vec1") ORGANIZATION INMEMORY NEIGHBOR GRAPH WITH DISTANCE COSINE',
+          },
+        );
+      });
+
       it('rejects unsupported vector index using values', () => {
         expect(() =>
           queryGenerator.addIndexQuery('foo', ['vec1'], {

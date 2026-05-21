@@ -340,6 +340,45 @@ if (getTestDialect() === 'oracle') {
         }
       });
 
+      it('creates vector index with lowercase distance metric during sync', async () => {
+        const indexName = 'vector_input_item_embeddings_cosine_idx';
+        const IndexedItem = sequelize.define(
+          'VectorDistanceIndexedItem',
+          {
+            embeddings: DataTypes.VECTOR(3),
+          },
+          {
+            indexes: [
+              {
+                name: indexName,
+                type: 'VECTOR',
+                fields: ['embeddings'],
+                using: 'hnsw',
+                distance: 'cosine',
+              },
+            ],
+          },
+        );
+
+        try {
+          await IndexedItem.sync({ force: true });
+
+          const indexes = await sequelize.queryInterface.showIndex(IndexedItem.table);
+          const vectorIndex = indexes.find(
+            index => index.name?.toLowerCase() === indexName.toLowerCase(),
+          );
+
+          expect(vectorIndex).to.not.equal(undefined);
+          expect(vectorIndex.type).to.equal('VECTOR');
+        } finally {
+          try {
+            await sequelize.queryInterface.removeIndex(IndexedItem.table, indexName);
+          } finally {
+            await IndexedItem.drop();
+          }
+        }
+      });
+
       it('rejects ordered vector index fields during sync', async () => {
         const IndexedItem = sequelize.define(
           'VectorOrderedIndexedItem',
