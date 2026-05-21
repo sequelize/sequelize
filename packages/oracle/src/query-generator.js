@@ -1193,7 +1193,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   dropConstraintQuery(tableName, constraintName) {
-    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${this.quoteIdentifier(constraintName, true)}`;
+    return `ALTER TABLE ${this.quoteTable(tableName)} DROP CONSTRAINT ${constraintName}`;
   }
 
   _checkValidJsonStatement(stmt) {

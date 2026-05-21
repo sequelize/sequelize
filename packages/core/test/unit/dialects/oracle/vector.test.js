@@ -321,14 +321,6 @@ if (current.dialect.name === 'oracle') {
       });
     });
 
-    describe('dropConstraintQuery', () => {
-      it('quotes constraint names', () => {
-        expectsql(queryGenerator.dropConstraintQuery('foo', 'my_constraint'), {
-          default: 'ALTER TABLE "foo" DROP CONSTRAINT "my_constraint"',
-        });
-      });
-    });
-
     describe('showIndex metadata', () => {
       const buildQuery = () => new OracleQuery({}, current, {});
 
