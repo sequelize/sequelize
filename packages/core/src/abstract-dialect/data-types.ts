@@ -2856,10 +2856,19 @@ export class TSVECTOR extends AbstractDataType<string> {
 }
 
 export interface VectorOptions {
+  /**
+   * Optional vector dimension.
+   */
   dimension?: number;
+  /**
+   * Optional dialect-specific element format (for example float32, int8, binary).
+   */
   format?: string;
 }
 
+/**
+ * Numeric typed arrays accepted as vector values.
+ */
 export type NumericTypedArray =
   | Int8Array
   | Uint8Array
@@ -3038,6 +3047,11 @@ export class VECTOR extends AbstractVECTORBase<VectorOptions> {
   }
 }
 
+/**
+ * Returns true when the input is one of Sequelize's accepted numeric typed arrays.
+ *
+ * @param value
+ */
 function isTypedArrayIterable(value: unknown): value is NumericTypedArray {
   return (
     value instanceof Int8Array ||
