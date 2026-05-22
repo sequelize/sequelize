@@ -176,10 +176,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     it('accepts a valid JSON object string when isJSON is true', async function () {
       const instance = JsonUser.build({ data: '{"key":"value"}' });
-      await expect(instance.validate()).not.to.be.rejectedWith(
-        Error,
-        /TypeError/,
-      );
+      await expect(instance.validate()).not.to.be.rejected;
     });
 
     it('accepts a valid JSON array string when isJSON is true', async function () {
@@ -202,19 +199,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
 
     it('does not throw a TypeError when isJSON is set to true (regression for validator.js v13+)', async function () {
-      // Before the fix, passing `true` directly to validator.js isJSON caused a TypeError
-      // because v13+ expects an options object, not a boolean.
       const instance = JsonUser.build({ data: '{"valid":true}' });
-      let caughtError = null;
-      try {
-        await instance.validate();
-      } catch (error) {
-        caughtError = error;
-      }
-
-      if (caughtError) {
-        expect(caughtError).not.to.be.instanceOf(TypeError);
-      }
+      await expect(instance.validate()).not.to.be.rejected;
     });
   });
 });
