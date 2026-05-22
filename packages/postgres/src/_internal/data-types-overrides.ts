@@ -1,5 +1,4 @@
 import type { AbstractDialect, Rangable } from '@sequelize/core';
-import { ValidationErrorItem } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import type {
   AbstractDataType,
@@ -11,15 +10,10 @@ import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/ab
 import { inspect, isBigInt, isNumber, isString } from '@sequelize/utils';
 import identity from 'lodash/identity.js';
 import assert from 'node:assert';
-import util from 'node:util';
 import wkx from 'wkx';
 import { PostgresQueryGenerator } from '../query-generator';
 import { stringifyHstore } from './hstore.js';
 import { buildRangeParser, stringifyRange } from './range.js';
-
-export interface PgVectorOptions {
-  dimension: number;
-}
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
@@ -297,106 +291,6 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
   }
 }
 
-export class VECTOR extends BaseTypes.VECTOR {
-  protected _getSqlOptionParts(): string[] {
-    const options = this.#getPgOptions();
-
-    return options ? [String(options.dimension)] : [];
-  }
-
-  protected _checkOptionSupport(dialect: AbstractDialect): void {
-    super._checkOptionSupport(dialect);
-
-    if (this.options.format) {
-      dialect.warnDataTypeIssue(
-        `${dialect.name} VECTOR ignores the "format" option; pgvector uses vector(n).`,
-      );
-      delete this.options.format;
-    }
-  }
-
-  validate(value: unknown): asserts value is BaseTypes.VectorValue {
-    super.validate(value);
-    const options = this.#getPgOptions();
-
-    if (options == null) {
-      return;
-    }
-
-    const iterable = this._getVectorIterable(value);
-    if (iterable == null) {
-      return;
-    }
-
-    if (iterable.length !== options.dimension) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format(
-          'VECTOR expects values of length %d, but received %d',
-          options.dimension,
-          iterable.length,
-        ),
-      );
-    }
-  }
-
-  protected _validateVectorElement(item: unknown): number {
-    const numeric = super._validateVectorElement(item);
-
-    if (!Number.isFinite(numeric)) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format('VECTOR expects finite numeric elements, but received %O', numeric),
-      );
-    }
-
-    return numeric;
-  }
-
-  toBindableValue(value: BaseTypes.VectorValue): string {
-    const iterable = this._getVectorIterable(value);
-    if (iterable == null) {
-      throw new TypeError('Unsupported vector container type');
-    }
-
-    this.validate(value);
-
-    const values = [...iterable].map(item => this._validateVectorElement(item));
-
-    return `[${values.join(',')}]`;
-  }
-
-  escape(value: BaseTypes.VectorValue): string {
-    return `${this._getDialect().escapeString(this.toBindableValue(value))}::vector`;
-  }
-
-  getBindParamSql(value: BaseTypes.VectorValue, options: BindParamOptions): string {
-    return `${options.bindParam(this.toBindableValue(value))}::vector`;
-  }
-
-  parseDatabaseValue(value: unknown): unknown {
-    if (Array.isArray(value)) {
-      return value;
-    }
-
-    if (typeof value === 'string') {
-      return parseVectorLiteral(value);
-    }
-
-    throw new Error(
-      `DataTypes.VECTOR received a non-vector value from the database: ${inspect(value)}`,
-    );
-  }
-
-  #getPgOptions(): PgVectorOptions | null {
-    if (this.options.dimension == null) {
-      return null;
-    }
-
-    return {
-      dimension: this._validateDimension(this.options.dimension, 16_000),
-    };
-  }
-}
-
 export class HSTORE extends BaseTypes.HSTORE {
   toBindableValue(value: AcceptableTypeOf<BaseTypes.HSTORE>): string {
     if (value == null) {
@@ -542,24 +436,4 @@ export class ENUM<Members extends string> extends BaseTypes.ENUM<Members> {
 
     return queryGenerator.pgEnumName(tableName, columnName);
   }
-}
-
-function parseVectorLiteral(value: string): number[] {
-  const trimmed = value.trim();
-  if (!trimmed.startsWith('[') || !trimmed.endsWith(']')) {
-    throw new Error(`Invalid pgvector literal received from the database: ${value}`);
-  }
-
-  const parsed = JSON.parse(trimmed) as unknown;
-  if (!Array.isArray(parsed)) {
-    throw new Error(`Invalid pgvector literal received from the database: ${value}`);
-  }
-
-  for (const item of parsed) {
-    if (typeof item !== 'number' || !Number.isFinite(item)) {
-      throw new Error(`Invalid pgvector element received from the database: ${inspect(item)}`);
-    }
-  }
-
-  return parsed;
 }

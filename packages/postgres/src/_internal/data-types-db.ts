@@ -70,12 +70,6 @@ export function registerPostgresDbDataTypeParsers(dialect: PostgresDialect) {
     return parseHstore(value);
   });
 
-  dialect.registerDataTypeParser(['vector'], (value: unknown) => {
-    assert(typeof value === 'string', 'Expected vector value to be a string');
-
-    return parseVectorLiteral(value);
-  });
-
   const parseInteger = getDataTypeParser(dialect, BaseTypes.INTEGER);
   dialect.registerDataTypeParser(['int4range'], buildRangeParser(parseInteger));
 
@@ -91,18 +85,4 @@ export function registerPostgresDbDataTypeParsers(dialect: PostgresDialect) {
   // - dateonly
   // The Sequelize DataType specified by the user will do further parsing of the arrays of strings (like convert values to Date objects).
   dialect.registerDataTypeParser(['tstzrange', 'tsrange', 'daterange'], buildRangeParser(identity));
-}
-
-function parseVectorLiteral(value: string): number[] {
-  const parsed = JSON.parse(value) as unknown;
-  assert(Array.isArray(parsed), 'Expected vector value to parse as an array');
-
-  for (const item of parsed) {
-    assert(
-      typeof item === 'number' && Number.isFinite(item),
-      'Expected vector elements to be finite numbers',
-    );
-  }
-
-  return parsed;
 }

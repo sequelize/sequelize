@@ -1,16 +1,7 @@
 import type { AbstractDialect } from '@sequelize/core';
-import { ValidationErrorItem } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import maxBy from 'lodash/maxBy.js';
-import util from 'node:util';
-
-export type SnowflakeVectorFormat = 'INT' | 'FLOAT';
-
-export interface SnowflakeVectorOptions {
-  dimension: number;
-  format: SnowflakeVectorFormat;
-}
 
 export class DATE extends BaseTypes.DATE {
   toSql() {
@@ -102,66 +93,5 @@ export class BIGINT extends BaseTypes.BIGINT {
 
   toSql() {
     return 'INTEGER';
-  }
-}
-
-export class VECTOR extends BaseTypes.VECTOR {
-  protected _getSqlOptionParts(): string[] {
-    const options = this.#getSnowflakeOptions();
-
-    return [options.format, String(options.dimension)];
-  }
-
-  validate(value: unknown): asserts value is BaseTypes.VectorValue {
-    super.validate(value);
-    const options = this.#getSnowflakeOptions();
-
-    const length = this.#getVectorLength(value);
-    if (length !== options.dimension) {
-      ValidationErrorItem.throwDataTypeValidationError(
-        util.format(
-          'VECTOR expects values of length %d, but received %d',
-          options.dimension,
-          length,
-        ),
-      );
-    }
-  }
-
-  protected _validateFormat(format: string): SnowflakeVectorFormat {
-    const normalized = format.trim().toUpperCase();
-
-    switch (normalized) {
-      case 'INT':
-      case 'INT8':
-      case 'INT16':
-      case 'INT32':
-        return 'INT';
-      case 'FLOAT':
-      case 'FLOAT32':
-      case 'FLOAT64':
-        return 'FLOAT';
-      default:
-        throw new TypeError(`Invalid Snowflake VECTOR format: ${format}`);
-    }
-  }
-
-  #getVectorLength(value: BaseTypes.VectorValue): number {
-    if (Array.isArray(value)) {
-      return value.length;
-    }
-
-    return value.length;
-  }
-
-  #getSnowflakeOptions(): SnowflakeVectorOptions {
-    if (this.options.dimension == null) {
-      throw new TypeError('Snowflake VECTOR requires a positive integer "dimension" option.');
-    }
-
-    const dimension = this._validateDimension(this.options.dimension, 4096);
-    const format = this._validateFormat(this.options.format ?? 'FLOAT');
-
-    return { dimension, format };
   }
 }
