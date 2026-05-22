@@ -384,7 +384,10 @@ export class InstanceValidator {
       } else if (isLocalizedValidator || validatorType === 'isIP') {
         validatorArgs = [];
       } else if (validatorType === 'isJSON' && validatorArgs === true) {
-        // validator.js v13+ expects an options object for isJSON, not a boolean
+        // validator.js v13+ expects an options object for isJSON, not a boolean.
+        // Passing `{}` uses validator.js defaults: both objects ({}) and arrays ([])
+        // are accepted as valid JSON. Primitives (strings, numbers, null) are rejected
+        // unless allow_primitives is explicitly set to true in the options object.
         validatorArgs = [{}];
       } else {
         validatorArgs = [validatorArgs];
