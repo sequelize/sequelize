@@ -53,6 +53,7 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,
+    skipLocked: true,
     forShare: 'LOCK IN SHARE MODE',
     settingIsolationLevelDuringTransaction: false,
     schemas: true,
