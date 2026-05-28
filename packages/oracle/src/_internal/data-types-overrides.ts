@@ -434,6 +434,9 @@ export class DATEONLY extends BaseTypes.DATEONLY {
   }
 }
 
+/**
+ * Oracle VECTOR data type implementation.
+ */
 export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
   /** @hidden */
   static readonly [BaseTypes.DataTypeIdentifier]: string = 'VECTOR';
@@ -475,10 +478,18 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     };
   }
 
+  /**
+   * Returns the SQL type name.
+   */
   protected _getTypeName(): string {
     return 'VECTOR';
   }
 
+  /**
+   * Validates the Oracle VECTOR format option.
+   *
+   * @param format
+   */
   protected _validateFormat(format: string): OracleVectorFormat {
     const normalized = format.trim().toUpperCase();
 
@@ -494,6 +505,11 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     }
   }
 
+  /**
+   * Validates the Oracle VECTOR dimension option.
+   *
+   * @param dimension
+   */
   protected _validateOracleDimension(dimension: number | '*'): number | '*' {
     if (dimension === '*') {
       return dimension;
@@ -502,6 +518,11 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     return this._validateDimension(dimension);
   }
 
+  /**
+   * Validates the Oracle VECTOR storage option.
+   *
+   * @param storage
+   */
   protected _validateStorage(storage: string): OracleVectorStorage {
     const normalized = storage.trim().toUpperCase();
 
@@ -513,6 +534,9 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     }
   }
 
+  /**
+   * Returns SQL option parts for Oracle VECTOR.
+   */
   protected _getSqlOptionParts(): string[] {
     const options = this.options;
 
@@ -525,6 +549,11 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     ];
   }
 
+  /**
+   * Validates supported dense and sparse vector input values.
+   *
+   * @param value
+   */
   validate(value: unknown): asserts value is BaseTypes.VectorValue | OracleSparseVectorInput {
     if (isOracleSparseVectorInput(value)) {
       return;
@@ -533,6 +562,11 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     super.validate(value);
   }
 
+  /**
+   * Converts values to Oracle bindable vector values.
+   *
+   * @param value
+   */
   toBindableValue(value: BaseTypes.VectorValue | OracleSparseVectorInput) {
     if (Array.isArray(value)) {
       return Float64Array.from(value);
@@ -541,11 +575,21 @@ export class VECTOR extends BaseTypes.AbstractVECTORBase<OracleVectorOptions> {
     return value;
   }
 
+  /**
+   * Returns Oracle bind definition for vector values.
+   *
+   * @param oracledb
+   */
   _getBindDef(oracledb: Lib) {
     return { type: oracledb.DB_TYPE_VECTOR };
   }
 }
 
+/**
+ * Checks whether a value matches sparse vector input shape.
+ *
+ * @param value
+ */
 function isOracleSparseVectorInput(value: unknown): value is OracleSparseVectorInput {
   if (typeof value !== 'object' || value === null) {
     return false;
@@ -557,17 +601,27 @@ function isOracleSparseVectorInput(value: unknown): value is OracleSparseVectorI
   return (
     isVectorComponent(values) &&
     isVectorComponent(indices) &&
+    typeof numDimensions === 'number' &&
     Number.isInteger(numDimensions) &&
-    numDimensions !== undefined &&
     numDimensions > 0 &&
     values.length === indices.length
   );
 }
 
+/**
+ * Checks whether a value can be used as a sparse vector component.
+ *
+ * @param value
+ */
 function isVectorComponent(value: unknown): value is number[] | BaseTypes.NumericTypedArray {
   return Array.isArray(value) || isNumericTypedArray(value);
 }
 
+/**
+ * Checks whether a value is supported numeric typed array.
+ *
+ * @param value
+ */
 function isNumericTypedArray(value: unknown): value is BaseTypes.NumericTypedArray {
   return (
     value instanceof Int8Array ||
