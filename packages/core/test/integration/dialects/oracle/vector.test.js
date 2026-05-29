@@ -136,9 +136,10 @@ if (getTestDialect() === 'oracle') {
         }
       });
 
-      it('supports raw SQL bind parameters for VECTOR_DISTANCE query vectors', async () => {
+      it('supports raw SQL bind parameters for VECTOR_DISTANCE query vectors', async function () {
+        const tableName = sequelize.queryGenerator.quoteTable(this.Item);
         const rows = await sequelize.query(
-          `SELECT "id" FROM "Items" WHERE VECTOR_DISTANCE("embeddings", $queryVector) < $threshold ORDER BY "id"`,
+          `SELECT "id" FROM ${tableName} WHERE VECTOR_DISTANCE("embeddings", $queryVector) < $threshold ORDER BY "id"`,
           {
             bind: {
               queryVector: Float32Array.from([1, 2, 3]),
@@ -402,7 +403,7 @@ if (getTestDialect() === 'oracle') {
             'Oracle VECTOR indexes do not support ordered fields.',
           );
         } finally {
-          await IndexedItem.drop();
+          await IndexedItem.drop().catch(() => {});
         }
       });
     });
