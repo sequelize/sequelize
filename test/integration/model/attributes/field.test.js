@@ -602,10 +602,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             user_id: userId
           })
         )
-          .spread((user, task) => {
+          .then(([user, task]) => {
             return [user, task.getUser()];
           })
-          .spread((userA, userB) => {
+          .then(([userA, userB]) => {
             expect(userA.get('id')).to.equal(userB.get('id'));
             expect(userA.get('id')).to.equal(userId);
             expect(userB.get('id')).to.equal(userId);

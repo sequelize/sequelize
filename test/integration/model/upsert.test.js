@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               User.upsert({ a: 'a', b: 'a', username: 'curt' })
             ]);
           })
-          .spread(function (created1, created2) {
+          .then(function ([created1, created2]) {
             if (dialect === 'sqlite') {
               expect(created1).to.be.undefined;
               expect(created2).to.be.undefined;
@@ -627,14 +627,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         describe('with returning option', () => {
           it('works with upsert on id', function () {
             return this.User.upsert({ id: 42, username: 'john' }, { returning: true })
-              .spread((user, created) => {
+              .then(([user, created]) => {
                 expect(user.get('id')).to.equal(42);
                 expect(user.get('username')).to.equal('john');
                 expect(created).to.be.true;
 
                 return this.User.upsert({ id: 42, username: 'doe' }, { returning: true });
               })
-              .spread((user, created) => {
+              .then(([user, created]) => {
                 expect(user.get('id')).to.equal(42);
                 expect(user.get('username')).to.equal('doe');
                 expect(created).to.be.false;
@@ -658,14 +658,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(() => {
                 return User.upsert({ id: 42, username: 'john' }, { returning: true });
               })
-              .spread((user, created) => {
+              .then(([user, created]) => {
                 expect(user.get('id')).to.equal(42);
                 expect(user.get('username')).to.equal('john');
                 expect(created).to.be.true;
 
                 return User.upsert({ id: 42, username: 'doe' }, { returning: true });
               })
-              .spread((user, created) => {
+              .then(([user, created]) => {
                 expect(user.get('id')).to.equal(42);
                 expect(user.get('username')).to.equal('doe');
                 expect(created).to.be.false;
@@ -688,14 +688,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(() => {
                 return User.upsert({ id: 'surya', username: 'john' }, { returning: true });
               })
-              .spread((user, created) => {
+              .then(([user, created]) => {
                 expect(user.get('id')).to.equal('surya');
                 expect(user.get('username')).to.equal('john');
                 expect(created).to.be.true;
 
                 return User.upsert({ id: 'surya', username: 'doe' }, { returning: true });
               })
-              .spread((user, created) => {
+              .then(([user, created]) => {
                 expect(user.get('id')).to.equal('surya');
                 expect(user.get('username')).to.equal('doe');
                 expect(created).to.be.false;

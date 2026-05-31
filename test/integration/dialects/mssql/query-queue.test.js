@@ -2,7 +2,6 @@
 
 const chai = require('chai'),
   expect = chai.expect,
-  Promise = require('../../../../lib/promise'),
   DataTypes = require('../../../../lib/data-types'),
   Support = require('../../support'),
   dialect = Support.getTestDialect();

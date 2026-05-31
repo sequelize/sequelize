@@ -1,10 +1,22 @@
 'use strict';
 
 const ResourceLock = require('../../../../lib/dialects/mssql/resource-lock'),
-  Promise = require('../../../../lib/promise'),
+  { delay } = require('../../../../lib/utils/promise-helpers'),
   assert = require('assert'),
   Support = require(__dirname + '/../../support'),
   dialect = Support.getTestDialect();
+
+// Mirrors the bluebird `Promise.using(lock.lock(), fn)` shape against the
+// `{ acquire, release }` API exposed by ResourceLock.
+async function using(lock, fn) {
+  const { acquire, release } = lock.lock();
+  const resource = await acquire;
+  try {
+    return await fn(resource);
+  } finally {
+    release(resource);
+  }
+}
 
 if (dialect === 'mssql') {
   describe('[MSSQL Specific] ResourceLock', () => {
@@ -18,24 +30,24 @@ if (dialect === 'mssql') {
       }
 
       return Promise.all([
-        Promise.using(lock.lock(), resource => {
+        using(lock, resource => {
           validateResource(resource);
           assert.equal(last, 0);
           last = 1;
 
-          return Promise.delay(15);
+          return delay(15);
         }),
-        Promise.using(lock.lock(), resource => {
+        using(lock, resource => {
           validateResource(resource);
           assert.equal(last, 1);
           last = 2;
         }),
-        Promise.using(lock.lock(), resource => {
+        using(lock, resource => {
           validateResource(resource);
           assert.equal(last, 2);
           last = 3;
 
-          return Promise.delay(5);
+          return delay(5);
         })
       ]);
     });
@@ -49,12 +61,12 @@ if (dialect === 'mssql') {
       }
 
       return Promise.all([
-        Promise.using(lock.lock(), resource => {
+        using(lock, resource => {
           validateResource(resource);
 
           throw new Error('unexpected error');
         }).catch(() => {}),
-        Promise.using(lock.lock(), validateResource)
+        using(lock, validateResource)
       ]);
     });
 

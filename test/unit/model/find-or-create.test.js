@@ -4,10 +4,9 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
-  cls = require('continuation-local-storage'),
+  cls = require('cls-hooked'),
   sinon = require('sinon'),
-  stub = sinon.stub,
-  Promise = require('bluebird');
+  stub = sinon.stub;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOrCreate', () => {

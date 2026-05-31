@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.User.bulkCreate(build('Alice', 'Bob'))
           )
         )
-        .spread((projects, users) =>
+        .then(([projects, users]) =>
           Promise.join(projects[0].addUser(users[0]), projects[1].addUser(users[1]), projects[2].addUser(users[0]))
         )
         .then(() =>
@@ -204,7 +204,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Hobby.bulkCreate(build('archery', 'badminton'))
           )
         )
-        .spread((projects, users, hobbies) =>
+        .then(([projects, users, hobbies]) =>
           Promise.join(
             projects[0].addUser(users[0]),
             projects[1].addUser(users[1]),
@@ -247,7 +247,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Hobby.bulkCreate(build('archery', 'badminton'))
           )
         )
-        .spread((projects, users, hobbies) =>
+        .then(([projects, users, hobbies]) =>
           Promise.join(
             projects[0].addUser(users[0]),
             projects[1].addUser(users[1]),
@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Hobby.bulkCreate(build('archery', 'badminton'))
           )
         )
-        .spread((projects, users, hobbies) =>
+        .then(([projects, users, hobbies]) =>
           Promise.join(
             projects[0].addUser(users[0]),
             projects[1].addUser(users[1]),
@@ -343,7 +343,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Hobby.bulkCreate(build('archery', 'badminton'))
           )
         )
-        .spread((tasks, projects, users, hobbies) =>
+        .then(([tasks, projects, users, hobbies]) =>
           Promise.join(
             tasks[0].addProject(projects[0]),
             tasks[1].addProject(projects[1]),
@@ -397,7 +397,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.User.bulkCreate(build('Alice', 'Bob'))
           )
         )
-        .spread((projects, users) =>
+        .then(([projects, users]) =>
           Promise.join(
             projects[0].addUser(users[0]), // alpha
             projects[2].addUser(users[0]) // charlie
@@ -432,7 +432,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Task.bulkCreate(build('a', 'c', 'd'))
           )
         )
-        .spread((projects, users, tasks) =>
+        .then(([projects, users, tasks]) =>
           Promise.join(
             projects[0].addUser(users[0]),
             projects[0].addTask(tasks[0]),
@@ -477,7 +477,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Comment.bulkCreate(build('comment0', 'comment1'))
           )
         )
-        .spread((posts, comments) => Promise.join(posts[0].addComment(comments[0]), posts[2].addComment(comments[1])))
+        .then(([posts, comments]) => Promise.join(posts[0].addComment(comments[0]), posts[2].addComment(comments[1])))
         .then(() =>
           this.Post.findAll({
             include: [
@@ -506,7 +506,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
           )
         )
-        .spread((posts, comments) =>
+        .then(([posts, comments]) =>
           Promise.join(
             posts[0].addComment(comments[0]),
             posts[1].addComment(comments[1]),
@@ -551,7 +551,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
           )
         )
-        .spread((posts, comments) =>
+        .then(([posts, comments]) =>
           Promise.join(
             posts[0].addComment(comments[0]),
             posts[1].addComment(comments[1]),
@@ -586,7 +586,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Comment.bulkCreate(build('comment0', 'comment1', 'comment2'))
           )
         )
-        .spread((users, posts, comments) =>
+        .then(([users, posts, comments]) =>
           Promise.join(
             users[0].addPost(posts[0]),
             users[1].addPost(posts[1]),
@@ -633,7 +633,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Tag.bulkCreate(build('atag', 'btag', 'dtag'))
           )
         )
-        .spread((users, posts, tags) =>
+        .then(([users, posts, tags]) =>
           Promise.join(
             users[0].addPost(posts[0]),
             users[2].addPost(posts[1]),
@@ -678,7 +678,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Post.bulkCreate(build('post0', 'post1', 'post2'))
           )
         )
-        .spread((projects, users, posts) =>
+        .then(([projects, users, posts]) =>
           Promise.join(
             projects[0].addUser(users[0]),
             projects[1].addUser(users[1]),
@@ -724,7 +724,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Hobby.bulkCreate(build('archery', 'badminton'))
           )
         )
-        .spread((posts, users, hobbies) =>
+        .then(([posts, users, hobbies]) =>
           Promise.join(
             posts[0].setUser(users[0]),
             posts[1].setUser(users[1]),
@@ -771,7 +771,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Hobby.bulkCreate(build('archery', 'badminton'))
           )
         )
-        .spread((posts, users, hobbies) =>
+        .then(([posts, users, hobbies]) =>
           Promise.join(
             posts[0].setUser(users[0]),
             posts[1].setUser(users[1]),
@@ -822,7 +822,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Tag.bulkCreate(build('tag0', 'tag1'))
           )
         )
-        .spread((comments, posts, users, tags) =>
+        .then(([comments, posts, users, tags]) =>
           Promise.join(
             comments[0].setPost(posts[0]),
             comments[1].setPost(posts[1]),
@@ -884,7 +884,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             this.Footnote.bulkCreate(build('footnote0', 'footnote1', 'footnote2'))
           )
         )
-        .spread((comments, posts, footnotes) =>
+        .then(([comments, posts, footnotes]) =>
           Promise.join(
             comments[0].setPost(posts[0]),
             comments[1].setPost(posts[1]),

@@ -383,7 +383,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .then(() => {
           return self.sequelize.query('select * from ' + qq(self.User.tableName) + '');
         })
-        .spread(users => {
+        .then(([users]) => {
           expect(
             users.map(u => {
               return u.username;
@@ -402,7 +402,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .then(() => {
           return seq.query('select * from ' + qq(self.User.tableName) + '');
         })
-        .spread(users => {
+        .then(([users]) => {
           expect(
             users.map(u => {
               return u.username;
@@ -423,7 +423,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             'select username as ' + qq('user.username') + ' from ' + qq(self.User.tableName) + ''
           );
         })
-        .spread(users => {
+        .then(([users]) => {
           expect(users).to.deep.equal([{ 'user.username': 'john' }]);
         });
     });
@@ -932,7 +932,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         datetime = 'GETDATE()';
       }
 
-      return this.sequelize.query('SELECT ' + datetime + ' AS t').spread(result => {
+      return this.sequelize.query('SELECT ' + datetime + ' AS t').then(([result]) => {
         expect(moment(result[0].t).isValid()).to.be.true;
       });
     });

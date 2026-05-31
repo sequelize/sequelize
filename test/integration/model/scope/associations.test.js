@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               this.Company.create({ id: 2, active: false })
             ]);
           })
-          .spread((u1, u2, u3, u4, u5, c1, c2) => {
+          .then(([u1, u2, u3, u4, u5, c1, c2]) => {
             return Promise.all([c1.setUsers([u1, u2, u3, u4]), c2.setUsers([u5])]);
           });
       });
@@ -213,7 +213,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('get', () => {
         beforeEach(function () {
-          return Promise.all([this.Project.create(), this.Company.unscoped().findAll()]).spread((p, companies) => {
+          return Promise.all([this.Project.create(), this.Company.unscoped().findAll()]).then(([p, companies]) => {
             return p.setCompanies(companies);
           });
         });
@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             this.Company.findById(1),
             this.Project.create({ id: 1, active: true }),
             this.Project.create({ id: 2, active: false })
-          ]).spread((c, p1, p2) => {
+          ]).then(([c, p1, p2]) => {
             return c.setProjects([p1, p2]);
           });
         });

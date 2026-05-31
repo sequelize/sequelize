@@ -713,7 +713,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           })
             .then(lePlayer => {
               expect(lePlayer.Shoe).not.to.be.null;
-              return lePlayer.Shoe.destroy().return(lePlayer);
+              return lePlayer.Shoe.destroy().then(() => lePlayer);
             })
             .then(lePlayer => {
               return lePlayer.reload();
@@ -761,7 +761,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 .then(() => {
                   return leTeam.Players[0].destroy();
                 })
-                .return(leTeam);
+                .then(() => leTeam);
             })
             .then(leTeam => {
               return leTeam.reload();
@@ -804,7 +804,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           })
             .then(leTeam => {
               expect(leTeam.Players).to.have.length(2);
-              return leTeam.Players[0].destroy().return(leTeam);
+              return leTeam.Players[0].destroy().then(() => leTeam);
             })
             .then(leTeam => {
               return leTeam.reload();

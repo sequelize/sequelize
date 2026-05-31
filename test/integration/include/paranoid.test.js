@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
       .then(function () {
         return this.sequelize.Promise.all([X.create(), Y.create()]);
       })
-      .spread(function (x, y) {
+      .then(function ([x, y]) {
         this.x = x;
         this.y = y;
 

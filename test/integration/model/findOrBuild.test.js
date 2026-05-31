@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ],
         { returning: true }
       )
-        .spread((user1, user2) => {
+        .then(([user1, user2]) => {
           return this.Project.create({
             name: 'Investigate'
           }).then(project => user2.setProjects([project]));
@@ -51,7 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ]
           });
         })
-        .spread((user, created) => {
+        .then(([user, created]) => {
           expect(created).to.be.false;
           expect(user.get('id')).to.be.ok;
           expect(user.get('username')).to.equal('Mello');

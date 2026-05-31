@@ -3,7 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
-  Promise = require(__dirname + '/../../lib/promise'),
+  { delay } = require(__dirname + '/../../lib/utils/promise-helpers'),
   Transaction = require(__dirname + '/../../lib/transaction'),
   sinon = require('sinon'),
   current = Support.sequelize;
@@ -122,7 +122,7 @@ if (current.dialect.supports.transactions) {
               expect(transaction).to.be.instanceOf(Transaction);
 
               return Test.create({ name: 'Peter' }, { transaction }).then(() => {
-                return Promise.delay(1000).then(() => {
+                return delay(1000).then(() => {
                   return transaction
                     .commit()
                     .then(() => {
@@ -172,7 +172,7 @@ if (current.dialect.supports.transactions) {
                     expect(err).to.be.ok;
                     return t2.rollback();
                   }),
-                  Promise.delay(100).then(() => {
+                  delay(100).then(() => {
                     return t1.commit();
                   })
                 ]);

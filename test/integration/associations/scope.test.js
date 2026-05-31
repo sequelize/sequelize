@@ -105,7 +105,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             );
           })
           .bind(this)
-          .spread(function (post) {
+          .then(function ([post]) {
             this.post = post;
             return post.createComment({
               title: 'I am a post comment'
@@ -197,7 +197,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             );
           })
           .bind(this)
-          .spread(function (post, image, question, commentA, commentB) {
+          .then(function ([post, image, question, commentA, commentB]) {
             this.post = post;
             this.image = image;
             this.question = question;
@@ -227,7 +227,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           .then(function () {
             return Promise.join(this.post.getComments(), this.image.getComments(), this.question.getComments());
           })
-          .spread((postComments, imageComments, questionComments) => {
+          .then(([postComments, imageComments, questionComments]) => {
             expect(postComments.length).to.equal(1);
             expect(postComments[0].get('title')).to.equal('I am a post comment');
             expect(imageComments.length).to.equal(1);
@@ -237,10 +237,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
             return [postComments[0], imageComments[0], questionComments[0]];
           })
-          .spread((postComment, imageComment, questionComment) => {
+          .then(([postComment, imageComment, questionComment]) => {
             return Promise.join(postComment.getItem(), imageComment.getItem(), questionComment.getItem());
           })
-          .spread((post, image, question) => {
+          .then(([post, image, question]) => {
             expect(post).to.be.instanceof(self.Post);
             expect(image).to.be.instanceof(self.Image);
             expect(question).to.be.instanceof(self.Question);
@@ -258,7 +258,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               })
             );
           })
-          .spread((post, image, question) => {
+          .then(([post, image, question]) => {
             expect(post.comments.length).to.equal(1);
             expect(post.comments[0].get('title')).to.equal('I am a post comment');
             expect(image.comments.length).to.equal(1);
@@ -370,7 +370,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   self.Tag.create({ type: 'tag' })
                 );
               })
-              .spread(function (postA, postB, postC, categoryA, categoryB, tagA, tagB) {
+              .then(function ([postA, postB, postC, categoryA, categoryB, tagA, tagB]) {
                 this.postA = postA;
                 this.postB = postB;
                 this.postC = postC;
@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   this.postC.getTags()
                 );
               })
-              .spread((postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags) => {
+              .then(([postACategories, postATags, postBCategories, postBTags, postCCategories, postCTags]) => {
                 expect(postACategories.length).to.equal(1);
                 expect(postATags.length).to.equal(1);
                 expect(postBCategories.length).to.equal(1);
@@ -440,7 +440,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   })
                 );
               })
-              .spread((postA, postB, postC) => {
+              .then(([postA, postB, postC]) => {
                 expect(postA.get('categories').length).to.equal(1);
                 expect(postA.get('tags').length).to.equal(1);
                 expect(postB.get('categories').length).to.equal(1);
@@ -568,7 +568,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   this.Tag.create({ name: 'tagC' })
                 );
               })
-              .spread(function (post, image, question, tagA, tagB, tagC) {
+              .then(function ([post, image, question, tagA, tagB, tagC]) {
                 this.post = post;
                 this.image = image;
                 this.question = question;
@@ -586,7 +586,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               })
               .then(function () {
                 return Promise.join(this.post.getTags(), this.image.getTags(), this.question.getTags())
-                  .spread((postTags, imageTags, questionTags) => {
+                  .then(([postTags, imageTags, questionTags]) => {
                     expect(postTags.length).to.equal(3);
                     expect(imageTags.length).to.equal(3);
                     expect(questionTags.length).to.equal(3);
@@ -629,7 +629,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                         where: {},
                         include: [self.Tag]
                       })
-                    ).spread((post, image, question) => {
+                    ).then(([post, image, question]) => {
                       expect(post.tags.length).to.equal(3);
                       expect(image.tags.length).to.equal(3);
                       expect(question.tags.length).to.equal(3);

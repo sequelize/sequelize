@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   sinon = require('sinon'),
-  dialect = Support.getTestDialect(),
-  Promise = require('bluebird');
+  dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function () {
@@ -749,7 +748,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
                 .bind(this)
-                .spread((project, minitask) => {
+                .then(([project, minitask]) => {
                   return project.addMiniTask(minitask);
                 })
                 .then(project => {
@@ -808,7 +807,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
                 .bind(this)
-                .spread((project, minitask) => {
+                .then(([project, minitask]) => {
                   return project.addMiniTask(minitask);
                 })
                 .then(project => {
@@ -899,8 +898,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
                 .bind(this)
-                .spread(function (project, task, minitask) {
-                  return this.sequelize.Promise.all([task.addMiniTask(minitask), project.addTask(task)]).return(
+                .then(function ([project, task, minitask]) {
+                  return this.sequelize.Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
                     project
                   );
                 })
@@ -957,8 +956,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
                 .bind(this)
-                .spread(function (project, task, minitask) {
-                  return this.sequelize.Promise.all([task.addMiniTask(minitask), project.addTask(task)]).return(
+                .then(function ([project, task, minitask]) {
+                  return this.sequelize.Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
                     project
                   );
                 })

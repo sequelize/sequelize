@@ -23,11 +23,10 @@ process.on('uncaughtException', e => {
   console.error('An unhandled exception occured:');
   throw e;
 });
-Sequelize.Promise.onPossiblyUnhandledRejection(e => {
+process.on('unhandledRejection', e => {
   console.error('An unhandled rejection occured:');
   throw e;
 });
-Sequelize.Promise.longStackTraces();
 
 // shim all Sequelize methods for testing for correct `options.logging` passing
 // and no modification of `options` objects
@@ -76,7 +75,7 @@ const Support = {
             callback(_sequelize);
           });
         } else {
-          return _sequelize.sync({ force: true }).return(_sequelize);
+          return _sequelize.sync({ force: true }).then(() => _sequelize);
         }
       });
     } else {

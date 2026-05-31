@@ -5,18 +5,15 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Promise = require('bluebird').getNewLibraryCopy();
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAndCount', () => {
     describe('should handle promise rejection', () => {
       before(function () {
         this.stub = sinon.stub();
-
-        Promise.onPossiblyUnhandledRejection(() => {
-          this.stub();
-        });
+        this.unhandledListener = () => this.stub();
+        process.on('unhandledRejection', this.unhandledListener);
 
         this.User = current.define('User', {
           username: DataTypes.STRING,
@@ -33,6 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       after(function () {
+        process.removeListener('unhandledRejection', this.unhandledListener);
         this.findAll.resetBehavior();
         this.count.resetBehavior();
       });

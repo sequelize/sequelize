@@ -4,8 +4,7 @@ const chai = require('chai'),
   expect = chai.expect,
   sinon = require('sinon'),
   Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Promise = require('bluebird');
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {
@@ -34,7 +33,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       // Sync them
       return this.sequelize.sync({ force: true }).then(() => {
         // Create an enviroment
-        return Promise.join(
+        return Promise.all([
           Project.bulkCreate([
             { id: 1, name: 'No tasks' },
             { id: 2, name: 'No tasks no employees' },
@@ -55,7 +54,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             { name: 'Jane John Doe', fk: 5 },
             { name: 'John Jane Doe', fk: 6 }
           ])
-        ).then(() => {
+        ]).then(() => {
           //Find all projects with tasks and employees
           const availableProjects = 3;
           const limit = 2;
@@ -112,7 +111,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         // Create an enviroment
 
-        return Promise.join(
+        return Promise.all([
           User.bulkCreate([
             { name: 'Youtube' },
             { name: 'Facebook' },
@@ -156,7 +155,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ]),
           B.bulkCreate([{ name: 'this should not' }, { name: 'be loaded' }]),
           C.bulkCreate([{ name: 'because we only want A' }])
-        ).then(() => {
+        ]).then(() => {
           // Delete some of conns to prove the concept
           return SomeConnection.destroy({
             where: {

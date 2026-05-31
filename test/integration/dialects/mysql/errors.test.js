@@ -41,7 +41,7 @@ if (dialect === 'mysql') {
               self.Task.create({ id: 52, title: 'task' })
             ]);
           })
-          .spread(function (user1, task1) {
+          .then(function ([user1, task1]) {
             this.user1 = user1;
             this.task1 = task1;
             return user1.setTasks([task1]);

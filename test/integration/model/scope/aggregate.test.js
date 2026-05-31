@@ -3,8 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('../../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  Promise = require(__dirname + '/../../../../lib/promise');
+  Support = require(__dirname + '/../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('scope', () => {

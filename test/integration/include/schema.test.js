@@ -132,7 +132,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 .then(() => {
                   return Promise.all([Group.findAll(), Company.findAll(), Rank.findAll(), Tag.findAll()]);
                 })
-                .spread((groups, companies, ranks, tags) => {
+                .then(([groups, companies, ranks, tags]) => {
                   return Promise.each([0, 1, 2, 3, 4], i => {
                     return Promise.all([
                       AccUser.create(),
@@ -145,7 +145,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                       ]).then(() => {
                         return Product.findAll();
                       })
-                    ]).spread((user, products) => {
+                    ]).then(([user, products]) => {
                       const groupMembers = [
                         { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
                         { AccUserId: user.id, GroupId: groups[1].id, RankId: ranks[2].id }
@@ -273,14 +273,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 return Tag.findAll();
               })
             ])
-              .spread((groups, ranks, tags) => {
+              .then(([groups, ranks, tags]) => {
                 return Promise.each([0, 1, 2, 3, 4], i => {
                   return Promise.all([
                     AccUser.create(),
                     Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => {
                       return Product.findAll();
                     })
-                  ]).spread((user, products) => {
+                  ]).then(([user, products]) => {
                     return Promise.all([
                       GroupMember.bulkCreate([
                         { AccUserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -432,7 +432,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([User.findAll(), Item.findAll({ order: ['id'] }), Order.findAll({ order: ['id'] })]);
           })
-          .spread((users, items, orders) => {
+          .then(([users, items, orders]) => {
             return Promise.all([
               users[0].setItemA(items[0]),
               users[0].setItemB(items[1]),
@@ -494,7 +494,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .spread(() => {
             return Promise.all([Product.findAll(), Tag.findAll()]);
           })
-          .spread((products, tags) => {
+          .then(([products, tags]) => {
             return Promise.all([
               products[0].addTag(tags[0], { through: { priority: 1 } }),
               products[0].addTag(tags[1], { through: { priority: 2 } }),
@@ -534,7 +534,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), User.findAll()]);
           })
-          .spread((groups, users) => {
+          .then(([groups, users]) => {
             return users[2].setGroup(groups[1]);
           })
           .then(() => {
@@ -565,7 +565,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), User.findAll()]);
           })
-          .spread((groups, users) => {
+          .then(([groups, users]) => {
             return Promise.all([users[0].setGroup(groups[1]), users[1].setGroup(groups[0])]);
           })
           .then(() => {
@@ -597,7 +597,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), User.findAll()]);
           })
-          .spread((groups, users) => {
+          .then(([groups, users]) => {
             return Promise.all([users[0].setGroup(groups[1]), users[1].setGroup(groups[0])]);
           })
           .then(() => {
@@ -641,7 +641,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), User.findAll(), Category.findAll()]);
           })
-          .spread((groups, users, categories) => {
+          .then(([groups, users, categories]) => {
             const promises = [users[0].setGroup(groups[1]), users[1].setGroup(groups[0])];
             groups.forEach(group => {
               promises.push(group.setCategories(categories));
@@ -692,7 +692,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), User.findAll(), Category.findAll()]);
           })
-          .spread((groups, users, categories) => {
+          .then(([groups, users, categories]) => {
             const promises = [users[0].setTeam(groups[1]), users[1].setTeam(groups[0])];
             groups.forEach(group => {
               promises.push(group.setTags(categories));
@@ -743,7 +743,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), User.findAll(), Category.findAll()]);
           })
-          .spread((groups, users, categories) => {
+          .then(([groups, users, categories]) => {
             const promises = [users[0].setGroup(groups[1]), users[1].setGroup(groups[0])];
             groups.forEach(group => {
               promises.push(group.setCategories(categories));
@@ -782,7 +782,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Project.findAll(), User.findAll()]);
           })
-          .spread((projects, users) => {
+          .then(([projects, users]) => {
             return Promise.all([users[1].setLeaderOf(projects[1]), users[0].setLeaderOf(projects[0])]);
           })
           .then(() => {
@@ -831,7 +831,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Product.findAll(), Tag.findAll()]);
           })
-          .spread((products, tags) => {
+          .then(([products, tags]) => {
             return Promise.all([
               products[0].addTag(tags[0], { priority: 1 }),
               products[0].addTag(tags[1], { priority: 2 }),
@@ -933,14 +933,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Promise.all([Group.findAll(), Rank.findAll(), Tag.findAll()]);
           })
-          .spread((groups, ranks, tags) => {
+          .then(([groups, ranks, tags]) => {
             return Promise.resolve([0, 1, 2, 3, 4]).each(i => {
               return Promise.all([
                 User.create({ name: 'FooBarzz' }),
                 Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => {
                   return Product.findAll();
                 })
-              ]).spread((user, products) => {
+              ]).then(([user, products]) => {
                 return Promise.all([
                   GroupMember.bulkCreate([
                     { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },

@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   current = Support.sequelize,
   sinon = require('sinon'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Promise = require('bluebird');
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {

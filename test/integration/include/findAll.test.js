@@ -256,7 +256,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           .then(() => {
             return Promise.join(Set.findAll(), Product.findAll(), Tag.findAll());
           })
-          .spread((sets, products, tags) => {
+          .then(([sets, products, tags]) => {
             return Promise.join(
               sets[0].addProducts([products[0], products[1]]),
               products[0]
@@ -355,14 +355,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }]).then(() => {
             return Tag.findAll();
           })
-        ]).spread((groups, ranks, tags) => {
+        ]).then(([groups, ranks, tags]) => {
           return Promise.each([0, 1, 2, 3, 4], i => {
             return Promise.all([
               User.create(),
               Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => {
                 return Product.findAll();
               })
-            ]).spread((user, products) => {
+            ]).then(([user, products]) => {
               return Promise.all([
                 GroupMember.bulkCreate([
                   { UserId: user.id, GroupId: groups[0].id, RankId: ranks[0].id },
@@ -464,7 +464,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return promise;
           })([B, C, D, E, F, G, H])
         )
-          .spread((as, b) => {
+          .then(([as, b]) => {
             return Promise.map(as, a => {
               return a.setB(b);
             });
@@ -559,7 +559,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return promise;
           })([B, C, D, E, F, G, H])
         )
-          .spread((as, b) => {
+          .then(([as, b]) => {
             return Promise.map(as, a => {
               return a.setB(b);
             });
@@ -1154,7 +1154,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Tag.findAll();
           })
         ])
-          .spread((groups, ranks, tags) => {
+          .then(([groups, ranks, tags]) => {
             return Promise.each([0, 1, 2, 3, 4], i => {
               return Promise.props({
                 user: User.create({ name: 'FooBarzz' }),
@@ -1294,7 +1294,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         .then(() => {
           return Sequelize.Promise.all([Parent.create(), Child1.create()]);
         })
-        .spread((parent, child) => {
+        .then(([parent, child]) => {
           return parent.addChild1(child).then(() => {
             return parent;
           });
@@ -1750,7 +1750,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Company.create({ rank: 1 }),
           Company.create({ rank: 2 })
         )
-          .spread((albertsen, zenith, hansen, company1, company2) => {
+          .then(([albertsen, zenith, hansen, company1, company2]) => {
             return Promise.join(
               albertsen.setCompany(company1),
               zenith.setCompany(company2),

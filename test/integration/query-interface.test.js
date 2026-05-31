@@ -718,7 +718,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           if (dialect === 'mysql') {
             return self.sequelize
               .query(self.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'), {})
-              .spread(fk => {
+              .then(([fk]) => {
                 expect(fks[0]).to.deep.eql(fk[0]);
               });
           }

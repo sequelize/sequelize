@@ -796,7 +796,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(() => {
                 return Promise.all([self.Product.findAll(), self.Tag.findAll()]);
               })
-              .spread((products, tags) => {
+              .then(([products, tags]) => {
                 self.products = products;
                 self.tags = tags;
                 return Promise.all([
@@ -862,7 +862,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(function () {
               return Promise.all([this.Product.findAll(), this.Tag.findAll()]);
             })
-            .spread(function (products, tags) {
+            .then(function ([products, tags]) {
               this.products = products;
               this.tags = tags;
 

@@ -127,7 +127,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize
         .sync({ force: true })
         .then(() => {
-          return Promise.join(Person.create(), Company.create()).spread((person, company) => {
+          return Promise.join(Person.create(), Company.create()).then(([person, company]) => {
             return person.setEmployer(company);
           });
         })
@@ -236,7 +236,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           group: Group.create()
         })
           .then(props => {
-            return Promise.join(props.task.setUser(props.user), props.user.setGroup(props.group)).return(props);
+            return Promise.join(props.task.setUser(props.user), props.user.setGroup(props.group)).then(() => props);
           })
           .then(props => {
             return Task.findOne({
@@ -434,7 +434,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             })
           ]);
         })
-        .spread((products, tags) => {
+        .then(([products, tags]) => {
           return Promise.all([
             products[0].setTags([tags[0], tags[2]]),
             products[1].setTags([tags[1]]),
@@ -539,7 +539,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             })
           ]);
         })
-        .spread((product1, product2, user, tags) => {
+        .then(([product1, product2, user, tags]) => {
           return Promise.all([
             user.setProducts([product1, product2]),
             product1.setTags([tags[0], tags[2]]),
@@ -730,7 +730,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             Group.create({ dateField: Date.UTC(2014, 1, 20) })
           ]);
         })
-        .spread(function (user, group) {
+        .then(function ([user, group]) {
           this.user = user;
           return user.addGroup(group);
         })
@@ -780,7 +780,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             Group.create({ name: 'Group' })
           ]);
         })
-        .spread(function (owner, member, group) {
+        .then(function ([owner, member, group]) {
           this.owner = owner;
           this.member = member;
           this.group = group;
@@ -828,7 +828,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           })
         ]);
       })
-      .spread((users, items) => {
+      .then(([users, items]) => {
         return Promise.all([users[0].setItem(items[0]), users[1].setItem(items[1]), users[2].setItem(items[2])]);
       });
   };

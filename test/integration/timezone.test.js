@@ -32,7 +32,7 @@ if (dialect !== 'sqlite') {
       return Promise.all([
         this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
         this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT })
-      ]).spread((now1, now2) => {
+      ]).then(([now1, now2]) => {
         const elapsedQueryTime = Date.now() - startQueryTime + 1001;
         expect(now1[0].now.getTime()).to.be.closeTo(now2[0].now.getTime(), elapsedQueryTime);
       });
@@ -77,7 +77,7 @@ if (dialect !== 'sqlite') {
           .then(timezonedUser => {
             return Promise.all([NormalUser.findById(timezonedUser.id), TimezonedUser.findById(timezonedUser.id)]);
           })
-          .spread((normalUser, timezonedUser) => {
+          .then(([normalUser, timezonedUser]) => {
             // Expect 5 hours difference, in milliseconds, +/- 1 hour for DST
             expect(normalUser.createdAt.getTime() - timezonedUser.createdAt.getTime()).to.be.closeTo(
               60 * 60 * 4 * 1000 * -1,

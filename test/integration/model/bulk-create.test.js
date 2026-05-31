@@ -2,7 +2,6 @@
 
 const chai = require('chai'),
   Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
@@ -320,22 +319,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Tasks.sync({ force: true }).then(() => {
         return Tasks.bulkCreate([{ name: 'foo', code: '123' }, { code: '1234' }, { name: 'bar', code: '1' }], {
           validate: true
-        }).catch(errors => {
+        }).catch(aggregate => {
           const expectedValidationError = 'Validation len on code failed';
           const expectedNotNullError = 'notNull Violation: Task.name cannot be null';
 
-          expect(errors).to.be.instanceof(Promise.AggregateError);
-          expect(errors.toString()).to.include(expectedValidationError).and.to.include(expectedNotNullError);
-          expect(errors).to.have.length(2);
+          expect(aggregate).to.be.instanceof(AggregateError);
+          const messages = aggregate.errors.map(e => e.message).join('\n');
+          expect(messages).to.include(expectedValidationError).and.to.include(expectedNotNullError);
+          expect(aggregate.errors).to.have.length(2);
 
-          const e0name0 = errors[0].errors.get('name')[0];
+          const e0name0 = aggregate.errors[0].errors.get('name')[0];
 
-          expect(errors[0].record.code).to.equal('1234');
+          expect(aggregate.errors[0].record.code).to.equal('1234');
           expect(e0name0.type || e0name0.origin).to.equal('notNull Violation');
 
-          expect(errors[1].record.name).to.equal('bar');
-          expect(errors[1].record.code).to.equal('1');
-          expect(errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
+          expect(aggregate.errors[1].record.name).to.equal('bar');
+          expect(aggregate.errors[1].record.code).to.equal('1');
+          expect(aggregate.errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
         });
       });
     });
@@ -519,7 +519,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               })
             )
             .then(users => User.findAll({ order: ['id'] }).then(actualUsers => [users, actualUsers]))
-            .spread((users, actualUsers) => {
+            .then(([users, actualUsers]) => {
               expect(users.length).to.eql(actualUsers.length);
               users.forEach((user, i) => {
                 expect(user.get('id')).to.be.ok;
@@ -547,7 +547,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               })
             )
             .then(users => User.findAll({ order: ['maId'] }).then(actualUsers => [users, actualUsers]))
-            .spread((users, actualUsers) => {
+            .then(([users, actualUsers]) => {
               expect(users.length).to.eql(actualUsers.length);
               users.forEach((user, i) => {
                 expect(user.get('maId')).to.be.ok;
@@ -611,7 +611,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           return Maya.bulkCreate([M2]);
         })
-        .spread(m => {
+        .then(([m]) => {
           // only attributes are returned, no fields are mixed
           expect(m.createdAt).to.be.ok;
           expect(m.created_at).to.not.exist;
@@ -647,7 +647,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return User.sync({ force: true })
           .then(() => User.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }], { returning: true }))
           .then(users => User.findAll({ order: [['id', 'ASC']] }).then(actualUsers => [users, actualUsers]))
-          .spread((users, actualUsers) => {
+          .then(([users, actualUsers]) => {
             expect(users.length).to.eql(actualUsers.length);
 
             expect(users[0].get('id')).to.equal(1).and.to.equal(actualUsers[0].get('id'));

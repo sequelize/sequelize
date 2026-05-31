@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
                 .then(task => {
                   return [task, User.create({}, { transaction: t })];
                 })
-                .spread((task, user) => {
+                .then(([task, user]) => {
                   task.user_id = user.id;
                   return task.save({ transaction: t });
                 });

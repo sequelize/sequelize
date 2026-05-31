@@ -64,7 +64,6 @@
   },
   "dependencies": {
     "bluebird": "^3.7.2",
-    "cls-bluebird": "^2.1.0",
     "debug": "^4.4.3",
     "depd": "^2.0.0",
     "dottie": "^2.0.7",

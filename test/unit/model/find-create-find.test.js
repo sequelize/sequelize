@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   UniqueConstraintError = require(__dirname + '/../../../lib/errors').UniqueConstraintError,
   current = Support.sequelize,
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findCreateFind', () => {

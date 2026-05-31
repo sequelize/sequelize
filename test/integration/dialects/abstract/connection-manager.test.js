@@ -7,8 +7,7 @@ const chai = require('chai'),
   Config = require(__dirname + '/../../../config/config'),
   ConnectionManager = require(__dirname + '/../../../../lib/dialects/abstract/connection-manager'),
   Pooling = require('generic-pool'),
-  _ = require('lodash'),
-  Promise = require(__dirname + '/../../../../lib/promise');
+  _ = require('lodash');
 
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {

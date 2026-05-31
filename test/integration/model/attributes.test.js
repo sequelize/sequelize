@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             self.Student.create({ no: 1, name: 'ryan' }),
             self.Course.create({ no: 100, name: 'history' })
           )
-            .spread((student, course) => {
+            .then(([student, course]) => {
               return student.addCourse(course, { through: { score: 98, test_value: 1000 } });
             })
             .then(() => {
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 self.Score.find({ where: { StudentId: 1, CourseId: 100 } })
               );
             })
-            .spread((courses, score) => {
+            .then(([courses, score]) => {
               expect(score.test_value).to.equal(1001);
               expect(courses[0].score.toJSON().test_value).to.equal(1001);
               expect(self.callCount).to.equal(1);

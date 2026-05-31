@@ -563,7 +563,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       return Model.sync({ force: true })
         .then(() => Model.create({ interval: [1, 4] }))
         .then(() => Model.findAll())
-        .spread(m => {
+        .then(([m]) => {
           expect(m.interval[0]).to.be.eql(1);
           expect(m.interval[1]).to.be.eql(4);
         });

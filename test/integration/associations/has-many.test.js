@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return Promise.join(
             user.get('Tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
             user.get('Tasks')[0].createSubtask({ title: 'Engage rock stars', active: true })
-          ).return(user);
+          ).then(() => user);
         })
         .then(user => {
           return expect(
@@ -487,7 +487,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             .then(() => {
               return Promise.all([Article.create({ title: 'foo' }), Label.create({ text: 'bar' })]);
             })
-            .spread((_article, _label) => {
+            .then(([_article, _label]) => {
               article = _article;
               label = _label;
               return sequelize.transaction();
@@ -522,10 +522,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
         ])
-          .spread((article, label1, label2) => {
+          .then(([article, label1, label2]) => {
             return Promise.all([article.hasLabel(label1), article.hasLabel(label2)]);
           })
-          .spread((hasLabel1, hasLabel2) => {
+          .then(([hasLabel1, hasLabel2]) => {
             expect(hasLabel1).to.be.false;
             expect(hasLabel2).to.be.false;
           });
@@ -537,12 +537,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
         ])
-          .spread((article, label1, label2) => {
+          .then(([article, label1, label2]) => {
             return article.addLabel(label1).then(() => {
               return Promise.all([article.hasLabel(label1), article.hasLabel(label2)]);
             });
           })
-          .spread((hasLabel1, hasLabel2) => {
+          .then(([hasLabel1, hasLabel2]) => {
             expect(hasLabel1).to.be.true;
             expect(hasLabel2).to.be.false;
           });
@@ -554,12 +554,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
         ])
-          .spread((article, label1, label2) => {
+          .then(([article, label1, label2]) => {
             return article.addLabel(label1).then(() => {
               return Promise.all([article.hasLabel(label1.id), article.hasLabel(label2.id)]);
             });
           })
-          .spread((hasLabel1, hasLabel2) => {
+          .then(([hasLabel1, hasLabel2]) => {
             expect(hasLabel1).to.be.true;
             expect(hasLabel2).to.be.false;
           });
@@ -596,7 +596,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             .then(function () {
               return Promise.all([this.Article.create({ title: 'foo' }), this.Label.create({ text: 'bar' })]);
             })
-            .spread(function (article, label) {
+            .then(function ([article, label]) {
               this.article = article;
               this.label = label;
               return this.sequelize.transaction();
@@ -614,7 +614,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 articles[0].hasLabels([this.label], { transaction: this.t })
               ]);
             })
-            .spread(function (hasLabel1, hasLabel2) {
+            .then(function ([hasLabel1, hasLabel2]) {
               expect(hasLabel1).to.be.false;
               expect(hasLabel2).to.be.true;
 
@@ -629,7 +629,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
         ])
-          .spread((article, label1, label2) => {
+          .then(([article, label1, label2]) => {
             return article.addLabel(label1).then(() => {
               return article.hasLabels([label1, label2]);
             });
@@ -644,7 +644,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
-        ]).spread((article, label1, label2) => {
+        ]).then(([article, label1, label2]) => {
           return article.addLabel(label1).then(() => {
             return article.hasLabels([label1.id, label2.id]).then(result => {
               expect(result).to.be.false;
@@ -658,7 +658,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
-        ]).spread((article, label1, label2) => {
+        ]).then(([article, label1, label2]) => {
           return article.setLabels([label1, label2]).then(() => {
             return article.hasLabels([label1, label2]).then(result => {
               expect(result).to.be.true;
@@ -672,7 +672,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           this.Article.create({ title: 'Article' }),
           this.Label.create({ text: 'Awesomeness' }),
           this.Label.create({ text: 'Epicness' })
-        ]).spread((article, label1, label2) => {
+        ]).then(([article, label1, label2]) => {
           return article.setLabels([label1, label2]).then(() => {
             return article.hasLabels([label1.id, label2.id]).then(result => {
               expect(result).to.be.true;
@@ -703,7 +703,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 this.sequelize.transaction()
               ]);
             })
-            .spread(function (article, label, t) {
+            .then(function ([article, label, t]) {
               this.article = article;
               this.t = t;
               return article.setLabels([label], { transaction: t });
@@ -735,7 +735,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
           .bind({})
-          .spread(function (user, task) {
+          .then(function ([user, task]) {
             this.task = task;
             return task.setUsers([user]);
           })
@@ -771,7 +771,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             ]);
           })
           .bind({})
-          .spread(function (article, label1, label2) {
+          .then(function ([article, label1, label2]) {
             this.article = article;
             this.label1 = label1;
             this.label2 = label2;
@@ -806,7 +806,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             .then(function () {
               return Promise.all([this.Article.create({ title: 'foo' }), this.Label.create({ text: 'bar' })]);
             })
-            .spread(function (article, label) {
+            .then(function ([article, label]) {
               this.article = article;
               this.label = label;
               return this.sequelize.transaction();
@@ -842,7 +842,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             return Promise.all([Article.create({}), Label.create({ text: 'label one' })]);
           })
           .bind({})
-          .spread(function (article, label) {
+          .then(function ([article, label]) {
             this.article = article;
             return article.addLabel(label.id);
           })
@@ -973,7 +973,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             return Article.create({ title: 'foo' });
           })
           .then(article => {
-            return article.createLabel({ text: 'bar' }).return(article);
+            return article.createLabel({ text: 'bar' }).then(() => article);
           })
           .then(article => {
             return Label.findAll({ where: { ArticleId: article.id } });
@@ -1078,7 +1078,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                   fields: ['text']
                 }
               )
-              .return(article);
+              .then(() => article);
           })
           .then(article => {
             return article.getLabels();
@@ -1107,7 +1107,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               self.Task.create({ title: 'Die trying', active: false })
             ]);
           })
-          .spread((john, task1, task2) => {
+          .then(([john, task1, task2]) => {
             return john.setTasks([task1, task2]);
           });
       });
@@ -1134,7 +1134,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             ]);
           })
           .bind({})
-          .spread(function (article, label1, label2) {
+          .then(function ([article, label1, label2]) {
             this.article = article;
             return article.setLabels([label1, label2]);
           })
@@ -1189,7 +1189,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               self.Task.create({ title: 'Die trying', active: false })
             ]);
           })
-          .spread((john, task1, task2) => {
+          .then(([john, task1, task2]) => {
             self.user = john;
             return john.setTasks([task1, task2]);
           });
@@ -1246,7 +1246,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          .spread((user, task) => {
+          .then(([user, task]) => {
             return user.setTasks([task]).then(() => {
               return user.destroy().then(() => {
                 return task.reload();
@@ -1291,7 +1291,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          .spread(function (user, task) {
+          .then(function ([user, task]) {
             this.user = user;
             this.task = task;
             return user.setTasks([task]);
@@ -1319,7 +1319,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          .spread(function (user, task) {
+          .then(function ([user, task]) {
             this.user = user;
             this.task = task;
             return user.setTasks([task]);
@@ -1348,8 +1348,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             .then(() => {
               return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
             })
-            .spread((user, task) => {
-              return user.setTasks([task]).return(user);
+            .then(([user, task]) => {
+              return user.setTasks([task]).then(() => user);
             })
             .then(user => {
               // Changing the id of a DAO requires a little dance since
@@ -1383,7 +1383,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             .then(() => {
               return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
             })
-            .spread(function (user, task) {
+            .then(function ([user, task]) {
               this.user = user;
               this.task = task;
               return user.setTasks([task]);
@@ -1411,8 +1411,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             .then(() => {
               return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
             })
-            .spread((user, task) => {
-              return user.setTasks([task]).return(user);
+            .then(([user, task]) => {
+              return user.setTasks([task]).then(() => user);
             })
             .then(user => {
               // Changing the id of a DAO requires a little dance since

@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.Task.create({ title: 'Die trying', active: false })
           ]);
         })
-        .spread((john, task1, task2) => {
+        .then(([john, task1, task2]) => {
           self.tasks = [task1, task2];
           self.user = john;
           return john.setTasks([task1, task2]);
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               this.sequelize.transaction()
             ]);
           })
-          .spread(function (article, label, t) {
+          .then(function ([article, label, t]) {
             this.t = t;
             return article.setLabels([label], { transaction: t });
           })
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Promise.join(User.create(), Group.create())
-          .spread((user, group) => {
+          .then(([user, group]) => {
             return user.addGroup(group);
           })
           .then(() => {
@@ -365,7 +365,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Promise.join(User.create(), Group.create())
-          .spread((user, group) => {
+          .then(([user, group]) => {
             return user.addGroup(group);
           })
           .then(() => {
@@ -446,7 +446,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       return this.sequelize.sync({ force: true }).then(() => {
         return Promise.join(User.create(), Group.create(), Company.create())
-          .spread((user, group, company) => {
+          .then(([user, group, company]) => {
             return Promise.join(user.setCompany(company), company.addGroup(group));
           })
           .then(() => {
@@ -506,7 +506,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.Task.create({ title: 'Die trying', active: false })
           ]);
         })
-        .spread((john, task1, task2) => {
+        .then(([john, task1, task2]) => {
           self.tasks = [task1, task2];
           self.user = john;
           return john.setTasks([task1, task2]);
@@ -583,7 +583,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
         })
         .bind({})
-        .spread(function (user, task) {
+        .then(function ([user, task]) {
           this.task = task;
           return task.setUsers([user]);
         })
@@ -626,7 +626,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         })
         .bind({})
-        .spread(function (user1, user2, task) {
+        .then(function ([user1, user2, task]) {
           this.task = task;
           this.user1 = user1;
           this.user2 = user2;
@@ -665,8 +665,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             Member.create({ member_id: 10, email: 'team@sequelizejs.com' })
           ]);
         })
-        .spread((group, member) => {
-          return group.addMember(member).return(group);
+        .then(([group, member]) => {
+          return group.addMember(member).then(() => group);
         })
         .then(group => {
           return group.getMembers();
@@ -696,7 +696,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         })
         .bind({})
-        .spread(function (user, task1, task2) {
+        .then(function ([user, task1, task2]) {
           this.user = user;
           this.task2 = task2;
           return user.addTask(task1.id);
@@ -754,7 +754,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         })
         .bind({})
-        .spread((post, comment, tag) => {
+        .then(([post, comment, tag]) => {
           self.post = post;
           self.comment = comment;
           self.tag = tag;
@@ -766,7 +766,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         .then(() => {
           return Promise.all([self.post.getTags(), self.comment.getTags()]);
         })
-        .spread((postTags, commentTags) => {
+        .then(([postTags, commentTags]) => {
           expect(postTags).to.have.length(1);
           expect(commentTags).to.have.length(1);
         });
@@ -814,7 +814,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         })
         .bind({})
-        .spread((post, comment, tag, secondTag) => {
+        .then(([post, comment, tag, secondTag]) => {
           self.post = post;
           self.comment = comment;
           self.tag = tag;
@@ -830,7 +830,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         .then(() => {
           return Promise.all([self.post.getTags(), self.comment.getTags()]);
         })
-        .spread((postTags, commentTags) => {
+        .then(([postTags, commentTags]) => {
           expect(postTags).to.have.length(1);
           expect(commentTags).to.have.length(2);
         });
@@ -882,7 +882,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           .then(function () {
             return Promise.all([this.Task.create({ title: 'task' }), this.sequelize.transaction()]);
           })
-          .spread(function (task, t) {
+          .then(function ([task, t]) {
             this.task = task;
             this.t = t;
             return task.createUser({ username: 'foo' }, { transaction: t });
@@ -982,8 +982,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             Task.create({ id: 52, title: 'get done' })
           ]);
         })
-        .spread((user, task1, task2) => {
-          return Promise.all([user.addTask(task1), user.addTask([task2])]).return(user);
+        .then(([user, task1, task2]) => {
+          return Promise.all([user.addTask(task1), user.addTask([task2])]).then(() => user);
         })
         .then(user => {
           return user.getTasks();
@@ -1024,7 +1024,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               this.sequelize.transaction()
             ]);
           })
-          .spread(function (user, task, t) {
+          .then(function ([user, task, t]) {
             this.task = task;
             this.user = user;
             this.t = t;
@@ -1066,7 +1066,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               this.sequelize.transaction({ isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED })
             ]);
           })
-          .spread(function (user, task, t) {
+          .then(function ([user, task, t]) {
             this.task = task;
             this.user = user;
             this.t = t;
@@ -1078,7 +1078,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           .then(function () {
             return Promise.all([this.user.getTasks(), this.user.getTasks({ transaction: this.t })]);
           })
-          .spread(function (tasks, transactionTasks) {
+          .then(function ([tasks, transactionTasks]) {
             expect(tasks[0].UserTask.status).to.equal('pending');
             expect(transactionTasks[0].UserTask.status).to.equal('completed');
 
@@ -1099,8 +1099,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         .then(() => {
           return Promise.all([User.create({ id: 12 }), Task.create({ id: 50, title: 'get started' })]);
         })
-        .spread((user, task) => {
-          return user.addTask(task.id).return(user);
+        .then(([user, task]) => {
+          return user.addTask(task.id).then(() => user);
         })
         .then(user => {
           return user.getTasks();
@@ -1162,8 +1162,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             Task.create({ id: 52, title: 'get done' })
           ]);
         })
-        .spread((user, task1, task2) => {
-          return Promise.all([user.addTasks(task1), user.addTasks([task2])]).return(user);
+        .then(([user, task1, task2]) => {
+          return Promise.all([user.addTasks(task1), user.addTasks([task2])]).then(() => user);
         })
         .then(user => {
           return user.getTasks();
@@ -1196,7 +1196,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           .then(() => {
             return Promise.all([Task.create({ title: 'task' }), User.findAll()]);
           })
-          .spread(function (task, users) {
+          .then(function ([task, users]) {
             this.task = task;
             this.users = users;
             return task.setUsers([users[0]]);
@@ -1259,7 +1259,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         .then(function () {
           return Promise.all([Project.create({ name: 'project 1' }), Employee.create({ name: 'employee 1' })])
             .bind(this)
-            .spread(function (project, employee) {
+            .then(function ([project, employee]) {
               this.project = project;
               this.employee = employee;
             });
@@ -1298,7 +1298,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.Task.create({ id: 12, title: 'task1' }),
         this.Task.create({ id: 15, title: 'task2' })
       ])
-        .spread((user, task1, task2) => {
+        .then(([user, task1, task2]) => {
           return user.setTasks([task1, task2], {
             logging: spy
           });
@@ -1316,8 +1316,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         this.Task.create({ title: 'task1' }),
         this.Task.create({ title: 'task2' })
       ])
-        .spread((user, task1, task2) => {
-          return user.setTasks([task1, task2]).return(user);
+        .then(([user, task1, task2]) => {
+          return user.setTasks([task1, task2]).then(() => user);
         })
         .then(user => {
           return user.setTasks(null, {
@@ -1502,12 +1502,12 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.Project.create({ name: 'The Departed' })
           );
         })
-        .spread((user, project1, project2) => {
+        .then(([user, project1, project2]) => {
           return user
             .addProjects([project1, project2], {
               logging: spy
             })
-            .return(user);
+            .then(() => user);
         })
         .then(user => {
           expect(spy).to.have.been.calledTwice;
@@ -1519,11 +1519,11 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             })
           );
         })
-        .spread((user, projects) => {
+        .then(([user, projects]) => {
           expect(spy.calledOnce).to.be.ok;
           const project = projects[0];
           expect(project).to.be.ok;
-          return project.destroy().return(user);
+          return project.destroy().then(() => user);
         })
         .then(user => {
           return self.User.findOne({
@@ -1547,10 +1547,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         .then(() => {
           return Promise.all([self.User.create({ name: 'Matt' }), self.Project.create({ name: 'Good Will Hunting' })]);
         })
-        .spread((user, project) => {
+        .then(([user, project]) => {
           self.user = user;
           self.project = project;
-          return user.addProject(project, { logging: spy }).return(user);
+          return user.addProject(project, { logging: spy }).then(() => user);
         })
         .then(user => {
           expect(spy.calledTwice).to.be.ok; // Once for SELECT, once for INSERT
@@ -1569,7 +1569,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             .removeProject(project, {
               logging: spy
             })
-            .return(project);
+            .then(() => project);
         })
         .then(() => {
           expect(spy).to.have.been.calledOnce;
@@ -1614,9 +1614,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.Project.create({ name: 'Good Will Hunting' })
           );
         })
-        .spread((group, user, project) => {
+        .then(([group, user, project]) => {
           return user.addProject(project).then(() => {
-            return group.addUser(user).return(group);
+            return group.addUser(user).then(() => group);
           });
         })
         .then(group => {
@@ -1732,8 +1732,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         expect(Object.keys(this.UsersTasks.primaryKeys).sort()).to.deep.equal(['TaskId', 'UserId']);
 
         return Promise.all([this.User.create({ username: 'foo' }), this.Task.create({ title: 'foo' })])
-          .spread((user, task) => {
-            return user.addTask(task).return(user);
+          .then(([user, task]) => {
+            return user.addTask(task).then(() => user);
           })
           .then(user => {
             return user.setTasks(null);
@@ -1763,8 +1763,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     describe('fetching from join table', () => {
       it('should contain the data from the join table on .UserProjects a DAO', function () {
         return Promise.all([this.User.create(), this.Project.create()])
-          .spread((user, project) => {
-            return user.addProject(project, { through: { status: 'active', data: 42 } }).return(user);
+          .then(([user, project]) => {
+            return user.addProject(project, { through: { status: 'active', data: 42 } }).then(() => user);
           })
           .then(user => {
             return user.getProjects();
@@ -1781,8 +1781,8 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
       it('should be able to limit the join table attributes returned', function () {
         return Promise.all([this.User.create(), this.Project.create()])
-          .spread((user, project) => {
-            return user.addProject(project, { through: { status: 'active', data: 42 } }).return(user);
+          .then(([user, project]) => {
+            return user.addProject(project, { through: { status: 'active', data: 42 } }).then(() => user);
           })
           .then(user => {
             return user.getProjects({ joinTableAttributes: ['status'] });
@@ -1803,7 +1803,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         it('should insert data provided on the object into the join table', function () {
           return Promise.all([this.User.create(), this.Project.create()])
             .bind({ UserProjects: this.UserProjects })
-            .spread(function (u, p) {
+            .then(function ([u, p]) {
               this.u = u;
               this.p = p;
               p.UserProjects = { status: 'active' };
@@ -1821,7 +1821,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         it('should insert data provided as a second argument into the join table', function () {
           return Promise.all([this.User.create(), this.Project.create()])
             .bind({ UserProjects: this.UserProjects })
-            .spread(function (u, p) {
+            .then(function ([u, p]) {
               this.u = u;
               this.p = p;
 
@@ -1933,7 +1933,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             })
           ])
             .bind({})
-            .spread(function (user, projects) {
+            .then(function ([user, projects]) {
               this.user = user;
               this.p1 = projects[0];
               this.p2 = projects[1];
@@ -1948,7 +1948,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
                 self.UserProjects.findOne({ where: { UserId: this.user.id, ProjectId: this.p2.id } })
               ]);
             })
-            .spread((up1, up2) => {
+            .then(([up1, up2]) => {
               expect(up1.status).to.equal('inactive');
               expect(up2.status).to.equal('active');
             });
@@ -1972,10 +1972,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
                 })
               ]);
             })
-            .spread((worker, tasks) => {
-              return worker.setTasks(tasks).return([worker, tasks]);
+            .then(([worker, tasks]) => {
+              return worker.setTasks(tasks).then(() => [worker, tasks]);
             })
-            .spread((worker, tasks) => {
+            .then(([worker, tasks]) => {
               return worker.setTasks(tasks);
             });
         });
@@ -1996,7 +1996,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
                 ]);
               });
             })
-            .spread((activeProjects, inactiveProjectCount) => {
+            .then(([activeProjects, inactiveProjectCount]) => {
               expect(activeProjects).to.have.lengthOf(1);
               expect(inactiveProjectCount).to.eql(2);
             });
@@ -2024,7 +2024,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               })
             ]);
           })
-          .spread((worker, tasks) => {
+          .then(([worker, tasks]) => {
             // Set all tasks, then remove one task by instance, then remove one task by id, then return all tasks
             return worker
               .setTasks(tasks)
@@ -2062,7 +2062,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               })
             ]);
           })
-          .spread((worker, tasks) => {
+          .then(([worker, tasks]) => {
             // Set all tasks, then remove two tasks by instance, then remove two tasks by id, then return all tasks
             return worker
               .setTasks(tasks)
@@ -2291,7 +2291,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.Task.create({ id: 42, title: 'kast' })
           ]);
         })
-        .spread(function (user1, task1, user2, task2) {
+        .then(function ([user1, task1, user2, task2]) {
           this.user1 = user1;
           this.task1 = task1;
           this.user2 = user2;
@@ -2320,7 +2320,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             })
           ]);
         })
-        .spread((tu1, tu2) => {
+        .then(([tu1, tu2]) => {
           expect(tu1).to.have.length(0);
           expect(tu2).to.have.length(0);
         });
@@ -2344,7 +2344,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               self.Task.create({ id: 42, title: 'kast' })
             ]);
           })
-          .spread(function (user1, task1, user2, task2) {
+          .then(function ([user1, task1, user2, task2]) {
             this.user1 = user1;
             this.task1 = task1;
             this.user2 = user2;
@@ -2376,7 +2376,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
               self.Task.create({ id: 42, title: 'kast' })
             );
           })
-          .spread(function (user1, task1, user2, task2) {
+          .then(function ([user1, task1, user2, task2]) {
             this.user1 = user1;
             this.task1 = task1;
             this.user2 = user2;
@@ -2416,7 +2416,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.Task.create({ id: 42, title: 'kast' })
           ]);
         })
-        .spread(function (user1, task1, user2, task2) {
+        .then(function ([user1, task1, user2, task2]) {
           this.user1 = user1;
           this.task1 = task1;
           this.user2 = user2;
@@ -2432,7 +2432,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             self.sequelize.model('tasksusers').findAll({ where: { taskId: this.task2.id } })
           ]);
         })
-        .spread((ut1, ut2) => {
+        .then(([ut1, ut2]) => {
           expect(ut1).to.have.length(1);
           expect(ut2).to.have.length(1);
         });

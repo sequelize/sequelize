@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           Person.create({ name: 'Chris' })
         ]);
       })
-      .spread((mary, john, chris) => {
+      .then(([mary, john, chris]) => {
         return mary.setChildren([john, chris]);
       });
   });
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })
-      ]).spread((mary, john, chris) => {
+      ]).then(([mary, john, chris]) => {
         return mary
           .setParents([john])
           .then(() => {
@@ -143,7 +143,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           Person.create({ name: 'Chris' })
         ]);
       })
-      .spread(function (mary, john, chris) {
+      .then(function ([mary, john, chris]) {
         this.mary = mary;
         this.chris = chris;
         this.john = john;

@@ -156,7 +156,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         .then(() => {
           return Promise.join(A.create({}), B.create({}));
         })
-        .spread((a, b) => {
+        .then(([a, b]) => {
           return a.addB(b, { through: { name: 'Foobar' } });
         })
         .then(() => {
@@ -321,7 +321,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return promise;
           })([B, C, D, E, F, G, H])
         )
-          .spread((a, b) => {
+          .then(([a, b]) => {
             return a.setB(b);
           })
           .then(() => {

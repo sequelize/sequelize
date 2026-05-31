@@ -72,7 +72,7 @@ if (current.dialect.supports['UNION ALL']) {
               );
             })
             .then(() => [this.User.findAll(), this.Project.findAll(), this.Task.findAll()])
-            .spread((users, projects, tasks) => {
+            .then(([users, projects, tasks]) => {
               this.projects = projects;
               return Promise.join(
                 projects[0].setMembers(users.slice(0, 4)),
@@ -240,7 +240,7 @@ if (current.dialect.supports['UNION ALL']) {
                 );
               })
               .then(() => [this.User.findAll(), this.Task.findAll()])
-              .spread((users, tasks) => {
+              .then(([users, tasks]) => {
                 this.users = users;
                 return Promise.join(
                   users[0].setTasks(tasks[0]),

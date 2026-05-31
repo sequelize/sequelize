@@ -151,7 +151,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
             Group.create({ name: 'bar' })
           ]);
         })
-        .spread((fakeUser, user, group) => {
+        .then(([fakeUser, user, group]) => {
           return group.setUser(user).then(() => {
             return Group.all().then(groups => {
               return groups[0].getUser().then(associatedUser => {
@@ -314,7 +314,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         .then(() => {
           return Promise.all([User.create({ id: 1, username: 'foo' }), Task.create({ id: 20, title: 'bar' })]);
         })
-        .spread((user, task) => {
+        .then(([user, task]) => {
           return user
             .setTaskXYZ(task.id)
             .then(() => user.getTaskXYZ())
@@ -323,7 +323,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
               return Promise.all([user, Task.create({ id: 2, title: 'bar2' })]);
             });
         })
-        .spread((user, task2) => {
+        .then(([user, task2]) => {
           return user
             .setTaskXYZ(task2.id)
             .then(() => user.getTaskXYZ())
@@ -345,7 +345,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         .then(() => {
           return Promise.all([Home.create(), User.create()]);
         })
-        .spread(function (home, user) {
+        .then(function ([home, user]) {
           this.home = home;
           this.user = user;
           return user.setHome(home);
@@ -453,7 +453,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
             Task.create({ title: 'task', status: 'inactive' })
           ]);
         })
-        .spread((user, task) => {
+        .then(([user, task]) => {
           return task.setUserXYZ(user).then(() => {
             return task.getUserXYZ();
           });

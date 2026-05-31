@@ -1026,12 +1026,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 this.Animal.create({ name: 'Fish', age: 100 })
               ])
             )
-            .spread((a1, a2, a3, a4) =>
+            .then(([a1, a2, a3, a4]) =>
               Sequelize.Promise.all([
                 this.Kingdom.create({ name: 'Earth' }),
                 this.Kingdom.create({ name: 'Water' }),
                 this.Kingdom.create({ name: 'Wind' })
-              ]).spread((k1, k2, k3) =>
+              ]).then(([k1, k2, k3]) =>
                 Sequelize.Promise.all([k1.addAnimals([a1, a2]), k2.addAnimals([a4]), k3.addAnimals([a3])])
               )
             );

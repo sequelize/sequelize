@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = Support.Sequelize,
-  sinon = require('sinon'),
-  Promise = require('bluebird');
+  sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function () {
@@ -109,16 +108,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       B.belongsToMany(A, { through: 'a_b' });
       A.belongsToMany(B, { through: 'a_b' });
 
-      return this.sequelize
-        .sync({ force: true })
-        .bind(this)
-        .then(function () {
-          return this.sequelize.Promise.all([A.create({ name: 'a' }), B.create({ name: 'b' })]).spread((a, b) => {
-            return a.addB(b).then(() => {
-              expect(hookCalled).to.equal(1);
-            });
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([A.create({ name: 'a' }), B.create({ name: 'b' })]).then(([a, b]) => {
+          return a.addB(b).then(() => {
+            expect(hookCalled).to.equal(1);
           });
         });
+      });
     });
 
     describe('preserves changes to instance', () => {

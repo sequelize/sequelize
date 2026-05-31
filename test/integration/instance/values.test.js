@@ -494,7 +494,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
             });
           })
           .then(() => {
-            return User.bulkCreate([{ name: 'Jan Meier' }]).spread(user => {
+            return User.bulkCreate([{ name: 'Jan Meier' }]).then(([user]) => {
               expect(user.changed('name')).to.be.false;
               expect(user.changed()).not.to.be.ok;
             });

@@ -311,7 +311,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           where: {
             username: user.username
           }
-        }).spread((_user, created) => {
+        }).then(([_user, created]) => {
           expect(_user.id).to.equal(user.id);
           expect(_user.username).to.equal('Username');
           expect(created).to.be.false;
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         };
 
       return this.User.create(data).then(user => {
-        return self.User.findOrCreate({ where: data }).spread((_user, created) => {
+        return self.User.findOrCreate({ where: data }).then(([_user, created]) => {
           expect(_user.id).to.equal(user.id);
           expect(_user.username).to.equal('Username');
           expect(_user.data).to.equal('ThisIsData');
@@ -347,14 +347,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         where: data,
         defaults: {}
       })
-        .spread(user => {
+        .then(([user]) => {
           expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
         })
         .then(() => {
           return self.User.findOrCreate({
             where: data,
             defaults: {}
-          }).spread(user => {
+          }).then(([user]) => {
             expect(user.dataValues.sequelize_caught_exception).to.be.undefined;
           });
         });
@@ -368,7 +368,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           data: 'ThisIsData'
         };
 
-      return this.User.findOrCreate({ where: data, defaults: default_values }).spread((user, created) => {
+      return this.User.findOrCreate({ where: data, defaults: default_values }).then(([user, created]) => {
         expect(user.username).to.equal('Username');
         expect(user.data).to.equal('ThisIsData');
         expect(created).to.be.true;
@@ -379,7 +379,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.User.findOrCreate({
         where: Sequelize.or({ username: 'Fooobzz' }, { secretValue: 'Yolo' }),
         defaults: { username: 'Fooobzz', secretValue: 'Yolo' }
-      }).spread((user, created) => {
+      }).then(([user, created]) => {
         expect(user.username).to.equal('Fooobzz');
         expect(user.secretValue).to.equal('Yolo');
         expect(created).to.be.true;

@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             Task.create({ title: 'task', status: 'inactive' })
           ]);
         })
-        .spread((userA, userB, task) => {
+        .then(([userA, userB, task]) => {
           return task.setUserXYZ(userA).then(() => {
             return task.getUserXYZ({ where: { gender: 'female' } });
           });
@@ -159,7 +159,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             Task.create({ title: 'task', status: 'inactive' })
           ]);
         })
-        .spread((user, task) => {
+        .then(([user, task]) => {
           return task.setUserXYZ(user).then(() => {
             return task.getUserXYZ();
           });
@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Comment.belongsTo(Post, { foreignKey: 'post_id' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(Post.create(), Comment.create()).spread((post, comment) => {
+        return Promise.join(Post.create(), Comment.create()).then(([post, comment]) => {
           expect(comment.get('post_id')).not.to.be.ok;
 
           const setter = comment.setPost(post, { save: false });
@@ -383,7 +383,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         .then(() => {
           return Promise.all([Home.create(), User.create()]);
         })
-        .spread(function (home, user) {
+        .then(function ([home, user]) {
           this.home = home;
           this.user = user;
           return home.setUser(user);
@@ -487,7 +487,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         .then(() => {
           return Promise.all([User.create({ username: 'foo' }), Account.create({ title: 'pepsico' })]);
         })
-        .spread((user, account) => {
+        .then(([user, account]) => {
           return user.setAccount(account).then(() => {
             return user.getAccount();
           });

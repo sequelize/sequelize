@@ -9,7 +9,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   _ = require('lodash'),
   moment = require('moment'),
-  Promise = require('bluebird'),
+  { mapWithConcurrency } = require('../../lib/utils/promise-helpers'),
   current = Support.sequelize,
   semver = require('semver');
 
@@ -324,8 +324,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
       });
       return User.sync({ force: true })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.sequelize.queryInterface.showIndex(User.tableName).then(indexes => {
             let idxUnique;
             if (dialect === 'sqlite') {
@@ -373,7 +372,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
       return User.sync({ force: true })
-        .bind(this)
         .then(() => {
           return self.sequelize.Promise.all([
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
@@ -413,7 +411,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       );
 
       return User.sync({ force: true })
-        .bind(this)
         .then(() => {
           // Redefine the model to use the index in database and override error message
           User = self.sequelize.define('UserWithUniqueUsername', {
@@ -476,14 +473,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.sequelize
         .sync()
-        .bind(this)
         .then(function () {
           return this.sequelize.sync(); // The second call should not try to create the indices again
         })
         .then(function () {
           return this.sequelize.queryInterface.showIndex(Model.tableName);
         })
-        .spread(function () {
+        .then(function ([]) {
           let primary, idx1, idx2, idx3;
 
           if (dialect === 'sqlite') {
@@ -852,16 +848,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 return User.create({ username: 'foo' }, { transaction: t }).then(() => {
                   return User.findOrInitialize({
                     where: { username: 'foo' }
-                  }).spread(user1 => {
+                  }).then(([user1]) => {
                     return User.findOrInitialize({
                       where: { username: 'foo' },
                       transaction: t
-                    }).spread(user2 => {
+                    }).then(([user2]) => {
                       return User.findOrInitialize({
                         where: { username: 'foo' },
                         defaults: { foo: 'asd' },
                         transaction: t
-                      }).spread(user3 => {
+                      }).then(([user3]) => {
                         expect(user1.isNewRecord).to.be.true;
                         expect(user2.isNewRecord).to.be.false;
                         expect(user3.isNewRecord).to.be.false;
@@ -883,7 +879,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.create({ username: 'Username' }).then(user => {
           return self.User.findOrInitialize({
             where: { username: user.username }
-          }).spread((_user, initialized) => {
+          }).then(([_user, initialized]) => {
             expect(_user.id).to.equal(user.id);
             expect(_user.username).to.equal('Username');
             expect(initialized).to.be.false;
@@ -900,7 +896,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               username: user.username,
               data: user.data
             }
-          }).spread((_user, initialized) => {
+          }).then(([_user, initialized]) => {
             expect(_user.id).to.equal(user.id);
             expect(_user.username).to.equal('Username');
             expect(_user.data).to.equal('data');
@@ -920,7 +916,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findOrInitialize({
           where: data,
           defaults: default_values
-        }).spread((user, initialized) => {
+        }).then(([user, initialized]) => {
           expect(user.id).to.be.null;
           expect(user.username).to.equal('Username');
           expect(user.data).to.equal('ThisIsData');
@@ -1152,7 +1148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return User.findAll();
         })
-        .spread(user => {
+        .then(([user]) => {
           expect(user.username).to.equal('kurt');
         });
     });
@@ -1195,7 +1191,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return User.findAll();
         })
-        .spread(user => {
+        .then(([user]) => {
           expect(user.illness_pain).to.be.equal(5);
         });
     });
@@ -1237,7 +1233,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return User.findAll();
         })
-        .spread(user => {
+        .then(([user]) => {
           expect(user.illness_pain).to.be.equal(10);
         });
     });
@@ -1266,7 +1262,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       ];
 
       return this.User.bulkCreate(data)
-        .bind(this)
         .then(function () {
           return this.User.findAll({ order: ['id'] });
         })
@@ -1303,11 +1298,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.User.bulkCreate(data).then(() => {
         return self.User.update({ username: 'Bill' }, { where: { secretValue: '42' } })
-          .spread(affectedRows => {
+          .then(([affectedRows]) => {
             expect(affectedRows).to.equal(2);
           })
           .then(() => {
-            return self.User.update({ username: 'Bill' }, { where: { secretValue: '44' } }).spread(affectedRows => {
+            return self.User.update({ username: 'Bill' }, { where: { secretValue: '44' } }).then(([affectedRows]) => {
               expect(affectedRows).to.equal(0);
             });
           });
@@ -1398,13 +1393,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.User.bulkCreate(data).then(() => {
           return self.User.update({ username: 'Bill' }, { where: { secretValue: '42' }, returning: true })
-            .spread((count, rows) => {
+            .then(([count, rows]) => {
               expect(count).to.equal(2);
               expect(rows).to.have.length(2);
             })
             .then(() => {
-              return self.User.update({ username: 'Bill' }, { where: { secretValue: '44' }, returning: true }).spread(
-                (count, rows) => {
+              return self.User.update({ username: 'Bill' }, { where: { secretValue: '44' }, returning: true }).then(
+                ([count, rows]) => {
                   expect(count).to.equal(0);
                   expect(rows).to.have.length(0);
                 }
@@ -1424,8 +1419,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ];
 
         return this.User.bulkCreate(data).then(() => {
-          return self.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).spread(
-            affectedRows => {
+          return self.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).then(
+            ([affectedRows]) => {
               expect(affectedRows).to.equal(1);
             }
           );
@@ -1661,7 +1656,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             'SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id')
           );
         })
-        .spread(function (users) {
+        .then(function ([users]) {
           expect(users[0].username).to.equal('Peter');
           expect(users[1].username).to.equal('Paul');
 
@@ -1764,7 +1759,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(user).to.be.null;
             return [User.count(), User.count({ paranoid: false })];
           })
-          .spread((cnt, cntWithDeleted) => {
+          .then(([cnt, cntWithDeleted]) => {
             expect(cnt).to.equal(2);
             expect(cntWithDeleted).to.equal(3);
           });
@@ -1821,7 +1816,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             })
           ];
         })
-        .spread((user, userWithDeletedPets) => {
+        .then(([user, userWithDeletedPets]) => {
           expect(user).to.exist;
           expect(user.Pets).to.have.length(1);
           expect(userWithDeletedPets).to.exist;
@@ -1880,7 +1875,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return self.sequelize.query('SELECT * FROM paranoidusers', { raw: true });
         })
-        .spread(users => {
+        .then(([users]) => {
           expect(users).to.have.length(1);
           expect(users[0].username).to.equal('Tobi');
         });
@@ -2209,14 +2204,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => Post.create({}))
         .then(post => PostComment.bulkCreate([{ PostId: post.id }, { PostId: post.id }]))
         .then(() =>
-          Promise.join(
+          Promise.all([
             Post.count({ distinct: false, include: [{ model: PostComment, required: false }] }),
-            Post.count({ distinct: true, include: [{ model: PostComment, required: false }] }),
-            (count1, count2) => {
-              expect(count1).to.equal(2);
-              expect(count2).to.equal(1);
-            }
-          )
+            Post.count({ distinct: true, include: [{ model: PostComment, required: false }] })
+          ]).then(([count1, count2]) => {
+            expect(count1).to.equal(2);
+            expect(count2).to.equal(1);
+          })
         );
     });
   });
@@ -2440,11 +2434,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
       });
 
-      return Promise.join(
+      return Promise.all([
         this.UserWithAge.sync({ force: true }),
         this.UserWithDec.sync({ force: true }),
         this.UserWithFields.sync({ force: true })
-      );
+      ]);
     });
 
     it('should return the sum of the values for a field named the same as an SQL reserved keyword', function () {
@@ -2496,7 +2490,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { age: 2, gender: 'male' },
         { age: 3, gender: 'female' }
       ])
-        .bind(this)
         .then(function () {
           return expect(
             this.UserWithFields.sum('age', {
@@ -3146,15 +3139,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             for (let i = 0; i < 1000; i++) {
               tasks.push(testAsync.bind(this));
             }
-            return self.sequelize.Promise.resolve(tasks).map(
-              entry => {
-                return entry();
-              },
-              {
-                // Needs to be one less than ??? else the non transaction query won't ever get a connection
-                concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1
-              }
-            );
+            return mapWithConcurrency(tasks, entry => entry(), {
+              // Needs to be one less than ??? else the non transaction query won't ever get a connection
+              concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1
+            });
           });
         });
     });
@@ -3260,7 +3248,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           validate: true,
           individualHooks: true
         })
-      ).to.be.rejectedWith(Promise.AggregateError);
+      ).to.be.rejectedWith(AggregateError);
     });
   });
 });

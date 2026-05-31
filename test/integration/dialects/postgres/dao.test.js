@@ -686,7 +686,7 @@ if (dialect.match(/^postgres/)) {
             return this.User.update(
               { settings: { should: 'update', to: 'this', first: 'place' } },
               { where: oldUser.where(), returning: true }
-            ).spread((count, users) => {
+            ).then(([count, users]) => {
               expect(count).to.equal(1);
               expect(users[0].settings).to.deep.equal({ should: 'update', to: 'this', first: 'place' });
             });
