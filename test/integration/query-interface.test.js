@@ -307,8 +307,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           }
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface
             .insert(null, 'TableWithPK', {}, { raw: true, returning: true, plain: true })
             .then(results => {
@@ -346,8 +345,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should work with enums (4)', function () {
       return this.queryInterface
         .createSchema('archive')
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.createTable(
             'SomeTable',
             {
@@ -395,8 +393,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return self.queryInterface.renameColumn('_Users', 'username', 'pseudo');
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable('_Users');
         })
         .then(table => {
@@ -431,8 +428,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             );
           });
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable({
             schema: 'archive',
             tableName: 'Users'
@@ -461,8 +457,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return self.queryInterface.renameColumn('_Users', 'username', 'pseudo');
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable('_Users');
         })
         .then(table => {
@@ -489,8 +484,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return self.queryInterface.renameColumn('_Users', 'active', 'enabled');
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable('_Users');
         })
         .then(table => {
@@ -518,8 +512,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return self.queryInterface.renameColumn('Fruit', 'fruitId', 'fruit_id');
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable('Fruit');
         })
         .then(table => {
@@ -550,8 +543,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     beforeEach(function () {
       return this.sequelize
         .createSchema('archive')
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.createTable('users', {
             id: {
               type: DataTypes.INTEGER,
@@ -571,8 +563,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           }
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.addColumn('users', 'level_id', {
             type: DataTypes.INTEGER,
             references: {
@@ -583,7 +574,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             onDelete: 'set null'
           });
         })
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable('users');
         })
         .then(table => {
@@ -606,8 +597,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             }
           }
         )
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface
             .addColumn(
               {
@@ -619,8 +609,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 type: DataTypes.INTEGER
               }
             )
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return this.queryInterface.describeTable({
                 tableName: 'users',
                 schema: 'archive'
@@ -654,8 +643,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             autoIncrement: true
           }
         })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.createTable('hosts', {
             id: {
               type: DataTypes.INTEGER,

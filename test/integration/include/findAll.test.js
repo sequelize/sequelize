@@ -1792,7 +1792,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
         .then(() => {
           return Post.create(
             {
@@ -1808,7 +1807,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }
           );
         })
-        .then(function () {
+        .then(() => {
           return Post.findAll({
             attributes: [[this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount']],
             include: [{ association: Post.Comments, attributes: [] }],
@@ -1837,7 +1836,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
         .then(() => {
           return Post.create(
             {
@@ -1853,7 +1851,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             }
           );
         })
-        .then(function () {
+        .then(() => {
           return Post.findAll({
             attributes: [],
             include: [

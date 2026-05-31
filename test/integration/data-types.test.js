@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         });
       })
       .then(() => {
-        return User.findAll().get(0);
+        return User.findAll().then(rows => rows[0]);
       })
       .then(user => {
         expect(parse).to.have.been.called;
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         });
       })
       .then(() => {
-        return User.findAll().get(0);
+        return User.findAll().then(rows => rows[0]);
       })
       .then(() => {
         expect(parse).to.have.been.called;

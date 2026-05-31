@@ -52,7 +52,7 @@ if (dialect === 'sqlite') {
           dateField: new Date(2010, 10, 10)
         })
           .then(() => {
-            return this.User.findAll().get(0);
+            return this.User.findAll().then(rows => rows[0]);
           })
           .then(user => {
             expect(user.get('dateField')).to.be.an.instanceof(Date);
@@ -70,7 +70,7 @@ if (dialect === 'sqlite') {
           .then(() => {
             return this.User.findAll({
               include: [this.Project]
-            }).get(0);
+            }).then(rows => rows[0]);
           })
           .then(user => {
             expect(user.projects[0].get('dateField')).to.be.an.instanceof(Date);
@@ -81,7 +81,7 @@ if (dialect === 'sqlite') {
 
     describe('json', () => {
       it('should be able to retrieve a row with json_extract function', function () {
-        return this.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ])
@@ -97,7 +97,7 @@ if (dialect === 'sqlite') {
       });
 
       it('should be able to retrieve a row by json_type function', function () {
-        return this.Promise.all([
+        return Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: ['kate', 'joe'] })
         ])

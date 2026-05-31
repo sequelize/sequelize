@@ -297,12 +297,14 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         const record = { first_name: 'jan', last_name: 'meier' };
         return this.sequelize
           .sync({ force: true })
-          .bind(this)
           .then(() => {
             return User.create(record);
           })
           .then(() => {
-            return User.create(record).catch(constraintTest.exception, spy);
+            return User.create(record).catch(err => {
+              if (err instanceof constraintTest.exception) return spy(err);
+              throw err;
+            });
           })
           .then(() => {
             expect(spy).to.have.been.calledOnce;
@@ -321,13 +323,12 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({ name: 'jan' });
         })
-        .then(function () {
+        .then(() => {
           // If the error was successfully parsed, we can catch it!
-          return User.create({ name: 'jan' }).catch(this.sequelize.UniqueConstraintError, spy);
+          return User.create({ name: 'jan' }).catch(err => { if (err instanceof this.sequelize.UniqueConstraintError) return spy(err); throw err; });
         })
         .then(() => {
           expect(spy).to.have.been.calledOnce;
@@ -348,8 +349,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           // Now let's pretend the index was created by someone else, and sequelize doesn't know about it
           User = this.sequelize.define(
             'user',
@@ -361,11 +361,11 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
           return User.create({ name: 'jan' });
         })
-        .then(function () {
+        .then(() => {
           // It should work even though the unique key is not defined in the model
           return expect(User.create({ name: 'jan' })).to.be.rejectedWith(this.sequelize.UniqueConstraintError);
         })
-        .then(function () {
+        .then(() => {
           // And when the model is not passed at all
           return expect(this.sequelize.query("INSERT INTO users (name) VALUES ('jan')")).to.be.rejectedWith(
             this.sequelize.UniqueConstraintError
@@ -387,14 +387,13 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({ name: 'jan' });
         })
         .then(() => {
           return expect(User.create({ name: 'jan' })).to.be.rejected;
         })
-        .then(function (error) {
+        .then(error => {
           expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
           expect(error).to.have.property('parent');
           expect(error).to.have.property('original');

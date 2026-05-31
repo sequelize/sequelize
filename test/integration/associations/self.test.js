@@ -56,8 +56,6 @@ describe(Support.getTestDialectTeaser('Self'), () => {
   });
 
   it('can handle n:m associations', function () {
-    const self = this;
-
     const Person = this.sequelize.define('Person', { name: DataTypes.STRING });
 
     Person.belongsToMany(Person, { as: 'Parents', through: 'Family', foreignKey: 'ChildId', otherKey: 'PersonId' });
@@ -73,7 +71,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(rawAttributes).to.have.members(['createdAt', 'updatedAt', 'PersonId', 'ChildId']);
 
     return this.sequelize.sync({ force: true }).then(() => {
-      return self.Promise.all([
+      return Promise.all([
         Person.create({ name: 'Mary' }),
         Person.create({ name: 'John' }),
         Person.create({ name: 'Chris' })
@@ -135,7 +133,6 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     let count = 0;
     return this.sequelize
       .sync({ force: true })
-      .bind(this)
       .then(() => {
         return Promise.all([
           Person.create({ name: 'Mary' }),
@@ -143,7 +140,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           Person.create({ name: 'Chris' })
         ]);
       })
-      .then(function ([mary, john, chris]) {
+      .then(([mary, john, chris]) => {
         this.mary = mary;
         this.chris = chris;
         this.john = john;
@@ -157,7 +154,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           }
         });
       })
-      .then(function () {
+      .then(() => {
         return this.mary.addParent(this.chris, {
           logging(sql) {
             if (sql.match(/INSERT/)) {
@@ -168,7 +165,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           }
         });
       })
-      .then(function () {
+      .then(() => {
         return this.john.getChildren({
           logging(sql) {
             count++;
@@ -178,7 +175,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           }
         });
       })
-      .then(function (children) {
+      .then(children => {
         expect(count).to.be.equal(3);
         expect(_.map(children, 'id')).to.have.members([this.mary.id]);
       });

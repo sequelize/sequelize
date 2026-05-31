@@ -51,8 +51,7 @@ if (current.dialect.supports.transactions) {
         it('works for long running transactions', function () {
           this.timeout(30000);
           return Support.prepareTransactionTest(this.sequelize)
-            .bind(this)
-            .then(function (sequelize) {
+            .then(sequelize => {
               this.sequelize = sequelize;
 
               this.User = sequelize.define(
@@ -65,10 +64,10 @@ if (current.dialect.supports.transactions) {
 
               return sequelize.sync({ force: true });
             })
-            .then(function () {
+            .then(() => {
               return this.sequelize.transaction();
             })
-            .then(function (t) {
+            .then(t => {
               let query = 'select sleep(2);';
 
               switch (Support.getTestDialect()) {
@@ -87,18 +86,17 @@ if (current.dialect.supports.transactions) {
 
               return this.sequelize
                 .query(query, { transaction: t })
-                .bind(this)
-                .then(function () {
+                .then(() => {
                   return this.User.create({ name: 'foo' });
                 })
-                .then(function () {
+                .then(() => {
                   return this.sequelize.query(query, { transaction: t });
                 })
                 .then(() => {
                   return t.commit();
                 });
             })
-            .then(function () {
+            .then(() => {
               return this.User.all();
             })
             .then(users => {

@@ -50,8 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should apply defaultScope', function () {
         return this.ScopeMe.destroy({ where: {} })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
           .then(users => {
@@ -63,8 +62,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to override default scope', function () {
         return this.ScopeMe.destroy({ where: { access_level: { lt: 5 } } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
           .then(users => {
@@ -77,8 +75,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to unscope destroy', function () {
         return this.ScopeMe.unscoped()
           .destroy({ where: {} })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return expect(this.ScopeMe.unscoped().findAll()).to.eventually.have.length(0);
           });
       });
@@ -86,8 +83,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to apply other scopes', function () {
         return this.ScopeMe.scope('lowAccess')
           .destroy({ where: {} })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
           .then(users => {
@@ -99,8 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to merge scopes with where', function () {
         return this.ScopeMe.scope('lowAccess')
           .destroy({ where: { username: 'dan' } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
           .then(users => {

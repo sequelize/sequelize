@@ -116,8 +116,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.sequelize
           .sync({ force: true })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return Promise.all([
               this.ScopeMe.create({
                 id: 1,
@@ -183,7 +182,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Company.findAll({
             include: [this.UserAssociation]
           })
-            .get(0)
+            .then(rows => rows[0])
             .then(company => {
               expect(company.users).to.have.length(2);
             });
@@ -193,7 +192,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe, as: 'users' }]
           })
-            .get(0)
+            .then(rows => rows[0])
             .then(company => {
               expect(company.users).to.have.length(2);
             });
@@ -203,7 +202,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe.scope('isTony'), as: 'users' }]
           })
-            .get(0)
+            .then(rows => rows[0])
             .then(company => {
               expect(company.users).to.have.length(1);
               expect(company.users[0].get('username')).to.equal('tony');
@@ -234,8 +233,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               active: false,
               userId: 1
             })
-              .bind(this)
-              .then(function () {
+              .then(() => {
                 return this.ScopeMe.findById(1);
               })
               .then(user => {
@@ -259,7 +257,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('belongsToMany', function () {
             return this.Project.findAll()
-              .get(0)
+              .then(rows => rows[0])
               .then(p => {
                 return p.getCompanies({ scope: false });
               })
@@ -285,8 +283,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               active: false,
               userId: 1
             })
-              .bind(this)
-              .then(function () {
+              .then(() => {
                 return this.ScopeMe.findById(1);
               })
               .then(user => {
@@ -310,7 +307,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('belongsToMany', function () {
             return this.Project.findAll()
-              .get(0)
+              .then(rows => rows[0])
               .then(p => {
                 return p.getCompanies();
               })
@@ -338,8 +335,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               active: true,
               userId: 1
             })
-              .bind(this)
-              .then(function () {
+              .then(() => {
                 return this.ScopeMe.findById(1);
               })
               .then(user => {
@@ -363,7 +359,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('belongsToMany', function () {
             return this.Project.findAll()
-              .get(0)
+              .then(rows => rows[0])
               .then(p => {
                 return p.getCompanies({ scope: 'reversed' });
               })

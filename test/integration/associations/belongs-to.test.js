@@ -379,19 +379,19 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind({})
+        
         .then(() => {
           return Promise.all([Home.create(), User.create()]);
         })
-        .then(function ([home, user]) {
+        .then(([home, user]) => {
           this.home = home;
           this.user = user;
           return home.setUser(user);
         })
-        .then(function () {
+        .then(() => {
           return this.home.setUser(this.user);
         })
-        .then(function () {
+        .then(() => {
           return expect(this.home.getUser()).to.eventually.have.property('id', this.user.get('id'));
         });
     });

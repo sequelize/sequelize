@@ -271,8 +271,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         );
 
         return Model.runHooks('beforeCreate')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.beforeCreate).to.have.been.calledOnce;
           });
       });
@@ -290,8 +289,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           );
 
         return Model.runHooks('beforeCreate')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.beforeCreate).not.to.have.been.called;
             expect(localHook).to.have.been.calledOnce;
           });
@@ -308,8 +306,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.Model.beforeCreate('myHook2', hook2);
 
       return this.Model.runHooks('beforeCreate')
-        .bind(this)
-        .then(function () {
+        .then(() => {
           expect(hook1).to.have.been.calledOnce;
           expect(hook2).to.have.been.calledOnce;
 
@@ -339,8 +336,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.Model.beforeCreate(hook4);
 
       return this.Model.runHooks('beforeCreate')
-        .bind(this)
-        .then(function () {
+        .then(() => {
           expect(hook1).to.have.been.calledOnce;
           expect(hook2).to.have.been.calledOnce;
           expect(hook3).to.have.been.calledOnce;
@@ -418,10 +414,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('promises', () => {
     it('can return a promise', function () {
-      const self = this;
-
       this.Model.beforeBulkCreate(() => {
-        return self.Promise.resolve();
+        return Promise.resolve();
       });
 
       return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;

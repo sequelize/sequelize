@@ -132,7 +132,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
@@ -235,7 +234,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should still work right with other concurrent increments', function () {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.Promise.all([
+        return Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
@@ -295,11 +294,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       let oldDate;
 
       return User.sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({ aNumber: 1 });
         })
-        .then(function (user) {
+        .then(user => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return user.increment('aNumber', { by: 1, silent: true });
@@ -318,7 +316,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
@@ -410,7 +407,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should still work right with other concurrent increments', function () {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.Promise.all([
+        return Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
@@ -437,7 +434,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('with negative value', function () {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.Promise.all([
+        return Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
           user1.decrement({ aNumber: -1, bNumber: -2 })
@@ -461,11 +458,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       let oldDate;
 
       return User.sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({ aNumber: 1 });
         })
-        .then(function (user) {
+        .then(user => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return user.decrement('aNumber', { by: 1 });
@@ -486,11 +482,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       let oldDate;
 
       return User.sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({ aNumber: 1 });
         })
-        .then(function (user) {
+        .then(user => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return user.decrement('aNumber', { by: 1, silent: true });
@@ -505,7 +500,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
@@ -559,9 +553,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         aNumber: 1,
         bNumber: 1
       })
-        .bind(this)
-        .then(async function (user) {
-          return this.User.update(
+        .then(async user => {
+          await this.User.update(
             {
               bNumber: 2
             },
@@ -571,9 +564,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               }
             }
           );
-        
-return user;
-})
+          return user;
+        })
         .then(user => {
           return user.reload({
             attributes: ['bNumber']
@@ -587,8 +579,7 @@ return user;
 
     it('should update read only attributes as well (updatedAt)', function () {
       return this.User.create({ username: 'John Doe' })
-        .bind(this)
-        .then(function (originalUser) {
+        .then(originalUser => {
           this.originallyUpdatedAt = originalUser.updatedAt;
           this.originalUser = originalUser;
 
@@ -599,11 +590,11 @@ return user;
         .then(updater => {
           return updater.updateAttributes({ username: 'Doe John' });
         })
-        .then(function (updatedUser) {
+        .then(updatedUser => {
           this.updatedUser = updatedUser;
           return this.originalUser.reload();
         })
-        .then(function () {
+        .then(() => {
           expect(this.originalUser.updatedAt).to.be.above(this.originallyUpdatedAt);
           expect(this.updatedUser.updatedAt).to.be.above(this.originallyUpdatedAt);
         });
@@ -898,8 +889,7 @@ return user;
           username: 'a user'
         })
           .save()
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.User.findOne({
               where: {
                 username: 'a user'
@@ -916,8 +906,7 @@ return user;
           isSuperUser: true
         })
           .save()
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.User.findOne({
               where: {
                 username: 'a user'
@@ -934,8 +923,7 @@ return user;
           isSuperUser: 'true'
         })
           .save()
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.User.findOne({
               where: {
                 username: 'a user'
@@ -952,8 +940,7 @@ return user;
           isSuperUser: 1
         })
           .save()
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.User.findOne({
               where: {
                 username: 'a user'
@@ -1003,7 +990,6 @@ return user;
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Support.Sequelize.STRING });
             return User.sync({ force: true }).then(() => {
@@ -1315,8 +1301,7 @@ return user;
 
     it('does not update timestamps when passing silent=true', function () {
       return this.User.create({ username: 'user' })
-        .bind(this)
-        .then(function (user) {
+        .then(user => {
           const updatedAt = user.updatedAt;
 
           this.clock.tick(1000);
@@ -1341,15 +1326,14 @@ return user;
       let updatedAtPeter, updatedAtPaul;
 
       return this.User.bulkCreate(data)
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.User.findAll();
         })
         .then(users => {
           updatedAtPaul = users[0].updatedAt;
           updatedAtPeter = users[1].updatedAt;
         })
-        .then(function () {
+        .then(() => {
           this.clock.tick(150);
           return this.User.update({ aNumber: 1 }, { where: {}, silent: true });
         })
@@ -2049,7 +2033,6 @@ return user;
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 

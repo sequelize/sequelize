@@ -446,7 +446,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               users[2].setOrder(orders[0])
             ]);
           })
-          .spread(() => {
+          .then(() => {
             return User.findAll({
               include: [{ model: Item, as: 'itemA', where: { test: 'abc' } }, { model: Item, as: 'itemB' }, Order],
               order: [[Order, 'position']]
@@ -492,7 +492,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }, { title: 'Dress' }]),
           Tag.bulkCreate([{ name: 'A' }, { name: 'B' }, { name: 'C' }])
         ])
-          .spread(() => {
+          .then(() => {
             return Promise.all([Product.findAll(), Tag.findAll()]);
           })
           .then(([products, tags]) => {
@@ -505,7 +505,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               products[2].addTag(tags[2], { through: { priority: 2 } })
             ]);
           })
-          .spread(() => {
+          .then(() => {
             return Product.findAll({
               include: [{ model: Tag }],
               order: [
@@ -935,7 +935,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return Promise.all([Group.findAll(), Rank.findAll(), Tag.findAll()]);
           })
           .then(([groups, ranks, tags]) => {
-            return Promise.resolve([0, 1, 2, 3, 4]).each(i => {
+            return pEach([0, 1, 2, 3, 4], i => {
               return Promise.all([
                 User.create({ name: 'FooBarzz' }),
                 Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => {

@@ -210,8 +210,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('should support Model.destroy()', function () {
           return this.User.create()
-            .bind(this)
-            .then(function (user) {
+            .then(user => {
               return this.User.destroy({
                 where: {
                   id: user.get('id')
@@ -603,7 +602,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })
         ])
           .then(([user, task]) => {
-            return [user, task.getUser()];
+            return Promise.all([user, task.getUser()]);
           })
           .then(([userA, userB]) => {
             expect(userA.get('id')).to.equal(userB.get('id'));
@@ -628,14 +627,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         );
 
         return User.sync({ force: true })
-          .bind(this)
           .then(() => {
             return User.create();
           })
           .then(user => {
             return user.destroy();
           })
-          .then(function () {
+          .then(() => {
             this.clock.tick(1000);
             return User.findAll();
           })

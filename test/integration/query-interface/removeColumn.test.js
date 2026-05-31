@@ -49,8 +49,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to remove a column with a default value', function () {
         return this.queryInterface
           .removeColumn('users', 'firstName')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable('users');
           })
           .then(table => {
@@ -61,8 +60,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to remove a column without default value', function () {
         return this.queryInterface
           .removeColumn('users', 'lastName')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable('users');
           })
           .then(table => {
@@ -73,8 +71,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to remove a column with a foreign key constraint', function () {
         return this.queryInterface
           .removeColumn('users', 'manager')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable('users');
           })
           .then(table => {
@@ -85,15 +82,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should be able to remove a column with primaryKey', function () {
         return this.queryInterface
           .removeColumn('users', 'manager')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable('users');
           })
-          .then(function (table) {
+          .then(table => {
             expect(table).to.not.have.property('manager');
             return this.queryInterface.removeColumn('users', 'id');
           })
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable('users');
           })
           .then(table => {
@@ -109,8 +105,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         it('should be able to remove a column with unique contraint', function () {
           return this.queryInterface
             .removeColumn('users', 'email')
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return this.queryInterface.describeTable('users');
             })
             .then(table => {
@@ -159,8 +154,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             'firstName'
           )
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable({
               tableName: 'users',
               schema: 'archive'
@@ -180,8 +174,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             'lastName'
           )
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable({
               tableName: 'users',
               schema: 'archive'
@@ -201,8 +194,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             },
             'id'
           )
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.describeTable({
               tableName: 'users',
               schema: 'archive'
@@ -227,8 +219,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               },
               'email'
             )
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return this.queryInterface.describeTable({
                 tableName: 'users',
                 schema: 'archive'

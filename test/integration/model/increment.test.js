@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should still work right with other concurrent increments', function () {
         return this.User.findAll().then(aUsers => {
-          return this.Promise.all([
+          return Promise.all([
             this.User[method](['aNumber'], { by: 2, where: {} }),
             this.User[method](['aNumber'], { by: 2, where: {} }),
             this.User[method](['aNumber'], { by: 2, where: {} })
@@ -167,11 +167,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let oldDate;
 
         return User.sync({ force: true })
-          .bind(this)
           .then(() => {
             return User.create({ aNumber: 1 });
           })
-          .then(function (user) {
+          .then(user => {
             oldDate = user.updatedAt;
 
             this.clock.tick(1000);
@@ -193,11 +192,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let oldDate;
 
         return User.sync({ force: true })
-          .bind(this)
           .then(() => {
             return User.create({ aNumber: 1 });
           })
-          .then(function (user) {
+          .then(user => {
             oldDate = user.updatedAt;
             this.clock.tick(1000);
             return User[method]('aNumber', { by: 1, silent: true, where: {} });

@@ -51,8 +51,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should apply defaultScope', function () {
         return this.ScopeMe.update({ username: 'ruben' }, { where: {} })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
           })
           .then(users => {
@@ -64,8 +63,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should be able to override default scope', function () {
         return this.ScopeMe.update({ username: 'ruben' }, { where: { access_level: { lt: 5 } } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
           })
           .then(users => {
@@ -78,8 +76,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to unscope destroy', function () {
         return this.ScopeMe.unscoped()
           .update({ username: 'ruben' }, { where: {} })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
           .then(rubens => {
@@ -94,8 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to apply other scopes', function () {
         return this.ScopeMe.scope('lowAccess')
           .update({ username: 'ruben' }, { where: {} })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: { $ne: 'ruben' } } });
           })
           .then(users => {
@@ -107,8 +103,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('should be able to merge scopes with where', function () {
         return this.ScopeMe.scope('lowAccess')
           .update({ username: 'ruben' }, { where: { username: 'dan' } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
           })
           .then(users => {

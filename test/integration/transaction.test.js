@@ -411,12 +411,10 @@ if (current.dialect.supports.transactions) {
         .transaction({
           transaction: null
         })
-        .bind(this)
-        .then(function (t) {
+        .then(t => {
           return t
             .commit()
-            .bind(this)
-            .then(function () {
+            .then(() => {
               expect(this.sequelize.query.callCount).to.be.greaterThan(0);
 
               for (let i = 0; i < this.sequelize.query.callCount; i++) {
@@ -433,12 +431,10 @@ if (current.dialect.supports.transactions) {
         .transaction({
           transaction: undefined
         })
-        .bind(this)
-        .then(function (t) {
+        .then(t => {
           return t
             .commit()
-            .bind(this)
-            .then(function () {
+            .then(() => {
               expect(this.sequelize.query.callCount).to.be.greaterThan(0);
 
               for (let i = 0; i < this.sequelize.query.callCount; i++) {
@@ -488,11 +484,9 @@ if (current.dialect.supports.transactions) {
         it('should support default transaction type DEFERRED', function () {
           return this.sequelize
             .transaction({})
-            .bind(this)
-            .then(function (t) {
+            .then(t => {
               return t
                 .rollback()
-                .bind(this)
                 .then(() => {
                   expect(t.options.type).to.equal('DEFERRED');
                 });
@@ -505,11 +499,9 @@ if (current.dialect.supports.transactions) {
               .transaction({
                 type: key
               })
-              .bind(this)
-              .then(function (t) {
+              .then(t => {
                 return t
                   .rollback()
-                  .bind(this)
                   .then(() => {
                     expect(t.options.type).to.equal(Transaction.TYPES[key]);
                   });
@@ -522,7 +514,6 @@ if (current.dialect.supports.transactions) {
     if (dialect === 'sqlite') {
       it('automatically retries on SQLITE_BUSY failure', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Support.Sequelize.STRING });
             return User.sync({ force: true }).then(() => {
@@ -544,7 +535,6 @@ if (current.dialect.supports.transactions) {
 
       it('fails with SQLITE_BUSY when retry.match is changed', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', {
               id: { type: Support.Sequelize.INTEGER, primaryKey: true },

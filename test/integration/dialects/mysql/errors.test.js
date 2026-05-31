@@ -34,7 +34,6 @@ if (dialect === 'mysql') {
 
         return this.sequelize
           .sync({ force: true })
-          .bind({})
           .then(() => {
             return Promise.all([
               self.User.create({ id: 67, username: 'foo' }),

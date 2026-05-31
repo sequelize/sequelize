@@ -30,7 +30,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -271,7 +270,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }])
           .then(() => {
-            return self.Promise.all((permutations).map( perm => {
+            return Promise.all((permutations).map( perm => {
               return self.User.findById(perm, {
                 logging(s) {
                   expect(s.indexOf(0)).not.to.equal(-1);
@@ -846,8 +845,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           return this.sequelize
             .sync()
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return Promise.all([
                 this.Product.bulkCreate([
                   { title: 'Chair' },
@@ -859,10 +857,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 this.Tag.bulkCreate([{ name: 'Furniture' }, { name: 'Clothing' }, { name: 'People' }])
               ]);
             })
-            .then(function () {
+            .then(() => {
               return Promise.all([this.Product.findAll(), this.Tag.findAll()]);
             })
-            .then(function ([products, tags]) {
+            .then(([products, tags]) => {
               this.products = products;
               this.tags = tags;
 
@@ -874,7 +872,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 products[4].setTags([tags[2]])
               ]);
             })
-            .then(function () {
+            .then(() => {
               return Promise.all([
                 expect(
                   this.Tag.findOne({

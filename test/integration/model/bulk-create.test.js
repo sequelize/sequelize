@@ -407,8 +407,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.sequelize
         .dropAllSchemas()
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.sequelize.createSchema('space1');
         })
         .then(() => {

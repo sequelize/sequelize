@@ -42,8 +42,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     it('uses one update statement for addition', function () {
       return user
         .setTasks([task1, task2])
-        .bind(this)
-        .then(function () {
+        .then(() => {
           expect(this.findAll).to.have.been.calledOnce;
           expect(this.update).to.have.been.calledOnce;
         });
@@ -63,12 +62,11 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       return user
         .setTasks([task1, task2])
-        .bind(this)
-        .then(function () {
+        .then(() => {
           this.update.resetHistory();
           return user.setTasks(null);
         })
-        .then(function () {
+        .then(() => {
           expect(this.findAll).to.have.been.calledTwice;
           expect(this.update).to.have.been.calledOnce;
         });

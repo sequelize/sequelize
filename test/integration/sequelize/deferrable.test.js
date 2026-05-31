@@ -43,15 +43,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         );
 
         return User.sync({ force: true })
-          .bind(this)
           .then(() => {
             return Task.sync({ force: true });
           })
-          .then(function () {
+          .then(() => {
             return this.sequelize.transaction(transactionOptions, t => {
               return Task.create({ title: 'a task', user_id: -1 }, { transaction: t })
                 .then(task => {
-                  return [task, User.create({}, { transaction: t })];
+                  return Promise.all([task, User.create({}, { transaction: t })]);
                 })
                 .then(([task, user]) => {
                   task.user_id = user.id;

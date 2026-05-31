@@ -1,4 +1,5 @@
 'use strict';
+const { props: pProps } = require('../../../lib/utils/promise-helpers');
 
 const chai = require('chai'),
   sinon = require('sinon'),
@@ -31,7 +32,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -919,7 +919,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.pProps({
+            return pProps({
               europe: self.Continent.create({ name: 'Europe' }),
               england: self.Country.create({ name: 'England' }),
               coal: self.Industry.create({ name: 'Coal' }),
@@ -928,7 +928,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               _.forEach(r, (item, itemName) => {
                 self[itemName] = item;
               });
-              return self.Promise.all([
+              return Promise.all([
                 self.england.setContinent(self.europe),
                 self.england.addIndustry(self.coal),
                 self.bob.setCountry(self.england),
@@ -1115,7 +1115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           self.Person.belongsTo(self.Country, { as: 'CountryResident', foreignKey: 'CountryResidentId' });
 
           return this.sequelize.sync({ force: true }).then(() => {
-            return self.sequelize.pProps({
+            return pProps({
               europe: self.Continent.create({ name: 'Europe' }),
               asia: self.Continent.create({ name: 'Asia' }),
               england: self.Country.create({ name: 'England' }),
@@ -1130,7 +1130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 self[itemName] = item;
               });
 
-              return self.Promise.all([
+              return Promise.all([
                 self.england.setContinent(self.europe),
                 self.france.setContinent(self.europe),
                 self.korea.setContinent(self.asia),
@@ -1151,7 +1151,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply', function () {
           const self = this;
-          return this.Promise.all(([
+          return Promise.all(([
               ['ASC', 'Asia'],
               ['DESC', 'Europe']
             ]).map(
@@ -1169,7 +1169,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 1st degree association', function () {
           const self = this;
-          return this.Promise.all(([
+          return Promise.all(([
               ['ASC', 'Europe', 'England'],
               ['DESC', 'Asia', 'Korea']
             ]).map(
@@ -1191,7 +1191,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function () {
           const self = this;
-          return this.Promise.all(([['ASC', 'Asia', 'Europe', 'England']]).map( params => {
+          return Promise.all(([['ASC', 'Asia', 'Europe', 'England']]).map( params => {
             return self.Continent.findAll({
               include: [
                 {
@@ -1225,7 +1225,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         (it('sorts by 2nd degree association', function () {
           const self = this;
-          return this.Promise.all(([
+          return Promise.all(([
               ['ASC', 'Europe', 'England', 'Fred'],
               ['DESC', 'Asia', 'Korea', 'Kim']
             ]).map(
@@ -1249,7 +1249,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }),
           it('sorts by 2nd degree association with alias', function () {
             const self = this;
-            return this.Promise.all(([
+            return Promise.all(([
                 ['ASC', 'Europe', 'France', 'Fred'],
                 ['DESC', 'Europe', 'England', 'Kim']
               ]).map(
@@ -1274,7 +1274,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts by 2nd degree association with alias while using limit', function () {
           const self = this;
-          return this.Promise.all(([
+          return Promise.all(([
               ['ASC', 'Europe', 'France', 'Fred'],
               ['DESC', 'Europe', 'England', 'Kim']
             ]).map(
@@ -1310,7 +1310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             self.Industry.belongsToMany(self.Country, { through: self.IndustryCountry });
 
             return this.sequelize.sync({ force: true }).then(() => {
-              return self.sequelize.pProps({
+              return pProps({
                 england: self.Country.create({ name: 'England' }),
                 france: self.Country.create({ name: 'France' }),
                 korea: self.Country.create({ name: 'Korea' }),
@@ -1322,7 +1322,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   self[itemName] = item;
                 });
 
-                return self.Promise.all([
+                return Promise.all([
                   self.england.addIndustry(self.energy, { through: { numYears: 20 } }),
                   self.england.addIndustry(self.media, { through: { numYears: 40 } }),
                   self.france.addIndustry(self.media, { through: { numYears: 80 } }),
@@ -1334,7 +1334,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('sorts by 1st degree association', function () {
             const self = this;
-            return this.Promise.all(([
+            return Promise.all(([
                 ['ASC', 'England', 'Energy'],
                 ['DESC', 'Korea', 'Tech']
               ]).map(
@@ -1356,7 +1356,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('sorts by 1st degree association while using limit', function () {
             const self = this;
-            return this.Promise.all(([
+            return Promise.all(([
                 ['ASC', 'England', 'Energy'],
                 ['DESC', 'Korea', 'Tech']
               ]).map(
@@ -1379,7 +1379,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('sorts by through table attribute', function () {
             const self = this;
-            return this.Promise.all(([
+            return Promise.all(([
                 ['ASC', 'England', 'Energy'],
                 ['DESC', 'France', 'Media']
               ]).map(
@@ -1535,7 +1535,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -1668,7 +1667,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 

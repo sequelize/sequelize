@@ -64,7 +64,6 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
@@ -434,14 +433,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       return User.sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({
             name: 'snafu',
             identifier: 'identifier'
           });
         })
-        .then(function (user) {
+        .then(user => {
           const oldCreatedAt = user.createdAt,
             oldUpdatedAt = user.updatedAt,
             oldIdentifier = user.identifier;

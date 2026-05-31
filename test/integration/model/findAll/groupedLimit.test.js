@@ -71,7 +71,7 @@ if (current.dialect.supports['UNION ALL']) {
                 this.Task.bulkCreate([{}, {}])
               ]);
             })
-            .then(() => [this.User.findAll(), this.Project.findAll(), this.Task.findAll()])
+            .then(() => Promise.all([this.User.findAll(), this.Project.findAll(), this.Task.findAll()]))
             .then(([users, projects, tasks]) => {
               this.projects = projects;
               return Promise.all([
@@ -239,7 +239,7 @@ if (current.dialect.supports['UNION ALL']) {
                   this.Task.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }, { id: 6 }])
                 ]);
               })
-              .then(() => [this.User.findAll(), this.Task.findAll()])
+              .then(() => Promise.all([this.User.findAll(), this.Task.findAll()]))
               .then(([users, tasks]) => {
                 this.users = users;
                 return Promise.all([

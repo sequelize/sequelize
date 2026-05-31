@@ -104,14 +104,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               })
             ]);
           })
-          .bind(this)
-          .then(function ([post]) {
+          .then(([post]) => {
             this.post = post;
             return post.createComment({
               title: 'I am a post comment'
             });
           })
-          .then(function (comment) {
+          .then(comment => {
             expect(comment.get('commentable')).to.equal('post');
             expect(comment.get('isMain')).to.be.false;
             return this.Post.scope('withMainComment').findById(this.post.get('id'));
@@ -122,27 +121,27 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               title: 'I am a main post comment'
             });
           })
-          .then(function (mainComment) {
+          .then(mainComment => {
             this.mainComment = mainComment;
             expect(mainComment.get('commentable')).to.equal('post');
             expect(mainComment.get('isMain')).to.be.true;
             return this.Post.scope('withMainComment').findById(this.post.id);
           })
-          .then(function (post) {
+          .then(post => {
             expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
             return post.getMainComment();
           })
-          .then(function (mainComment) {
+          .then(mainComment => {
             expect(mainComment.get('commentable')).to.equal('post');
             expect(mainComment.get('isMain')).to.be.true;
             return this.Comment.create({
               title: 'I am a future main comment'
             });
           })
-          .then(function (comment) {
+          .then(comment => {
             return this.post.setMainComment(comment);
           })
-          .then(function () {
+          .then(() => {
             return this.post.getMainComment();
           })
           .then(mainComment => {
@@ -196,8 +195,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               })
             ]);
           })
-          .bind(this)
-          .then(function ([post, image, question, commentA, commentB]) {
+          .then(([post, image, question, commentA, commentB]) => {
             this.post = post;
             this.image = image;
             this.question = question;
@@ -224,7 +222,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                 .sort()
             ).to.deep.equal(['image', 'post', 'question']);
           })
-          .then(function () {
+          .then(() => {
             return Promise.all([this.post.getComments(), this.image.getComments(), this.question.getComments()]);
           })
           .then(([postComments, imageComments, questionComments]) => {
@@ -322,8 +320,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
             this.post = post;
             return post.comments;
           })
-          .each(comment => {
-            expect(comment.get('commentable')).to.equal('post');
+          .then(comments => {
+            for (const comment of comments) {
+              expect(comment.get('commentable')).to.equal('post');
+            }
           })
           .then(() => {
             return this.Post.scope('withComments').findById(this.post.id);
@@ -331,8 +331,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           .then(post => {
             return post.getComments();
           })
-          .each(comment => {
-            expect(comment.get('commentable')).to.equal('post');
+          .then(comments => {
+            for (const comment of comments) {
+              expect(comment.get('commentable')).to.equal('post');
+            }
           });
       });
     });
@@ -355,7 +357,6 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           it('should create, find and include associations with scope values', function () {
             const self = this;
             return Promise.all([self.Post.sync({ force: true }), self.Tag.sync({ force: true })])
-              .bind(this)
               .then(() => {
                 return self.PostTag.sync({ force: true });
               })
@@ -370,7 +371,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   self.Tag.create({ type: 'tag' })
                 ]);
               })
-              .then(function ([postA, postB, postC, categoryA, categoryB, tagA, tagB]) {
+              .then(([postA, postB, postC, categoryA, categoryB, tagA, tagB]) => {
                 this.postA = postA;
                 this.postB = postB;
                 this.postC = postC;
@@ -384,7 +385,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   postC.setTags([tagB])
                 ]);
               })
-              .then(function () {
+              .then(() => {
                 return Promise.all([
                   this.postA.getCategories(),
                   this.postA.getTags(),
@@ -554,11 +555,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               this.Question.sync({ force: true }),
               this.Tag.sync({ force: true })
             ])
-              .bind(this)
-              .then(function () {
+              .then(() => {
                 return this.ItemTag.sync({ force: true });
               })
-              .then(function () {
+              .then(() => {
                 return Promise.all([
                   this.Post.create(),
                   this.Image.create(),
@@ -568,7 +568,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   this.Tag.create({ name: 'tagC' })
                 ]);
               })
-              .then(function ([post, image, question, tagA, tagB, tagC]) {
+              .then(([post, image, question, tagA, tagB, tagC]) => {
                 this.post = post;
                 this.image = image;
                 this.question = question;
@@ -584,7 +584,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
                   })
                 ]);
               })
-              .then(function () {
+              .then(() => {
                 return Promise.all([this.post.getTags(), this.image.getTags(), this.question.getTags()])
                   .then(([postTags, imageTags, questionTags]) => {
                     expect(postTags.length).to.equal(3);

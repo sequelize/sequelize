@@ -25,8 +25,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const Model = current.define('model');
 
         return Model.findOne({ where: { id: 42 } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
           });
       });
@@ -41,8 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return Model.findOne({ where: { uid: 42 } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
           });
       });
@@ -57,8 +55,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return Model.findOne({ where: { id: new Buffer('foo') } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
           });
       });
@@ -68,8 +65,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const Model = current.define('model');
 
       return Model.findOne({ where: { id: { $gt: 42 } } })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
         });
     });
@@ -84,8 +80,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return Model.findOne({ where: { unique: 42 } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
           });
       });
@@ -99,8 +94,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return Model.findOne({ where: { unique: new Buffer('foo') } })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.stub.getCall(0).args[0]).to.be.an('object').not.to.have.property('limit');
           });
       });
@@ -119,8 +113,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       return Model.findOne({ where: { unique1: 42 } })
-        .bind(this)
-        .then(function () {
+        .then(() => {
           expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
         });
     });

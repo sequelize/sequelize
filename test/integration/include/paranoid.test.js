@@ -116,26 +116,25 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
     return this.sequelize
       .sync({ force: true })
-      .bind(this)
-      .then(function () {
-        return this.Promise.all([X.create(), Y.create()]);
+      .then(() => {
+        return Promise.all([X.create(), Y.create()]);
       })
-      .then(function ([x, y]) {
+      .then(([x, y]) => {
         this.x = x;
         this.y = y;
 
         return x.addY(y);
       })
-      .then(function () {
+      .then(() => {
         return this.y.destroy();
       })
-      .then(function () {
+      .then(() => {
         //prevent CURRENT_TIMESTAMP to be same
         this.clock.tick(1000);
 
         return X.findAll({
           include: [Y]
-        }).get(0);
+        }).then(rows => rows[0]);
       })
       .then(x => {
         expect(x.ys).to.have.length(0);

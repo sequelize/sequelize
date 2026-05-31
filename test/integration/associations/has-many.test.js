@@ -584,8 +584,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            .bind({})
-            .then(function (sequelize) {
+            
+            .then(sequelize => {
               this.sequelize = sequelize;
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
               this.Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -594,28 +594,28 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
               return this.sequelize.sync({ force: true });
             })
-            .then(function () {
+            .then(() => {
               return Promise.all([this.Article.create({ title: 'foo' }), this.Label.create({ text: 'bar' })]);
             })
-            .then(function ([article, label]) {
+            .then(([article, label]) => {
               this.article = article;
               this.label = label;
               return this.sequelize.transaction();
             })
-            .then(function (t) {
+            .then(t => {
               this.t = t;
               return this.article.setLabels([this.label], { transaction: t });
             })
-            .then(function () {
+            .then(() => {
               return this.Article.all({ transaction: this.t });
             })
-            .then(function (articles) {
+            .then(articles => {
               return Promise.all([
                 articles[0].hasLabels([this.label]),
                 articles[0].hasLabels([this.label], { transaction: this.t })
               ]);
             })
-            .then(function ([hasLabel1, hasLabel2]) {
+            .then(([hasLabel1, hasLabel2]) => {
               expect(hasLabel1).to.be.false;
               expect(hasLabel2).to.be.true;
 
@@ -687,8 +687,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            .bind({})
-            .then(function (sequelize) {
+            
+            .then(sequelize => {
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
               this.Label = sequelize.define('Label', { text: DataTypes.STRING });
 
@@ -697,27 +697,27 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               this.sequelize = sequelize;
               return sequelize.sync({ force: true });
             })
-            .then(function () {
+            .then(() => {
               return Promise.all([
                 this.Article.create({ title: 'foo' }),
                 this.Label.create({ text: 'bar' }),
                 this.sequelize.transaction()
               ]);
             })
-            .then(function ([article, label, t]) {
+            .then(([article, label, t]) => {
               this.article = article;
               this.t = t;
               return article.setLabels([label], { transaction: t });
             })
-            .then(function () {
+            .then(() => {
               return this.Label.findAll({ where: { ArticleId: this.article.id }, transaction: undefined });
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(0);
 
               return this.Label.findAll({ where: { ArticleId: this.article.id }, transaction: this.t });
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(1);
               return this.t.rollback();
             });
@@ -735,20 +735,20 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          .bind({})
-          .then(function ([user, task]) {
+          
+          .then(([user, task]) => {
             this.task = task;
             return task.setUsers([user]);
           })
-          .then(function () {
+          .then(() => {
             return this.task.getUsers();
           })
-          .then(function (users) {
+          .then(users => {
             expect(users).to.have.length(1);
 
             return this.task.setUsers(null);
           })
-          .then(function () {
+          .then(() => {
             return this.task.getUsers();
           })
           .then(users => {
@@ -771,17 +771,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               Label.create({ text: 'label two' })
             ]);
           })
-          .bind({})
-          .then(function ([article, label1, label2]) {
+          
+          .then(([article, label1, label2]) => {
             this.article = article;
             this.label1 = label1;
             this.label2 = label2;
             return article.addLabel(label1.id);
           })
-          .then(function () {
+          .then(() => {
             return this.article.setLabels([this.label2.id]);
           })
-          .then(function () {
+          .then(() => {
             return this.article.getLabels();
           })
           .then(labels => {
@@ -795,8 +795,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            .bind({})
-            .then(function (sequelize) {
+            
+            .then(sequelize => {
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
               this.Label = sequelize.define('Label', { text: DataTypes.STRING });
               this.Article.hasMany(this.Label);
@@ -804,27 +804,27 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               this.sequelize = sequelize;
               return sequelize.sync({ force: true });
             })
-            .then(function () {
+            .then(() => {
               return Promise.all([this.Article.create({ title: 'foo' }), this.Label.create({ text: 'bar' })]);
             })
-            .then(function ([article, label]) {
+            .then(([article, label]) => {
               this.article = article;
               this.label = label;
               return this.sequelize.transaction();
             })
-            .then(function (t) {
+            .then(t => {
               this.t = t;
               return this.article.addLabel(this.label, { transaction: this.t });
             })
-            .then(function () {
+            .then(() => {
               return this.Label.findAll({ where: { ArticleId: this.article.id }, transaction: undefined });
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(0);
 
               return this.Label.findAll({ where: { ArticleId: this.article.id }, transaction: this.t });
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(1);
               return this.t.rollback();
             });
@@ -842,12 +842,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([Article.create({}), Label.create({ text: 'label one' })]);
           })
-          .bind({})
-          .then(function ([article, label]) {
+          
+          .then(([article, label]) => {
             this.article = article;
             return article.addLabel(label.id);
           })
-          .then(function () {
+          .then(() => {
             return this.article.getLabels();
           })
           .then(labels => {
@@ -868,22 +868,22 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return User.bulkCreate([{ username: 'foo ' }, { username: 'bar ' }, { username: 'baz ' }]);
           })
-          .bind({})
+          
           .then(() => {
             return Task.create({ title: 'task' });
           })
-          .then(function (task) {
+          .then(task => {
             this.task = task;
             return User.findAll();
           })
-          .then(function (users) {
+          .then(users => {
             this.users = users;
             return this.task.setUsers([users[0]]);
           })
-          .then(function () {
+          .then(() => {
             return this.task.addUsers([this.users[1], this.users[2]]);
           })
-          .then(function () {
+          .then(() => {
             return this.task.getUsers();
           })
           .then(users => {
@@ -907,11 +907,11 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             const users = _.range(1000).map(i => ({ username: 'user' + i, num: i, status: 'live' }));
             return User.bulkCreate(users);
           })
-          .bind({})
+          
           .then(() => {
             return Task.create({ title: 'task' });
           })
-          .then(function (task) {
+          .then(task => {
             this.task = task;
             return User.findAll();
           })
@@ -933,24 +933,24 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         .then(() => {
           return User.create({ username: 'foo' });
         })
-        .bind({})
-        .then(function (user) {
+        
+        .then(user => {
           this.user = user;
           return Task.create({ title: 'task' });
         })
-        .then(function (task) {
+        .then(task => {
           this.task = task;
           return task.setUsers([this.user]);
         })
-        .then(function () {
+        .then(() => {
           return this.task.getUsers();
         })
-        .then(function (_users) {
+        .then(_users => {
           expect(_users).to.have.length(1);
 
           return this.task.setUsers(null);
         })
-        .then(function () {
+        .then(() => {
           return this.task.getUsers();
         })
         .then(_users => {
@@ -1001,12 +1001,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Article.create({ title: 'foo' });
           })
-          .bind({})
-          .then(function (article) {
+          
+          .then(article => {
             this.article = article;
             return article.createLabel({ text: 'bar' }, { logging: spy });
           })
-          .then(function (label) {
+          .then(label => {
             expect(spy.calledOnce).to.be.true;
             expect(label.ArticleId).to.equal(this.article.id);
           });
@@ -1015,8 +1015,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            .bind({})
-            .then(function (sequelize) {
+            
+            .then(sequelize => {
               this.sequelize = sequelize;
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
               this.Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -1025,29 +1025,29 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
               return sequelize.sync({ force: true });
             })
-            .then(function () {
+            .then(() => {
               return this.Article.create({ title: 'foo' });
             })
-            .then(function (article) {
+            .then(article => {
               this.article = article;
               return this.sequelize.transaction();
             })
-            .then(function (t) {
+            .then(t => {
               this.t = t;
               return this.article.createLabel({ text: 'bar' }, { transaction: this.t });
             })
-            .then(function () {
+            .then(() => {
               return this.Label.findAll();
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(0);
               return this.Label.findAll({ where: { ArticleId: this.article.id } });
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(0);
               return this.Label.findAll({ where: { ArticleId: this.article.id }, transaction: this.t });
             })
-            .then(function (labels) {
+            .then(labels => {
               expect(labels.length).to.equal(1);
               return this.t.rollback();
             });
@@ -1134,12 +1134,12 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
             ]);
           })
-          .bind({})
-          .then(function ([article, label1, label2]) {
+          
+          .then(([article, label1, label2]) => {
             this.article = article;
             return article.setLabels([label1, label2]);
           })
-          .then(function () {
+          .then(() => {
             return this.article.getLabels({ where: { until: { $gt: moment('2014-01-02').toDate() } } });
           })
           .then(labels => {
@@ -1288,22 +1288,22 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         return this.sequelize
           .sync({ force: true })
-          .bind({})
+          
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          .then(function ([user, task]) {
+          .then(([user, task]) => {
             this.user = user;
             this.task = task;
             return user.setTasks([task]);
           })
-          .then(function () {
+          .then(() => {
             return this.user.destroy();
           })
-          .then(function () {
+          .then(() => {
             return this.task.reload();
           })
-          .then(function (task) {
+          .then(task => {
             expect(task.UserId).to.equal(this.user.id);
           });
       });
@@ -1316,16 +1316,16 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         return this.sequelize
           .sync({ force: true })
-          .bind({})
+          
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          .then(function ([user, task]) {
+          .then(([user, task]) => {
             this.user = user;
             this.task = task;
             return user.setTasks([task]);
           })
-          .then(function () {
+          .then(() => {
             return this.user.destroy();
           })
           .then(() => {
@@ -1380,17 +1380,17 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           return this.sequelize
             .sync({ force: true })
-            .bind({})
+            
             .then(() => {
               return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
             })
-            .then(function ([user, task]) {
+            .then(([user, task]) => {
               this.user = user;
               this.task = task;
               return user.setTasks([task]);
             })
-            .then(function () {
-              return this.user.destroy().catch(self.sequelize.ForeignKeyConstraintError, () => {
+            .then(() => {
+              return this.user.destroy().catch(err => { if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
                 // Should fail due to FK violation
                 return Task.findAll();
               });
@@ -1424,7 +1424,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               return user.sequelize
                 .getQueryInterface()
                 .update(user, tableName, { id: 999 }, { id: user.id })
-                .catch(self.sequelize.ForeignKeyConstraintError, () => {
+                .catch(err => { if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
                   // Should fail due to FK violation
                   return Task.findAll();
                 });

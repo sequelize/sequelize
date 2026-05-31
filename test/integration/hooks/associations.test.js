@@ -743,11 +743,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Promise.resolve();
               });
 
-              return this.Promise.all([
+              return Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
-                .bind(this)
                 .then(([project, minitask]) => {
                   return project.addMiniTask(minitask);
                 })
@@ -802,11 +801,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Promise.resolve();
               });
 
-              return this.Promise.all([
+              return Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
-                .bind(this)
                 .then(([project, minitask]) => {
                   return project.addMiniTask(minitask);
                 })
@@ -892,14 +890,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 return Promise.resolve();
               });
 
-              return this.Promise.all([
+              return Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.Tasks.create({ title: 'New Task' }),
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
-                .bind(this)
-                .then(function ([project, task, minitask]) {
-                  return this.Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
+                .then(([project, task, minitask]) => {
+                  return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
                     project
                   );
                 })
@@ -950,14 +947,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 afterMiniTask = true;
               });
 
-              return this.Promise.all([
+              return Promise.all([
                 this.Projects.create({ title: 'New Project' }),
                 this.Tasks.create({ title: 'New Task' }),
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
-                .bind(this)
-                .then(function ([project, task, minitask]) {
-                  return this.Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
+                .then(([project, task, minitask]) => {
+                  return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
                     project
                   );
                 })

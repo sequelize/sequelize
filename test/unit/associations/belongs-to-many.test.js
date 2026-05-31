@@ -187,8 +187,7 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     it('uses one insert into statement', function () {
       return user
         .setTasks([task1, task2])
-        .bind(this)
-        .then(function () {
+        .then(() => {
           expect(this.findAll).to.have.been.calledOnce;
           expect(this.bulkCreate).to.have.been.calledOnce;
         });
@@ -208,11 +207,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
 
       return user
         .setTasks([task1, task2])
-        .bind(this)
         .then(() => {
           return user.setTasks(null);
         })
-        .then(function () {
+        .then(() => {
           expect(this.findAll).to.have.been.calledTwice;
           expect(this.destroy).to.have.been.calledOnce;
         });

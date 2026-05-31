@@ -45,15 +45,14 @@ if (dialect !== 'sqlite') {
 
         return this.sequelize
           .sync({ force: true })
-          .bind(this)
           .then(() => {
             return NormalUser.create({});
           })
-          .then(function (normalUser) {
+          .then(normalUser => {
             this.normalUser = normalUser;
             return TimezonedUser.findById(normalUser.id);
           })
-          .then(function (timezonedUser) {
+          .then(timezonedUser => {
             // Expect 7 hours difference, in milliseconds.
             // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
             // this test does not apply to PG, since it stores the timezone along with the timestamp.
@@ -70,7 +69,6 @@ if (dialect !== 'sqlite') {
 
         return this.sequelize
           .sync({ force: true })
-          .bind(this)
           .then(() => {
             return TimezonedUser.create({});
           })

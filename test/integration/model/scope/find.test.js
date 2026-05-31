@@ -101,8 +101,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('should not overwrite', () => {
       it('default scope with values from previous finds', function () {
         return this.ScopeMe.findAll({ where: { other_value: 10 } })
-          .bind(this)
-          .then(function (users) {
+          .then(users => {
             expect(users).to.have.length(1);
 
             return this.ScopeMe.findAll();
@@ -116,8 +115,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('other scopes with values from previous finds', function () {
         return this.ScopeMe.scope('highValue')
           .findAll({ where: { access_level: 10 } })
-          .bind(this)
-          .then(function (users) {
+          .then(users => {
             expect(users).to.have.length(1);
 
             return this.ScopeMe.scope('highValue').findAll();

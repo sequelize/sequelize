@@ -341,19 +341,19 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind({})
+        
         .then(() => {
           return Promise.all([Home.create(), User.create()]);
         })
-        .then(function ([home, user]) {
+        .then(([home, user]) => {
           this.home = home;
           this.user = user;
           return user.setHome(home);
         })
-        .then(function () {
+        .then(() => {
           return this.user.setHome(this.home);
         })
-        .then(function () {
+        .then(() => {
           return expect(this.user.getHome()).to.eventually.have.property('id', this.home.get('id'));
         });
     });

@@ -373,12 +373,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true })
         .then(() => {
-          return self.Promise.all([
+          return Promise.all([
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
             User.create({ username: 'tobi', email: 'tobi@tobi.me' })
           ]);
         })
-        .catch(self.sequelize.UniqueConstraintError, err => {
+        .catch(err => { if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
           expect(err.message).to.equal('User and email must be unique');
         });
     });
@@ -420,12 +420,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             email: { type: Sequelize.STRING, unique: 'user_and_email_index' }
           });
-          return self.Promise.all([
+          return Promise.all([
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
             User.create({ user_id: 1, email: 'tobi@tobi.me' })
           ]);
         })
-        .catch(self.sequelize.UniqueConstraintError, err => {
+        .catch(err => { if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
           expect(err.message).to.equal('User and email must be unique');
         });
     });
@@ -473,19 +473,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return this.sequelize
         .sync()
-        .then(function () {
+        .then(() => {
           return this.sequelize.sync(); // The second call should not try to create the indices again
         })
-        .then(function () {
+        .then(() => {
           return this.sequelize.queryInterface.showIndex(Model.tableName);
         })
-        .then(function ([]) {
+        .then(indexes => {
           let primary, idx1, idx2, idx3;
 
           if (dialect === 'sqlite') {
             // PRAGMA index_info does not return the primary index
-            idx1 = arguments[0];
-            idx2 = arguments[1];
+            idx1 = indexes[0];
+            idx2 = indexes[1];
 
             expect(idx1.fields).to.deep.equal([
               { attribute: 'fieldB', length: undefined, order: undefined },
@@ -494,7 +494,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
             expect(idx2.fields).to.deep.equal([{ attribute: 'fieldC', length: undefined, order: undefined }]);
           } else if (dialect === 'mssql') {
-            idx1 = arguments[0];
+            idx1 = indexes[0];
 
             expect(idx1.fields).to.deep.equal([
               { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
@@ -502,10 +502,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ]);
           } else if (dialect === 'postgres') {
             // Postgres returns indexes in alphabetical order
-            primary = arguments[2];
-            idx1 = arguments[0];
-            idx2 = arguments[1];
-            idx3 = arguments[2];
+            primary = indexes[2];
+            idx1 = indexes[0];
+            idx2 = indexes[1];
+            idx3 = indexes[2];
 
             expect(idx1.fields).to.deep.equal([
               { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
@@ -521,9 +521,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ]);
           } else {
             // And finally mysql returns the primary first, and then the rest in the order they were defined
-            primary = arguments[0];
-            idx1 = arguments[1];
-            idx2 = arguments[2];
+            primary = indexes[0];
+            idx1 = indexes[1];
+            idx2 = indexes[2];
 
             expect(primary.primary).to.be.ok;
 
@@ -782,7 +782,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports the transaction option in the first parameter', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
             return User.sync({ force: true }).then(() => {
@@ -839,7 +838,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
 
@@ -950,7 +948,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -1262,10 +1259,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       ];
 
       return this.User.bulkCreate(data)
-        .then(function () {
+        .then(() => {
           return this.User.findAll({ order: ['id'] });
         })
-        .then(function (users) {
+        .then(users => {
           this.updatedAt = users[0].updatedAt;
 
           expect(this.updatedAt).to.be.ok;
@@ -1275,10 +1272,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.clock.tick(1000);
           return this.User.update({ username: 'Bill' }, { where: { secretValue: '42' } });
         })
-        .then(function () {
+        .then(() => {
           return this.User.findAll({ order: ['id'] });
         })
-        .then(function (users) {
+        .then(users => {
           expect(users[0].username).to.equal('Bill');
           expect(users[1].username).to.equal('Bill');
           expect(users[2].username).to.equal('Bob');
@@ -1509,7 +1506,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -1639,8 +1635,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(() => {
           return ParanoidUser.bulkCreate(data);
         })
-        .bind({})
-        .then(function () {
+        .then(() => {
           // since we save in UTC, let's format to UTC time
           this.date = moment().utc().format('YYYY-MM-DD h:mm');
           return ParanoidUser.destroy({ where: { secretValue: '42' } });
@@ -1656,7 +1651,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             'SELECT * FROM ' + qi('ParanoidUsers') + ' WHERE ' + qi('deletedAt') + ' IS NOT NULL ORDER BY ' + qi('id')
           );
         })
-        .then(function ([users]) {
+        .then(([users]) => {
           expect(users[0].username).to.equal('Peter');
           expect(users[1].username).to.equal('Paul');
 
@@ -1757,7 +1752,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           })
           .then(user => {
             expect(user).to.be.null;
-            return [User.count(), User.count({ paranoid: false })];
+            return Promise.all([User.count(), User.count({ paranoid: false })]);
           })
           .then(([cnt, cntWithDeleted]) => {
             expect(cnt).to.equal(2);
@@ -1808,13 +1803,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return pet.destroy();
         })
         .then(() => {
-          return [
+          return Promise.all([
             User.find({ where: { id: user.id }, include: Pet }),
             User.find({
               where: { id: user.id },
               include: [{ model: Pet, paranoid: false }]
             })
-          ];
+          ]);
         })
         .then(([user, userWithDeletedPets]) => {
           expect(user).to.exist;
@@ -2069,7 +2064,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { username: Sequelize.STRING });
 
@@ -2234,7 +2228,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { age: Sequelize.INTEGER });
 
@@ -2326,7 +2319,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
         return Support.prepareTransactionTest(this.sequelize)
-          .bind({})
           .then(sequelize => {
             const User = sequelize.define('User', { age: Sequelize.INTEGER });
 
@@ -2490,7 +2482,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         { age: 2, gender: 'male' },
         { age: 3, gender: 'female' }
       ])
-        .then(function () {
+        .then(() => {
           return expect(
             this.UserWithFields.sum('age', {
               where: { gender: 'male' }
@@ -3132,7 +3124,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 return t.rollback();
               });
           };
-          return User.sync({ force: true }).then(function () {
+          return User.sync({ force: true }).then(() => {
             const tasks = [];
             for (let i = 0; i < 1000; i++) {
               tasks.push(testAsync.bind(this));

@@ -679,18 +679,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind({})
         .then(() => {
           return Group.bulkCreate([{ name: 'SoccerMoms' }, { name: 'Coca Cola' }, { name: 'Dell' }, { name: 'Pepsi' }]);
         })
         .then(() => {
           return Group.findAll();
         })
-        .then(function (groups) {
+        .then(groups => {
           this.groups = groups;
           return groups[0].setOutsourcingCompanies(groups.slice(1));
         })
-        .then(function () {
+        .then(() => {
           return Group.find({
             where: {
               id: this.groups[0].id
@@ -724,18 +723,17 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind({})
         .then(() => {
           return Promise.all([
             User.create({ dateField: Date.UTC(2014, 1, 20) }),
             Group.create({ dateField: Date.UTC(2014, 1, 20) })
           ]);
         })
-        .then(function ([user, group]) {
+        .then(([user, group]) => {
           this.user = user;
           return user.addGroup(group);
         })
-        .then(function () {
+        .then(() => {
           return User.find({
             where: {
               id: this.user.id
@@ -773,7 +771,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind({})
         .then(() => {
           return Promise.all([
             User.create({ name: 'Owner' }),
@@ -781,16 +778,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             Group.create({ name: 'Group' })
           ]);
         })
-        .then(function ([owner, member, group]) {
+        .then(([owner, member, group]) => {
           this.owner = owner;
           this.member = member;
           this.group = group;
           return owner.addGroup(group);
         })
-        .then(function () {
+        .then(() => {
           return this.group.addMember(this.member);
         })
-        .then(function () {
+        .then(() => {
           return this.owner.getGroups({
             include: [
               {
@@ -873,8 +870,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     it('should include associations to findAndCountAll', function () {
       return createUsersAndItems
         .bind(this)()
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.User.findAndCountAll({
             include: [
               {

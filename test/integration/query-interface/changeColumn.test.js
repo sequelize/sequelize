@@ -28,8 +28,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('should support schemas', function () {
       return this.sequelize
         .createSchema('archive')
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface
             .createTable(
               {
@@ -45,8 +44,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 currency: DataTypes.INTEGER
               }
             )
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return this.queryInterface.changeColumn(
                 {
                   tableName: 'users',
@@ -58,7 +56,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 }
               );
             })
-            .then(function () {
+            .then(() => {
               return this.queryInterface.describeTable({
                 tableName: 'users',
                 schema: 'archive'
@@ -89,14 +87,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             currency: DataTypes.INTEGER
           }
         )
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.queryInterface.changeColumn('users', 'currency', {
             type: DataTypes.FLOAT,
             allowNull: true
           });
         })
-        .then(function () {
+        .then(() => {
           return this.queryInterface.describeTable({
             tableName: 'users'
           });
@@ -123,8 +120,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               firstName: DataTypes.STRING
             }
           )
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.changeColumn('users', 'firstName', {
               type: DataTypes.ENUM(['value1', 'value2', 'value3'])
             });
@@ -134,8 +130,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       it('should work with enums with schemas', function () {
         return this.sequelize
           .createSchema('archive')
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.createTable(
               {
                 tableName: 'users',
@@ -146,8 +141,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               }
             );
           })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.queryInterface.changeColumn(
               {
                 tableName: 'users',
@@ -178,8 +172,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 allowNull: false
               }
             })
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return this.queryInterface.createTable('level', {
                 id: {
                   type: DataTypes.INTEGER,

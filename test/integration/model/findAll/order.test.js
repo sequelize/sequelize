@@ -16,8 +16,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
 
           return this.User.sync({ force: true })
-            .bind(this)
-            .then(function () {
+            .then(() => {
               return this.User.create({
                 email: 'test@sequelizejs.com'
               });

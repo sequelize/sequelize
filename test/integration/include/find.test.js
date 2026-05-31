@@ -49,7 +49,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
         .then(() => {
           return Model.find({
             include: [{ model: Model2, include: [{ model: Model4, where: { something: 2 } }] }]

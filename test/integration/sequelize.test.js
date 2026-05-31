@@ -476,13 +476,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('uses the passed model', function () {
       return this.sequelize
         .query(this.insertQuery)
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
             model: this.User
           });
         })
-        .then(function (users) {
+        .then(users => {
           expect(users[0]).to.be.instanceof(this.User);
         });
     });
@@ -490,8 +489,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('maps the field names to attributes based on the passed model', function () {
       return this.sequelize
         .query(this.insertQuery)
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
             model: this.User,
             mapToModel: true
@@ -505,8 +503,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     it('arbitrarily map the field names', function () {
       return this.sequelize
         .query(this.insertQuery)
-        .bind(this)
-        .then(function () {
+        .then(() => {
           return this.sequelize.query('SELECT * FROM ' + qq(this.User.tableName) + ';', {
             type: 'SELECT',
             fieldMap: { username: 'userName', email_address: 'email' }
@@ -661,7 +658,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
         sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
 
-      return expect(this.sequelize.query(sql, { raw: true, nest: false }).get(0)).to.eventually.deep.equal([
+      return expect(this.sequelize.query(sql, { raw: true, nest: false }).then(rows => rows[0])).to.eventually.deep.equal([
         { 'foo.bar.baz': 1 }
       ]);
     });
@@ -685,7 +682,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces named parameters with the passed object', function () {
       return expect(
-        this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).get(0)
+        this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).then(rows => rows[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
@@ -693,7 +690,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return expect(
         this.sequelize
           .query("select :one as foo, :two as bar, '00:00' as baz", { raw: true, replacements: { one: 1, two: 2 } })
-          .get(0)
+          .then(rows => rows[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: '00:00' }]);
     });
 
@@ -701,7 +698,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return expect(
         this.sequelize
           .query('select :one as foo, :two as bar, :one as baz', { raw: true, replacements: { one: 1, two: 2 } })
-          .get(0)
+          .then(rows => rows[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1 }]);
     });
 
@@ -709,7 +706,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       return expect(
         this.sequelize
           .query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: null } })
-          .get(0)
+          .then(rows => rows[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: null }]);
     });
 
@@ -945,7 +942,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               raw: true,
               replacements: { one: 1, two: 2 }
             })
-            .get(0)
+            .then(rows => rows[0])
         ).to.eventually.deep.equal([{ foo: 1, bar: 2, baz: 1000 }]);
       });
 
@@ -955,7 +952,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             .query(
               'WITH RECURSIVE t(n) AS ( VALUES (1) UNION ALL SELECT n+1 FROM t WHERE n < 100) SELECT sum(n) FROM t'
             )
-            .get(0)
+            .then(rows => rows[0])
         ).to.eventually.deep.equal([{ sum: '5050' }]);
       });
     }
@@ -1069,15 +1066,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('one value', function () {
         return this.sequelize
           .transaction()
-          .bind(this)
-          .then(function (t) {
+          .then(t => {
             this.t = t;
             return this.sequelize.set({ foo: 'bar' }, { transaction: t });
           })
-          .then(function () {
+          .then(() => {
             return this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
           })
-          .then(function (data) {
+          .then(data => {
             expect(data).to.be.ok;
             expect(data.foo).to.be.equal('bar');
             return this.t.commit();
@@ -1087,8 +1083,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       it('multiple values', function () {
         return this.sequelize
           .transaction()
-          .bind(this)
-          .then(function (t) {
+          .then(t => {
             this.t = t;
             return this.sequelize.set(
               {
@@ -1098,10 +1093,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               { transaction: t }
             );
           })
-          .then(function () {
+          .then(() => {
             return this.sequelize.query('SELECT @foo as `foo`, @foos as `foos`', { plain: true, transaction: this.t });
           })
-          .then(function (data) {
+          .then(data => {
             expect(data).to.be.ok;
             expect(data.foo).to.be.equal('bar');
             expect(data.foos).to.be.equal('bars');
@@ -1181,8 +1176,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         .then(() => {
           return Project.create({ title: 'bla' });
         })
-        .bind(this)
-        .then(function (project) {
+        .then(project => {
           expect(project).to.exist;
           expect(project.title).to.equal('bla');
           expect(project.id).to.equal(1);
@@ -1532,7 +1526,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           const self = this;
 
           return Support.prepareTransactionTest(this.sequelize)
-            .bind({})
             .then(sequelize => {
               self.sequelizeWithTransaction = sequelize;
             });
@@ -1576,11 +1569,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             };
 
             return TransactionTest.sync({ force: true })
-              .bind(this)
               .then(() => {
                 return self.sequelizeWithTransaction.transaction();
               })
-              .then(function (t1) {
+              .then(t1 => {
                 this.t1 = t1;
                 return self.sequelizeWithTransaction.query(
                   'INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ") VALUES ('foo');",
@@ -1590,10 +1582,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .then(() => {
                 return expect(count()).to.eventually.equal(0);
               })
-              .then(function () {
+              .then(() => {
                 return expect(count(this.t1)).to.eventually.equal(1);
               })
-              .then(function () {
+              .then(() => {
                 return this.t1.commit();
               })
               .then(() => {
@@ -1622,11 +1614,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             };
 
             return TransactionTest.sync({ force: true })
-              .bind(this)
               .then(() => {
                 return self.sequelizeWithTransaction.transaction();
               })
-              .then(function (t1) {
+              .then(t1 => {
                 this.t1 = t1;
                 return self.sequelizeWithTransaction.query(
                   'INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ") VALUES ('foo');",
@@ -1636,7 +1627,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .then(() => {
                 return self.sequelizeWithTransaction.transaction();
               })
-              .then(function (t2) {
+              .then(t2 => {
                 this.t2 = t2;
                 return self.sequelizeWithTransaction.query(
                   'INSERT INTO ' + qq('TransactionTests') + ' (' + qq('name') + ") VALUES ('bar');",
@@ -1646,19 +1637,19 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
               .then(() => {
                 return expect(count()).to.eventually.equal(0);
               })
-              .then(function () {
+              .then(() => {
                 return expect(count(this.t1)).to.eventually.equal(1);
               })
-              .then(function () {
+              .then(() => {
                 return expect(count(this.t2)).to.eventually.equal(1);
               })
-              .then(function () {
+              .then(() => {
                 return this.t2.rollback();
               })
               .then(() => {
                 return expect(count()).to.eventually.equal(0);
               })
-              .then(function () {
+              .then(() => {
                 return this.t1.commit();
               })
               .then(() => {
@@ -1698,35 +1689,34 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           it('rolls back to the first savepoint, undoing everything', function () {
             return this.sequelizeWithTransaction
               .transaction()
-              .bind(this)
-              .then(function (transaction) {
+              .then(transaction => {
                 this.transaction = transaction;
 
                 return this.sequelizeWithTransaction.transaction({ transaction });
               })
-              .then(function (sp1) {
+              .then(sp1 => {
                 this.sp1 = sp1;
                 return this.User.create({}, { transaction: this.transaction });
               })
-              .then(function () {
+              .then(() => {
                 return this.sequelizeWithTransaction.transaction({ transaction: this.transaction });
               })
-              .then(function (sp2) {
+              .then(sp2 => {
                 this.sp2 = sp2;
                 return this.User.create({}, { transaction: this.transaction });
               })
-              .then(function () {
+              .then(() => {
                 return this.User.findAll({ transaction: this.transaction });
               })
-              .then(function (users) {
+              .then(users => {
                 expect(users).to.have.length(2);
 
                 return this.sp1.rollback();
               })
-              .then(function () {
+              .then(() => {
                 return this.User.findAll({ transaction: this.transaction });
               })
-              .then(function (users) {
+              .then(users => {
                 expect(users).to.have.length(0);
 
                 return this.transaction.rollback();
@@ -1736,35 +1726,34 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           it('rolls back to the most recent savepoint, only undoing recent changes', function () {
             return this.sequelizeWithTransaction
               .transaction()
-              .bind(this)
-              .then(function (transaction) {
+              .then(transaction => {
                 this.transaction = transaction;
 
                 return this.sequelizeWithTransaction.transaction({ transaction });
               })
-              .then(function (sp1) {
+              .then(sp1 => {
                 this.sp1 = sp1;
                 return this.User.create({}, { transaction: this.transaction });
               })
-              .then(function () {
+              .then(() => {
                 return this.sequelizeWithTransaction.transaction({ transaction: this.transaction });
               })
-              .then(function (sp2) {
+              .then(sp2 => {
                 this.sp2 = sp2;
                 return this.User.create({}, { transaction: this.transaction });
               })
-              .then(function () {
+              .then(() => {
                 return this.User.findAll({ transaction: this.transaction });
               })
-              .then(function (users) {
+              .then(users => {
                 expect(users).to.have.length(2);
 
                 return this.sp2.rollback();
               })
-              .then(function () {
+              .then(() => {
                 return this.User.findAll({ transaction: this.transaction });
               })
-              .then(function (users) {
+              .then(users => {
                 expect(users).to.have.length(1);
 
                 return this.transaction.rollback();
@@ -1847,7 +1836,6 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        .bind(this)
         .then(() => {
           return User.create({ username: 'user1' }).then(user => {
             expect(Number(user.deletedAt)).to.equal(epoch);

@@ -38,8 +38,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         );
 
         return User.sync({ force: true })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             return this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
           });
       });
