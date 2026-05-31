@@ -162,9 +162,9 @@ module.exports = function (Sequelize) {
             err = e;
           }
 
-          if (!(result instanceof Sequelize.Promise)) {
-            result = Sequelize.Promise.resolve(result);
-            err = new Error('Promise returned by ' + debugName + ' is not instance of Sequelize.Promise');
+          if (!(result instanceof Promise)) {
+            result = Promise.resolve(result);
+            err = new Error('Promise returned by ' + debugName + ' is not a Promise');
           }
 
           result = result.finally(() => {

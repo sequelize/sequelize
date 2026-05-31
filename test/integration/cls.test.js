@@ -4,14 +4,13 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
   Sequelize = Support.Sequelize,
-  Promise = Sequelize.Promise,
-  cls = require('continuation-local-storage'),
+  cls = require('cls-hooked'),
+  { delay } = require(__dirname + '/../../lib/utils/promise-helpers'),
   current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), () => {
     before(function () {
-      this.thenOriginal = Promise.prototype.then;
       Sequelize.useCLS(cls.createNamespace('sequelize'));
     });
 
@@ -20,18 +19,16 @@ if (current.dialect.supports.transactions) {
     });
 
     beforeEach(function () {
-      return Support.prepareTransactionTest(this.sequelize)
-        .bind(this)
-        .then(function (sequelize) {
-          this.sequelize = sequelize;
+      return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        this.sequelize = sequelize;
 
-          this.ns = cls.getNamespace('sequelize');
+        this.ns = cls.getNamespace('sequelize');
 
-          this.User = this.sequelize.define('user', {
-            name: Sequelize.STRING
-          });
-          return this.sequelize.sync({ force: true });
+        this.User = this.sequelize.define('user', {
+          name: Sequelize.STRING
         });
+        return this.sequelize.sync({ force: true });
+      });
     });
 
     describe('context', () => {
@@ -50,7 +47,7 @@ if (current.dialect.supports.transactions) {
         let t1id, t2id;
         const self = this;
 
-        return Promise.join(
+        return Promise.all([
           this.sequelize.transaction(() => {
             t1id = self.ns.get('transaction').id;
 
@@ -60,13 +57,12 @@ if (current.dialect.supports.transactions) {
             t2id = self.ns.get('transaction').id;
 
             return Promise.resolve();
-          }),
-          () => {
-            expect(t1id).to.be.ok;
-            expect(t2id).to.be.ok;
-            expect(t1id).not.to.equal(t2id);
-          }
-        );
+          })
+        ]).then(() => {
+          expect(t1id).to.be.ok;
+          expect(t2id).to.be.ok;
+          expect(t1id).not.to.equal(t2id);
+        });
       });
 
       it('supports nested promise chains', function () {
@@ -93,7 +89,7 @@ if (current.dialect.supports.transactions) {
         this.sequelize.transaction(() => {
           transactionSetup = true;
 
-          return Promise.delay(500).then(() => {
+          return delay(500).then(() => {
             expect(self.ns.get('transaction')).to.be.ok;
             transactionEnded = true;
           });
@@ -107,16 +103,14 @@ if (current.dialect.supports.transactions) {
               resolve();
             }
           }, 200);
-        })
-          .bind(this)
-          .then(function () {
-            expect(transactionEnded).not.to.be.ok;
+        }).then(() => {
+          expect(transactionEnded).not.to.be.ok;
 
-            expect(this.ns.get('transaction')).not.to.be.ok;
+          expect(this.ns.get('transaction')).not.to.be.ok;
 
-            // Just to make sure it didn't change between our last check and the assertion
-            expect(transactionEnded).not.to.be.ok;
-          });
+          // Just to make sure it didn't change between our last check and the assertion
+          expect(transactionEnded).not.to.be.ok;
+        });
       });
 
       it('does not leak variables to the following promise chain', function () {
@@ -124,8 +118,7 @@ if (current.dialect.supports.transactions) {
           .transaction(() => {
             return Promise.resolve();
           })
-          .bind(this)
-          .then(function () {
+          .then(() => {
             expect(this.ns.get('transaction')).not.to.be.ok;
           });
       });
@@ -162,17 +155,11 @@ if (current.dialect.supports.transactions) {
       });
     });
 
-    it('bluebird patch is applied', function () {
-      expect(Promise.prototype.then).to.be.a('function');
-      expect(this.thenOriginal).to.be.a('function');
-      expect(Promise.prototype.then).not.to.equal(this.thenOriginal);
-    });
-
     it('CLS namespace is stored in Sequelize._cls', function () {
       expect(Sequelize._cls).to.equal(this.ns);
     });
 
-    it('promises returned by sequelize.query are correctly patched', function () {
+    it('promises returned by sequelize.query carry CLS context', function () {
       return this.sequelize.transaction(t =>
         this.sequelize
           .query('select 1', { type: Sequelize.QueryTypes.SELECT })

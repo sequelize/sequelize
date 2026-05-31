@@ -1,6 +1,7 @@
 'use strict';
 
 const fs = require('fs'),
+  fsp = require('fs/promises'),
   path = require('path'),
   _ = require('lodash'),
   Sequelize = require(__dirname + '/../index'),
@@ -59,14 +60,7 @@ const Support = {
     if (dialect === 'sqlite') {
       const p = path.join(__dirname, 'tmp', 'db.sqlite');
 
-      return new Sequelize.Promise(resolve => {
-        // We cannot promisify exists, since exists does not follow node callback convention - first argument is a boolean, not an error / null
-        if (fs.existsSync(p)) {
-          resolve(Sequelize.Promise.promisify(fs.unlink)(p));
-        } else {
-          resolve();
-        }
-      }).then(() => {
+      return (fs.existsSync(p) ? fsp.unlink(p) : Promise.resolve()).then(() => {
         const options = _.extend({}, sequelize.options, { storage: p }),
           _sequelize = new Sequelize(sequelize.config.database, null, null, options);
 
@@ -82,7 +76,7 @@ const Support = {
       if (callback) {
         callback(sequelize);
       } else {
-        return Sequelize.Promise.resolve(sequelize);
+        return Promise.resolve(sequelize);
       }
     }
   },
