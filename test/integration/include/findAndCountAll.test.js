@@ -251,14 +251,16 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           return Foo.findAndCountAll({
             include: [{ model: Bar, required: true }],
             limit: 2
-          }).tap(() => {
+          }).then(async __tapValue => {
             return Foo.findAll({
               include: [{ model: Bar, required: true }],
               limit: 2
             }).then(items => {
               expect(items.length).to.equal(2);
             });
-          });
+          
+return __tapValue;
+});
         })
         .then(result => {
           expect(result.count).to.equal(4);

@@ -10,7 +10,7 @@ const chai = require('chai'),
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), () => {
-    before(function () {
+    before(() => {
       Sequelize.useCLS(cls.createNamespace('sequelize'));
     });
 

@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should still work right with other concurrent increments', function () {
         return this.User.findAll().then(aUsers => {
-          return this.sequelize.Promise.all([
+          return this.Promise.all([
             this.User[method](['aNumber'], { by: 2, where: {} }),
             this.User[method](['aNumber'], { by: 2, where: {} }),
             this.User[method](['aNumber'], { by: 2, where: {} })

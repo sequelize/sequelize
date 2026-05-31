@@ -373,7 +373,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true })
         .then(() => {
-          return self.sequelize.Promise.all([
+          return self.Promise.all([
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
             User.create({ username: 'tobi', email: 'tobi@tobi.me' })
           ]);
@@ -420,7 +420,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
             email: { type: Sequelize.STRING, unique: 'user_and_email_index' }
           });
-          return self.sequelize.Promise.all([
+          return self.Promise.all([
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
             User.create({ user_id: 1, email: 'tobi@tobi.me' })
           ]);
@@ -3090,9 +3090,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', function () {
       this.timeout(90000);
-      const self = this;
       return Support.prepareTransactionTest(this.sequelize)
-        .bind({})
         .then(sequelize => {
           const User = sequelize.define('User', { username: Sequelize.STRING });
           const testAsync = function () {

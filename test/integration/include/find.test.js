@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize
         .sync({ force: true })
         .then(() => {
-          return Promise.join(A.create({}), B.create({}));
+          return Promise.all([A.create({}), B.create({})]);
         })
         .then(([a, b]) => {
           return a.addB(b, { through: { name: 'Foobar' } });
@@ -287,7 +287,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       G.belongsTo(H);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(
+        return Promise.all([
           A.create({}),
           (function (singles) {
             let promise = Promise.resolve(),
@@ -320,7 +320,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
 
             return promise;
           })([B, C, D, E, F, G, H])
-        )
+        ])
           .then(([a, b]) => {
             return a.setB(b);
           })

@@ -35,7 +35,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         return this.sequelize
           .sync({ force: true })
           .then(() => {
-            return Promise.join(
+            return Promise.all([
               Task.create(
                 {
                   id: 1,
@@ -57,7 +57,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
               Task.create({
                 id: 3
               })
-            );
+            ]);
           })
           .then(tasks => {
             return Task.User.get(tasks).then(result => {
@@ -122,7 +122,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
             Task.create({ title: 'task', status: 'inactive' })
           ]);
         })
-        .then(([userA, userB, task]) => {
+        .then(([userA, , task]) => {
           return task.setUserXYZ(userA).then(() => {
             return task.getUserXYZ({ where: { gender: 'female' } });
           });
@@ -359,7 +359,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       Comment.belongsTo(Post, { foreignKey: 'post_id' });
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.join(Post.create(), Comment.create()).then(([post, comment]) => {
+        return Promise.all([Post.create(), Comment.create()]).then(([post, comment]) => {
           expect(comment.get('post_id')).not.to.be.ok;
 
           const setter = comment.setPost(post, { save: false });

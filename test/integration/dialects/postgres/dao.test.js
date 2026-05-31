@@ -79,10 +79,12 @@ if (dialect.match(/^postgres/)) {
           });
         })
         .get('friends')
-        .tap(friends => {
+        .then(async friends => {
           expect(friends).to.have.length(1);
           expect(friends[0].name).to.equal('John Smythe');
-        });
+        
+return friends;
+});
     });
 
     it('should be able to find a record while searching in an array', function () {
@@ -100,7 +102,7 @@ if (dialect.match(/^postgres/)) {
 
     describe('json', () => {
       it('should be able to retrieve a row with ->> operator', function () {
-        return this.sequelize.Promise.all([
+        return this.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ])
@@ -116,7 +118,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to query using the nested query language', function () {
-        return this.sequelize.Promise.all([
+        return this.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ])
@@ -131,7 +133,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to query using dot syntax', function () {
-        return this.sequelize.Promise.all([
+        return this.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ])
@@ -144,7 +146,7 @@ if (dialect.match(/^postgres/)) {
       });
 
       it('should be able to query using dot syntax with uppercase name', function () {
-        return this.sequelize.Promise.all([
+        return this.Promise.all([
           this.User.create({ username: 'swen', emergencyContact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergencyContact: { name: 'joe' } })
         ])

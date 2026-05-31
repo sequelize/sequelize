@@ -187,14 +187,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), i => {
+          return Promise.all((_.range(50)).map( i => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.' + i + '@sequelizejs.com',
                 companyId: Math.floor(Math.random() * 5)
               }
             });
-          });
+          }));
         });
       });
 
@@ -211,22 +211,22 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), i => {
+          return Promise.all((_.range(50)).map( i => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.' + i + '@sequelizejs.com',
                 companyId: 2
               }
             });
-          }).then(() => {
-            return Promise.map(_.range(50), i => {
+          })).then(() => {
+            return Promise.all((_.range(50)).map( i => {
               return User.findOrCreate({
                 where: {
                   email: 'unique.email.' + i + '@sequelizejs.com',
                   companyId: 2
                 }
               });
-            });
+            }));
           });
         });
       });
@@ -244,14 +244,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.map(_.range(50), () => {
+          return Promise.all((_.range(50)).map( () => {
             return User.findOrCreate({
               where: {
                 email: 'unique.email.1@sequelizejs.com',
                 companyId: 2
               }
             });
-          });
+          }));
         });
       });
     }
@@ -419,10 +419,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .transaction()
             .bind(this)
             .then(function (transaction) {
-              return Promise.join(
+              return Promise.all([
                 this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
-                this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
-                (first, second) => {
+                this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction })]).then(([first, second]) => {
                   const firstInstance = first[0],
                     firstCreated = first[1],
                     secondInstance = second[0],
@@ -502,7 +501,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
             })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.findOrCreate({
                   where: {
                     objectId: 'asdasdasd'
@@ -533,17 +532,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     expect(err instanceof Sequelize.UniqueConstraintError).to.be.ok;
                     expect(err.fields).to.be.ok;
                   })
-              );
+              ]);
             });
         }
       );
 
       // Creating two concurrent transactions and selecting / inserting from the same table throws sqlite off
       (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function () {
-        return Promise.join(
+        return Promise.all([
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-          this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-          (first, second) => {
+          this.User.findOrCreate({ where: { uniqueName: 'winner' } })]).then(([first, second]) => {
             const firstInstance = first[0],
               firstCreated = first[1],
               secondInstance = second[0],
@@ -564,11 +562,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
   describe('findCreateFind', () => {
     (dialect !== 'sqlite' ? it : it.skip)('should work with multiple concurrent calls', function () {
-      return Promise.join(
+      return Promise.all([
         this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
         this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-        this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-        (first, second, third) => {
+        this.User.findOrCreate({ where: { uniqueName: 'winner' } })]).then(([first, second, third]) => {
           const firstInstance = first[0],
             firstCreated = first[1],
             secondInstance = second[0],
@@ -651,7 +648,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.sequelize
         .sync({ force: true })
         .then(() => {
-          return Promise.join(Log.create({ level: 'info' }), Log.bulkCreate([{ level: 'error' }, { level: 'debug' }]));
+          return Promise.all([Log.create({ level: 'info' }), Log.bulkCreate([{ level: 'error' }, { level: 'debug' }])]);
         })
         .then(() => {
           return Log.findAll();
@@ -1343,7 +1340,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
       return Task.sync({ force: true })
         .then(() => {
-          return Sequelize.Promise.all([
+          return Promise.all([
             Task.create({ title: 'BEGIN TRANSACTION' }),
             Task.create({ title: 'COMMIT TRANSACTION' }),
             Task.create({ title: 'ROLLBACK TRANSACTION' }),

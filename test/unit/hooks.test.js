@@ -402,7 +402,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model.beforeDelete(this.beforeDelete);
         this.Model.afterDelete(this.afterDelete);
 
-        return Promise.join(this.Model.runHooks('beforeDestroy'), this.Model.runHooks('afterDestroy'));
+        return Promise.all([this.Model.runHooks('beforeDestroy'), this.Model.runHooks('afterDestroy')]);
       });
     });
 
@@ -411,7 +411,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model.hook('beforeDelete', this.beforeDelete);
         this.Model.hook('afterDelete', this.afterDelete);
 
-        return Promise.join(this.Model.runHooks('beforeDestroy'), this.Model.runHooks('afterDestroy'));
+        return Promise.all([this.Model.runHooks('beforeDestroy'), this.Model.runHooks('afterDestroy')]);
       });
     });
   });
@@ -421,7 +421,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       const self = this;
 
       this.Model.beforeBulkCreate(() => {
-        return self.sequelize.Promise.resolve();
+        return self.Promise.resolve();
       });
 
       return expect(this.Model.runHooks('beforeBulkCreate')).to.be.fulfilled;

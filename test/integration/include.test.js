@@ -1,4 +1,5 @@
 'use strict';
+const { props: pProps } = require('../../lib/utils/promise-helpers');
 
 const chai = require('chai'),
   Sequelize = require('../../index'),
@@ -127,7 +128,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize
         .sync({ force: true })
         .then(() => {
-          return Promise.join(Person.create(), Company.create()).then(([person, company]) => {
+          return Promise.all([Person.create(), Company.create()]).then(([person, company]) => {
             return person.setEmployer(company);
           });
         })
@@ -175,14 +176,14 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       return this.sequelize.sync({ force: true }).then(() => {
         return User.create()
           .then(user => {
-            return Promise.join(
+            return Promise.all([
               user.createTask({
                 title: 'trivial'
               }),
               user.createTask({
                 title: 'pursuit'
               })
-            );
+            ]);
           })
           .then(() => {
             return User.find({
@@ -230,13 +231,13 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       User.belongsTo(Group);
 
       return this.sequelize.sync({ force: true }).then(() => {
-        return Promise.props({
+        return pProps({
           task: Task.create(),
           user: User.create(),
           group: Group.create()
         })
           .then(props => {
-            return Promise.join(props.task.setUser(props.user), props.user.setGroup(props.group)).then(() => props);
+            return Promise.all([props.task.setUser(props.user), props.user.setGroup(props.group)]).then(() => props);
           })
           .then(props => {
             return Task.findOne({

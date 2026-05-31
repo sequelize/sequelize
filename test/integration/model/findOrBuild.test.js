@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ],
         { returning: true }
       )
-        .then(([user1, user2]) => {
+        .then(([, user2]) => {
           return this.Project.create({
             name: 'Investigate'
           }).then(project => user2.setProjects([project]));

@@ -1,4 +1,5 @@
 'use strict';
+const { each: pEach } = require('../../../lib/utils/promise-helpers');
 
 const chai = require('chai'),
   expect = chai.expect,
@@ -53,10 +54,10 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           );
         })
         .then(user => {
-          return Promise.join(
+          return Promise.all([
             user.get('Tasks')[0].createSubtask({ title: 'Make a startup', active: false }),
             user.get('Tasks')[0].createSubtask({ title: 'Engage rock stars', active: true })
-          ).then(() => user);
+          ]).then(() => user);
         })
         .then(user => {
           return expect(
@@ -90,7 +91,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.sequelize
             .sync({ force: true })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.create(
                   {
                     id: 1,
@@ -112,7 +113,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 User.create({
                   id: 3
                 })
-              );
+              ]);
             })
             .then(users => {
               return User.Tasks.get(users).then(result => {
@@ -134,7 +135,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.sequelize
             .sync({ force: true })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.create(
                   {
                     tasks: [{ title: 'b' }, { title: 'd' }, { title: 'c' }, { title: 'a' }]
@@ -151,7 +152,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                     include: [User.Tasks]
                   }
                 )
-              );
+              ]);
             })
             .then(users => {
               return User.Tasks.get(users, {
@@ -184,7 +185,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.sequelize
             .sync({ force: true })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.create(
                   {
                     id: 1,
@@ -212,7 +213,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                     include: [{ association: User.Tasks, include: [Task.SubTasks] }]
                   }
                 )
-              );
+              ]);
             })
             .then(() => {
               return User.findAll({
@@ -280,7 +281,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           return this.sequelize
             .sync({ force: true })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.create(
                   {
                     tasks: [
@@ -306,7 +307,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                     include: [{ association: User.Tasks, include: [Task.Category] }]
                   }
                 )
-              );
+              ]);
             })
             .then(users => {
               return User.Tasks.get(users, {
@@ -360,7 +361,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               return SubTask.sync({ force: true });
             })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 User.create(
                   {
                     id: 1,
@@ -388,7 +389,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                     include: [{ association: User.Tasks, include: [Task.SubTasks] }]
                   }
                 )
-              );
+              ]);
             })
             .then(() => {
               return User.findAll({
@@ -1443,7 +1444,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         self = this,
         Tasks = {};
 
-      return Promise.each(dataTypes, dataType => {
+      return pEach(dataTypes, dataType => {
         const tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: DataTypes.STRING });
 

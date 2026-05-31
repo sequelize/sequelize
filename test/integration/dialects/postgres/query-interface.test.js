@@ -1,4 +1,5 @@
 'use strict';
+const { inspectFulfilled, inspectRejected } = require('../../../../lib/utils/promise-helpers');
 
 const chai = require('chai');
 const expect = chai.expect;
@@ -17,7 +18,7 @@ if (dialect.match(/^postgres/)) {
     describe('createSchema', () => {
       beforeEach(function () {
         // make sure we don't have a pre-existing schema called testSchema.
-        return this.queryInterface.dropSchema('testschema').reflect();
+        return this.queryInterface.dropSchema('testschema').then(inspectFulfilled, inspectRejected);
       });
 
       it('creates a schema', function () {
@@ -75,9 +76,9 @@ if (dialect.match(/^postgres/)) {
         // then setup our function to rename
         return this.queryInterface
           .dropFunction('rftest1', [])
-          .reflect()
+          .then(inspectFulfilled, inspectRejected)
           .then(() => this.queryInterface.dropFunction('rftest2', []))
-          .reflect()
+          .then(inspectFulfilled, inspectRejected)
           .then(() =>
             this.queryInterface.createFunction('rftest1', [], 'varchar', 'plpgsql', "return 'testreturn';", {})
           );
@@ -102,7 +103,7 @@ if (dialect.match(/^postgres/)) {
           this.queryInterface
             .dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
             // suppress errors here. if create_job doesn't exist thats ok.
-            .reflect()
+            .then(inspectFulfilled, inspectRejected)
         );
       });
 
@@ -112,7 +113,7 @@ if (dialect.match(/^postgres/)) {
           this.queryInterface
             .dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
             // suppress errors here. if create_job doesn't exist thats ok.
-            .reflect()
+            .then(inspectFulfilled, inspectRejected)
         );
       });
 
@@ -231,7 +232,7 @@ if (dialect.match(/^postgres/)) {
           this.queryInterface
             .createFunction('droptest', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, options)
             // suppress errors.. this could fail if the function is already there.. thats ok.
-            .reflect()
+            .then(inspectFulfilled, inspectRejected)
         );
       });
 

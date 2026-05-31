@@ -19,7 +19,7 @@ if (dialect === 'mysql') {
         .then(count => {
           expect(count).to.equal(1);
           spy();
-          return this.sequelize.Promise.delay(1000);
+          return this.sequelize.delay(1000);
         })
         .then(() => User.count())
         .then(count => {
@@ -38,7 +38,7 @@ if (dialect === 'mysql') {
 
       return User.sync({ force: true })
         .then(() => User.create({ username: 'user1' }))
-        .then(() => sequelize.Promise.delay(100))
+        .then(() => sequelize.delay(100))
         .then(() => {
           expect(sequelize.connectionManager.pool.size).to.equal(0);
           //This query will be queued just after the `client.end` is executed and before its callback is called

@@ -81,7 +81,7 @@ if (dialect === 'sqlite') {
 
     describe('json', () => {
       it('should be able to retrieve a row with json_extract function', function () {
-        return this.sequelize.Promise.all([
+        return this.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: { name: 'joe' } })
         ])
@@ -97,7 +97,7 @@ if (dialect === 'sqlite') {
       });
 
       it('should be able to retrieve a row by json_type function', function () {
-        return this.sequelize.Promise.all([
+        return this.Promise.all([
           this.User.create({ username: 'swen', emergency_contact: { name: 'kate' } }),
           this.User.create({ username: 'anna', emergency_contact: ['kate', 'joe'] })
         ])

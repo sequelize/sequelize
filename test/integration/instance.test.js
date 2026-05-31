@@ -235,7 +235,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should still work right with other concurrent increments', function () {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+        return self.Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
@@ -410,7 +410,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should still work right with other concurrent increments', function () {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+        return self.Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
@@ -437,7 +437,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('with negative value', function () {
       const self = this;
       return this.User.findById(1).then(user1 => {
-        return self.sequelize.Promise.all([
+        return self.Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
           user1.decrement({ aNumber: -1, bNumber: -2 })
@@ -560,7 +560,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         bNumber: 1
       })
         .bind(this)
-        .tap(function (user) {
+        .then(async function (user) {
           return this.User.update(
             {
               bNumber: 2
@@ -571,7 +571,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               }
             }
           );
-        })
+        
+return user;
+})
         .then(user => {
           return user.reload({
             attributes: ['bNumber']

@@ -30,7 +30,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       before(() => {
         stub = sinon.stub(current, 'query').returns(
-          Sequelize.Promise.resolve([
+          Promise.resolve([
             {
               _previousDataValues: {},
               dataValues: { id: 1 }

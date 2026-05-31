@@ -4,22 +4,21 @@ const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require(__dirname + '/support');
-const Sequelize = Support.Sequelize;
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe('Transaction', function () {
   before(() => {
-    this.stub = sinon.stub(current, 'query').returns(Sequelize.Promise.resolve({}));
+    this.stub = sinon.stub(current, 'query').returns(Promise.resolve({}));
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection').returns(
-      Sequelize.Promise.resolve({
+      Promise.resolve({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {}
       })
     );
 
-    this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection').returns(Sequelize.Promise.resolve());
+    this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection').returns(Promise.resolve());
   });
 
   beforeEach(() => {
@@ -41,7 +40,7 @@ describe('Transaction', function () {
     };
     return current.transaction(() => {
       expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
-      return Sequelize.Promise.resolve();
+      return Promise.resolve();
     });
   });
 });

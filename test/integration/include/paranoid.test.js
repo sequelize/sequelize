@@ -118,7 +118,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
       .sync({ force: true })
       .bind(this)
       .then(function () {
-        return this.sequelize.Promise.all([X.create(), Y.create()]);
+        return this.Promise.all([X.create(), Y.create()]);
       })
       .then(function ([x, y]) {
         this.x = x;

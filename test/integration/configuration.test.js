@@ -83,18 +83,18 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
         const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
         const createTableBar = 'CREATE TABLE bar (baz TEXT);';
 
-        const testAccess = Sequelize.Promise.method(() => {
+        const testAccess = Sequelize.pMethod(() => {
           if (fs.access) {
-            return Sequelize.Promise.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
+            return Sequelize.util.promisify(fs.access)(p, fs.R_OK | fs.W_OK);
           } else {
             // Node v0.10 and older don't have fs.access
-            return Sequelize.Promise.promisify(fs.open)(p, 'r+').then(fd => {
-              return Sequelize.Promise.promisify(fs.close)(fd);
+            return Sequelize.util.promisify(fs.open)(p, 'r+').then(fd => {
+              return Sequelize.util.promisify(fs.close)(fd);
             });
           }
         });
 
-        return Sequelize.Promise.promisify(fs.unlink)(p)
+        return Sequelize.util.promisify(fs.unlink)(p)
           .catch(err => {
             expect(err.code).to.equal('ENOENT');
           })
@@ -115,14 +115,14 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
             expect(sequelizeReadOnly.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READONLY);
             expect(sequelizeReadWrite.config.dialectOptions.mode).to.equal(sqlite3.OPEN_READWRITE);
 
-            return Sequelize.Promise.join(
+            return Promise.all([
               sequelizeReadOnly
                 .query(createTableFoo)
                 .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
               sequelizeReadWrite
                 .query(createTableFoo)
                 .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file')
-            );
+            ]);
           })
           .then(() => {
             // By default, sqlite creates a connection that's READWRITE | CREATE
@@ -146,15 +146,15 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
               }
             });
 
-            return Sequelize.Promise.join(
+            return Promise.all([
               sequelizeReadOnly
                 .query(createTableBar)
                 .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
               sequelizeReadWrite.query(createTableBar)
-            );
+            ]);
           })
           .finally(() => {
-            return Sequelize.Promise.promisify(fs.unlink)(p);
+            return Sequelize.util.promisify(fs.unlink)(p);
           });
       });
     }

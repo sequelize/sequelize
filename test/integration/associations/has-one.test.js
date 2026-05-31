@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         return this.sequelize
           .sync({ force: true })
           .then(() => {
-            return Promise.join(
+            return Promise.all([
               Player.create(
                 {
                   id: 1,
@@ -55,7 +55,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
               Player.create({
                 id: 3
               })
-            );
+            ]);
           })
           .then(players => {
             return Player.User.get(players).then(result => {
@@ -704,7 +704,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         self = this,
         Tasks = {};
 
-      return Promise.map(dataTypes, dataType => {
+      return Promise.all((dataTypes).map( dataType => {
         const tableName = 'TaskXYZ_' + dataType.key;
         Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING });
 
@@ -713,7 +713,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         return Tasks[dataType].sync({ force: true }).then(() => {
           expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
         });
-      });
+      }));
     });
 
     describe('allows the user to provide an attribute definition object as foreignKey', () => {

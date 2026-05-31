@@ -233,7 +233,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       describe('find', () => {
         it('should be possible to query a nested value', function () {
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               data: {
                 name: {
@@ -252,7 +252,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 employment: 'Housewife'
               }
             })
-          ).then(() => {
+          ]).then(() => {
             return this.Event.findAll({
               where: {
                 data: {
@@ -278,14 +278,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const now = moment().milliseconds(0).toDate();
           const before = moment().milliseconds(0).subtract(1, 'day').toDate();
           const after = moment().milliseconds(0).add(1, 'day').toDate();
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               json: {
                 user: 'Homer',
                 lastLogin: now
               }
             })
-          )
+          ])
             .then(() => {
               return this.Event.findAll({
                 where: {
@@ -323,14 +323,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be possible to query a boolean with array operators', function () {
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               json: {
                 user: 'Homer',
                 active: true
               }
             })
-          )
+          ])
             .then(() => {
               return this.Event.findAll({
                 where: {
@@ -368,7 +368,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be possible to query a nested integer value', function () {
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               data: {
                 name: {
@@ -387,7 +387,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 age: 37
               }
             })
-          ).then(() => {
+          ]).then(() => {
             return this.Event.findAll({
               where: {
                 data: {
@@ -412,7 +412,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be possible to query a nested null value', function () {
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               data: {
                 name: {
@@ -431,7 +431,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 employment: null
               }
             })
-          ).then(() => {
+          ]).then(() => {
             return this.Event.findAll({
               where: {
                 data: {
@@ -452,7 +452,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be possible to query for nested fields with hyphens/dashes, #8718', function () {
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               data: {
                 name: {
@@ -476,7 +476,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 employment: null
               }
             })
-          ).then(() => {
+          ]).then(() => {
             return this.Event.findAll({
               where: {
                 data: {
@@ -516,7 +516,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 this.Event.create({
                   data: {
                     name: {
@@ -535,7 +535,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     employment: 'None'
                   }
                 })
-              );
+              ]);
             })
             .then(() => {
               return this.Event.findAll({
@@ -583,7 +583,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 this.Event.create({
                   data: {
                     name: {
@@ -602,7 +602,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     employment: 'None'
                   }
                 })
-              );
+              ]);
             })
             .then(() => {
               return this.Event.findAll({
@@ -655,7 +655,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           };
 
-          return Promise.join(
+          return Promise.all([
             this.Event.create({
               data: {
                 name: {
@@ -683,7 +683,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 employment: 'CTO'
               }
             })
-          )
+          ])
             .then(() => {
               return expect(this.Event.findAll(conditionSearch)).to.eventually.have.length(2);
             })
@@ -774,7 +774,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           })
             .then(() => {
-              return Promise.join(
+              return Promise.all([
                 this.Event.create({
                   data: {
                     name: {
@@ -793,7 +793,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     employment: 'None'
                   }
                 })
-              );
+              ]);
             })
             .then(() => {
               if (current.options.dialect === 'sqlite') {
