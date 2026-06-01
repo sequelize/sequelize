@@ -17,8 +17,8 @@ To use new ES2015 features, Sequelize v4 requires at least Node v4 or above.
 * Counter Cache plugin and consequently the ```counterCache``` option for associations has been removed.
 * MariaDB dialect now removed. This was just a thin wrapper around MySQL. You can set ``dialect: 'mysql'`` an d Sequelize should be able to work with MariaDB server.
 * `Model.Instance` and `instance.Model` are removed. To access the Model from an instance, simply use [`instance.constructor`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor). The Instance class (`Model.Instance`) is now the Model itself.
-* Sequelize now uses an independent copy of bluebird library.
-* Promises returned by sequelize are now instances of `Sequelize.Promise` instead of global bluebird `Promise`.
+* Sequelize now uses native promises instead of the bluebird library.
+* Promises returned by sequelize are now native promises. `Sequelize.Promise` is a reference to the global `Promise`.
 * Pooling library was updated to `v3`, now you will need to call `sequelize.close()` to shutdown the pool.
 
 ### Config / Options
@@ -111,20 +111,13 @@ are now ES6 classes. You can set class / instance level methods like this
 
 * Removed `autocommit: true` default, set this option explicitly to have transactions auto commit.
 * Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
-* The CLS patch does not affect global bluebird promise. Transaction will not automatically get passed to methods when used with `Promise.all` and other bluebird methods. Explicitly patch your bluebird instance to get CLS to work with bluebird methods.
-
-    ```bash
-    $ npm install --save cls-bluebird
-    ```
+* Native promises propagate CLS context automatically via `async_hooks`. No promise patching is required.
 
     ```js
     const Sequelize = require('sequelize');
-    const Promise = require('bluebird');
-    const clsBluebird = require('cls-bluebird');
-    const cls = require('continuation-local-storage');
+    const cls = require('cls-hooked');
 
     const ns = cls.createNamespace('transaction-namespace');
-    clsBluebird(ns, Promise);
 
     Sequelize.useCLS(ns);
     ```

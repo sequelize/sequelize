@@ -6115,7 +6115,7 @@ declare namespace sequelize {
          * can pass in a query type to make sequelize format the results:
          *
          * ```js
-         * sequelize.query('SELECT...').spread(function (results, metadata) {
+         * sequelize.query('SELECT...').then(([results, metadata]) => {
          *   // Raw query - use spread
          * });
          *

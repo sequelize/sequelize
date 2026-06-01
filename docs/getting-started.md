@@ -122,12 +122,11 @@ const Post = sequelize.define('post', {}, {
 
 ## Promises
 
-Sequelize uses [Bluebird](http://bluebirdjs.com) promises to control async control-flow.
+Sequelize uses native promises to control async control-flow.
 
-**Note:** _Sequelize use independent copy of Bluebird instance. You can access it using
- `Sequelize.Promise` if you want to set any Bluebird specific options_
+**Note:** _You can access the Promise constructor using `Sequelize.Promise`._
 
-If you are unfamiliar with how promises work, don't worry, you can read up on them [here](http://bluebirdjs.com/docs/why-promises.html).
+If you are unfamiliar with how promises work, don't worry, you can read up on them [here](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
 
 Basically, a promise represents a value which will be present at some point - "I promise you I will give you a result or an error at some point". This means that
 
@@ -155,3 +154,4 @@ console.log(user.get('firstName'));
 ```
 
 Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.
+ In particular, you'll probably be using [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) a lot.

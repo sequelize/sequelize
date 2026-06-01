@@ -93,7 +93,7 @@ sequelize.transaction(function (t1) {
 });
 ```
 
-After you've used `Sequelize.useCLS()` all promises returned from sequelize will be patched to maintain CLS context. CLS is a complicated subject - more details in the docs for [cls-bluebird](https://www.npmjs.com/package/cls-bluebird), the patch used to make bluebird promises work with CLS.
+After you've used `Sequelize.useCLS()` all promises returned from sequelize will maintain CLS context. Native promises propagate context via `async_hooks` automatically, so no promise patching is required.
 
 **Note:** _[CLS only supports async/await, at the moment, when using cls-hooked package](https://github.com/othiym23/node-continuation-local-storage/issues/98#issuecomment-323503807). Although, [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked/blob/master/README.md) relies on *experimental API* [async_hooks](https://github.com/nodejs/node/blob/master/doc/api/async_hooks.md)_
 

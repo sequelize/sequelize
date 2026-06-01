@@ -23,9 +23,9 @@ We're glad to get pull request if any functionality is missing or something is b
 * Make sure that all existing tests pass
 * Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
 * Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
-  - Use [promise style](http://bluebirdjs.com/docs/why-promises.html) in all new tests. Specifically this means:
+  - Use [promise style](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
-    - don't use nested callbacks (use [Promise.bind](http://bluebirdjs.com/docs/api/promise.bind.html) to maintain context in promise chains)
+    - don't use nested callbacks (use arrow functions or variables to maintain context in promise chains)
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 1.7 branch are accepted without tests.
 * If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation  ) for the specifics.
