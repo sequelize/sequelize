@@ -23,9 +23,11 @@
   },
   "files": [
     "lib",
-    "index.js"
+    "index.js",
+    "index.d.ts"
   ],
   "main": "index",
+  "types": "index.d.ts",
   "scripts": {
     "lint": "npx eslint lib test --quiet",
     "fmt": "oxfmt --write lib test",
