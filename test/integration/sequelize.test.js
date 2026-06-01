@@ -658,9 +658,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       const tickChar = dialect === 'postgres' || dialect === 'mssql' ? '"' : '`',
         sql = 'select 1 as ' + Sequelize.Utils.addTicks('foo.bar.baz', tickChar);
 
-      return expect(this.sequelize.query(sql, { raw: true, nest: false }).then(rows => rows[0])).to.eventually.deep.equal([
-        { 'foo.bar.baz': 1 }
-      ]);
+      return expect(
+        this.sequelize.query(sql, { raw: true, nest: false }).then(rows => rows[0])
+      ).to.eventually.deep.equal([{ 'foo.bar.baz': 1 }]);
     });
 
     it('destructs dot separated attributes when doing a raw query using nest', function () {
@@ -682,7 +682,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     it('replaces named parameters with the passed object', function () {
       return expect(
-        this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } }).then(rows => rows[0])
+        this.sequelize
+          .query('select :one as foo, :two as bar', { raw: true, replacements: { one: 1, two: 2 } })
+          .then(rows => rows[0])
       ).to.eventually.deep.equal([{ foo: 1, bar: 2 }]);
     });
 
@@ -1525,10 +1527,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         beforeEach(function () {
           const self = this;
 
-          return Support.prepareTransactionTest(this.sequelize)
-            .then(sequelize => {
-              self.sequelizeWithTransaction = sequelize;
-            });
+          return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+            self.sequelizeWithTransaction = sequelize;
+          });
         });
 
         it('is a transaction method available', () => {
@@ -1834,57 +1835,55 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         }
       );
 
-      return this.sequelize
-        .sync({ force: true })
-        .then(() => {
-          return User.create({ username: 'user1' }).then(user => {
-            expect(Number(user.deletedAt)).to.equal(epoch);
-            return User.findOne({
-              where: {
-                username: 'user1'
-              }
+      return this.sequelize.sync({ force: true }).then(() => {
+        return User.create({ username: 'user1' }).then(user => {
+          expect(Number(user.deletedAt)).to.equal(epoch);
+          return User.findOne({
+            where: {
+              username: 'user1'
+            }
+          })
+            .then(user => {
+              expect(user).to.exist;
+              expect(Number(user.deletedAt)).to.equal(epoch);
+              return user.destroy();
             })
-              .then(user => {
-                expect(user).to.exist;
-                expect(Number(user.deletedAt)).to.equal(epoch);
-                return user.destroy();
-              })
-              .then(destroyedUser => {
-                expect(destroyedUser.deletedAt).to.exist;
-                expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
-                return User.findById(destroyedUser.id, { paranoid: false });
-              })
-              .then(fetchedDestroyedUser => {
-                expect(fetchedDestroyedUser.deletedAt).to.exist;
-                expect(Number(fetchedDestroyedUser.deletedAt)).not.to.equal(epoch);
-                return fetchedDestroyedUser.restore();
-              })
-              .then(restoredUser => {
-                expect(Number(restoredUser.deletedAt)).to.equal(epoch);
-                return User.destroy({
-                  where: {
-                    username: 'user1'
-                  }
-                });
-              })
-              .then(() => {
-                return User.count();
-              })
-              .then(count => {
-                expect(count).to.equal(0);
-                return User.restore();
-              })
-              .then(() => {
-                return User.findAll();
-              })
-              .then(nonDeletedUsers => {
-                expect(nonDeletedUsers.length).to.equal(1);
-                nonDeletedUsers.forEach(u => {
-                  expect(Number(u.deletedAt)).to.equal(epoch);
-                });
+            .then(destroyedUser => {
+              expect(destroyedUser.deletedAt).to.exist;
+              expect(Number(destroyedUser.deletedAt)).not.to.equal(epoch);
+              return User.findById(destroyedUser.id, { paranoid: false });
+            })
+            .then(fetchedDestroyedUser => {
+              expect(fetchedDestroyedUser.deletedAt).to.exist;
+              expect(Number(fetchedDestroyedUser.deletedAt)).not.to.equal(epoch);
+              return fetchedDestroyedUser.restore();
+            })
+            .then(restoredUser => {
+              expect(Number(restoredUser.deletedAt)).to.equal(epoch);
+              return User.destroy({
+                where: {
+                  username: 'user1'
+                }
               });
-          });
+            })
+            .then(() => {
+              return User.count();
+            })
+            .then(count => {
+              expect(count).to.equal(0);
+              return User.restore();
+            })
+            .then(() => {
+              return User.findAll();
+            })
+            .then(nonDeletedUsers => {
+              expect(nonDeletedUsers.length).to.equal(1);
+              nonDeletedUsers.forEach(u => {
+                expect(Number(u.deletedAt)).to.equal(epoch);
+              });
+            });
         });
+      });
     });
   });
 });

@@ -883,7 +883,8 @@ if (dialect.match(/^postgres/)) {
           course_period: [new Date(2015, 0, 1), new Date(2015, 11, 31)]
         }).then(oldUser => {
           // Update the user and check that the returned object's fields have been parsed by the range parser
-          return User.update({ course_period: period }, { where: oldUser.where(), returning: true }).then(([count, users]) => {
+          return User.update({ course_period: period }, { where: oldUser.where(), returning: true }).then(
+            ([count, users]) => {
               expect(count).to.equal(1);
               expect(users[0].course_period[0] instanceof Date).to.be.ok;
               expect(users[0].course_period[1] instanceof Date).to.be.ok;
@@ -1002,7 +1003,8 @@ if (dialect.match(/^postgres/)) {
       const point1 = { type: 'Point', coordinates: [39.807222, -76.984722] };
       const point2 = { type: 'Point', coordinates: [39.828333, -77.232222] };
       return User.create({ username: 'user', email: ['foo@bar.com'], location: point1 }).then(oldUser => {
-        return User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true }).then(([, updatedUsers]) => {
+        return User.update({ location: point2 }, { where: { username: oldUser.username }, returning: true }).then(
+          ([, updatedUsers]) => {
             expect(updatedUsers[0].location).to.deep.eql(point2);
           }
         );

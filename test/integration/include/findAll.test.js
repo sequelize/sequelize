@@ -466,9 +466,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           })([B, C, D, E, F, G, H])
         ])
           .then(([as, b]) => {
-            return Promise.all((as).map( a => {
-              return a.setB(b);
-            }));
+            return Promise.all(
+              as.map(a => {
+                return a.setB(b);
+              })
+            );
           })
           .then(() => {
             return A.findAll({
@@ -561,9 +563,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           })([B, C, D, E, F, G, H])
         ])
           .then(([as, b]) => {
-            return Promise.all((as).map( a => {
-              return a.setB(b);
-            }));
+            return Promise.all(
+              as.map(a => {
+                return a.setB(b);
+              })
+            );
           })
           .then(() => {
             return A.findAll({
@@ -900,9 +904,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Promise.all([
               results.users[0].setGroup(results.groups[1]),
               results.users[1].setGroup(results.groups[0]),
-              Promise.all((results.groups).map( group => {
-                return group.setCategories(results.categories);
-              }))
+              Promise.all(
+                results.groups.map(group => {
+                  return group.setCategories(results.categories);
+                })
+              )
             ]);
           })
           .then(() => {
@@ -948,9 +954,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Promise.all([
               results.users[0].setTeam(results.groups[1]),
               results.users[1].setTeam(results.groups[0]),
-              Promise.all((results.groups).map( group => {
-                return group.setTags(results.categories);
-              }))
+              Promise.all(
+                results.groups.map(group => {
+                  return group.setTags(results.categories);
+                })
+              )
             ]);
           })
           .then(() => {
@@ -996,9 +1004,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             return Promise.all([
               results.users[0].setGroup(results.groups[1]),
               results.users[1].setGroup(results.groups[0]),
-              Promise.all((results.groups).map( group => {
-                return group.setCategories(results.categories);
-              }))
+              Promise.all(
+                results.groups.map(group => {
+                  return group.setCategories(results.categories);
+                })
+              )
             ]);
           })
           .then(() => {
@@ -1597,9 +1607,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           Post.create({ public: true })
         ])
           .then(posts => {
-            return Promise.all((posts.slice(1, 3)).map( post => {
-              return post.createCategory({ slug: 'food' });
-            }));
+            return Promise.all(
+              posts.slice(1, 3).map(post => {
+                return post.createCategory({ slug: 'food' });
+              })
+            );
           })
           .then(() => {
             return Post.findAll({

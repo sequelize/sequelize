@@ -63,26 +63,25 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ username: 'foo' }).then(user => {
-                return sequelize.transaction().then(t => {
-                  return user.update({ username: 'bar' }, { transaction: t }).then(() => {
-                    return User.findAll().then(users1 => {
-                      return User.findAll({ transaction: t }).then(users2 => {
-                        expect(users1[0].username).to.equal('foo');
-                        expect(users2[0].username).to.equal('bar');
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ username: 'foo' }).then(user => {
+              return sequelize.transaction().then(t => {
+                return user.update({ username: 'bar' }, { transaction: t }).then(() => {
+                  return User.findAll().then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
+                      expect(users1[0].username).to.equal('foo');
+                      expect(users2[0].username).to.equal('bar');
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 

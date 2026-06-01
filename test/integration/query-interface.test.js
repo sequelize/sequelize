@@ -343,21 +343,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should work with enums (4)', function () {
-      return this.queryInterface
-        .createSchema('archive')
-        .then(() => {
-          return this.queryInterface.createTable(
-            'SomeTable',
-            {
-              someEnum: {
-                type: DataTypes.ENUM,
-                values: ['value1', 'value2', 'value3'],
-                field: 'otherName'
-              }
-            },
-            { schema: 'archive' }
-          );
-        });
+      return this.queryInterface.createSchema('archive').then(() => {
+        return this.queryInterface.createTable(
+          'SomeTable',
+          {
+            someEnum: {
+              type: DataTypes.ENUM,
+              values: ['value1', 'value2', 'value3'],
+              field: 'otherName'
+            }
+          },
+          { schema: 'archive' }
+        );
+      });
     });
 
     it('should work with schemas', function () {
@@ -541,17 +539,15 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('addColumn', () => {
     beforeEach(function () {
-      return this.sequelize
-        .createSchema('archive')
-        .then(() => {
-          return this.queryInterface.createTable('users', {
-            id: {
-              type: DataTypes.INTEGER,
-              primaryKey: true,
-              autoIncrement: true
-            }
-          });
+      return this.sequelize.createSchema('archive').then(() => {
+        return this.queryInterface.createTable('users', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+          }
         });
+      });
     });
 
     it('should be able to add a foreign key reference', function () {

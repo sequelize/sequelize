@@ -131,26 +131,25 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ number: 1 }).then(user => {
-                return sequelize.transaction().then(t => {
-                  return user.increment('number', { by: 2, transaction: t }).then(() => {
-                    return User.findAll().then(users1 => {
-                      return User.findAll({ transaction: t }).then(users2 => {
-                        expect(users1[0].number).to.equal(1);
-                        expect(users2[0].number).to.equal(3);
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ number: 1 }).then(user => {
+              return sequelize.transaction().then(t => {
+                return user.increment('number', { by: 2, transaction: t }).then(() => {
+                  return User.findAll().then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
+                      expect(users1[0].number).to.equal(1);
+                      expect(users2[0].number).to.equal(3);
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -315,26 +314,25 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ number: 3 }).then(user => {
-                return sequelize.transaction().then(t => {
-                  return user.decrement('number', { by: 2, transaction: t }).then(() => {
-                    return User.findAll().then(users1 => {
-                      return User.findAll({ transaction: t }).then(users2 => {
-                        expect(users1[0].number).to.equal(3);
-                        expect(users2[0].number).to.equal(1);
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ number: 3 }).then(user => {
+              return sequelize.transaction().then(t => {
+                return user.decrement('number', { by: 2, transaction: t }).then(() => {
+                  return User.findAll().then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
+                      expect(users1[0].number).to.equal(3);
+                      expect(users2[0].number).to.equal(1);
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -499,26 +497,25 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('reload', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ username: 'foo' }).then(user => {
-                return sequelize.transaction().then(t => {
-                  return User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t }).then(() => {
-                    return user.reload().then(user => {
-                      expect(user.username).to.equal('foo');
-                      return user.reload({ transaction: t }).then(user => {
-                        expect(user.username).to.equal('bar');
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ username: 'foo' }).then(user => {
+              return sequelize.transaction().then(t => {
+                return User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t }).then(() => {
+                  return user.reload().then(user => {
+                    expect(user.username).to.equal('foo');
+                    return user.reload({ transaction: t }).then(user => {
+                      expect(user.username).to.equal('bar');
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -989,25 +986,24 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.build({ username: 'foo' })
-                  .save({ transaction: t })
-                  .then(() => {
-                    return User.count().then(count1 => {
-                      return User.count({ transaction: t }).then(count2 => {
-                        expect(count1).to.equal(0);
-                        expect(count2).to.equal(1);
-                        return t.rollback();
-                      });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.build({ username: 'foo' })
+                .save({ transaction: t })
+                .then(() => {
+                  return User.count().then(count1 => {
+                    return User.count({ transaction: t }).then(count2 => {
+                      expect(count1).to.equal(0);
+                      expect(count2).to.equal(1);
+                      return t.rollback();
                     });
                   });
-              });
+                });
             });
           });
+        });
       });
     }
 
@@ -1300,24 +1296,23 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('does not update timestamps when passing silent=true', function () {
-      return this.User.create({ username: 'user' })
-        .then(user => {
-          const updatedAt = user.updatedAt;
+      return this.User.create({ username: 'user' }).then(user => {
+        const updatedAt = user.updatedAt;
 
-          this.clock.tick(1000);
-          return expect(
-            user.update(
-              {
-                username: 'userman'
-              },
-              {
-                silent: true
-              }
-            )
+        this.clock.tick(1000);
+        return expect(
+          user.update(
+            {
+              username: 'userman'
+            },
+            {
+              silent: true
+            }
           )
-            .to.eventually.have.property('updatedAt')
-            .equalTime(updatedAt);
-        });
+        )
+          .to.eventually.have.property('updatedAt')
+          .equalTime(updatedAt);
+      });
     });
 
     it('does not update timestamps when passing silent=true in a bulk update', function () {
@@ -2032,26 +2027,25 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('destroy', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Support.Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ username: 'foo' }).then(user => {
-                return sequelize.transaction().then(t => {
-                  return user.destroy({ transaction: t }).then(() => {
-                    return User.count().then(count1 => {
-                      return User.count({ transaction: t }).then(count2 => {
-                        expect(count1).to.equal(1);
-                        expect(count2).to.equal(0);
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ username: 'foo' }).then(user => {
+              return sequelize.transaction().then(t => {
+                return user.destroy({ transaction: t }).then(() => {
+                  return User.count().then(count1 => {
+                    return User.count({ transaction: t }).then(count2 => {
+                      expect(count1).to.equal(1);
+                      expect(count2).to.equal(0);
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 

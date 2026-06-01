@@ -185,12 +185,10 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     });
 
     it('uses one insert into statement', function () {
-      return user
-        .setTasks([task1, task2])
-        .then(() => {
-          expect(this.findAll).to.have.been.calledOnce;
-          expect(this.bulkCreate).to.have.been.calledOnce;
-        });
+      return user.setTasks([task1, task2]).then(() => {
+        expect(this.findAll).to.have.been.calledOnce;
+        expect(this.bulkCreate).to.have.been.calledOnce;
+      });
     });
 
     it('uses one delete from statement', function () {

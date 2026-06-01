@@ -584,7 +584,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            
+
             .then(sequelize => {
               this.sequelize = sequelize;
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
@@ -687,7 +687,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            
+
             .then(sequelize => {
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
               this.Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -735,7 +735,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
-          
+
           .then(([user, task]) => {
             this.task = task;
             return task.setUsers([user]);
@@ -771,7 +771,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               Label.create({ text: 'label two' })
             ]);
           })
-          
+
           .then(([article, label1, label2]) => {
             this.article = article;
             this.label1 = label1;
@@ -795,7 +795,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            
+
             .then(sequelize => {
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
               this.Label = sequelize.define('Label', { text: DataTypes.STRING });
@@ -842,7 +842,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Promise.all([Article.create({}), Label.create({ text: 'label one' })]);
           })
-          
+
           .then(([article, label]) => {
             this.article = article;
             return article.addLabel(label.id);
@@ -868,7 +868,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return User.bulkCreate([{ username: 'foo ' }, { username: 'bar ' }, { username: 'baz ' }]);
           })
-          
+
           .then(() => {
             return Task.create({ title: 'task' });
           })
@@ -907,7 +907,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             const users = _.range(1000).map(i => ({ username: 'user' + i, num: i, status: 'live' }));
             return User.bulkCreate(users);
           })
-          
+
           .then(() => {
             return Task.create({ title: 'task' });
           })
@@ -933,7 +933,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
         .then(() => {
           return User.create({ username: 'foo' });
         })
-        
+
         .then(user => {
           this.user = user;
           return Task.create({ title: 'task' });
@@ -1001,7 +1001,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
           .then(() => {
             return Article.create({ title: 'foo' });
           })
-          
+
           .then(article => {
             this.article = article;
             return article.createLabel({ text: 'bar' }, { logging: spy });
@@ -1015,7 +1015,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
       if (current.dialect.supports.transactions) {
         it('supports transactions', function () {
           return Support.prepareTransactionTest(this.sequelize)
-            
+
             .then(sequelize => {
               this.sequelize = sequelize;
               this.Article = sequelize.define('Article', { title: DataTypes.STRING });
@@ -1134,7 +1134,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               self.Label.create({ text: 'Epicness', until: '2014-01-03 01:00:00' })
             ]);
           })
-          
+
           .then(([article, label1, label2]) => {
             this.article = article;
             return article.setLabels([label1, label2]);
@@ -1288,7 +1288,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         return this.sequelize
           .sync({ force: true })
-          
+
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
@@ -1316,7 +1316,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
         return this.sequelize
           .sync({ force: true })
-          
+
           .then(() => {
             return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
           })
@@ -1380,7 +1380,7 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
 
           return this.sequelize
             .sync({ force: true })
-            
+
             .then(() => {
               return Promise.all([User.create({ username: 'foo' }), Task.create({ title: 'task' })]);
             })
@@ -1390,7 +1390,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               return user.setTasks([task]);
             })
             .then(() => {
-              return this.user.destroy().catch(err => { if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
+              return this.user.destroy().catch(err => {
+                if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
                 // Should fail due to FK violation
                 return Task.findAll();
               });
@@ -1424,7 +1425,8 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
               return user.sequelize
                 .getQueryInterface()
                 .update(user, tableName, { id: 999 }, { id: user.id })
-                .catch(err => { if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
+                .catch(err => {
+                  if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
                   // Should fail due to FK violation
                   return Task.findAll();
                 });

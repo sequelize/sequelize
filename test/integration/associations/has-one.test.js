@@ -341,7 +341,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        
+
         .then(() => {
           return Promise.all([Home.create(), User.create()]);
         })
@@ -704,16 +704,18 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         self = this,
         Tasks = {};
 
-      return Promise.all((dataTypes).map( dataType => {
-        const tableName = 'TaskXYZ_' + dataType.key;
-        Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING });
+      return Promise.all(
+        dataTypes.map(dataType => {
+          const tableName = 'TaskXYZ_' + dataType.key;
+          Tasks[dataType] = self.sequelize.define(tableName, { title: Sequelize.STRING });
 
-        User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
+          User.hasOne(Tasks[dataType], { foreignKey: 'userId', keyType: dataType, constraints: false });
 
-        return Tasks[dataType].sync({ force: true }).then(() => {
-          expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
-        });
-      }));
+          return Tasks[dataType].sync({ force: true }).then(() => {
+            expect(Tasks[dataType].rawAttributes.userId.type).to.be.an.instanceof(dataType);
+          });
+        })
+      );
     });
 
     describe('allows the user to provide an attribute definition object as foreignKey', () => {

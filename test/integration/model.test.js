@@ -323,42 +323,41 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const User = this.sequelize.define('UserWithUniqueFieldAlias', {
         userName: { type: Sequelize.STRING, unique: 'user_name_unique', field: 'user_name' }
       });
-      return User.sync({ force: true })
-        .then(() => {
-          return this.sequelize.queryInterface.showIndex(User.tableName).then(indexes => {
-            let idxUnique;
-            if (dialect === 'sqlite') {
-              expect(indexes).to.have.length(1);
-              idxUnique = indexes[0];
-              expect(idxUnique.primary).to.equal(false);
-              expect(idxUnique.unique).to.equal(true);
-              expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
-            } else if (dialect === 'mysql') {
-              expect(indexes).to.have.length(2);
-              idxUnique = indexes[1];
-              expect(idxUnique.primary).to.equal(false);
-              expect(idxUnique.unique).to.equal(true);
-              expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
-              expect(idxUnique.type).to.equal('BTREE');
-            } else if (dialect === 'postgres') {
-              expect(indexes).to.have.length(2);
-              idxUnique = indexes[1];
-              expect(idxUnique.primary).to.equal(false);
-              expect(idxUnique.unique).to.equal(true);
-              expect(idxUnique.fields).to.deep.equal([
-                { attribute: 'user_name', collate: undefined, order: undefined, length: undefined }
-              ]);
-            } else if (dialect === 'mssql') {
-              expect(indexes).to.have.length(2);
-              idxUnique = indexes[1];
-              expect(idxUnique.primary).to.equal(false);
-              expect(idxUnique.unique).to.equal(true);
-              expect(idxUnique.fields).to.deep.equal([
-                { attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }
-              ]);
-            }
-          });
+      return User.sync({ force: true }).then(() => {
+        return this.sequelize.queryInterface.showIndex(User.tableName).then(indexes => {
+          let idxUnique;
+          if (dialect === 'sqlite') {
+            expect(indexes).to.have.length(1);
+            idxUnique = indexes[0];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
+          } else if (dialect === 'mysql') {
+            expect(indexes).to.have.length(2);
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
+            expect(idxUnique.type).to.equal('BTREE');
+          } else if (dialect === 'postgres') {
+            expect(indexes).to.have.length(2);
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([
+              { attribute: 'user_name', collate: undefined, order: undefined, length: undefined }
+            ]);
+          } else if (dialect === 'mssql') {
+            expect(indexes).to.have.length(2);
+            idxUnique = indexes[1];
+            expect(idxUnique.primary).to.equal(false);
+            expect(idxUnique.unique).to.equal(true);
+            expect(idxUnique.fields).to.deep.equal([
+              { attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }
+            ]);
+          }
         });
+      });
     });
 
     it('allows us to customize the error message for unique constraint', function () {
@@ -378,7 +377,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             User.create({ username: 'tobi', email: 'tobi@tobi.me' })
           ]);
         })
-        .catch(err => { if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+        .catch(err => {
+          if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
           expect(err.message).to.equal('User and email must be unique');
         });
     });
@@ -425,7 +425,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             User.create({ user_id: 1, email: 'tobi@tobi.me' })
           ]);
         })
-        .catch(err => { if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+        .catch(err => {
+          if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
           expect(err.message).to.equal('User and email must be unique');
         });
     });
@@ -781,20 +782,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOne', () => {
     if (current.dialect.supports.transactions) {
       it('supports the transaction option in the first parameter', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                  return User.findOne({ where: { username: 'foo' }, transaction: t }).then(user => {
-                    expect(user).to.not.be.null;
-                    return t.rollback();
-                  });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.findOne({ where: { username: 'foo' }, transaction: t }).then(user => {
+                  expect(user).to.not.be.null;
+                  return t.rollback();
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -837,36 +837,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findOrInitialize', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING, foo: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.findOrInitialize({
+                  where: { username: 'foo' }
+                }).then(([user1]) => {
                   return User.findOrInitialize({
-                    where: { username: 'foo' }
-                  }).then(([user1]) => {
+                    where: { username: 'foo' },
+                    transaction: t
+                  }).then(([user2]) => {
                     return User.findOrInitialize({
                       where: { username: 'foo' },
+                      defaults: { foo: 'asd' },
                       transaction: t
-                    }).then(([user2]) => {
-                      return User.findOrInitialize({
-                        where: { username: 'foo' },
-                        defaults: { foo: 'asd' },
-                        transaction: t
-                      }).then(([user3]) => {
-                        expect(user1.isNewRecord).to.be.true;
-                        expect(user2.isNewRecord).to.be.false;
-                        expect(user3.isNewRecord).to.be.false;
-                        return t.commit();
-                      });
+                    }).then(([user3]) => {
+                      expect(user1.isNewRecord).to.be.true;
+                      expect(user2.isNewRecord).to.be.false;
+                      expect(user3.isNewRecord).to.be.false;
+                      return t.commit();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -947,26 +946,25 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ username: 'foo' }).then(() => {
-                return sequelize.transaction().then(t => {
-                  return User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t }).then(() => {
-                    return User.findAll().then(users1 => {
-                      return User.findAll({ transaction: t }).then(users2 => {
-                        expect(users1[0].username).to.equal('foo');
-                        expect(users2[0].username).to.equal('bar');
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ username: 'foo' }).then(() => {
+              return sequelize.transaction().then(t => {
+                return User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t }).then(() => {
+                  return User.findAll().then(users1 => {
+                    return User.findAll({ transaction: t }).then(users2 => {
+                      expect(users1[0].username).to.equal('foo');
+                      expect(users2[0].username).to.equal('bar');
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -1505,29 +1503,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return User.create({ username: 'foo' }).then(() => {
-                return sequelize.transaction().then(t => {
-                  return User.destroy({
-                    where: {},
-                    transaction: t
-                  }).then(() => {
-                    return User.count().then(count1 => {
-                      return User.count({ transaction: t }).then(count2 => {
-                        expect(count1).to.equal(1);
-                        expect(count2).to.equal(0);
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return User.create({ username: 'foo' }).then(() => {
+              return sequelize.transaction().then(t => {
+                return User.destroy({
+                  where: {},
+                  transaction: t
+                }).then(() => {
+                  return User.count().then(count1 => {
+                    return User.count({ transaction: t }).then(count2 => {
+                      expect(count1).to.equal(1);
+                      expect(count2).to.equal(0);
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -2063,24 +2060,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('count', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                  return User.count().then(count1 => {
-                    return User.count({ transaction: t }).then(count2 => {
-                      expect(count1).to.equal(0);
-                      expect(count2).to.equal(1);
-                      return t.rollback();
-                    });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.count().then(count1 => {
+                  return User.count({ transaction: t }).then(count2 => {
+                    expect(count1).to.equal(0);
+                    expect(count2).to.equal(1);
+                    return t.rollback();
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -2227,24 +2223,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { age: Sequelize.INTEGER });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { age: Sequelize.INTEGER });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).then(() => {
-                  return User.min('age').then(min1 => {
-                    return User.min('age', { transaction: t }).then(min2 => {
-                      expect(min1).to.be.not.ok;
-                      expect(min2).to.equal(2);
-                      return t.rollback();
-                    });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).then(() => {
+                return User.min('age').then(min1 => {
+                  return User.min('age', { transaction: t }).then(min2 => {
+                    expect(min1).to.be.not.ok;
+                    expect(min2).to.equal(2);
+                    return t.rollback();
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -2318,24 +2313,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { age: Sequelize.INTEGER });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { age: Sequelize.INTEGER });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).then(() => {
-                  return User.max('age').then(min1 => {
-                    return User.max('age', { transaction: t }).then(min2 => {
-                      expect(min1).to.be.not.ok;
-                      expect(min2).to.equal(5);
-                      return t.rollback();
-                    });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.bulkCreate([{ age: 2 }, { age: 5 }, { age: 3 }], { transaction: t }).then(() => {
+                return User.max('age').then(min1 => {
+                  return User.max('age', { transaction: t }).then(min2 => {
+                    expect(min1).to.be.not.ok;
+                    expect(min2).to.equal(5);
+                    return t.rollback();
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -2481,14 +2475,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.UserWithFields.bulkCreate([
         { age: 2, gender: 'male' },
         { age: 3, gender: 'female' }
-      ])
-        .then(() => {
-          return expect(
-            this.UserWithFields.sum('age', {
-              where: { gender: 'male' }
-            })
-          ).to.eventually.equal(2);
-        });
+      ]).then(() => {
+        return expect(
+          this.UserWithFields.sum('age', {
+            where: { gender: 'male' }
+          })
+        ).to.eventually.equal(2);
+      });
     });
 
     it('allows sql logging', function () {
@@ -3082,59 +3075,58 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
     it('supports multiple async transactions', function () {
       this.timeout(90000);
-      return Support.prepareTransactionTest(this.sequelize)
-        .then(sequelize => {
-          const User = sequelize.define('User', { username: Sequelize.STRING });
-          const testAsync = function () {
-            return sequelize
-              .transaction()
-              .then(t => {
-                return User.create(
-                  {
-                    username: 'foo'
-                  },
-                  {
-                    transaction: t
-                  }
-                )
-                  .then(() => {
-                    return User.findAll({
-                      where: {
-                        username: 'foo'
-                      }
-                    }).then(users => {
-                      expect(users).to.have.length(0);
-                    });
-                  })
-                  .then(() => {
-                    return User.findAll({
-                      where: {
-                        username: 'foo'
-                      },
-                      transaction: t
-                    }).then(users => {
-                      expect(users).to.have.length(1);
-                    });
-                  })
-                  .then(() => {
-                    return t;
+      return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        const User = sequelize.define('User', { username: Sequelize.STRING });
+        const testAsync = function () {
+          return sequelize
+            .transaction()
+            .then(t => {
+              return User.create(
+                {
+                  username: 'foo'
+                },
+                {
+                  transaction: t
+                }
+              )
+                .then(() => {
+                  return User.findAll({
+                    where: {
+                      username: 'foo'
+                    }
+                  }).then(users => {
+                    expect(users).to.have.length(0);
                   });
-              })
-              .then(t => {
-                return t.rollback();
-              });
-          };
-          return User.sync({ force: true }).then(() => {
-            const tasks = [];
-            for (let i = 0; i < 1000; i++) {
-              tasks.push(testAsync.bind(this));
-            }
-            return mapWithConcurrency(tasks, entry => entry(), {
-              // Needs to be one less than ??? else the non transaction query won't ever get a connection
-              concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1
+                })
+                .then(() => {
+                  return User.findAll({
+                    where: {
+                      username: 'foo'
+                    },
+                    transaction: t
+                  }).then(users => {
+                    expect(users).to.have.length(1);
+                  });
+                })
+                .then(() => {
+                  return t;
+                });
+            })
+            .then(t => {
+              return t.rollback();
             });
+        };
+        return User.sync({ force: true }).then(() => {
+          const tasks = [];
+          for (let i = 0; i < 1000; i++) {
+            tasks.push(testAsync.bind(this));
+          }
+          return mapWithConcurrency(tasks, entry => entry(), {
+            // Needs to be one less than ??? else the non transaction query won't ever get a connection
+            concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1
           });
         });
+      });
     });
   }
 

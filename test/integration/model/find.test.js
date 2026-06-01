@@ -29,29 +29,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('find', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.findOne({
+                  where: { username: 'foo' }
+                }).then(user1 => {
                   return User.findOne({
-                    where: { username: 'foo' }
-                  }).then(user1 => {
-                    return User.findOne({
-                      where: { username: 'foo' },
-                      transaction: t
-                    }).then(user2 => {
-                      expect(user1).to.be.null;
-                      expect(user2).to.not.be.null;
-                      return t.rollback();
-                    });
+                    where: { username: 'foo' },
+                    transaction: t
+                  }).then(user2 => {
+                    expect(user1).to.be.null;
+                    expect(user2).to.not.be.null;
+                    return t.rollback();
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -270,16 +269,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         return this.User.bulkCreate([{ username: 'jack' }, { username: 'jack' }])
           .then(() => {
-            return Promise.all((permutations).map( perm => {
-              return self.User.findById(perm, {
-                logging(s) {
-                  expect(s.indexOf(0)).not.to.equal(-1);
-                  count++;
-                }
-              }).then(user => {
-                expect(user).to.be.null;
-              });
-            }));
+            return Promise.all(
+              permutations.map(perm => {
+                return self.User.findById(perm, {
+                  logging(s) {
+                    expect(s.indexOf(0)).not.to.equal(-1);
+                    count++;
+                  }
+                }).then(user => {
+                  expect(user).to.be.null;
+                });
+              })
+            );
           })
           .then(() => {
             expect(count).to.be.equal(permutations.length);

@@ -187,14 +187,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.all((_.range(50)).map( i => {
-            return User.findOrCreate({
-              where: {
-                email: 'unique.email.' + i + '@sequelizejs.com',
-                companyId: Math.floor(Math.random() * 5)
-              }
-            });
-          }));
+          return Promise.all(
+            _.range(50).map(i => {
+              return User.findOrCreate({
+                where: {
+                  email: 'unique.email.' + i + '@sequelizejs.com',
+                  companyId: Math.floor(Math.random() * 5)
+                }
+              });
+            })
+          );
         });
       });
 
@@ -211,22 +213,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.all((_.range(50)).map( i => {
-            return User.findOrCreate({
-              where: {
-                email: 'unique.email.' + i + '@sequelizejs.com',
-                companyId: 2
-              }
-            });
-          })).then(() => {
-            return Promise.all((_.range(50)).map( i => {
+          return Promise.all(
+            _.range(50).map(i => {
               return User.findOrCreate({
                 where: {
                   email: 'unique.email.' + i + '@sequelizejs.com',
                   companyId: 2
                 }
               });
-            }));
+            })
+          ).then(() => {
+            return Promise.all(
+              _.range(50).map(i => {
+                return User.findOrCreate({
+                  where: {
+                    email: 'unique.email.' + i + '@sequelizejs.com',
+                    companyId: 2
+                  }
+                });
+              })
+            );
           });
         });
       });
@@ -244,14 +250,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         return User.sync({ force: true }).then(() => {
-          return Promise.all((_.range(50)).map( () => {
-            return User.findOrCreate({
-              where: {
-                email: 'unique.email.1@sequelizejs.com',
-                companyId: 2
-              }
-            });
-          }));
+          return Promise.all(
+            _.range(50).map(() => {
+              return User.findOrCreate({
+                where: {
+                  email: 'unique.email.1@sequelizejs.com',
+                  companyId: 2
+                }
+              });
+            })
+          );
         });
       });
     }
@@ -403,12 +411,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           const timeout = new Promise((_, reject) =>
             setTimeout(() => reject(new TimeoutError('operation timed out')), 1000)
           );
-          return Promise.race([findOrCreate, timeout])
-            .catch(e => {
-              if (e instanceof TimeoutError) throw new Error(e);
-              if (e instanceof Sequelize.ValidationError) return test(times + 1);
-              throw e;
-            });
+          return Promise.race([findOrCreate, timeout]).catch(e => {
+            if (e instanceof TimeoutError) throw new Error(e);
+            if (e instanceof Sequelize.ValidationError) return test(times + 1);
+            throw e;
+          });
         };
 
         return test(0);
@@ -418,29 +425,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     describe('several concurrent calls', () => {
       if (current.dialect.supports.transactions) {
         it('works with a transaction', function () {
-          return this.sequelize
-            .transaction()
-            .then(transaction => {
-              return Promise.all([
-                this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
-                this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction })]).then(([first, second]) => {
-                  const firstInstance = first[0],
-                    firstCreated = first[1],
-                    secondInstance = second[0],
-                    secondCreated = second[1];
+          return this.sequelize.transaction().then(transaction => {
+            return Promise.all([
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction }),
+              this.User.findOrCreate({ where: { uniqueName: 'winner' }, transaction })
+            ]).then(([first, second]) => {
+              const firstInstance = first[0],
+                firstCreated = first[1],
+                secondInstance = second[0],
+                secondCreated = second[1];
 
-                  // Depending on execution order and MAGIC either the first OR the second call should return true
-                  expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
+              // Depending on execution order and MAGIC either the first OR the second call should return true
+              expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
 
-                  expect(firstInstance).to.be.ok;
-                  expect(secondInstance).to.be.ok;
+              expect(firstInstance).to.be.ok;
+              expect(secondInstance).to.be.ok;
 
-                  expect(firstInstance.id).to.equal(secondInstance.id);
+              expect(firstInstance.id).to.equal(secondInstance.id);
 
-                  return transaction.commit();
-                }
-              );
+              return transaction.commit();
             });
+          });
         });
       }
 
@@ -543,21 +548,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       (dialect !== 'sqlite' ? it : it.skip)('works without a transaction', function () {
         return Promise.all([
           this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-          this.User.findOrCreate({ where: { uniqueName: 'winner' } })]).then(([first, second]) => {
-            const firstInstance = first[0],
-              firstCreated = first[1],
-              secondInstance = second[0],
-              secondCreated = second[1];
+          this.User.findOrCreate({ where: { uniqueName: 'winner' } })
+        ]).then(([first, second]) => {
+          const firstInstance = first[0],
+            firstCreated = first[1],
+            secondInstance = second[0],
+            secondCreated = second[1];
 
-            // Depending on execution order and MAGIC either the first OR the second call should return true
-            expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
+          // Depending on execution order and MAGIC either the first OR the second call should return true
+          expect(firstCreated ? !secondCreated : secondCreated).to.be.ok; // XOR
 
-            expect(firstInstance).to.be.ok;
-            expect(secondInstance).to.be.ok;
+          expect(firstInstance).to.be.ok;
+          expect(secondInstance).to.be.ok;
 
-            expect(firstInstance.id).to.equal(secondInstance.id);
-          }
-        );
+          expect(firstInstance.id).to.equal(secondInstance.id);
+        });
       });
     });
   });
@@ -567,28 +572,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Promise.all([
         this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
         this.User.findOrCreate({ where: { uniqueName: 'winner' } }),
-        this.User.findOrCreate({ where: { uniqueName: 'winner' } })]).then(([first, second, third]) => {
-          const firstInstance = first[0],
-            firstCreated = first[1],
-            secondInstance = second[0],
-            secondCreated = second[1],
-            thirdInstance = third[0],
-            thirdCreated = third[1];
+        this.User.findOrCreate({ where: { uniqueName: 'winner' } })
+      ]).then(([first, second, third]) => {
+        const firstInstance = first[0],
+          firstCreated = first[1],
+          secondInstance = second[0],
+          secondCreated = second[1],
+          thirdInstance = third[0],
+          thirdCreated = third[1];
 
-          expect(
-            [firstCreated, secondCreated, thirdCreated].filter(value => {
-              return value;
-            }).length
-          ).to.equal(1);
+        expect(
+          [firstCreated, secondCreated, thirdCreated].filter(value => {
+            return value;
+          }).length
+        ).to.equal(1);
 
-          expect(firstInstance).to.be.ok;
-          expect(secondInstance).to.be.ok;
-          expect(thirdInstance).to.be.ok;
+        expect(firstInstance).to.be.ok;
+        expect(secondInstance).to.be.ok;
+        expect(thirdInstance).to.be.ok;
 
-          expect(firstInstance.id).to.equal(secondInstance.id);
-          expect(secondInstance.id).to.equal(thirdInstance.id);
-        }
-      );
+        expect(firstInstance.id).to.equal(secondInstance.id);
+        expect(secondInstance.id).to.equal(thirdInstance.id);
+      });
     });
   });
 
@@ -1031,7 +1036,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'foo' }).then(() => {
-          return User.create({ username: 'foo' }).catch(err => { if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+          return User.create({ username: 'foo' }).catch(err => {
+            if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
             expect(err).to.be.ok;
           });
         });
@@ -1068,7 +1074,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo', smth: 'foo' }).then(() => {
-          return UserNull.create({ username: 'foo', smth: 'bar' }).catch(err => { if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+          return UserNull.create({ username: 'foo', smth: 'bar' }).catch(err => {
+            if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
             expect(err).to.be.ok;
           });
         });

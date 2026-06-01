@@ -40,12 +40,10 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
     });
 
     it('uses one update statement for addition', function () {
-      return user
-        .setTasks([task1, task2])
-        .then(() => {
-          expect(this.findAll).to.have.been.calledOnce;
-          expect(this.update).to.have.been.calledOnce;
-        });
+      return user.setTasks([task1, task2]).then(() => {
+        expect(this.findAll).to.have.been.calledOnce;
+        expect(this.update).to.have.been.calledOnce;
+      });
     });
 
     it('uses one delete from statement', function () {

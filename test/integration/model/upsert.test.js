@@ -421,33 +421,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
         });
         const clock = sinon.useFakeTimers();
-        return User.sync({ force: true })
-          .then(() => {
-            return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
-              .then(created => {
-                if (dialect === 'sqlite') {
-                  expect(created).to.be.undefined;
-                } else {
-                  expect(created).to.be.ok;
-                }
-                clock.tick(1000);
-                return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
-              })
-              .then(created => {
-                if (dialect === 'sqlite') {
-                  expect(created).to.be.undefined;
-                } else {
-                  expect(created).not.to.be.ok;
-                }
-                clock.tick(1000);
-                return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
-              })
-              .then(user => {
-                expect(user.createdAt).to.be.ok;
-                expect(user.city).to.equal('New City');
-                expect(user.updatedAt).to.be.afterTime(user.createdAt);
-              });
-          });
+        return User.sync({ force: true }).then(() => {
+          return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
+            .then(created => {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).to.be.ok;
+              }
+              clock.tick(1000);
+              return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'New City' });
+            })
+            .then(created => {
+              if (dialect === 'sqlite') {
+                expect(created).to.be.undefined;
+              } else {
+                expect(created).not.to.be.ok;
+              }
+              clock.tick(1000);
+              return User.findOne({ where: { username: 'user1', email: 'user1@domain.ext' } });
+            })
+            .then(user => {
+              expect(user.createdAt).to.be.ok;
+              expect(user.city).to.equal('New City');
+              expect(user.updatedAt).to.be.afterTime(user.createdAt);
+            });
+        });
       });
 
       it('works when indexes are created via indexes array', function () {

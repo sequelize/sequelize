@@ -31,27 +31,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                  return User.findAll({ where: { username: 'foo' } }).then(users1 => {
-                    return User.findAll({ transaction: t }).then(users2 => {
-                      return User.findAll({ where: { username: 'foo' }, transaction: t }).then(users3 => {
-                        expect(users1.length).to.equal(0);
-                        expect(users2.length).to.equal(1);
-                        expect(users3.length).to.equal(1);
-                        return t.rollback();
-                      });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.findAll({ where: { username: 'foo' } }).then(users1 => {
+                  return User.findAll({ transaction: t }).then(users2 => {
+                    return User.findAll({ where: { username: 'foo' }, transaction: t }).then(users3 => {
+                      expect(users1.length).to.equal(0);
+                      expect(users2.length).to.equal(1);
+                      expect(users3.length).to.equal(1);
+                      return t.rollback();
                     });
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -1151,11 +1150,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         it('sorts simply', function () {
           const self = this;
-          return Promise.all(([
+          return Promise.all(
+            [
               ['ASC', 'Asia'],
               ['DESC', 'Europe']
-            ]).map(
-            params => {
+            ].map(params => {
               return self.Continent.findAll({
                 order: [['name', params[0]]]
               }).then(continents => {
@@ -1163,17 +1162,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(continents[0]).to.exist;
                 expect(continents[0].name).to.equal(params[1]);
               });
-            }
-          ));
+            })
+          );
         });
 
         it('sorts by 1st degree association', function () {
           const self = this;
-          return Promise.all(([
+          return Promise.all(
+            [
               ['ASC', 'Europe', 'England'],
               ['DESC', 'Asia', 'Korea']
-            ]).map(
-            params => {
+            ].map(params => {
               return self.Continent.findAll({
                 include: [self.Country],
                 order: [[self.Country, 'name', params[0]]]
@@ -1185,51 +1184,53 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(continents[0].countries[0]).to.exist;
                 expect(continents[0].countries[0].name).to.equal(params[2]);
               });
-            }
-          ));
+            })
+          );
         });
 
         it('sorts simply and by 1st degree association with limit where 1st degree associated instances returned for second one and not the first', function () {
           const self = this;
-          return Promise.all(([['ASC', 'Asia', 'Europe', 'England']]).map( params => {
-            return self.Continent.findAll({
-              include: [
-                {
-                  model: self.Country,
-                  required: false,
-                  where: {
-                    name: params[3]
+          return Promise.all(
+            [['ASC', 'Asia', 'Europe', 'England']].map(params => {
+              return self.Continent.findAll({
+                include: [
+                  {
+                    model: self.Country,
+                    required: false,
+                    where: {
+                      name: params[3]
+                    }
                   }
-                }
-              ],
-              limit: 2,
-              order: [
-                ['name', params[0]],
-                [self.Country, 'name', params[0]]
-              ]
-            }).then(continents => {
-              expect(continents).to.exist;
-              expect(continents[0]).to.exist;
-              expect(continents[0].name).to.equal(params[1]);
-              expect(continents[0].countries).to.exist;
-              expect(continents[0].countries.length).to.equal(0);
-              expect(continents[1]).to.exist;
-              expect(continents[1].name).to.equal(params[2]);
-              expect(continents[1].countries).to.exist;
-              expect(continents[1].countries.length).to.equal(1);
-              expect(continents[1].countries[0]).to.exist;
-              expect(continents[1].countries[0].name).to.equal(params[3]);
-            });
-          }));
+                ],
+                limit: 2,
+                order: [
+                  ['name', params[0]],
+                  [self.Country, 'name', params[0]]
+                ]
+              }).then(continents => {
+                expect(continents).to.exist;
+                expect(continents[0]).to.exist;
+                expect(continents[0].name).to.equal(params[1]);
+                expect(continents[0].countries).to.exist;
+                expect(continents[0].countries.length).to.equal(0);
+                expect(continents[1]).to.exist;
+                expect(continents[1].name).to.equal(params[2]);
+                expect(continents[1].countries).to.exist;
+                expect(continents[1].countries.length).to.equal(1);
+                expect(continents[1].countries[0]).to.exist;
+                expect(continents[1].countries[0].name).to.equal(params[3]);
+              });
+            })
+          );
         });
 
         (it('sorts by 2nd degree association', function () {
           const self = this;
-          return Promise.all(([
+          return Promise.all(
+            [
               ['ASC', 'Europe', 'England', 'Fred'],
               ['DESC', 'Asia', 'Korea', 'Kim']
-            ]).map(
-            params => {
+            ].map(params => {
               return self.Continent.findAll({
                 include: [{ model: self.Country, include: [self.Person] }],
                 order: [[self.Country, self.Person, 'lastName', params[0]]]
@@ -1244,16 +1245,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(continents[0].countries[0].people[0]).to.exist;
                 expect(continents[0].countries[0].people[0].name).to.equal(params[3]);
               });
-            }
-          ));
+            })
+          );
         }),
           it('sorts by 2nd degree association with alias', function () {
             const self = this;
-            return Promise.all(([
+            return Promise.all(
+              [
                 ['ASC', 'Europe', 'France', 'Fred'],
                 ['DESC', 'Europe', 'England', 'Kim']
-              ]).map(
-              params => {
+              ].map(params => {
                 return self.Continent.findAll({
                   include: [{ model: self.Country, include: [self.Person, { model: self.Person, as: 'residents' }] }],
                   order: [[self.Country, { model: self.Person, as: 'residents' }, 'lastName', params[0]]]
@@ -1268,17 +1269,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   expect(continents[0].countries[0].residents[0]).to.exist;
                   expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
                 });
-              }
-            ));
+              })
+            );
           }));
 
         it('sorts by 2nd degree association with alias while using limit', function () {
           const self = this;
-          return Promise.all(([
+          return Promise.all(
+            [
               ['ASC', 'Europe', 'France', 'Fred'],
               ['DESC', 'Europe', 'England', 'Kim']
-            ]).map(
-            params => {
+            ].map(params => {
               return self.Continent.findAll({
                 include: [{ model: self.Country, include: [self.Person, { model: self.Person, as: 'residents' }] }],
                 order: [[{ model: self.Country }, { model: self.Person, as: 'residents' }, 'lastName', params[0]]],
@@ -1294,8 +1295,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(continents[0].countries[0].residents[0]).to.exist;
                 expect(continents[0].countries[0].residents[0].name).to.equal(params[3]);
               });
-            }
-          ));
+            })
+          );
         });
       }),
         describe('ManyToMany', () => {
@@ -1334,11 +1335,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           it('sorts by 1st degree association', function () {
             const self = this;
-            return Promise.all(([
+            return Promise.all(
+              [
                 ['ASC', 'England', 'Energy'],
                 ['DESC', 'Korea', 'Tech']
-              ]).map(
-              params => {
+              ].map(params => {
                 return self.Country.findAll({
                   include: [self.Industry],
                   order: [[self.Industry, 'name', params[0]]]
@@ -1350,17 +1351,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   expect(countries[0].industries[0]).to.exist;
                   expect(countries[0].industries[0].name).to.equal(params[2]);
                 });
-              }
-            ));
+              })
+            );
           });
 
           it('sorts by 1st degree association while using limit', function () {
             const self = this;
-            return Promise.all(([
+            return Promise.all(
+              [
                 ['ASC', 'England', 'Energy'],
                 ['DESC', 'Korea', 'Tech']
-              ]).map(
-              params => {
+              ].map(params => {
                 return self.Country.findAll({
                   include: [self.Industry],
                   order: [[self.Industry, 'name', params[0]]],
@@ -1373,17 +1374,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   expect(countries[0].industries[0]).to.exist;
                   expect(countries[0].industries[0].name).to.equal(params[2]);
                 });
-              }
-            ));
+              })
+            );
           });
 
           it('sorts by through table attribute', function () {
             const self = this;
-            return Promise.all(([
+            return Promise.all(
+              [
                 ['ASC', 'England', 'Energy'],
                 ['DESC', 'France', 'Media']
-              ]).map(
-              params => {
+              ].map(params => {
                 return self.Country.findAll({
                   include: [self.Industry],
                   order: [[self.Industry, self.IndustryCountry, 'numYears', params[0]]]
@@ -1395,8 +1396,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   expect(countries[0].industries[0]).to.exist;
                   expect(countries[0].industries[0].name).to.equal(params[2]);
                 });
-              }
-            ));
+              })
+            );
           });
         }));
     });
@@ -1534,24 +1535,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                  return User.findAndCountAll().then(info1 => {
-                    return User.findAndCountAll({ transaction: t }).then(info2 => {
-                      expect(info1.count).to.equal(0);
-                      expect(info2.count).to.equal(1);
-                      return t.rollback();
-                    });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.findAndCountAll().then(info1 => {
+                  return User.findAndCountAll({ transaction: t }).then(info2 => {
+                    expect(info1.count).to.equal(0);
+                    expect(info2.count).to.equal(1);
+                    return t.rollback();
                   });
                 });
               });
             });
           });
+        });
       });
     }
 
@@ -1666,24 +1666,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize)
-          .then(sequelize => {
-            const User = sequelize.define('User', { username: Sequelize.STRING });
+        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+          const User = sequelize.define('User', { username: Sequelize.STRING });
 
-            return User.sync({ force: true }).then(() => {
-              return sequelize.transaction().then(t => {
-                return User.create({ username: 'foo' }, { transaction: t }).then(() => {
-                  return User.findAll().then(users1 => {
-                    return User.findAll({ transaction: t }).then(users2 => {
-                      expect(users1.length).to.equal(0);
-                      expect(users2.length).to.equal(1);
-                      return t.rollback();
-                    });
+          return User.sync({ force: true }).then(() => {
+            return sequelize.transaction().then(t => {
+              return User.create({ username: 'foo' }, { transaction: t }).then(() => {
+                return User.findAll().then(users1 => {
+                  return User.findAll({ transaction: t }).then(users2 => {
+                    expect(users1.length).to.equal(0);
+                    expect(users2.length).to.equal(1);
+                    return t.rollback();
                   });
                 });
               });
             });
           });
+        });
       });
     }
 

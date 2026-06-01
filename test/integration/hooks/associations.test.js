@@ -896,9 +896,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
                 .then(([project, task, minitask]) => {
-                  return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
-                    project
-                  );
+                  return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => project);
                 })
                 .then(project => {
                   return project.destroy();
@@ -953,9 +951,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 this.MiniTasks.create({ mini_title: 'New MiniTask' })
               ])
                 .then(([project, task, minitask]) => {
-                  return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => 
-                    project
-                  );
+                  return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => project);
                 })
                 .then(project => {
                   return expect(project.destroy())

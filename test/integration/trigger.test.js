@@ -37,10 +37,9 @@ if (current.dialect.supports.tmpTableTrigger) {
           }
         );
 
-        return User.sync({ force: true })
-          .then(() => {
-            return this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
-          });
+        return User.sync({ force: true }).then(() => {
+          return this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
+        });
       });
 
       it('should return output rows after insert', () => {

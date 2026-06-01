@@ -16,7 +16,10 @@ if (dialect === 'sqlite') {
         // Here we test that this is no longer the case - the promise should settle properly.
         // Ideally it should resolve, of course (not reject!), but from the point of view of the
         // security issue, rejecting the promise is by far not as bad as crashing the process.
-        return Vulnerability.create({ name: 'SELECT tbl_name FROM sqlite_master' }).then(inspectFulfilled, inspectRejected);
+        return Vulnerability.create({ name: 'SELECT tbl_name FROM sqlite_master' }).then(
+          inspectFulfilled,
+          inspectRejected
+        );
         // Note that in Sequelize v5+, the above call behaves correctly (resolves).
       });
     });

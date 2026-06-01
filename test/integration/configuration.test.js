@@ -86,7 +86,8 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
         const testAccess = () => fsp.access(p, fs.R_OK | fs.W_OK);
 
-        return fsp.unlink(p)
+        return fsp
+          .unlink(p)
           .catch(err => {
             expect(err.code).to.equal('ENOENT');
           })

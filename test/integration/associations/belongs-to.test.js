@@ -379,7 +379,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       return this.sequelize
         .sync({ force: true })
-        
+
         .then(() => {
           return Promise.all([Home.create(), User.create()]);
         })

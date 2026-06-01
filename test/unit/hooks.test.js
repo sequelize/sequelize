@@ -270,10 +270,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           }
         );
 
-        return Model.runHooks('beforeCreate')
-          .then(() => {
-            expect(this.beforeCreate).to.have.been.calledOnce;
-          });
+        return Model.runHooks('beforeCreate').then(() => {
+          expect(this.beforeCreate).to.have.been.calledOnce;
+        });
       });
 
       it('does not run the global hook when the model specifies its own hook', function () {
@@ -288,11 +287,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             }
           );
 
-        return Model.runHooks('beforeCreate')
-          .then(() => {
-            expect(this.beforeCreate).not.to.have.been.called;
-            expect(localHook).to.have.been.calledOnce;
-          });
+        return Model.runHooks('beforeCreate').then(() => {
+          expect(this.beforeCreate).not.to.have.been.called;
+          expect(localHook).to.have.been.calledOnce;
+        });
       });
     });
   });

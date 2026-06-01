@@ -911,10 +911,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         .then(group => {
           return Promise.all([
             group.createUser({ id: 1 }, { through: { isAdmin: true } }),
-            group.createUser({ id: 2 }, { through: { isAdmin: false } })]).then(([]) => {
-              return UserGroups.findAll();
-            }
-          );
+            group.createUser({ id: 2 }, { through: { isAdmin: false } })
+          ]).then(([]) => {
+            return UserGroups.findAll();
+          });
         })
         .then(userGroups => {
           userGroups.sort((a, b) => {
@@ -1239,15 +1239,14 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
       Project.belongsToMany(Employee, { as: 'Participants', through: Participation });
       Employee.belongsToMany(Project, { as: 'Participations', through: Participation });
 
-      return this.sequelize
-        .sync({ force: true })
-        .then(() => {
-          return Promise.all([Project.create({ name: 'project 1' }), Employee.create({ name: 'employee 1' })])
-            .then(([project, employee]) => {
-              this.project = project;
-              this.employee = employee;
-            });
-        });
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Promise.all([Project.create({ name: 'project 1' }), Employee.create({ name: 'employee 1' })]).then(
+          ([project, employee]) => {
+            this.project = project;
+            this.employee = employee;
+          }
+        );
+      });
     });
 
     it('runs on add', function () {
@@ -2502,11 +2501,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           ]);
         })
         .then(users => {
-          return Promise.all([
-            users[0].addFan(users[1]),
-            users[1].addUser(users[2]),
-            users[2].addFan(users[0])
-          ]);
+          return Promise.all([users[0].addFan(users[1]), users[1].addUser(users[2]), users[2].addFan(users[0])]);
         });
     });
 

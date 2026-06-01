@@ -26,50 +26,48 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('changeColumn', () => {
     it('should support schemas', function () {
-      return this.sequelize
-        .createSchema('archive')
-        .then(() => {
-          return this.queryInterface
-            .createTable(
+      return this.sequelize.createSchema('archive').then(() => {
+        return this.queryInterface
+          .createTable(
+            {
+              tableName: 'users',
+              schema: 'archive'
+            },
+            {
+              id: {
+                type: DataTypes.INTEGER,
+                primaryKey: true,
+                autoIncrement: true
+              },
+              currency: DataTypes.INTEGER
+            }
+          )
+          .then(() => {
+            return this.queryInterface.changeColumn(
               {
                 tableName: 'users',
                 schema: 'archive'
               },
+              'currency',
               {
-                id: {
-                  type: DataTypes.INTEGER,
-                  primaryKey: true,
-                  autoIncrement: true
-                },
-                currency: DataTypes.INTEGER
+                type: DataTypes.FLOAT
               }
-            )
-            .then(() => {
-              return this.queryInterface.changeColumn(
-                {
-                  tableName: 'users',
-                  schema: 'archive'
-                },
-                'currency',
-                {
-                  type: DataTypes.FLOAT
-                }
-              );
-            })
-            .then(() => {
-              return this.queryInterface.describeTable({
-                tableName: 'users',
-                schema: 'archive'
-              });
-            })
-            .then(table => {
-              if (dialect === 'postgres' || dialect === 'postgres-native') {
-                expect(table.currency.type).to.equal('DOUBLE PRECISION');
-              } else {
-                expect(table.currency.type).to.equal('FLOAT');
-              }
+            );
+          })
+          .then(() => {
+            return this.queryInterface.describeTable({
+              tableName: 'users',
+              schema: 'archive'
             });
-        });
+          })
+          .then(table => {
+            if (dialect === 'postgres' || dialect === 'postgres-native') {
+              expect(table.currency.type).to.equal('DOUBLE PRECISION');
+            } else {
+              expect(table.currency.type).to.equal('FLOAT');
+            }
+          });
+      });
     });
 
     it('should change columns', function () {

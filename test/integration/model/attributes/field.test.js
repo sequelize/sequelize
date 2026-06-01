@@ -209,14 +209,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should support Model.destroy()', function () {
-          return this.User.create()
-            .then(user => {
-              return this.User.destroy({
-                where: {
-                  id: user.get('id')
-                }
-              });
+          return this.User.create().then(user => {
+            return this.User.destroy({
+              where: {
+                id: user.get('id')
+              }
             });
+          });
         });
       });
 

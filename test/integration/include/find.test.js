@@ -47,13 +47,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       Model2.hasMany(Model4);
       Model4.belongsTo(Model2);
 
-      return this.sequelize
-        .sync({ force: true })
-        .then(() => {
-          return Model.find({
-            include: [{ model: Model2, include: [{ model: Model4, where: { something: 2 } }] }]
-          });
+      return this.sequelize.sync({ force: true }).then(() => {
+        return Model.find({
+          include: [{ model: Model2, include: [{ model: Model4, where: { something: 2 } }] }]
         });
+      });
     });
 
     it('should include a model with a where condition but no required', function () {

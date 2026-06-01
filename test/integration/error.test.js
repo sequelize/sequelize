@@ -328,7 +328,10 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         })
         .then(() => {
           // If the error was successfully parsed, we can catch it!
-          return User.create({ name: 'jan' }).catch(err => { if (err instanceof this.sequelize.UniqueConstraintError) return spy(err); throw err; });
+          return User.create({ name: 'jan' }).catch(err => {
+            if (err instanceof this.sequelize.UniqueConstraintError) return spy(err);
+            throw err;
+          });
         })
         .then(() => {
           expect(spy).to.have.been.calledOnce;

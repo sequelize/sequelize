@@ -269,7 +269,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]).then(() => {
-          return self.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(([, records]) => {
+          return self.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(
+            ([, records]) => {
               records.forEach(record => {
                 expect(record.username).to.equal('User' + record.id);
                 expect(record.beforeHookTest).to.be.true;
@@ -292,7 +293,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return this.User.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }]).then(() => {
-          return self.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(([, records]) => {
+          return self.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }).then(
+            ([, records]) => {
               records.forEach(record => {
                 expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
               });
@@ -470,10 +472,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       return this.ParanoidUser.bulkCreate([
         { username: 'adam', mood: 'happy' },
         { username: 'joe', mood: 'sad' }
-      ])
-        .then(() => {
-          return this.ParanoidUser.destroy({ truncate: true });
-        });
+      ]).then(() => {
+        return this.ParanoidUser.destroy({ truncate: true });
+      });
     });
 
     describe('on success', () => {
