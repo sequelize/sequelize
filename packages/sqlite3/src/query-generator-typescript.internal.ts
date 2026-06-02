@@ -34,9 +34,28 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
 function findClosingParenthesis(sql: string, openingParenthesis: number): number {
   let depth = 0;
   let closingQuote: string | undefined;
+  let inLineComment = false;
+  let inBlockComment = false;
 
   for (let index = openingParenthesis; index < sql.length; index++) {
     const character = sql[index];
+
+    if (inLineComment) {
+      if (character === '\n' || character === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (character === '*' && sql[index + 1] === '/') {
+        inBlockComment = false;
+        index++;
+      }
+
+      continue;
+    }
 
     if (closingQuote) {
       if (character === closingQuote) {
@@ -50,7 +69,13 @@ function findClosingParenthesis(sql: string, openingParenthesis: number): number
       continue;
     }
 
-    if (character === "'" || character === '"' || character === '`') {
+    if (character === '-' && sql[index + 1] === '-') {
+      inLineComment = true;
+      index++;
+    } else if (character === '/' && sql[index + 1] === '*') {
+      inBlockComment = true;
+      index++;
+    } else if (character === "'" || character === '"' || character === '`') {
       closingQuote = character;
     } else if (character === '[') {
       closingQuote = ']';
@@ -97,7 +122,9 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeCreateTableQuery(tableName: TableOrModel) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escapeTable(tableName)};`;
+    const escapedTableName = this.escapeTable(tableName);
+
+    return `SELECT sql FROM sqlite_temp_master WHERE tbl_name = ${escapedTableName} UNION ALL SELECT sql FROM sqlite_master WHERE tbl_name = ${escapedTableName};`;
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {

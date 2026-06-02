@@ -125,6 +125,10 @@ export class SqliteQuery extends AbstractQuery {
 
       let defaultValue;
       for (const _result of results) {
+        if (_result.hidden === 1) {
+          continue;
+        }
+
         if (_result.dflt_value === null) {
           // Column schema omits any "DEFAULT ..."
           defaultValue = undefined;

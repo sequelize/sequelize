@@ -35,9 +35,28 @@ import type { SqliteColumnsDescription } from './query-interface.types.js';
 function findClosingParenthesis(sql: string, openingParenthesis: number): number {
   let depth = 0;
   let closingQuote: string | undefined;
+  let inLineComment = false;
+  let inBlockComment = false;
 
   for (let index = openingParenthesis; index < sql.length; index++) {
     const character = sql[index];
+
+    if (inLineComment) {
+      if (character === '\n' || character === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (character === '*' && sql[index + 1] === '/') {
+        inBlockComment = false;
+        index++;
+      }
+
+      continue;
+    }
 
     if (closingQuote) {
       if (character === closingQuote) {
@@ -52,17 +71,17 @@ function findClosingParenthesis(sql: string, openingParenthesis: number): number
       continue;
     }
 
-    if (character === "'" || character === '"' || character === '`') {
+    if (character === '-' && sql[index + 1] === '-') {
+      inLineComment = true;
+      index++;
+    } else if (character === '/' && sql[index + 1] === '*') {
+      inBlockComment = true;
+      index++;
+    } else if (character === "'" || character === '"' || character === '`') {
       closingQuote = character;
-      continue;
-    }
-
-    if (character === '[') {
+    } else if (character === '[') {
       closingQuote = ']';
-      continue;
-    }
-
-    if (character === '(') {
+    } else if (character === '(') {
       depth++;
     } else if (character === ')' && --depth === 0) {
       return index;
@@ -87,9 +106,28 @@ function splitColumnDefinitions(createTableSql: string): string[] {
   let definitionStart = openingParenthesis + 1;
   let depth = 0;
   let closingQuote: string | undefined;
+  let inLineComment = false;
+  let inBlockComment = false;
 
   for (let index = definitionStart; index < closingParenthesis; index++) {
     const character = createTableSql[index];
+
+    if (inLineComment) {
+      if (character === '\n' || character === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (character === '*' && createTableSql[index + 1] === '/') {
+        inBlockComment = false;
+        index++;
+      }
+
+      continue;
+    }
 
     if (closingQuote) {
       if (character === closingQuote) {
@@ -103,7 +141,13 @@ function splitColumnDefinitions(createTableSql: string): string[] {
       continue;
     }
 
-    if (character === "'" || character === '"' || character === '`') {
+    if (character === '-' && createTableSql[index + 1] === '-') {
+      inLineComment = true;
+      index++;
+    } else if (character === '/' && createTableSql[index + 1] === '*') {
+      inBlockComment = true;
+      index++;
+    } else if (character === "'" || character === '"' || character === '`') {
       closingQuote = character;
     } else if (character === '[') {
       closingQuote = ']';
@@ -123,20 +167,72 @@ function splitColumnDefinitions(createTableSql: string): string[] {
 }
 
 function getColumnName(definition: string): string | undefined {
-  const firstCharacter = definition[0];
-  if (firstCharacter === '`' || firstCharacter === '"' || firstCharacter === "'") {
-    const end = definition.indexOf(firstCharacter, 1);
+  let start = 0;
+  while (start < definition.length) {
+    if (/\s/.test(definition[start])) {
+      start++;
+      continue;
+    }
 
-    return end === -1 ? undefined : definition.slice(1, end);
+    if (definition[start] === '-' && definition[start + 1] === '-') {
+      const lineEnd = definition.indexOf('\n', start + 2);
+      start = lineEnd === -1 ? definition.length : lineEnd + 1;
+      continue;
+    }
+
+    if (definition[start] === '/' && definition[start + 1] === '*') {
+      const commentEnd = definition.indexOf('*/', start + 2);
+      start = commentEnd === -1 ? definition.length : commentEnd + 2;
+      continue;
+    }
+
+    break;
+  }
+
+  const firstCharacter = definition[start];
+  if (firstCharacter === '`' || firstCharacter === '"' || firstCharacter === "'") {
+    let columnName = '';
+    for (let index = start + 1; index < definition.length; index++) {
+      const character = definition[index];
+      if (character !== firstCharacter) {
+        columnName += character;
+        continue;
+      }
+
+      if (definition[index + 1] === firstCharacter) {
+        columnName += firstCharacter;
+        index++;
+        continue;
+      }
+
+      return columnName;
+    }
+
+    return undefined;
   }
 
   if (firstCharacter === '[') {
-    const end = definition.indexOf(']', 1);
+    let columnName = '';
+    for (let index = start + 1; index < definition.length; index++) {
+      const character = definition[index];
+      if (character !== ']') {
+        columnName += character;
+        continue;
+      }
 
-    return end === -1 ? undefined : definition.slice(1, end);
+      if (definition[index + 1] === ']') {
+        columnName += ']';
+        index++;
+        continue;
+      }
+
+      return columnName;
+    }
+
+    return undefined;
   }
 
-  return /^([^\s]+)/.exec(definition)?.[1];
+  return /^([^\s]+)/.exec(definition.slice(start))?.[1];
 }
 
 function parseGeneratedExpressions(createTableSql: string): Map<string, string> {
@@ -252,7 +348,10 @@ export class SqliteQueryInterface<
           },
         );
         const createTableRow = createTableRows.find(
-          row => 'sql' in row && typeof row.sql === 'string' && /^CREATE\s+TABLE\b/i.test(row.sql),
+          row =>
+            'sql' in row &&
+            typeof row.sql === 'string' &&
+            /^CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\b/i.test(row.sql),
         ) as { sql: string } | undefined;
         const createTableSql = createTableRow?.sql;
 
@@ -276,8 +375,9 @@ export class SqliteQueryInterface<
       const indexes = await this.showIndex(tableName, options);
       for (const index of indexes) {
         for (const field of index.fields) {
-          if (index.unique !== undefined) {
-            data[field.attribute].unique = index.unique;
+          const column = data[field.attribute];
+          if (column && index.unique !== undefined) {
+            column.unique = index.unique;
           }
         }
       }
@@ -336,6 +436,7 @@ export class SqliteQueryInterface<
       this.sequelize.dialect,
       `Attribute "${columnName}"`,
     );
+    const physicalColumnName = normalizedAttribute.columnName ?? columnName;
 
     // SQLite cannot add a STORED generated column through ALTER TABLE when the
     // table contains rows. Rebuild the table so existing rows are preserved and
@@ -348,15 +449,15 @@ export class SqliteQueryInterface<
         this.queryGenerator.describeTableQuery(tableName),
         { ...options, type: QueryTypes.SELECT },
       );
-      if (columns.some(column => column.name === columnName)) {
+      if (columns.some(column => column.name === physicalColumnName)) {
         if (options.ifNotExists) {
           return;
         }
 
         return super.addColumn(
           this.queryGenerator.extractTableDetails(tableName),
-          columnName,
-          dataTypeOrOptions,
+          physicalColumnName,
+          normalizedAttribute,
           options,
         );
       }
@@ -365,7 +466,7 @@ export class SqliteQueryInterface<
       delete queryOptions.ifNotExists;
       await this.#internalQueryInterface.addColumnInternal(
         tableName,
-        columnName,
+        physicalColumnName,
         normalizedAttribute,
         queryOptions,
       );
@@ -375,8 +476,8 @@ export class SqliteQueryInterface<
 
     await super.addColumn(
       this.queryGenerator.extractTableDetails(tableName),
-      columnName,
-      dataTypeOrOptions,
+      physicalColumnName,
+      normalizedAttribute,
       options,
     );
   }
@@ -499,11 +600,15 @@ export class SqliteQueryInterface<
     }
 
     const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
-    const match = /CREATE TABLE (?:`|'|")(\S+)(?:`|'|") \((.+)\)/.exec(createTableSql);
+    const match =
+      /CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:(?:`|'|")(\S+)(?:`|'|")|([^\s(]+))\s+\(([\s\S]+)\)/i.exec(
+        createTableSql,
+      );
     const data: ConstraintDescription[] = [];
 
     if (match) {
-      const [, constraintTableName, attributeSQL] = match;
+      const [, quotedTableName, unquotedTableName, attributeSQL] = match;
+      const constraintTableName = quotedTableName ?? unquotedTableName;
       const keys = [];
       const attributes = [];
       const constraints = [];

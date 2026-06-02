@@ -1,6 +1,6 @@
 'use strict';
 
-const { DataTypes, sql } = require('@sequelize/core');
+const { DataTypes, QueryTypes, sql } = require('@sequelize/core');
 const { expect } = require('chai');
 const Support = require('../../support');
 
@@ -11,6 +11,8 @@ if (Support.getTestDialect() === 'sqlite3') {
     afterEach(async function () {
       await this.sequelize.query('DROP VIEW IF EXISTS `generated_columns_view`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_child`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_fts`');
       await this.sequelize.queryInterface.dropTable(tableName);
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_audit`');
     });
@@ -38,7 +40,7 @@ if (Support.getTestDialect() === 'sqlite3') {
       const queryInterface = this.sequelize.queryInterface;
       await this.sequelize.query('CREATE TABLE `generated_columns_audit` (`name` TEXT)');
       await this.sequelize.query(`
-        CREATE TABLE generated_columns_test (
+        CREATE TABLE \`generated_columns_test\` (
           "id" INTEGER PRIMARY KEY AUTOINCREMENT,
           "quantity" INTEGER CHECK ("quantity" > 0),
           "name" TEXT COLLATE NOCASE UNIQUE
@@ -230,6 +232,99 @@ if (Support.getTestDialect() === 'sqlite3') {
       expect(await queryInterface.select(null, 'generated_columns_audit', {})).to.deep.equal([
         { value: 7 },
       ]);
+    });
+
+    it('uses columnName when adding a STORED generated column', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, { value: DataTypes.INTEGER });
+      await queryInterface.bulkInsert(tableName, [{ value: 5 }]);
+
+      await queryInterface.addColumn(tableName, 'logicalDoubled', {
+        type: DataTypes.INTEGER,
+        columnName: 'physical_doubled',
+        generatedAs: sql.literal('`value` * 2'),
+      });
+
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { value: 5, physical_doubled: 10 },
+      ]);
+      expect(await queryInterface.describeTable(tableName)).to.have.property('physical_doubled');
+    });
+
+    it('parses escaped generated identifiers and comments while preserving expression indexes', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          \`a\`\`b\` INTEGER,
+          /* leading definition comment, with parenthesis ) */
+          \`g\`\`x\` INTEGER GENERATED ALWAYS AS (
+            \`a\`\`b\` + 1 /* misleading comma, and parenthesis ) */
+          ) STORED,
+          \`obsolete\` TEXT
+        )
+      `);
+      await this.sequelize.query(
+        'CREATE INDEX generated_columns_complex_index ON generated_columns_test ((`a``b` + 1)) WHERE `a``b` > 0',
+      );
+      await this.sequelize.query(
+        "INSERT INTO generated_columns_test (`a``b`, `obsolete`) VALUES (2, 'remove me')",
+      );
+
+      const description = await queryInterface.describeTable(tableName);
+      expect(description['g`x'].generatedAs.val.join('')).to.include(
+        '`a``b` + 1 /* misleading comma, and parenthesis ) */',
+      );
+
+      await queryInterface.removeColumn(tableName, 'obsolete');
+
+      const [[index]] = await this.sequelize.query(
+        "SELECT sql FROM sqlite_master WHERE type = 'index' AND name = 'generated_columns_complex_index'",
+      );
+      expect(index.sql).to.include('((`a``b` + 1)) WHERE `a``b` > 0');
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { 'a`b': 2, 'g`x': 3 },
+      ]);
+    });
+
+    it('adds and introspects a STORED generated column on a TEMP table', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(
+        'CREATE TEMP TABLE `generated_columns_temp` (`value` INTEGER NOT NULL)',
+      );
+      await this.sequelize.query('INSERT INTO `generated_columns_temp` (`value`) VALUES (9)');
+
+      await queryInterface.addColumn('generated_columns_temp', 'doubled', {
+        type: DataTypes.INTEGER,
+        generatedAs: sql.literal('`value` * 2'),
+      });
+
+      const description = await queryInterface.describeTable('generated_columns_temp');
+      expect(description.doubled.generatedColumn).to.equal('STORED');
+      expect(description.doubled.generatedAs.val.join('')).to.equal('`value` * 2');
+      expect(await queryInterface.select(null, 'generated_columns_temp', {})).to.deep.equal([
+        { value: 9, doubled: 18 },
+      ]);
+      const [[tempTable]] = await this.sequelize.query(
+        "SELECT count(*) AS count FROM sqlite_temp_master WHERE type = 'table' AND name = 'generated_columns_temp'",
+      );
+      const [[mainTable]] = await this.sequelize.query(
+        "SELECT count(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'generated_columns_temp'",
+      );
+      expect(tempTable.count).to.equal(1);
+      expect(mainTable.count).to.equal(0);
+    });
+
+    it('does not expose TABLE_XINFO hidden virtual-table fields as columns', async function () {
+      await this.sequelize.query(
+        'CREATE VIRTUAL TABLE `generated_columns_fts` USING fts5(`content`)',
+      );
+
+      const description = await this.sequelize.queryRaw(
+        'PRAGMA TABLE_XINFO(`generated_columns_fts`)',
+        { type: QueryTypes.DESCRIBE },
+      );
+
+      expect(description).to.have.all.keys('content');
     });
 
     it('preserves a generated column when rebuilding for an unrelated column', async function () {

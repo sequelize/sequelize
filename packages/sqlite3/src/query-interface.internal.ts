@@ -60,8 +60,11 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           transaction: options?.transaction,
         },
         async transaction => {
-          const [createTableRow] = await this.#sequelize.queryRaw<{ sql: string }>(
-            `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ${escapedTableName}`,
+          const [createTableRow] = await this.#sequelize.queryRaw<{
+            schemaCatalog: 'sqlite_master' | 'sqlite_temp_master';
+            sql: string;
+          }>(
+            `SELECT sql, 'sqlite_temp_master' AS schemaCatalog FROM sqlite_temp_master WHERE type = 'table' AND name = ${escapedTableName} UNION ALL SELECT sql, 'sqlite_master' AS schemaCatalog FROM sqlite_master WHERE type = 'table' AND name = ${escapedTableName}`,
             { ...options, transaction, type: QueryTypes.SELECT },
           );
 
@@ -77,29 +80,32 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             .filter(column => column.hidden === 0)
             .map(column => column.name);
           const schemaObjects = await this.#sequelize.queryRaw<{ sql: string }>(
-            `SELECT sql FROM sqlite_master WHERE tbl_name = ${escapedTableName} AND type IN ('index', 'trigger') AND sql IS NOT NULL ORDER BY type, name`,
+            `SELECT sql FROM ${createTableRow.schemaCatalog} WHERE tbl_name = ${escapedTableName} AND type IN ('index', 'trigger') AND sql IS NOT NULL ORDER BY rowid`,
             { ...options, transaction, type: QueryTypes.SELECT },
           );
           const views = await this.#sequelize.queryRaw<{ name: string; sql: string }>(
-            `SELECT name, sql FROM sqlite_master WHERE type = 'view' AND sql IS NOT NULL ORDER BY rowid`,
+            `SELECT name, sql FROM ${createTableRow.schemaCatalog} WHERE type = 'view' AND sql IS NOT NULL ORDER BY rowid`,
             { ...options, transaction, type: QueryTypes.SELECT },
           );
           const viewTriggers = await this.#sequelize.queryRaw<{ sql: string }>(
-            `SELECT sql FROM sqlite_master WHERE type = 'trigger' AND tbl_name IN (SELECT name FROM sqlite_master WHERE type = 'view') AND sql IS NOT NULL ORDER BY rowid`,
-            { ...options, transaction, type: QueryTypes.SELECT },
-          );
-          const sqliteSequenceExists = await this.#sequelize.queryRaw(
-            `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_sequence'`,
+            `SELECT sql FROM ${createTableRow.schemaCatalog} WHERE type = 'trigger' AND tbl_name IN (SELECT name FROM ${createTableRow.schemaCatalog} WHERE type = 'view') AND sql IS NOT NULL ORDER BY rowid`,
             { ...options, transaction, type: QueryTypes.SELECT },
           );
           let autoincrementHighWater: number | undefined;
 
-          if (sqliteSequenceExists.length > 0) {
-            const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: number }>(
-              `SELECT seq FROM sqlite_sequence WHERE name = ${escapedTableName}`,
+          if (createTableRow.schemaCatalog === 'sqlite_master') {
+            const sqliteSequenceExists = await this.#sequelize.queryRaw(
+              `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_sequence'`,
               { ...options, transaction, type: QueryTypes.SELECT },
             );
-            autoincrementHighWater = sequenceRow?.seq;
+
+            if (sqliteSequenceExists.length > 0) {
+              const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: number }>(
+                `SELECT seq FROM sqlite_sequence WHERE name = ${escapedTableName}`,
+                { ...options, transaction, type: QueryTypes.SELECT },
+              );
+              autoincrementHighWater = sequenceRow?.seq;
+            }
           }
 
           const columnSql = this.#queryGenerator.attributesToSQL(
@@ -109,15 +115,33 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               table: table.tableName,
             },
           );
+          const [physicalColumnName, columnDefinition] = Object.entries(columnSql)[0];
+          const createTableSql =
+            createTableRow.schemaCatalog === 'sqlite_temp_master'
+              ? createTableRow.sql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
+              : createTableRow.sql;
+          const recreatedViews =
+            createTableRow.schemaCatalog === 'sqlite_temp_master'
+              ? views.map(view => ({
+                  ...view,
+                  sql: view.sql.replace(/^CREATE\s+VIEW\b/i, 'CREATE TEMP VIEW'),
+                }))
+              : views;
+          const recreatedViewTriggers =
+            createTableRow.schemaCatalog === 'sqlite_temp_master'
+              ? viewTriggers.map(trigger =>
+                  trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
+                )
+              : viewTriggers.map(trigger => trigger.sql);
           const queries = this.#queryGenerator._addColumnToTableQuery(
             tableName,
-            createTableRow.sql,
-            columnName,
-            columnSql[columnName],
+            createTableSql,
+            physicalColumnName,
+            columnDefinition,
             copiedColumnNames,
             schemaObjects.map(schemaObject => schemaObject.sql),
-            views,
-            viewTriggers.map(trigger => trigger.sql),
+            recreatedViews,
+            recreatedViewTriggers,
             autoincrementHighWater,
           );
           await this.executeQueriesSequentially(queries, { ...options, transaction, raw: true });
@@ -160,6 +184,18 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
           transaction: options?.transaction,
         },
         async transaction => {
+          const [schemaRow] = await this.#sequelize.queryRaw<{
+            schemaCatalog: 'sqlite_master' | 'sqlite_temp_master';
+          }>(
+            `SELECT 'sqlite_temp_master' AS schemaCatalog FROM sqlite_temp_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)} UNION ALL SELECT 'sqlite_master' AS schemaCatalog FROM sqlite_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)}`,
+            { ...options, transaction, type: QueryTypes.SELECT },
+          );
+          const schemaObjects = schemaRow
+            ? await this.#sequelize.queryRaw<{ sql: string }>(
+                `SELECT sql FROM ${schemaRow.schemaCatalog} WHERE tbl_name = ${this.#queryGenerator.escape(table.tableName)} AND type IN ('index', 'trigger') AND sql IS NOT NULL ORDER BY rowid`,
+                { ...options, transaction, type: QueryTypes.SELECT },
+              )
+            : [];
           const indexes = await this.#queryInterface.showIndex(tableName, {
             ...options,
             transaction,
@@ -184,6 +220,10 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
 
           const sql = this.#queryGenerator._replaceTableQuery(tableName, columns);
           await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
+          await this.executeQueriesSequentially(
+            schemaObjects.map(schemaObject => schemaObject.sql),
+            { ...options, transaction, raw: true },
+          );
 
           // Run a foreign keys integrity check
           const foreignKeyCheckResult = await this.#sequelize.queryRaw(
@@ -202,22 +242,6 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               table: table.tableName,
             });
           }
-
-          await Promise.all(
-            indexes.map(async index => {
-              // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
-              if (index.name.startsWith('sqlite_autoindex_')) {
-                return;
-              }
-
-              return this.#sequelize.queryInterface.addIndex(tableName, {
-                ...index,
-                type: undefined,
-                transaction,
-                fields: index.fields.map(field => field.attribute),
-              });
-            }),
-          );
         },
       );
     });
