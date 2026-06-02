@@ -366,6 +366,35 @@ describe('Model generated column safeguards', () => {
       expect(changeColumn.firstCall.args[1]).to.equal('source');
     });
 
+    if (sequelize.dialect.name === 'mssql') {
+      it('verifies generated primary keys during sync({ alter: true })', async () => {
+        const TestModel = sequelize.define(
+          'GeneratedPrimaryKeySync',
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              generatedAs: sql.literal('1'),
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+        const queryInterface = sequelize.queryInterface;
+        sinon.stub(queryInterface, 'tableExists').resolves(true);
+        sinon.stub(queryInterface, 'ensureEnums').resolves();
+        sinon.stub(queryInterface, 'describeTable').resolves({ id: {} });
+        sinon.stub(queryInterface, 'showConstraints').resolves([]);
+        const changeColumn = sinon.stub(queryInterface, 'changeColumn').resolves();
+        sinon.stub(queryInterface, 'showIndex').resolves([]);
+
+        await expect(TestModel.sync({ alter: true, hooks: false })).to.be.rejectedWith(
+          /generated column.*migration.*required/i,
+        );
+        expect(changeColumn).not.to.have.been.called;
+      });
+    }
+
     if (sequelize.dialect.name === 'sqlite3') {
       it('converges generated column drift during sync({ alter: true })', async () => {
         const TestModel = sequelize.define(

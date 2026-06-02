@@ -925,10 +925,6 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
-          if (currentAttribute.primaryKey) {
-            continue;
-          }
-
           const databaseAttribute = columns[columnName];
 
           if (currentAttribute.generatedAs !== undefined) {
@@ -991,6 +987,10 @@ ${associationOwner._getAssociationDebugList()}`);
             throw new Error(
               `Column "${this.name}.${columnName}" is generated in the database but not in the model definition, and cannot be changed safely by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to recreate this column.`,
             );
+          }
+
+          if (currentAttribute.primaryKey) {
+            continue;
           }
 
           // Check foreign keys. If it's a foreign key, it should remove constraint first.
