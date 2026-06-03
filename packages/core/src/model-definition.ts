@@ -26,7 +26,10 @@ import type {
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
-import { validateGeneratedColumnOptions } from './utils/generated-columns.js';
+import {
+  validateGeneratedColumnIndex,
+  validateGeneratedColumnOptions,
+} from './utils/generated-columns.js';
 import { isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
@@ -750,6 +753,23 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
   #addIndex(index: IndexOptions): void {
     index = this.#nameIndex(conformIndex(index));
+
+    for (const field of index.fields ?? []) {
+      const fieldName =
+        typeof field === 'string' ? field : 'name' in field ? field.name : undefined;
+      if (!fieldName) {
+        continue;
+      }
+
+      const attribute = this.attributes.get(fieldName) ?? this.columns.get(fieldName);
+      if (attribute) {
+        validateGeneratedColumnIndex(
+          attribute,
+          this.#sequelize.dialect,
+          `Index "${index.name}" on attribute "${attribute.attributeName}"`,
+        );
+      }
+    }
 
     if (typeof index.fields?.[0] === 'string') {
       const column = this.columns.get(index.fields[0])?.attributeName;

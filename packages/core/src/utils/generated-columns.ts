@@ -8,10 +8,13 @@ interface GeneratedColumnOptions {
   defaultValue?: unknown;
   generatedAs?: unknown;
   generatedColumn?: unknown;
+  index?: unknown;
   onDelete?: string | undefined;
   onUpdate?: string | undefined;
+  primaryKey?: boolean | undefined;
   references?: unknown;
   type?: unknown;
+  unique?: unknown;
 }
 
 /**
@@ -104,6 +107,53 @@ export function validateGeneratedColumnOptions(
   if (mode === 'VIRTUAL' && !supports.virtual) {
     throw new Error(
       `${attributeDescription}: The ${dialect.name} dialect does not support VIRTUAL generated columns.`,
+    );
+  }
+
+  if (dialect.name === 'postgres' && mode === 'VIRTUAL') {
+    if (attribute.primaryKey) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL does not support primary keys on VIRTUAL generated columns.`,
+      );
+    }
+
+    if (attribute.unique) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL does not support unique constraints on VIRTUAL generated columns.`,
+      );
+    }
+
+    if (attribute.references) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL does not support foreign key constraints on VIRTUAL generated columns.`,
+      );
+    }
+
+    if (attribute.index) {
+      validateGeneratedColumnIndex(attribute, dialect, attributeDescription);
+    }
+  }
+}
+
+/**
+ * Validates an index that directly targets a generated column.
+ *
+ * @param attribute The indexed attribute.
+ * @param dialect The dialect the attribute will be used with.
+ * @param attributeDescription A human-readable attribute identifier for errors.
+ */
+export function validateGeneratedColumnIndex(
+  attribute: GeneratedColumnOptions,
+  dialect: AbstractDialect,
+  attributeDescription: string,
+): void {
+  if (
+    dialect.name === 'postgres' &&
+    attribute.generatedAs !== undefined &&
+    attribute.generatedColumn === 'VIRTUAL'
+  ) {
+    throw new Error(
+      `${attributeDescription}: PostgreSQL does not support indexes on VIRTUAL generated columns.`,
     );
   }
 }

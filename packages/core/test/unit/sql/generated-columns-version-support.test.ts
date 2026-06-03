@@ -144,5 +144,68 @@ describe('generated column version support', () => {
       expect(withConnection).to.have.been.calledOnce;
       expect(queryRaw).not.to.have.been.called;
     });
+
+    it('rejects a primary key on a PostgreSQL 18 VIRTUAL generated column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define('VirtualPrimaryKey', {
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('1'),
+            generatedColumn: 'VIRTUAL',
+            primaryKey: true,
+          },
+        });
+      }).to.throw(/primary keys.*VIRTUAL generated columns/i);
+    });
+
+    it('rejects a unique constraint on a PostgreSQL 18 VIRTUAL generated column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define('VirtualUnique', {
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('1'),
+            generatedColumn: 'VIRTUAL',
+            unique: true,
+          },
+        });
+      }).to.throw(/unique constraints.*VIRTUAL generated columns/i);
+    });
+
+    it('rejects a foreign key on a PostgreSQL 18 VIRTUAL generated column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define('VirtualForeignKey', {
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('1'),
+            generatedColumn: 'VIRTUAL',
+            references: { table: 'parents', key: 'id' },
+          },
+        });
+      }).to.throw(/foreign key constraints.*VIRTUAL generated columns/i);
+    });
+
+    it('rejects a model index on a PostgreSQL 18 VIRTUAL generated column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualIndex',
+          {
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('1'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { indexes: [{ fields: ['computed'] }] },
+        );
+      }).to.throw(/indexes.*VIRTUAL generated columns/i);
+    });
   }
 });
