@@ -13,7 +13,7 @@ describe('Transaction', () => {
   }
 
   const vars = beforeAll2(() => {
-    sequelize.setDatabaseVersion('does not matter, prevents the SHOW SERVER_VERSION query');
+    sequelize.setDatabaseVersion(sequelize.dialect.minimumDatabaseVersion);
 
     return {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
@@ -45,7 +45,7 @@ describe('Transaction', () => {
   });
 
   it('should run auto commit query only when needed', async () => {
-    sequelize.setDatabaseVersion('does not matter, prevents the SHOW SERVER_VERSION query');
+    sequelize.setDatabaseVersion(sequelize.dialect.minimumDatabaseVersion);
 
     const expectations: Record<string, string[]> = {
       all: ['START TRANSACTION'],

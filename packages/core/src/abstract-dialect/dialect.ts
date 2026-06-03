@@ -590,6 +590,11 @@ export abstract class AbstractDialect<
       return supports;
     }
 
+    const validDatabaseVersion = semver.valid(databaseVersion);
+    if (!validDatabaseVersion) {
+      return supports;
+    }
+
     const generatedColumns = supports.generatedColumns;
     if (!generatedColumns.storedMinVersion && !generatedColumns.virtualMinVersion) {
       return supports;
@@ -602,11 +607,11 @@ export abstract class AbstractDialect<
         stored:
           generatedColumns.stored &&
           (!generatedColumns.storedMinVersion ||
-            semver.gte(databaseVersion, generatedColumns.storedMinVersion)),
+            semver.gte(validDatabaseVersion, generatedColumns.storedMinVersion)),
         virtual:
           generatedColumns.virtual &&
           (!generatedColumns.virtualMinVersion ||
-            semver.gte(databaseVersion, generatedColumns.virtualMinVersion)),
+            semver.gte(validDatabaseVersion, generatedColumns.virtualMinVersion)),
       },
     });
   }

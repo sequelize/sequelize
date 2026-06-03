@@ -85,7 +85,8 @@ export function validateGeneratedColumnOptions(
   const supports = dialect.supports.generatedColumns;
   const minimumVersion = mode === 'STORED' ? supports.storedMinVersion : supports.virtualMinVersion;
   const databaseVersion = dialect.sequelize.getDatabaseVersionIfExist();
-  if (minimumVersion && databaseVersion && semver.lt(databaseVersion, minimumVersion)) {
+  const validDatabaseVersion = databaseVersion && semver.valid(databaseVersion);
+  if (minimumVersion && validDatabaseVersion && semver.lt(validDatabaseVersion, minimumVersion)) {
     const databaseName = dialect.name === 'postgres' ? 'PostgreSQL' : dialect.name;
     throw new Error(
       `${attributeDescription}: ${databaseName} ${minimumVersion} or newer is required for ${mode} generated columns, but the configured database version is ${databaseVersion}.`,

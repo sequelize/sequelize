@@ -1150,6 +1150,8 @@ Connection options can be used at the root of the option bag, in the "replicatio
 
         Deprecations.unsupportedEngine();
       }
+
+      this.#databaseVersion = version;
     } catch (error) {
       console.warn(
         `Could not validate the database version, as it is not a valid semver version: ${version}.`,
@@ -1157,8 +1159,6 @@ Connection options can be used at the root of the option bag, in the "replicatio
 
       console.warn(error);
     }
-
-    this.#databaseVersion = version;
   }
 
   /**

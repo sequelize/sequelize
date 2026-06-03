@@ -207,5 +207,37 @@ describe('generated column version support', () => {
         );
       }).to.throw(/indexes.*VIRTUAL generated columns/i);
     });
+
+    it('rediscovers an invalid configured database version before generated DDL', async () => {
+      sinon.stub(console, 'warn');
+
+      let postgres: ReturnType<typeof createSequelizeInstance>;
+      expect(() => {
+        postgres = createSequelizeInstance({ databaseVersion: 'not-a-semantic-version' });
+      }).not.to.throw();
+
+      expect(postgres!.getDatabaseVersionIfExist()).to.equal(null);
+      expect(postgres!.dialect.supports.generatedColumns.stored).to.equal(true);
+      expect(postgres!.dialect.supports.generatedColumns.virtual).to.equal(true);
+      const withConnection = sinon.stub(postgres!, 'withConnection').callsFake(async callback => {
+        postgres!.setDatabaseVersion('11.0.0');
+
+        return callback({} as never);
+      });
+      const queryRaw = sinon.stub(postgres!, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres!.queryInterface.createTable('UnknownVersionGenerated', {
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('1'),
+            generatedColumn: 'STORED',
+          },
+        }),
+      ).to.be.rejectedWith(/PostgreSQL 12\.0\.0 or newer.*STORED generated columns/i);
+
+      expect(withConnection).to.have.been.calledOnce;
+      expect(queryRaw).not.to.have.been.called;
+    });
   }
 });
