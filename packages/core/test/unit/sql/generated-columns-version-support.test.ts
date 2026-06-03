@@ -1,10 +1,15 @@
 import { DataTypes, sql } from '@sequelize/core';
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { createSequelizeInstance, getTestDialect, sequelize } from '../../support';
 
 const dialectName = getTestDialect();
 
 describe('generated column version support', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   if (dialectName === 'postgres') {
     it('preserves the PostgreSQL 11 dialect floor for models without generated columns', () => {
       expect(sequelize.dialect.minimumDatabaseVersion).to.equal('11.0.0');
@@ -69,6 +74,75 @@ describe('generated column version support', () => {
       });
 
       expect(definition).to.equal('INTEGER GENERATED ALWAYS AS (1) VIRTUAL');
+    });
+
+    it('re-evaluates generated column support when the database version becomes known', () => {
+      const postgres = createSequelizeInstance();
+      const supportBeforeConnection = postgres.dialect.supports.generatedColumns;
+
+      expect(supportBeforeConnection.stored).to.equal(true);
+      expect(supportBeforeConnection.virtual).to.equal(true);
+
+      postgres.setDatabaseVersion('11.0.0');
+      expect(postgres.dialect.supports.generatedColumns).not.to.equal(supportBeforeConnection);
+      expect(postgres.dialect.supports.generatedColumns.stored).to.equal(false);
+      expect(postgres.dialect.supports.generatedColumns.virtual).to.equal(false);
+
+      postgres.setDatabaseVersion('12.0.0');
+      expect(postgres.dialect.supports.generatedColumns.stored).to.equal(true);
+      expect(postgres.dialect.supports.generatedColumns.virtual).to.equal(false);
+
+      postgres.setDatabaseVersion('17.0.0');
+      expect(postgres.dialect.supports.generatedColumns.stored).to.equal(true);
+      expect(postgres.dialect.supports.generatedColumns.virtual).to.equal(false);
+
+      postgres.setDatabaseVersion('18.0.0');
+      expect(postgres.dialect.supports.generatedColumns.stored).to.equal(true);
+      expect(postgres.dialect.supports.generatedColumns.virtual).to.equal(true);
+    });
+
+    it('discovers the server version before validating the first generated DDL operation', async () => {
+      const postgres = createSequelizeInstance();
+      const withConnection = sinon.stub(postgres, 'withConnection').callsFake(async callback => {
+        postgres.setDatabaseVersion('11.0.0');
+
+        return callback({} as never);
+      });
+      const queryRaw = sinon.stub(postgres, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres.queryInterface.createTable('generated_first_query', {
+          computed: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql.literal('1'),
+            generatedColumn: 'STORED',
+          },
+        }),
+      ).to.be.rejectedWith(/PostgreSQL 12\.0\.0 or newer.*STORED generated columns/i);
+
+      expect(withConnection).to.have.been.calledOnce;
+      expect(queryRaw).not.to.have.been.called;
+    });
+
+    it('discovers the server version before validating a generated addColumn call', async () => {
+      const postgres = createSequelizeInstance();
+      const withConnection = sinon.stub(postgres, 'withConnection').callsFake(async callback => {
+        postgres.setDatabaseVersion('17.0.0');
+
+        return callback({} as never);
+      });
+      const queryRaw = sinon.stub(postgres, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres.queryInterface.addColumn('generated_first_query', 'computed', {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('1'),
+          generatedColumn: 'VIRTUAL',
+        }),
+      ).to.be.rejectedWith(/PostgreSQL 18\.0\.0 or newer.*VIRTUAL generated columns/i);
+
+      expect(withConnection).to.have.been.calledOnce;
+      expect(queryRaw).not.to.have.been.called;
     });
   }
 });

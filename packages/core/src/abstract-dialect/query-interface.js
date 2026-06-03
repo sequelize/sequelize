@@ -82,13 +82,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
-    for (const [attributeName, attribute] of Object.entries(attributes)) {
-      validateGeneratedColumnOptions(
-        attribute,
-        this.sequelize.dialect,
-        `Attribute "${attributeName}"`,
-      );
-    }
+    await this.#validateGeneratedColumnOptions(attributes);
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
@@ -141,7 +135,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     attribute = this.sequelize.normalizeAttribute(attribute);
-    validateGeneratedColumnOptions(attribute, this.sequelize.dialect, `Attribute "${key}"`);
+    await this.#validateGeneratedColumnOptions({ [key]: attribute });
 
     if (
       attribute.type instanceof AbstractDataType &&
@@ -218,11 +212,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options ||= {};
 
     const attribute = this.normalizeAttribute(dataTypeOrOptions);
-    validateGeneratedColumnOptions(
-      attribute,
-      this.sequelize.dialect,
-      `Attribute "${attributeName}"`,
-    );
+    await this.#validateGeneratedColumnOptions({ [attributeName]: attribute }, false);
 
     const query = this.queryGenerator.attributesToSQL(
       {
@@ -234,6 +224,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       },
     );
     const sql = this.queryGenerator.changeColumnQuery(tableName, query);
+
+    await this.#validateGeneratedColumnOptions({ [attributeName]: attribute });
 
     return this.sequelize.queryRaw(sql, options);
   }
@@ -662,6 +654,49 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     delete options.replacements;
 
     return await this.sequelize.queryRaw(sql, options);
+  }
+
+  async #validateGeneratedColumnOptions(attributes, loadDatabaseVersion = true) {
+    const attributeEntries = Object.entries(attributes);
+
+    for (const [attributeName, attribute] of attributeEntries) {
+      validateGeneratedColumnOptions(
+        attribute,
+        this.sequelize.dialect,
+        `Attribute "${attributeName}"`,
+      );
+    }
+
+    if (!loadDatabaseVersion || this.sequelize.getDatabaseVersionIfExist()) {
+      return;
+    }
+
+    const support = this.sequelize.dialect.supports.generatedColumns;
+    const requiresDatabaseVersion = attributeEntries.some(([, attribute]) => {
+      if (attribute.generatedAs === undefined) {
+        return false;
+      }
+
+      const mode = attribute.generatedColumn ?? 'STORED';
+
+      return mode === 'STORED'
+        ? support.storedMinVersion !== undefined
+        : support.virtualMinVersion !== undefined;
+    });
+
+    if (!requiresDatabaseVersion) {
+      return;
+    }
+
+    await this.sequelize.withConnection(() => undefined);
+
+    for (const [attributeName, attribute] of attributeEntries) {
+      validateGeneratedColumnOptions(
+        attribute,
+        this.sequelize.dialect,
+        `Attribute "${attributeName}"`,
+      );
+    }
   }
 
   async rawSelect(tableName, options, attributeSelector, Model) {
