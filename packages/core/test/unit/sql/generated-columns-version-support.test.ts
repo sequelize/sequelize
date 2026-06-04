@@ -1,4 +1,4 @@
-import { DataTypes, sql } from '@sequelize/core';
+import { DataTypes, Op, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { createSequelizeInstance, getTestDialect, sequelize } from '../../support';
@@ -238,6 +238,93 @@ describe('generated column version support', () => {
 
       expect(withConnection).to.have.been.calledOnce;
       expect(queryRaw).not.to.have.been.called;
+    });
+
+    it('rejects an index expression that references a PostgreSQL VIRTUAL generated column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualExpressionIndex',
+          {
+            source: DataTypes.INTEGER,
+            computed: {
+              type: DataTypes.INTEGER,
+              columnName: 'computed_value',
+              generatedAs: sql.literal('source + 1'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          {
+            indexes: [
+              {
+                name: 'virtual_expression_idx',
+                fields: [sql.literal('lower("computed_value")')],
+              },
+            ],
+          },
+        );
+      }).to.throw(/index expressions.*VIRTUAL generated columns/i);
+    });
+
+    it('rejects an index predicate that references a PostgreSQL VIRTUAL generated column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualPredicateIndex',
+          {
+            source: DataTypes.INTEGER,
+            computed: {
+              type: DataTypes.INTEGER,
+              columnName: 'computed_value',
+              generatedAs: sql.literal('source + 1'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          {
+            indexes: [{ fields: ['source'], where: { computed: { [Op.gt]: 0 } } }],
+          },
+        );
+      }).to.throw(/index predicates.*VIRTUAL generated columns/i);
+    });
+
+    it('allows index expressions and predicates that do not reference a VIRTUAL column', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'UnrelatedExpressionIndex',
+          {
+            source: {
+              type: DataTypes.STRING,
+              columnName: 'source_value',
+            },
+            computed: {
+              type: DataTypes.INTEGER,
+              columnName: 'computed_value',
+              generatedAs: sql.literal('length(source)'),
+              generatedColumn: 'VIRTUAL',
+            },
+            lower: {
+              type: DataTypes.STRING,
+              generatedAs: sql.literal('lower(source)'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          {
+            indexes: [
+              {
+                name: 'unrelated_expression_idx',
+                fields: [
+                  sql.literal(`lower("source_value") || 'computed_value' /* "computed_value" */`),
+                ],
+                where: { source: 'computed_value' },
+              },
+            ],
+          },
+        );
+      }).not.to.throw();
     });
   }
 });

@@ -160,6 +160,188 @@ export function validateGeneratedColumnIndex(
 }
 
 /**
+ * Returns whether a SQL fragment references one of the provided identifiers outside of string
+ * literals and comments.
+ *
+ * @param sql The SQL fragment to inspect.
+ * @param identifiers Database column names to find.
+ * @param dialect The dialect whose identifier and string quoting rules should be used.
+ * @internal
+ */
+export function sqlFragmentReferencesIdentifier(
+  sql: string,
+  identifiers: Iterable<string>,
+  dialect: AbstractDialect,
+): boolean {
+  const quotedIdentifiers = new Set(identifiers);
+  const unquotedIdentifiers = new Set(
+    [...quotedIdentifiers]
+      .filter(identifier => /^[a-z_][0-9a-z_$]*$/.test(identifier))
+      .map(identifier => identifier.toLowerCase()),
+  );
+  let quotedIdentifier: string | undefined;
+  let inString = false;
+  let stringIsBackslashEscapable = false;
+  let dollarQuoteTag: string | undefined;
+  let alternativeQuoteEnd: string | undefined;
+  let inLineComment = false;
+  let blockCommentDepth = 0;
+
+  for (let index = 0; index < sql.length; index++) {
+    const char = sql[index];
+
+    if (quotedIdentifier !== undefined) {
+      if (char !== dialect.TICK_CHAR_RIGHT) {
+        quotedIdentifier += char;
+        continue;
+      }
+
+      if (sql[index + 1] === dialect.TICK_CHAR_RIGHT) {
+        quotedIdentifier += dialect.TICK_CHAR_RIGHT;
+        index++;
+        continue;
+      }
+
+      if (quotedIdentifiers.has(quotedIdentifier) && isSqlIdentifierReference(sql, index + 1)) {
+        return true;
+      }
+
+      quotedIdentifier = undefined;
+      continue;
+    }
+
+    if (inString) {
+      if (char === "'" && (!stringIsBackslashEscapable || !isBackslashEscaped(sql, index - 1))) {
+        if (sql[index + 1] === "'") {
+          index++;
+        } else {
+          inString = false;
+          stringIsBackslashEscapable = false;
+        }
+      }
+
+      continue;
+    }
+
+    if (dollarQuoteTag !== undefined) {
+      if (sql.startsWith(dollarQuoteTag, index)) {
+        index += dollarQuoteTag.length - 1;
+        dollarQuoteTag = undefined;
+      }
+
+      continue;
+    }
+
+    if (alternativeQuoteEnd !== undefined) {
+      if (char === alternativeQuoteEnd && sql[index + 1] === "'") {
+        index++;
+        alternativeQuoteEnd = undefined;
+      }
+
+      continue;
+    }
+
+    if (inLineComment) {
+      if (char === '\n' || char === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (blockCommentDepth > 0) {
+      if (char === '/' && sql[index + 1] === '*') {
+        blockCommentDepth++;
+        index++;
+      } else if (char === '*' && sql[index + 1] === '/') {
+        blockCommentDepth--;
+        index++;
+      }
+
+      continue;
+    }
+
+    if (char === dialect.TICK_CHAR_LEFT) {
+      quotedIdentifier = '';
+      continue;
+    }
+
+    if (char === "'") {
+      inString = true;
+      stringIsBackslashEscapable =
+        dialect.canBackslashEscape() ||
+        (dialect.supports.escapeStringConstants &&
+          (sql[index - 1] === 'E' || sql[index - 1] === 'e') &&
+          isTokenBoundary(sql[index - 2]));
+      continue;
+    }
+
+    if ((char === 'q' || char === 'Q') && sql[index + 1] === "'" && sql[index + 2]) {
+      const quoteStart = sql[index + 2];
+      alternativeQuoteEnd =
+        quoteStart === '['
+          ? ']'
+          : quoteStart === '{'
+            ? '}'
+            : quoteStart === '('
+              ? ')'
+              : quoteStart === '<'
+                ? '>'
+                : quoteStart;
+      index += 2;
+      continue;
+    }
+
+    if (char === '-' && sql[index + 1] === '-') {
+      inLineComment = true;
+      index++;
+      continue;
+    }
+
+    if (char === '/' && sql[index + 1] === '*') {
+      blockCommentDepth = 1;
+      index++;
+      continue;
+    }
+
+    if (char === '$' && isTokenBoundary(sql[index - 1])) {
+      const dollarQuoteMatch = sql.slice(index).match(/^\$(?:[a-z_][0-9a-z_]*)?\$/i);
+      if (dollarQuoteMatch) {
+        dollarQuoteTag = dollarQuoteMatch[0];
+        index += dollarQuoteTag.length - 1;
+        continue;
+      }
+    }
+
+    if (/[a-z_]/i.test(char)) {
+      let tokenEnd = index + 1;
+      while (tokenEnd < sql.length && /[0-9a-z_$]/i.test(sql[tokenEnd])) {
+        tokenEnd++;
+      }
+
+      if (
+        unquotedIdentifiers.has(sql.slice(index, tokenEnd).toLowerCase()) &&
+        isSqlIdentifierReference(sql, tokenEnd)
+      ) {
+        return true;
+      }
+
+      index = tokenEnd - 1;
+    }
+  }
+
+  return false;
+}
+
+function isSqlIdentifierReference(sql: string, nextIndex: number): boolean {
+  while (nextIndex < sql.length && /\s/.test(sql[nextIndex])) {
+    nextIndex++;
+  }
+
+  return sql[nextIndex] !== '(' && sql[nextIndex] !== '.';
+}
+
+/**
  * Finds a SQL keyword that is outside of parentheses, quoted values, quoted identifiers, and
  * comments. Column definitions use top-level keywords to separate their data type from constraints,
  * but generated column expressions can contain the same keywords.

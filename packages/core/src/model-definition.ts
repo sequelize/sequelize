@@ -8,6 +8,7 @@ import type { IndexOptions, TableNameWithSchema } from './abstract-dialect/query
 import type { Association } from './associations/index.js';
 import * as DataTypes from './data-types.js';
 import { BaseError } from './errors/index.js';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import type { HookHandler } from './hooks.js';
 import type { ModelHooks } from './model-hooks.js';
 import { staticModelHooks } from './model-hooks.js';
@@ -27,6 +28,7 @@ import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
 import {
+  sqlFragmentReferencesIdentifier,
   validateGeneratedColumnIndex,
   validateGeneratedColumnOptions,
 } from './utils/generated-columns.js';
@@ -768,6 +770,52 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           this.#sequelize.dialect,
           `Index "${index.name}" on attribute "${attribute.attributeName}"`,
         );
+      }
+    }
+
+    if (this.#sequelize.dialect.name === 'postgres') {
+      const virtualGeneratedColumnNames = [...this.attributes.values()]
+        .filter(attribute => attribute.generatedColumn === 'VIRTUAL')
+        .map(attribute => attribute.columnName);
+
+      if (virtualGeneratedColumnNames.length > 0) {
+        for (const field of index.fields ?? []) {
+          if (!(field instanceof BaseSqlExpression)) {
+            continue;
+          }
+
+          const expressionSql = this.#sequelize.queryGenerator.formatSqlExpression(field, {
+            model: this as unknown as ModelDefinition,
+          });
+          if (
+            sqlFragmentReferencesIdentifier(
+              expressionSql,
+              virtualGeneratedColumnNames,
+              this.#sequelize.dialect,
+            )
+          ) {
+            throw new Error(
+              `Index "${index.name}": PostgreSQL does not support index expressions that reference VIRTUAL generated columns.`,
+            );
+          }
+        }
+
+        if (index.where) {
+          const predicateSql = this.#sequelize.queryGenerator.whereItemsQuery(index.where, {
+            model: this as unknown as ModelDefinition,
+          });
+          if (
+            sqlFragmentReferencesIdentifier(
+              predicateSql,
+              virtualGeneratedColumnNames,
+              this.#sequelize.dialect,
+            )
+          ) {
+            throw new Error(
+              `Index "${index.name}": PostgreSQL does not support index predicates that reference VIRTUAL generated columns.`,
+            );
+          }
+        }
       }
     }
 
