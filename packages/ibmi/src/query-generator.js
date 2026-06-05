@@ -144,7 +144,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         const attrName = this.quoteIdentifier(attributeName);
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         const foreignKey = this.quoteIdentifier(`${attributeName}`);

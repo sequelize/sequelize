@@ -171,6 +171,13 @@ if (dialect.startsWith('postgres')) {
           ],
           expectation: `ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(''value 1'', ''value 2''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public"."enum_myTable_col_1");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_2" AS ENUM(''value 3'', ''value 4''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."enum_myTable_col_2" USING ("col_2"::"public"."enum_myTable_col_2");`,
         },
+        {
+          // Regression test for https://github.com/sequelize/sequelize/issues/17544
+          title:
+            "should not treat ENUM value containing 'REFERENCES' as a foreign key, and should still emit DROP NOT NULL",
+          arguments: ['myTable', { status: "ENUM('PREFERENCES')" }],
+          expectation: `ALTER TABLE "myTable" ALTER COLUMN "status" DROP NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "status" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_status" AS ENUM(''PREFERENCES''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "status" TYPE "public"."enum_myTable_status" USING ("status"::"public"."enum_myTable_status");`,
+        },
       ],
 
       selectQuery: [
