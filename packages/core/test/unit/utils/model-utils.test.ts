@@ -1,5 +1,7 @@
+import Module from 'node:module';
 import { Model, isModelStatic, isSameInitialModel } from '@sequelize/core';
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { sequelize } from '../../support';
 
 describe('isModelStatic', () => {
@@ -7,6 +9,31 @@ describe('isModelStatic', () => {
     const MyModel = sequelize.define('MyModel', {});
 
     expect(isModelStatic(MyModel)).to.be.true;
+  });
+
+  it('does not re-require the Model class on every call (caches it)', () => {
+    const MyModel = sequelize.define('MyModelCacheCheck', {});
+
+    // Prime the cache: the very first call is allowed to require('../model').
+    isModelStatic(MyModel);
+
+    // Every require() goes through Module._load, including cache hits, so spying on it lets us
+    // assert that no further resolution of the Model module happens once the class is cached.
+    const loadSpy = sinon.spy(Module as unknown as { _load(...args: any[]): unknown }, '_load');
+
+    try {
+      for (let i = 0; i < 50; i++) {
+        isModelStatic(MyModel);
+      }
+    } finally {
+      loadSpy.restore();
+    }
+
+    const modelModuleLoads = loadSpy
+      .getCalls()
+      .filter(call => String(call.args[0]).endsWith('/model') || call.args[0] === '../model');
+
+    expect(modelModuleLoads).to.have.length(0);
   });
 
   it('returns false for model instances', () => {
