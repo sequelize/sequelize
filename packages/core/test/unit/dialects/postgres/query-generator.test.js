@@ -54,6 +54,13 @@ if (dialect.startsWith('postgres')) {
           arguments: ['myTable', { col_3: `ENUM('value 1', 'value 2')[] UNIQUE` }],
           expectation: `ALTER TABLE "myTable" ALTER COLUMN "col_3" DROP NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_3" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_3" AS ENUM(''value 1'', ''value 2''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable"  ADD UNIQUE ("col_3");ALTER TABLE "myTable" ALTER COLUMN "col_3" TYPE "public"."enum_myTable_col_3"[] USING ("col_3"::"public"."enum_myTable_col_3"[]);`,
         },
+        {
+          // Regression test for https://github.com/sequelize/sequelize/issues/17544
+          title:
+            "should not treat a DEFAULT value containing 'REFERENCES' as a foreign key, and should still emit DROP NOT NULL",
+          arguments: ['myTable', { status: "VARCHAR(255) DEFAULT 'PREFERENCES'" }],
+          expectation: `ALTER TABLE "myTable" ALTER COLUMN "status" DROP NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "status" DROP DEFAULT;ALTER TABLE "myTable" ALTER COLUMN "status" TYPE VARCHAR(255);ALTER TABLE "myTable" ALTER COLUMN "status" SET DEFAULT 'PREFERENCES';`,
+        },
       ],
 
       selectQuery: [

@@ -219,7 +219,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         // Primary key
         primaryKeys.push(attr);
-        if (dataType.includes('REFERENCES')) {
+        if (/\bREFERENCES\b/.test(dataType)) {
           const match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
 
@@ -228,7 +228,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         } else {
           attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (/\bREFERENCES\b/.test(dataType)) {
         // Foreign key
         const match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${attr} ${match[1]}`);
@@ -573,8 +573,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
       const definition = attributes[attributeName];
       const addUniqueKey = columns?.[attributeName]?.unique === true;
-      // eslint-disable-next-line unicorn/prefer-regexp-test
-      if (definition.match(/REFERENCES/)) {
+      if (/\bREFERENCES\b/.test(definition)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
 
         if (addUniqueKey) {
