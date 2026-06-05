@@ -1,6 +1,6 @@
-import Module from 'node:module';
 import { Model, isModelStatic, isSameInitialModel } from '@sequelize/core';
 import { expect } from 'chai';
+import Module from 'node:module';
 import sinon from 'sinon';
 import { sequelize } from '../../support';
 
