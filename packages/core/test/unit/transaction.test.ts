@@ -1,4 +1,4 @@
-import { IsolationLevel } from '@sequelize/core';
+import { IsolationLevel, TransactionNestMode } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { beforeAll2, getTestDialect, sequelize } from '../support';
@@ -85,6 +85,44 @@ describe('Transaction', () => {
         throw error;
       }
     }
+  });
+
+  // https://github.com/sequelize/sequelize/issues/18207
+  it('uses a unique name for each nested savepoint', async function () {
+    if (!sequelize.dialect.supports.savepoints) {
+      return this.skip();
+    }
+
+    // Hand out a distinct id on every call so the savepoint names can only
+    // collide if they are derived from something other than a fresh id.
+    let counter = 0;
+    vars.stubTransactionId.callsFake(() => `txn-${counter++}`);
+
+    await sequelize.transaction(async t1 => {
+      await sequelize.transaction(
+        { transaction: t1, nestMode: TransactionNestMode.savepoint },
+        async t2 => {
+          await sequelize.transaction(
+            { transaction: t2, nestMode: TransactionNestMode.savepoint },
+            async () => {},
+          );
+        },
+      );
+    });
+
+    const isSavepointCreation = (sql: string) =>
+      (sql.includes('SAVEPOINT') || sql.includes('SAVE TRANSACTION')) &&
+      !sql.includes('RELEASE') &&
+      !sql.includes('ROLLBACK');
+
+    const savepointCreations = vars.stub.args
+      .map(args => String(args[0]))
+      .filter(isSavepointCreation);
+
+    expect(savepointCreations).to.have.lengthOf(2);
+    // Both nested savepoints previously resolved to the same name (e.g.
+    // `<id>-sp-0`), so a rollback could target the wrong savepoint.
+    expect(new Set(savepointCreations).size).to.equal(2);
   });
 });
 
