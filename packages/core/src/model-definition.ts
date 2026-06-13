@@ -605,7 +605,11 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
           }
         }
 
-        if (Object.hasOwn(rawAttribute, 'index') && rawAttribute.index) {
+        if (
+          Object.hasOwn(rawAttribute, 'index') &&
+          rawAttribute.index &&
+          !builtAttribute.primaryKey
+        ) {
           const indexes = Array.isArray(rawAttribute.index)
             ? rawAttribute.index
             : [rawAttribute.index];
