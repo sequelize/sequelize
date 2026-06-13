@@ -341,6 +341,146 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
   });
 
+  describe('get with composite keys', () => {
+    function getModels() {
+      class User extends Model<InferAttributes<User>> {}
+
+      class Task extends Model<InferAttributes<Task>> {
+        // declare userId: ForeignKey<string | null>;
+      }
+
+      User.init(
+        {
+          userId: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
+          tenantId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+          },
+        },
+        { sequelize },
+      );
+      Task.init({}, { sequelize });
+
+      return { Task, User };
+    }
+
+    const userIdA = Math.random().toString();
+    const userTenantIdA = Math.random().toString();
+    const userIdB = Math.random().toString();
+    const userIdC = Math.random().toString();
+
+    it('should fetch associations for a single instance', async () => {
+      const { Task, User } = getModels();
+
+      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({}), Task.build({})]);
+
+      const UserTasks = User.hasMany(Task, {
+        foreignKey: {
+          keys: [
+            { sourceKey: 'userId', targetKey: 'userId' },
+            { sourceKey: 'tenantId', targetKey: 'tenantId' },
+          ],
+        },
+      });
+      const actual = UserTasks.get(User.build({ userId: userIdA, tenantId: userTenantIdA }));
+
+      const where = {
+        userId: userIdA,
+        tenantId: userTenantIdA,
+      };
+
+      expect(findAll).to.have.been.calledOnce;
+      expect(findAll.firstCall.args[0]?.where).to.deep.equal(where);
+
+      try {
+        const results = await actual;
+        expect(results).to.be.an('array');
+        expect(results.length).to.equal(2);
+      } finally {
+        findAll.restore();
+      }
+    });
+
+    it('should fetch associations for multiple source instances', async () => {
+      const { Task, User } = getModels();
+
+      const UserTasks = User.hasMany(Task, {
+        foreignKey: {
+          keys: [
+            { sourceKey: 'userId', targetKey: 'userId' },
+            { sourceKey: 'tenantId', targetKey: 'tenantId' },
+          ],
+        },
+      });
+
+      const findAll = sinon.stub(Task, 'findAll').returns(
+        Promise.resolve([
+          Task.build({
+            userId: userIdA,
+            tenantId: userTenantIdA,
+          }),
+          Task.build({
+            userId: userIdA,
+            tenantId: userTenantIdA,
+          }),
+          Task.build({
+            userId: userIdA,
+            tenantId: userTenantIdA,
+          }),
+          Task.build({
+            userId: userIdB,
+            tenantId: userTenantIdA,
+          }),
+        ]),
+      );
+
+      const actual = UserTasks.get([
+        User.build({ userId: userIdA, tenantId: userTenantIdA }),
+        User.build({ userId: userIdB, tenantId: userTenantIdA }),
+        User.build({ userId: userIdC, tenantId: userTenantIdA }),
+      ]);
+
+      expect(findAll).to.have.been.calledOnce;
+      expect(findAll.firstCall.args[0]?.where).to.have.property('userId');
+      expect(findAll.firstCall.args[0]?.where).to.have.property('tenantId');
+      // @ts-expect-error -- not worth typing for this test
+      expect(findAll.firstCall.args[0]?.where.userId).to.have.property(Op.in);
+      // @ts-expect-error -- not worth typing for this test
+      expect(findAll.firstCall.args[0]?.where.tenantId).to.have.property(Op.in);
+      // @ts-expect-error -- not worth typing for this test
+      expect(findAll.firstCall.args[0]?.where.userId[Op.in]).to.deep.equal([
+        userIdA,
+        userIdB,
+        userIdC,
+      ]);
+      // @ts-expect-error -- not worth typing for this test
+      expect(findAll.firstCall.args[0]?.where.tenantId[Op.in]).to.deep.equal([
+        userTenantIdA,
+        userTenantIdA,
+        userTenantIdA,
+      ]);
+
+      try {
+        const result = await actual;
+        expect(result).to.be.instanceOf(Map);
+        expect([...result.keys()]).to.deep.equal([
+          `${userIdA}&${userTenantIdA}`,
+          `${userIdB}&${userTenantIdA}`,
+          `${userIdC}&${userTenantIdA}`,
+        ]);
+
+        expect(result.get(`${userIdA}&${userTenantIdA}`)?.length).to.equal(3);
+        expect(result.get(`${userIdB}&${userTenantIdA}`)?.length).to.equal(1);
+        expect(result.get(`${userIdC}&${userTenantIdA}`)?.length).to.equal(0);
+      } finally {
+        findAll.restore();
+      }
+    });
+  });
+
   describe('association hooks', () => {
     function getModels() {
       class Project extends Model<InferAttributes<Project>> {

@@ -10,6 +10,7 @@ services:
       - 23010:5432
     volumes:
       - postgres-latest:/var/lib/postgresql/data
+    command: ['postgres', '-c', 'log_statement=all']
     healthcheck:
       test: ['CMD', 'pg_isready', '-U', 'sequelize_test']
       interval: 3s

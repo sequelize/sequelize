@@ -164,6 +164,292 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.sync({ alter: true });
   });
 
+  it('should use constraintName provided for composite fk constraints when provided', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, {
+      foreignKey: {
+        keys: ['userId', 'tenantId'],
+        constraintName: 'tribute_to_the_best_constraint_in_the_world',
+      },
+    });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), {
+      constraintType: 'FOREIGN KEY',
+    });
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'tribute_to_the_best_constraint_in_the_world',
+    );
+    expect(constraint.columnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedColumnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedTableName).to.eq('Users');
+  });
+
+  it('should properly add composite fk constraint using shorthand when columns are equal', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), {
+      constraintType: 'FOREIGN KEY',
+    });
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_fkey',
+    );
+    expect(constraint.columnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedColumnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedTableName).to.eq('Users');
+  });
+
+  it('should properly add composite fk constraint using full name when columns are not equal', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, {
+      foreignKey: {
+        keys: [
+          { sourceKey: 'addressUserId', targetKey: 'userId' },
+          { sourceKey: 'customerId', targetKey: 'tenantId' },
+        ],
+      },
+    });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), {
+      constraintType: 'FOREIGN KEY',
+    });
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' &&
+        c.constraintName === 'Addresses_addressUserId_customerId_Users_userId_tenantId_fkey',
+    );
+    expect(constraint.columnNames).to.deep.eq(['addressUserId', 'customerId']);
+    expect(constraint.referencedColumnNames).to.deep.eq(['userId', 'tenantId']);
+    expect(constraint.referencedTableName).to.eq('Users');
+  });
+
+  it('should properly alter tables when there are composite foreign keys', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+
+    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(
+      Address.modelDefinition.table.tableName,
+    );
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_fkey',
+    );
+    expect(constraint).to.exist;
+  });
+
+  it('should create composite foreign key constraint even if table has alias', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] }, as: 'SuperUser' });
+
+    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(
+      Address.modelDefinition.table.tableName,
+    );
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_fkey',
+    );
+    expect(constraint).to.exist;
+  });
+
+  it('should create composite foreign key constraint if table has no primary key but unique constraint exists', async () => {
+    const User = sequelize.define(
+      'User',
+      {
+        userId: {
+          type: DataTypes.INTEGER,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+        },
+        username: {
+          type: DataTypes.STRING,
+        },
+      },
+      {
+        indexes: [
+          {
+            unique: true,
+            fields: ['userId', 'tenantId'],
+          },
+        ],
+      },
+    );
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName());
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_fkey',
+    );
+    expect(constraint).to.exist;
+  });
+
+  it('should fail to create composite foreign key constraint if table has no primary key nor unique constraint', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+      },
+      username: {
+        type: DataTypes.STRING,
+      },
+    });
+    const Address = sequelize.define(
+      'Address',
+      {
+        addressId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      },
+      {
+        noPrimaryKey: true,
+      },
+    );
+    Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+    await expect(sequelize.sync({ alter: true })).to.eventually.be.rejected;
+  });
+
+  it('should create composite foreign key constraint if fields are not primary key but unique constraint exists', async () => {
+    const User = sequelize.define(
+      'User',
+      {
+        userId: {
+          type: DataTypes.INTEGER,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+        },
+        username: {
+          type: DataTypes.STRING,
+          primaryKey: true,
+        },
+      },
+      {
+        indexes: [
+          {
+            unique: true,
+            fields: ['userId', 'tenantId'],
+          },
+        ],
+      },
+    );
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName());
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_fkey',
+    );
+    expect(constraint).to.exist;
+  });
+
   it('creates one unique index for unique:true column', async () => {
     const User = sequelize.define('testSync', {
       email: {
