@@ -20,6 +20,8 @@ import type {
   DataType,
   DataTypeClassOrInstance,
   DestroyOptions,
+  FindOptions,
+  Model,
   ModelAttributes,
   ModelOptions,
   ModelStatic,
@@ -37,6 +39,10 @@ import { normalizeDataType, validateDataType } from './abstract-dialect/data-typ
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
+import type {
+  UnionColumnDescriptor,
+  UnionOptions,
+} from './abstract-dialect/query-generator.types.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';
 import type { AcquireConnectionOptions } from './abstract-dialect/replication-pool.js';
@@ -1198,5 +1204,157 @@ Connection options can be used at the root of the option bag, in the "replicatio
   normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
   normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any> {
     return normalizeDataType(Type, this.dialect);
+  }
+
+  async union<T extends Model>(
+    queries: Array<{ model: ModelStatic<T>; options?: Omit<FindOptions<T>, 'include'> }>,
+    options: UnionOptions = {},
+  ): Promise<T[]> {
+    if (!Array.isArray(queries) || queries.length === 0) {
+      throw new TypeError('Sequelize#union requires an array of at least one query parameter.');
+    }
+
+    for (const q of queries) {
+      if (!q || !q.model) {
+        throw new TypeError(
+          'Each query passed to Sequelize#union must be an object with a valid "model" property.',
+        );
+      }
+    }
+
+    const queryContexts = await Promise.all(
+      queries.map(async q => {
+        const model = q.model as any;
+        const queryOptions: any = {
+          minifyAliases: options.minifyAliases ?? (this as any).options.minifyAliases,
+          ...q.options,
+        };
+        queryOptions.model = model;
+
+        model._injectScope(queryOptions);
+
+        if (queryOptions.include) {
+          throw new TypeError('Sequelize.union: eager-loading via `include` is not supported');
+        }
+
+        model._conformIncludes(queryOptions, model);
+        model._expandAttributes(queryOptions);
+        model._expandIncludeAll(queryOptions, model);
+
+        if (
+          queryOptions.attributes &&
+          !queryOptions.raw &&
+          model.primaryKeyAttribute &&
+          !queryOptions.attributes.includes(model.primaryKeyAttribute) &&
+          (!queryOptions.group ||
+            !queryOptions.hasSingleAssociation ||
+            queryOptions.hasMultiAssociation)
+        ) {
+          queryOptions.attributes = [model.primaryKeyAttribute, ...queryOptions.attributes];
+        }
+
+        if (!queryOptions.attributes) {
+          queryOptions.attributes = [...model.modelDefinition.attributes.keys()];
+          queryOptions.originalAttributes = model._injectDependentVirtualAttributes(
+            queryOptions.attributes,
+          );
+        }
+
+        const attrMap = model.modelDefinition.attributes;
+        const columns: UnionColumnDescriptor[] = [];
+
+        for (const attr of queryOptions.attributes) {
+          const attrName = Array.isArray(attr) ? attr[0] : attr;
+          const def = attrMap.get(attrName);
+
+          columns.push({ name: attrName, dataType: def?.type ?? null });
+        }
+
+        return { model, queryOptions, columns };
+      }),
+    );
+
+    const referenceColumns = queryContexts[0].columns;
+    for (let i = 1; i < queryContexts.length; i++) {
+      const { columns } = queryContexts[i];
+
+      if (columns.length !== referenceColumns.length) {
+        throw new TypeError(
+          `Sequelize#union: query ${i} returns ${columns.length} column(s), ` +
+            `but query 0 returns ${referenceColumns.length} column(s). ` +
+            `All queries in a UNION must return the same number of columns.`,
+        );
+      }
+
+      assertColumnsCompatible(referenceColumns, columns, i);
+    }
+
+    const rawSqls = queryContexts.map(({ model, queryOptions }) => {
+      return (this as any).queryInterface.queryGenerator.selectQuery(
+        model.table,
+        queryOptions,
+        model,
+      );
+    });
+
+    const unionOptions = {
+      minifyAliases: options.minifyAliases ?? (this as any).options.minifyAliases,
+      aliasesMapping: queryContexts[0]?.queryOptions?.aliasesMapping,
+      ...options,
+    };
+
+    return (this as any).queryInterface.union(rawSqls, unionOptions);
+  }
+}
+
+function getTypeCompatibilityGroup(DataTypeClass: Function): string {
+  const name = DataTypeClass.name;
+  if (
+    name === 'INTEGER' ||
+    name === 'BIGINT' ||
+    name === 'TINYINT' ||
+    name === 'SMALLINT' ||
+    name === 'MEDIUMINT'
+  ) {
+    return 'INTEGER';
+  }
+
+  if (name === 'FLOAT' || name === 'DOUBLE' || name === 'REAL' || name === 'DECIMAL') {
+    return 'DECIMAL';
+  }
+
+  if (name === 'STRING' || name === 'TEXT' || name === 'CHAR' || name === 'CITEXT') {
+    return 'TEXT';
+  }
+
+  return name;
+}
+
+function assertColumnsCompatible(
+  referenceColumns: UnionColumnDescriptor[],
+  columns: UnionColumnDescriptor[],
+  queryIndex: number,
+) {
+  for (const [j, ref] of referenceColumns.entries()) {
+    const cur = columns[j];
+
+    if (ref.dataType && cur.dataType) {
+      const refConstructor = ref.dataType.constructor;
+      const curConstructor = cur.dataType.constructor;
+
+      if (refConstructor !== curConstructor) {
+        const refGroup = getTypeCompatibilityGroup(refConstructor);
+        const curGroup = getTypeCompatibilityGroup(curConstructor);
+
+        if (!refGroup || refGroup !== curGroup) {
+          throw new TypeError(
+            `Sequelize#union: column at position ${j} has incompatible types: ` +
+              `"${refConstructor.name}" (query 0, column "${ref.name}") vs ` +
+              `"${curConstructor.name}" (query ${queryIndex}, column "${cur.name}"). ` +
+              `Columns at the same position must have compatible types across all UNION queries.`,
+          );
+        }
+      }
+    }
   }
 }

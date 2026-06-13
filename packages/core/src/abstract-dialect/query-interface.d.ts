@@ -17,7 +17,11 @@ import type { DataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { AddColumnQueryOptions } from './query-generator.js';
-import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator.types.js';
+import type {
+  RemoveIndexQueryOptions,
+  TableOrModel,
+  UnionOptions,
+} from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -382,6 +386,14 @@ export class AbstractQueryInterface<
     tableName: TableName,
     options?: QiSelectOptions,
   ): Promise<object[]>;
+
+  /**
+   * Run a union query
+   *
+   * @param sqls SQL queries to union.
+   * @param options Options for the union query.
+   */
+  union(sqls: string[], options?: UnionOptions): Promise<any>;
 
   /**
    * Increments a row value
