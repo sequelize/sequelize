@@ -61,6 +61,12 @@ interface ReplicationPoolConfig<Connection extends object, ConnectionOptions ext
 
   connect(options: ConnectionOptions): Promise<Connection>;
 
+  /**
+   * Called after {@link connect} and after the connection has been registered in owningPools,
+   * so that any error handlers set up here can safely call pool.destroy() without crashing.
+   */
+  afterConnect?(connection: Connection): Promise<void>;
+
   disconnect(connection: Connection): Promise<void>;
 
   validate(connection: Connection): boolean;
@@ -88,6 +94,7 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
   constructor(config: ReplicationPoolConfig<Connection, ConnectionOptions>) {
     const {
       connect,
+      afterConnect,
       disconnect,
       validate,
       beforeAcquire,
@@ -114,7 +121,11 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
           const nextRead = reads++ % readConfig.length;
           const connection = await connect(readConfig[nextRead]);
 
+          // owningPools must be set before afterConnect runs so that any
+          // attached error handler can be called without crashing.
           owningPools.set(connection, 'read');
+
+          await afterConnect?.(connection);
 
           return connection;
         },
@@ -134,7 +145,11 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
       create: async () => {
         const connection = await connect(writeConfig);
 
+        // owningPools must be set before afterConnect runs so that any
+        // attached error handler can be called without crashing.
         owningPools.set(connection, 'write');
+
+        await afterConnect?.(connection);
 
         return connection;
       },

@@ -92,21 +92,14 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
         connection.once('connect', connectHandler);
 
         /*
-         * Permanently attach this event before connection is even acquired
+         * Temporarily attach this event before connection is even acquired,
          * tedious sometime emits error even after connect(with error).
          *
          * If we dont attach this even that unexpected error event will crash node process
          *
          * E.g. connectTimeout is set higher than requestTimeout
          */
-        connection.on('error', (error: unknown) => {
-          if (
-            isErrorWithStringCode(error) &&
-            (error.code === 'ESOCKET' || error.code === 'ECONNRESET')
-          ) {
-            void this.sequelize.pool.destroy(connection);
-          }
-        });
+        connection.on('error', () => {});
 
         if (tediousConfig.options?.debug) {
           connection.on('debug', debugTedious.log.bind(debugTedious));
@@ -151,6 +144,15 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
+  }
+
+  async afterConnect(connection: MsSqlConnection): Promise<void> {
+    // Replace default error handler with one that destroys the connection from the pool.
+    connection.removeAllListeners('error').on('error', (error: unknown) => {
+      if (isErrorWithStringCode(error) && ['ESOCKET', 'ECONNRESET'].includes(error.code)) {
+        void this.sequelize.pool.destroy(connection);
+      }
+    });
   }
 
   async disconnect(connection: MsSqlConnection): Promise<void> {
