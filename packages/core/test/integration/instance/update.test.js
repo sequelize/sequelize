@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize, sql } = require('@sequelize/core');
+const { DataTypes, sql, ValidationError } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -357,7 +357,7 @@ describe('Model#update', () => {
       const user = await this.User.create({ aNumber: 0 });
 
       const error = await expect(user.update({ validateTest: 'hello' })).to.be.rejectedWith(
-        Sequelize.ValidationError,
+        ValidationError,
       );
 
       expect(error).to.exist;
@@ -398,7 +398,7 @@ describe('Model#update', () => {
         user0.update({
           name: 'B',
         }),
-      ).to.be.rejectedWith(Sequelize.ValidationError);
+      ).to.be.rejectedWith(ValidationError);
 
       const user = await User.findOne({});
       expect(user.get('email')).to.equal('valid.email@gmail.com');
@@ -433,7 +433,7 @@ describe('Model#update', () => {
           name: 'B',
           email: 'still.valid.email@gmail.com',
         }),
-      ).to.be.rejectedWith(Sequelize.ValidationError);
+      ).to.be.rejectedWith(ValidationError);
 
       const user = await User.findOne({});
       expect(user.get('email')).to.equal('valid.email@gmail.com');

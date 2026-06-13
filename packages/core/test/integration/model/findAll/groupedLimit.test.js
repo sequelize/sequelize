@@ -10,7 +10,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -152,7 +152,7 @@ if (current.dialect.supports['UNION ALL']) {
                 values: this.projects.map(item => item.get('id')),
               },
               order: [
-                Sequelize.fn('ABS', Sequelize.col('age')),
+                sql.fn('ABS', sql.col('age')),
                 // Two users have the same abs(age), so we need to make sure that the order is deterministic
                 ['id', 'DESC'],
               ],
@@ -175,7 +175,7 @@ if (current.dialect.supports['UNION ALL']) {
                 on: this.User.ParanoidProjects,
                 values: this.projects.map(item => item.get('id')),
               },
-              order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
+              order: [sql.fn('ABS', sql.col('age')), ['id', 'DESC']],
               include: [this.User.Tasks],
             });
 
@@ -198,7 +198,7 @@ if (current.dialect.supports['UNION ALL']) {
                 on: this.User.ParanoidProjects,
                 values: this.projects.map(item => item.get('id')),
               },
-              order: [Sequelize.fn('ABS', Sequelize.col('age')), ['id', 'DESC']],
+              order: [sql.fn('ABS', sql.col('age')), ['id', 'DESC']],
               include: [this.User.Tasks],
             });
 

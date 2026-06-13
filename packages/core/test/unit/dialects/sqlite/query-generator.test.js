@@ -11,6 +11,7 @@ const dialect = Support.getTestDialect();
 const dayjs = require('dayjs');
 const { SqliteQueryGenerator: QueryGenerator } = require('@sequelize/sqlite3');
 const { createSequelizeInstance } = require('../../../support');
+const { sql } = require('@sequelize/core');
 
 if (dialect === 'sqlite3') {
   describe('[SQLITE Specific] QueryGenerator', () => {
@@ -174,10 +175,8 @@ if (dialect === 'sqlite3') {
           title: 'functions work for group by',
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                group: [sequelize.fn('YEAR', sequelize.col('createdAt'))],
-              };
+            {
+              group: [sql.fn('YEAR', sql.col('createdAt'))],
             },
           ],
           expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
@@ -185,13 +184,11 @@ if (dialect === 'sqlite3') {
           needsSequelize: true,
         },
         {
-          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          title: 'It is possible to mix sql.fn and string arguments to group by',
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title'],
-              };
+            {
+              group: [sql.fn('YEAR', sql.col('createdAt')), 'title'],
             },
           ],
           expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
@@ -275,10 +272,8 @@ if (dialect === 'sqlite3') {
         {
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                foo: sequelize.fn('NOW'),
-              };
+            {
+              foo: sql.fn('NOW'),
             },
           ],
           expectation: {
@@ -468,10 +463,8 @@ if (dialect === 'sqlite3') {
         {
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                bar: sequelize.fn('NOW'),
-              };
+            {
+              bar: sql.fn('NOW'),
             },
             { name: 'foo' },
           ],
@@ -484,10 +477,8 @@ if (dialect === 'sqlite3') {
         {
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                bar: sequelize.col('foo'),
-              };
+            {
+              bar: sql.col('foo'),
             },
             { name: 'foo' },
           ],

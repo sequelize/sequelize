@@ -7,7 +7,13 @@ const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
 const env = process.env;
-const { Sequelize } = require('@sequelize/core');
+const {
+  AccessDeniedError,
+  ConnectionError,
+  ConnectionRefusedError,
+  HostNotFoundError,
+  HostNotReachableError,
+} = require('@sequelize/core');
 
 describe('[MARIADB Specific] Connection Manager', () => {
   if (dialect !== 'mariadb') {
@@ -44,18 +50,14 @@ describe('[MARIADB Specific] Connection Manager', () => {
         port: 65_535,
         connectTimeout: 500,
       });
-      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
-        Sequelize.SequelizeConnectionError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(ConnectionError);
 
       await sequelize.close();
     });
 
     it('ECONNREFUSED', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ host: testHost, port: 65_535 });
-      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
-        Sequelize.ConnectionRefusedError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(ConnectionRefusedError);
 
       await sequelize.close();
     });
@@ -64,16 +66,14 @@ describe('[MARIADB Specific] Connection Manager', () => {
       const sequelize = Support.createSingleTestSequelizeInstance({
         host: 'http://wowow.example.com',
       });
-      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.HostNotFoundError);
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(HostNotFoundError);
 
       await sequelize.close();
     });
 
     it('EHOSTUNREACH', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ host: '255.255.255.255' });
-      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(
-        Sequelize.HostNotReachableError,
-      );
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(HostNotReachableError);
 
       await sequelize.close();
     });
@@ -85,7 +85,7 @@ describe('[MARIADB Specific] Connection Manager', () => {
         password: 'ddsd',
       });
 
-      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(Sequelize.AccessDeniedError);
+      await expect(sequelize.pool.acquire()).to.have.been.rejectedWith(AccessDeniedError);
 
       await sequelize.close();
     });

@@ -4,7 +4,13 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, IsolationLevel, Op, Sequelize, sql } = require('@sequelize/core');
+const {
+  DataTypes,
+  ForeignKeyConstraintError,
+  IsolationLevel,
+  Op,
+  sql,
+} = require('@sequelize/core');
 const assert = require('node:assert');
 const sinon = require('sinon');
 
@@ -3564,9 +3570,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await Promise.all([user1.setTasks([task1]), task2.setUsers([user2])]);
 
         await Promise.all([
-          expect(user1.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError), // Fails because of
+          expect(user1.destroy()).to.have.been.rejectedWith(ForeignKeyConstraintError), // Fails because of
           // RESTRICT constraint
-          expect(task2.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError),
+          expect(task2.destroy()).to.have.been.rejectedWith(ForeignKeyConstraintError),
         ]);
       });
 
@@ -3589,7 +3595,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await Promise.all([user1.setTasks([task1]), task2.setUsers([user2])]);
 
         await Promise.all([
-          expect(user1.destroy()).to.have.been.rejectedWith(Sequelize.ForeignKeyConstraintError), // Fails because of
+          expect(user1.destroy()).to.have.been.rejectedWith(ForeignKeyConstraintError), // Fails because of
           // RESTRICT constraint
           task2.destroy(),
         ]);

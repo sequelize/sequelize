@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, QueryTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -51,7 +51,7 @@ if (current.dialect.supports.tmpTableTrigger) {
 
         await User.sync({ force: true });
 
-        await this.sequelize.query(triggerQuery, { type: this.sequelize.QueryTypes.RAW });
+        await this.sequelize.query(triggerQuery, { type: QueryTypes.RAW });
       });
 
       it('should return output rows after insert', async () => {

@@ -2,7 +2,7 @@
 
 const { expect } = require('chai');
 const sinon = require('sinon');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Op, ValidationError, ValidationErrorItem } = require('@sequelize/core');
 const { rand, sequelize } = require('../../support');
 
 const dialect = sequelize.dialect;
@@ -400,14 +400,14 @@ describe('InstanceValidator', () => {
             User.create({
               integer: 'jan',
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError, `'jan' is not a valid integer`);
+          ).to.be.rejectedWith(ValidationError, `'jan' is not a valid integer`);
 
           expect(error)
             .to.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -422,12 +422,12 @@ describe('InstanceValidator', () => {
               integer: 4.5,
             }),
           )
-            .to.be.rejectedWith(Sequelize.ValidationError)
+            .to.be.rejectedWith(ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -440,12 +440,12 @@ describe('InstanceValidator', () => {
       describe('update', () => {
         it('should throw when passing string', async () => {
           await expect(User.update({ integer: 'jan' }, { where: {} }))
-            .to.be.rejectedWith(Sequelize.ValidationError)
+            .to.be.rejectedWith(ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -463,12 +463,12 @@ describe('InstanceValidator', () => {
               { where: {} },
             ),
           )
-            .to.be.rejectedWith(Sequelize.ValidationError)
+            .to.be.rejectedWith(ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
             .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -553,7 +553,7 @@ describe('InstanceValidator', () => {
             User.create({
               integer: -1,
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
 
         it('custom model validation function fails', async () => {
@@ -561,7 +561,7 @@ describe('InstanceValidator', () => {
             User.create({
               name: 'error',
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
 
@@ -574,7 +574,7 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
 
         it('when custom model validation function fails', async () => {
@@ -585,7 +585,7 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
     });
@@ -650,7 +650,7 @@ describe('InstanceValidator', () => {
             User.create({
               name: 'error',
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
 
@@ -663,7 +663,7 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
     });
@@ -740,7 +740,7 @@ describe('InstanceValidator', () => {
               integer: 11,
               name: null,
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
@@ -754,7 +754,7 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
           await expect(this.customValidator).to.have.been.calledOnce;
         });
@@ -792,7 +792,7 @@ describe('InstanceValidator', () => {
               integer: 99,
               name: null,
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
           await expect(this.customValidator).to.have.not.been.called;
         });
@@ -806,7 +806,7 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
           await expect(this.customValidator).to.have.not.been.called;
         });

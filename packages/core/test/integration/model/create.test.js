@@ -7,7 +7,14 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
+const {
+  DataTypes,
+  Op,
+  or,
+  sql,
+  UniqueConstraintError,
+  ValidationError,
+} = require('@sequelize/core');
 
 const delay = require('delay');
 const assert = require('node:assert');
@@ -109,7 +116,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             username: 'gottlieb',
           },
         }),
-      ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      ).to.eventually.be.rejectedWith(UniqueConstraintError);
     });
 
     it('should error correctly when defaults contain a unique key and a non-existent field', async function () {
@@ -141,7 +148,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             bar: 121,
           },
         }),
-      ).to.eventually.be.rejectedWith(Sequelize.UniqueConstraintError);
+      ).to.eventually.be.rejectedWith(UniqueConstraintError);
     });
 
     it('should error correctly when defaults contain a unique key and the where clause is complex', async function () {
@@ -176,7 +183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         });
       } catch (error) {
-        expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
+        expect(error).to.be.instanceof(UniqueConstraintError);
         if (dialectName !== 'ibmi') {
           expect(error.errors[0].path).to.be.a('string', 'username');
         }
@@ -413,7 +420,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('supports .or() (only using default values)', async function () {
       const [user, created] = await this.User.findOrCreate({
-        where: Sequelize.or({ username: 'Fooobzz' }, { secretValue: 'Yolo' }),
+        where: or({ username: 'Fooobzz' }, { secretValue: 'Yolo' }),
         defaults: { username: 'Fooobzz', secretValue: 'Yolo' },
       });
 
@@ -451,7 +458,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               1000,
             );
           } catch (error) {
-            if (error instanceof Sequelize.ValidationError) {
+            if (error instanceof ValidationError) {
               return test(times + 1);
             }
 
@@ -566,7 +573,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   username: 'gottlieb',
                 },
               }),
-            ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+            ).to.be.rejectedWith(UniqueConstraintError);
 
             expect(error.fields).to.be.ok;
           })(),
@@ -580,7 +587,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   username: 'gottlieb',
                 },
               }),
-            ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+            ).to.be.rejectedWith(UniqueConstraintError);
 
             expect(error.fields).to.be.ok;
           })(),
@@ -717,7 +724,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       const error = await expect(User.create({ email: 'invalid' })).to.be.rejectedWith(
-        Sequelize.ValidationError,
+        ValidationError,
       );
       expect(error.get('email')).to.be.instanceof(Array);
       expect(error.get('email')[0]).to.exist;
@@ -918,7 +925,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       const user = await this.User.create(
         {
-          intVal: this.customSequelize.cast('1', type),
+          intVal: sql.cast('1', type),
         },
         {
           logging(sql) {
@@ -934,17 +941,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('is possible to use casting multiple times mixed in with other utilities', async function () {
-      let type = this.customSequelize.cast(
-        this.customSequelize.cast(this.customSequelize.literal('1-2'), 'integer'),
-        'integer',
-      );
+      let type = sql.cast(sql.cast(sql.literal('1-2'), 'integer'), 'integer');
       let match = false;
 
       if (['mysql', 'mariadb'].includes(dialectName)) {
-        type = this.customSequelize.cast(
-          this.customSequelize.cast(this.customSequelize.literal('1-2'), 'unsigned'),
-          'signed',
-        );
+        type = sql.cast(sql.cast(sql.literal('1-2'), 'unsigned'), 'signed');
       }
 
       const user = await this.User.create(
@@ -971,9 +972,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('is possible to just use .literal() to bypass escaping', async function () {
       const user = await this.User.create({
-        intVal: this.customSequelize.literal(
-          `CAST(1-2 AS ${dialectName === 'mysql' ? 'SIGNED' : 'INTEGER'})`,
-        ),
+        intVal: sql.literal(`CAST(1-2 AS ${dialectName === 'mysql' ? 'SIGNED' : 'INTEGER'})`),
       });
 
       const user0 = await this.User.findByPk(user.id);
@@ -982,7 +981,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('is possible to use funtions when creating an instance', async function () {
       const user = await this.User.create({
-        secretValue: this.customSequelize.fn('upper', 'sequelize'),
+        secretValue: sql.fn('upper', 'sequelize'),
       });
 
       const user0 = await this.User.findByPk(user.id);
@@ -991,7 +990,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should escape $ in sequelize functions arguments', async function () {
       const user = await this.User.create({
-        secretValue: this.customSequelize.fn('upper', '$sequelize'),
+        secretValue: sql.fn('upper', '$sequelize'),
       });
 
       const user0 = await this.User.findByPk(user.id);
@@ -1021,7 +1020,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         userWithDefaults = this.customSequelize.define('userWithDefaults', {
           uuid: {
             type: 'UUID',
-            defaultValue: this.customSequelize.fn('uuid_generate_v4'),
+            defaultValue: sql.fn('uuid_generate_v4'),
           },
         });
 
@@ -1041,7 +1040,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         userWithDefaults = this.customSequelize.define('userWithDefaults', {
           year: {
             type: DataTypes.STRING,
-            defaultValue: this.customSequelize.fn('', this.customSequelize.fn('date', 'now')),
+            defaultValue: sql.fn('', sql.fn('date', 'now')),
           },
         });
 
@@ -1122,7 +1121,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       try {
         await User.create({ username: 'foo' });
       } catch (error) {
-        if (!(error instanceof Sequelize.UniqueConstraintError)) {
+        if (!(error instanceof UniqueConstraintError)) {
           throw error;
         }
 
@@ -1141,7 +1140,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.create({ username: 'foo' });
           await User.create({ username: 'fOO' });
         } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
+          if (!(error instanceof UniqueConstraintError)) {
             throw error;
           }
 
@@ -1169,7 +1168,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.sync({ force: true });
           await User.create({ username: 42 });
         } catch (error) {
-          if (!(error instanceof Sequelize.ValidationError)) {
+          if (!(error instanceof ValidationError)) {
             throw error;
           }
 
@@ -1193,7 +1192,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await User.create({ username: 'foo' });
           await User.create({ username: 'foo' });
         } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
+          if (!(error instanceof UniqueConstraintError)) {
             throw error;
           }
 
@@ -1234,7 +1233,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       try {
         await UserNull.create({ username: 'foo', smth: 'bar' });
       } catch (error) {
-        if (!(error instanceof Sequelize.UniqueConstraintError)) {
+        if (!(error instanceof UniqueConstraintError)) {
           throw error;
         }
 
@@ -1624,7 +1623,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('should return default value set by the database (create)', async function () {
       const User = this.customSequelize.define('User', {
         name: DataTypes.STRING,
-        code: { type: DataTypes.INTEGER, defaultValue: Sequelize.literal(2020) },
+        code: { type: DataTypes.INTEGER, defaultValue: sql.literal(2020) },
       });
 
       await User.sync({ force: true });

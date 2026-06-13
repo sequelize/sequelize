@@ -1,3 +1,6 @@
+// We use a default import so that `Pkg` is the CJS `module.exports` object, which includes
+// dynamically-assigned exports (e.g. via Object.assign). Using `import * as Pkg` only provides
+// statically-analyzable named exports, missing anything added dynamically.
 import Pkg from './index.js';
 
 // export * from './lib/sequelize';
@@ -103,6 +106,3 @@ export const isModelStatic = Pkg.isModelStatic;
 export const isSameInitialModel = Pkg.isSameInitialModel;
 export const importModels = Pkg.importModels;
 export const ManualOnDelete = Pkg.ManualOnDelete;
-
-// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future
-export { default } from './index.js';

@@ -6,7 +6,7 @@ const sinon = require('sinon');
 const expect = chai.expect;
 const Support = require('../support');
 
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, EmptyResultError, Op } = require('@sequelize/core');
 const pMap = require('p-map');
 
 const current = Support.sequelize;
@@ -1067,7 +1067,7 @@ The following associations are defined on "Worker": "ToDos"`);
             },
             rejectOnEmpty: true,
           }),
-        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        ).to.eventually.be.rejectedWith(EmptyResultError);
       });
 
       it('throws error when record not found by findByPk', async function () {
@@ -1075,7 +1075,7 @@ The following associations are defined on "Worker": "ToDos"`);
           this.User.findByPk(2, {
             rejectOnEmpty: true,
           }),
-        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        ).to.eventually.be.rejectedWith(EmptyResultError);
       });
 
       it('throws error when record not found by find', async function () {
@@ -1086,7 +1086,7 @@ The following associations are defined on "Worker": "ToDos"`);
             },
             rejectOnEmpty: true,
           }),
-        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        ).to.eventually.be.rejectedWith(EmptyResultError);
       });
 
       it('works from model options', async () => {
@@ -1108,7 +1108,7 @@ The following associations are defined on "Worker": "ToDos"`);
               username: 'some-username-that-is-not-used-anywhere',
             },
           }),
-        ).to.eventually.be.rejectedWith(Sequelize.EmptyResultError);
+        ).to.eventually.be.rejectedWith(EmptyResultError);
       });
 
       it('override model options', async () => {

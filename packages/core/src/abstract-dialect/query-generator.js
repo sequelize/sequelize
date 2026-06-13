@@ -828,7 +828,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         unless they are themselves objects
       * If direction is set, should be prepended
 
-    Currently this function is only used for ordering / grouping columns and Sequelize.col(), but it could
+    Currently this function is only used for ordering / grouping columns and sql.col(), but it could
     potentially also be used for other places where we want to be able to call SQL functions (e.g. as default values)
    @private
   */
@@ -993,9 +993,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     if (isPlainObject(collection) && collection.raw) {
       // simple objects with raw is no longer supported
-      throw new Error(
-        'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.',
-      );
+      throw new Error('The `{raw: "..."}` syntax is no longer supported. Use `sql` instead.');
     }
 
     throw new Error(`Unknown structure passed to order / group: ${NodeUtil.inspect(collection)}`);
