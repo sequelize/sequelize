@@ -68,14 +68,14 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         primaryKeys.push(attr);
 
-        if (dataType.includes('REFERENCES')) {
+        if (/\bREFERENCES\b/.test(dataType)) {
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
           foreignKeys[attr] = match[2];
         } else {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (/\bREFERENCES\b/.test(dataType)) {
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
         foreignKeys[attr] = match[2];
@@ -162,7 +162,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'SET NOT NULL'));
 
         definition = definition.replace('NOT NULL', '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      } else if (!/\bREFERENCES\b/.test(definition)) {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'DROP NOT NULL'));
       }
 
@@ -176,7 +176,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      } else if (!/\bREFERENCES\b/.test(definition)) {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'DROP DEFAULT'));
       }
 
@@ -190,7 +190,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         );
       }
 
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         attrSql.push(
           query('ADD FOREIGN KEY (', this.quoteIdentifier(attributeName), ')', definition).replace(
