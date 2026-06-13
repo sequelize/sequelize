@@ -57,6 +57,7 @@ export interface CreateTableQueryOptions {
   rowFormat?: string;
   comment?: string;
   initialAutoIncrement?: number;
+  strict: boolean;
   /**
    * Used for compound unique keys.
    */
