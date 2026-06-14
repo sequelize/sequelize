@@ -107,8 +107,10 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     if (pks.length > 0) {
       attributesClause += `, PRIMARY KEY (${pks})`;
     }
+     const partitionQuery = options.partition ? ` PARTITION BY ${options.partition.type.toUpperCase()} (${options.partition.column})` :''
 
-    return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
+
+    return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${partitionQuery}${comments}${columnComments};`;
   }
 
   addColumnQuery(table, key, attribute, options) {
