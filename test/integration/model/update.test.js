@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(account.ownerId).to.be.equal(ownerId);
     });
 
-    if (_.get(current.dialect.supports, 'returnValues.returning')) {
+    if (_.get(current.dialect.supports, 'returnValues.returning') || _.get(current.dialect.supports, 'returnValues.update')) {
       it('should return the updated record', async function() {
         const account = await this.Account.create({ ownerId: 2 });
 
