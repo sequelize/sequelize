@@ -1,26 +1,29 @@
-'use strict';
+"use strict";
 
-const chai = require('chai');
+const chai = require("chai");
 
 const expect = chai.expect;
-const Support = require('../support');
+const Support = require("../support");
 const {
   InstanceValidator,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js');
-const sinon = require('sinon');
-const { DataTypes, ValidationError: SequelizeValidationError } = require('@sequelize/core');
+} = require("@sequelize/core/_non-semver-use-at-your-own-risk_/instance-validator.js");
+const sinon = require("sinon");
+const {
+  DataTypes,
+  ValidationError: SequelizeValidationError,
+} = require("@sequelize/core");
 
 const ValidationError = SequelizeValidationError;
 
-describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
+describe(Support.getTestDialectTeaser("InstanceValidator"), () => {
   beforeEach(function () {
-    this.User = Support.sequelize.define('user', {
+    this.User = Support.sequelize.define("user", {
       fails: {
         type: DataTypes.BOOLEAN,
         validate: {
           isNotTrue(value) {
             if (value) {
-              throw new Error('Manual model validation failure');
+              throw new Error("Manual model validation failure");
             }
           },
         },
@@ -28,16 +31,21 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
   });
 
-  it('configures itself to run hooks by default', () => {
+  it("configures itself to run hooks by default", () => {
     const instanceValidator = new InstanceValidator();
     expect(instanceValidator.options.hooks).to.equal(true);
   });
 
-  describe('validate', () => {
-    it('runs the validation sequence and hooks when the hooks option is true', function () {
-      const instanceValidator = new InstanceValidator(this.User.build(), { hooks: true });
-      const _validate = sinon.spy(instanceValidator, '_validate');
-      const _validateAndRunHooks = sinon.spy(instanceValidator, '_validateAndRunHooks');
+  describe("validate", () => {
+    it("runs the validation sequence and hooks when the hooks option is true", function () {
+      const instanceValidator = new InstanceValidator(this.User.build(), {
+        hooks: true,
+      });
+      const _validate = sinon.spy(instanceValidator, "_validate");
+      const _validateAndRunHooks = sinon.spy(
+        instanceValidator,
+        "_validateAndRunHooks",
+      );
 
       instanceValidator.validate();
 
@@ -45,10 +53,15 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       expect(_validate).to.not.have.been.called;
     });
 
-    it('runs the validation sequence but skips hooks if the hooks option is false', function () {
-      const instanceValidator = new InstanceValidator(this.User.build(), { hooks: false });
-      const _validate = sinon.spy(instanceValidator, '_validate');
-      const _validateAndRunHooks = sinon.spy(instanceValidator, '_validateAndRunHooks');
+    it("runs the validation sequence but skips hooks if the hooks option is false", function () {
+      const instanceValidator = new InstanceValidator(this.User.build(), {
+        hooks: false,
+      });
+      const _validate = sinon.spy(instanceValidator, "_validate");
+      const _validateAndRunHooks = sinon.spy(
+        instanceValidator,
+        "_validateAndRunHooks",
+      );
 
       instanceValidator.validate();
 
@@ -56,22 +69,24 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       expect(_validateAndRunHooks).to.not.have.been.called;
     });
 
-    it('fulfills when validation is successful', async function () {
+    it("fulfills when validation is successful", async function () {
       const instanceValidator = new InstanceValidator(this.User.build());
       const result = instanceValidator.validate();
 
       await expect(result).to.be.fulfilled;
     });
 
-    it('rejects with a validation error when validation fails', async function () {
-      const instanceValidator = new InstanceValidator(this.User.build({ fails: true }));
+    it("rejects with a validation error when validation fails", async function () {
+      const instanceValidator = new InstanceValidator(
+        this.User.build({ fails: true }),
+      );
       const result = instanceValidator.validate();
 
       await expect(result).to.be.rejectedWith(SequelizeValidationError);
     });
 
-    it('has a useful default error message for not null validation failures', async () => {
-      const User = Support.sequelize.define('user', {
+    it("has a useful default error message for not null validation failures", async () => {
+      const User = Support.sequelize.define("user", {
         name: {
           type: DataTypes.STRING,
           allowNull: false,
@@ -88,118 +103,142 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
   });
 
-  describe('_validateAndRunHooks', () => {
+  describe("_validateAndRunHooks", () => {
     beforeEach(function () {
-      this.successfulInstanceValidator = new InstanceValidator(this.User.build());
-      sinon.stub(this.successfulInstanceValidator, '_validate').resolves();
+      this.successfulInstanceValidator = new InstanceValidator(
+        this.User.build(),
+      );
+      sinon.stub(this.successfulInstanceValidator, "_validate").resolves();
     });
 
-    it('should run beforeValidate and afterValidate hooks when _validate is successful', async function () {
+    it("should run beforeValidate and afterValidate hooks when _validate is successful", async function () {
       const beforeValidate = sinon.spy();
       const afterValidate = sinon.spy();
       this.User.beforeValidate(beforeValidate);
       this.User.afterValidate(afterValidate);
 
-      await expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.fulfilled;
+      await expect(this.successfulInstanceValidator._validateAndRunHooks()).to
+        .be.fulfilled;
       expect(beforeValidate).to.have.been.calledOnce;
       expect(afterValidate).to.have.been.calledOnce;
     });
 
-    it('should run beforeValidate hook but not afterValidate hook when _validate is unsuccessful', async function () {
+    it("should run beforeValidate hook but not afterValidate hook when _validate is unsuccessful", async function () {
       const failingInstanceValidator = new InstanceValidator(this.User.build());
-      sinon.stub(failingInstanceValidator, '_validate').rejects(new Error());
+      sinon.stub(failingInstanceValidator, "_validate").rejects(new Error());
       const beforeValidate = sinon.spy();
       const afterValidate = sinon.spy();
       this.User.beforeValidate(beforeValidate);
       this.User.afterValidate(afterValidate);
 
-      await expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected;
+      await expect(failingInstanceValidator._validateAndRunHooks()).to.be
+        .rejected;
       expect(beforeValidate).to.have.been.calledOnce;
       expect(afterValidate).to.not.have.been.called;
     });
 
-    it('should emit an error from after hook when afterValidate fails', async function () {
+    it("should emit an error from after hook when afterValidate fails", async function () {
       this.User.afterValidate(() => {
-        throw new Error('after validation error');
+        throw new Error("after validation error");
       });
 
-      await expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.rejectedWith(
-        'after validation error',
-      );
+      await expect(
+        this.successfulInstanceValidator._validateAndRunHooks(),
+      ).to.be.rejectedWith("after validation error");
     });
 
-    describe('validatedFailed hook', () => {
-      it('should call validationFailed hook when validation fails', async function () {
-        const failingInstanceValidator = new InstanceValidator(this.User.build());
-        sinon.stub(failingInstanceValidator, '_validate').rejects(new Error());
+    describe("validatedFailed hook", () => {
+      it("should call validationFailed hook when validation fails", async function () {
+        const failingInstanceValidator = new InstanceValidator(
+          this.User.build(),
+        );
+        sinon.stub(failingInstanceValidator, "_validate").rejects(new Error());
         const validationFailedHook = sinon.spy();
         this.User.validationFailed(validationFailedHook);
 
-        await expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected;
+        await expect(failingInstanceValidator._validateAndRunHooks()).to.be
+          .rejected;
         expect(validationFailedHook).to.have.been.calledOnce;
       });
 
-      it('should not replace the validation error in validationFailed hook by default', async function () {
-        const failingInstanceValidator = new InstanceValidator(this.User.build());
-        sinon.stub(failingInstanceValidator, '_validate').rejects(new SequelizeValidationError());
+      it("should not replace the validation error in validationFailed hook by default", async function () {
+        const failingInstanceValidator = new InstanceValidator(
+          this.User.build(),
+        );
+        sinon
+          .stub(failingInstanceValidator, "_validate")
+          .rejects(new SequelizeValidationError());
         const validationFailedHook = sinon.stub().resolves();
         this.User.validationFailed(validationFailedHook);
 
-        const err = await expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected;
-        expect(err.name).to.equal('SequelizeValidationError');
+        const err = await expect(
+          failingInstanceValidator._validateAndRunHooks(),
+        ).to.be.rejected;
+        expect(err.name).to.equal("SequelizeValidationError");
       });
 
-      it('should replace the validation error if validationFailed hook creates a new error', async function () {
-        const failingInstanceValidator = new InstanceValidator(this.User.build());
-        sinon.stub(failingInstanceValidator, '_validate').rejects(new SequelizeValidationError());
-        const validationFailedHook = sinon.stub().throws(new Error('validation failed hook error'));
+      it("should replace the validation error if validationFailed hook creates a new error", async function () {
+        const failingInstanceValidator = new InstanceValidator(
+          this.User.build(),
+        );
+        sinon
+          .stub(failingInstanceValidator, "_validate")
+          .rejects(new SequelizeValidationError());
+        const validationFailedHook = sinon
+          .stub()
+          .throws(new Error("validation failed hook error"));
         this.User.validationFailed(validationFailedHook);
 
-        const err = await expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected;
-        expect(err.message).to.equal('validation failed hook error');
+        const err = await expect(
+          failingInstanceValidator._validateAndRunHooks(),
+        ).to.be.rejected;
+        expect(err.message).to.equal("validation failed hook error");
       });
     });
   });
 
-  describe('isJSON validator regression (validator.js v13+)', () => {
+  describe("isJSON validator regression (validator.js v13+)", () => {
     let JsonUser;
 
     beforeEach(() => {
-      JsonUser = Support.sequelize.define(`JsonUser${Math.random().toString(36).slice(2)}`, {
-        data: {
-          type: DataTypes.STRING,
-          validate: {
-            isJSON: true,
+      JsonUser = Support.sequelize.define(
+        `JsonUser${Math.random().toString(36).slice(2)}`,
+        {
+          data: {
+            type: DataTypes.STRING,
+            validate: {
+              isJSON: true,
+            },
           },
         },
-      });
+      );
     });
 
-    it('accepts a valid JSON object string when isJSON is true', async () => {
+    it("accepts a valid JSON object string when isJSON is true", async () => {
       const instance = JsonUser.build({ data: '{"key":"value"}' });
       await expect(instance.validate()).not.to.be.rejected;
     });
 
-    it('accepts a valid JSON array string when isJSON is true', async () => {
+    it("accepts a valid JSON array string when isJSON is true", async () => {
       // Empty arrays are valid JSON and must not be rejected
-      const instance = JsonUser.build({ data: '[]' });
+      const instance = JsonUser.build({ data: "[]" });
       await expect(instance.validate()).not.to.be.rejected;
     });
 
-    it('accepts a non-empty JSON array string when isJSON is true', async () => {
-      const instance = JsonUser.build({ data: '[1,2,3]' });
+    it("accepts a non-empty JSON array string when isJSON is true", async () => {
+      const instance = JsonUser.build({ data: "[1,2,3]" });
       await expect(instance.validate()).not.to.be.rejected;
     });
 
-    it('rejects an invalid JSON string when isJSON is true', async () => {
-      const instance = JsonUser.build({ data: 'not-json' });
+    it("rejects an invalid JSON string when isJSON is true", async () => {
+      const instance = JsonUser.build({ data: "not-json" });
       await expect(instance.validate()).to.be.rejectedWith(
         ValidationError,
         /isJSON/,
       );
     });
 
-    it('does not throw a TypeError when isJSON is set to true (regression for validator.js v13+)', async () => {
+    it("does not throw a TypeError when isJSON is set to true (regression for validator.js v13+)", async () => {
       const instance = JsonUser.build({ data: '{"valid":true}' });
       await expect(instance.validate()).not.to.be.rejected;
     });
