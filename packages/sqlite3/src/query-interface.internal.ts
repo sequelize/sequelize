@@ -43,12 +43,37 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
 
     const table = this.#queryGenerator.extractTableDetails(tableName);
     const escapedTableName = this.#queryGenerator.escape(table.tableName);
-    const inboundForeignKeys = await this.#sequelize.queryRaw(
-      `SELECT 1 FROM sqlite_master AS tables JOIN pragma_foreign_key_list(tables.name) AS foreign_keys WHERE tables.type = 'table' AND foreign_keys."table" = ${escapedTableName} LIMIT 1`,
+    const [tableSchema] = await this.#sequelize.queryRaw<{
+      catalog: 'sqlite_master' | 'sqlite_temp_master';
+      schemaName: 'main' | 'temp';
+    }>(
+      `SELECT 'sqlite_temp_master' AS catalog, 'temp' AS schemaName FROM sqlite_temp_master WHERE type = 'table' AND name = ${escapedTableName} UNION ALL SELECT 'sqlite_master' AS catalog, 'main' AS schemaName FROM sqlite_master WHERE type = 'table' AND name = ${escapedTableName}`,
       { ...options, type: QueryTypes.SELECT },
     );
 
-    if (inboundForeignKeys.length > 0) {
+    if (!tableSchema) {
+      return;
+    }
+
+    const schemaTables = await this.#sequelize.queryRaw<{ name: string }>(
+      `SELECT name FROM ${tableSchema.catalog} WHERE type = 'table'`,
+      { ...options, type: QueryTypes.SELECT },
+    );
+    const foreignKeysByTable = await Promise.all(
+      schemaTables.map(async schemaTable =>
+        this.#sequelize.queryRaw<{ table: string }>(
+          `PRAGMA ${tableSchema.schemaName}.foreign_key_list(${this.#queryGenerator.quoteIdentifier(schemaTable.name)})`,
+          { ...options, type: QueryTypes.SELECT },
+        ),
+      ),
+    );
+    const hasInboundForeignKey = foreignKeysByTable.some(foreignKeys =>
+      foreignKeys.some(
+        foreignKey => foreignKey.table.toLowerCase() === table.tableName.toLowerCase(),
+      ),
+    );
+
+    if (hasInboundForeignKey) {
       throw new Error(
         `SQLite cannot safely rebuild table ${this.#queryGenerator.quoteTable(table)} inside an existing transaction because another table references it. Run the schema change outside the transaction so Sequelize can temporarily disable foreign key enforcement.`,
       );

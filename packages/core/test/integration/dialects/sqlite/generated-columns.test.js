@@ -11,6 +11,7 @@ if (Support.getTestDialect() === 'sqlite3') {
     afterEach(async function () {
       await this.sequelize.query('DROP VIEW IF EXISTS `generated_columns_view`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_child`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp_child`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_fts`');
       await this.sequelize.queryInterface.dropTable(tableName);
@@ -224,6 +225,45 @@ if (Support.getTestDialect() === 'sqlite3') {
         { id: 1, parentId: 1 },
       ]);
       expect(await queryInterface.describeTable(tableName)).to.have.property('obsolete');
+    });
+
+    it('rejects an unsafe transactional rebuild of a referenced TEMP table', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(
+        'CREATE TEMP TABLE `generated_columns_temp` (`id` INTEGER PRIMARY KEY, `value` INTEGER)',
+      );
+      await this.sequelize.query(
+        'CREATE TEMP TABLE `generated_columns_temp_child` (`id` INTEGER PRIMARY KEY, `parentId` INTEGER REFERENCES `generated_columns_temp` (`id`) ON DELETE CASCADE)',
+      );
+      await this.sequelize.query(
+        'INSERT INTO `generated_columns_temp` (`id`, `value`) VALUES (1, 10)',
+      );
+      await this.sequelize.query(
+        'INSERT INTO `generated_columns_temp_child` (`id`, `parentId`) VALUES (1, 1)',
+      );
+
+      await expect(
+        this.sequelize.transaction(async transaction => {
+          await queryInterface.addColumn(
+            'generated_columns_temp',
+            'doubled',
+            {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('`value` * 2'),
+            },
+            { transaction },
+          );
+        }),
+      ).to.be.rejectedWith(
+        /cannot safely rebuild.*inside an existing transaction.*outside the transaction/i,
+      );
+
+      expect(await queryInterface.select(null, 'generated_columns_temp_child', {})).to.deep.equal([
+        { id: 1, parentId: 1 },
+      ]);
+      expect(await queryInterface.describeTable('generated_columns_temp')).not.to.have.property(
+        'doubled',
+      );
     });
 
     it('renames a source column used by a generated expression without losing schema objects', async function () {
