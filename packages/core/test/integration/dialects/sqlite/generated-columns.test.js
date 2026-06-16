@@ -186,6 +186,46 @@ if (Support.getTestDialect() === 'sqlite3') {
       ]);
     });
 
+    it('rejects an unsafe general rebuild of a referenced table inside a transaction', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        value: DataTypes.INTEGER,
+        obsolete: DataTypes.STRING,
+        doubled: {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('`value` * 2'),
+        },
+      });
+      await queryInterface.createTable('generated_columns_child', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        parentId: {
+          type: DataTypes.INTEGER,
+          references: { table: tableName, key: 'id' },
+          onDelete: 'CASCADE',
+        },
+      });
+      await this.sequelize.query(
+        "INSERT INTO generated_columns_test (`id`, `value`, `obsolete`) VALUES (1, 10, 'keep')",
+      );
+      await this.sequelize.query(
+        'INSERT INTO `generated_columns_child` (`id`, `parentId`) VALUES (1, 1)',
+      );
+
+      await expect(
+        this.sequelize.transaction(async transaction => {
+          await queryInterface.removeColumn(tableName, 'obsolete', { transaction });
+        }),
+      ).to.be.rejectedWith(
+        /cannot safely rebuild.*inside an existing transaction.*outside the transaction/i,
+      );
+
+      expect(await queryInterface.select(null, 'generated_columns_child', {})).to.deep.equal([
+        { id: 1, parentId: 1 },
+      ]);
+      expect(await queryInterface.describeTable(tableName)).to.have.property('obsolete');
+    });
+
     it('renames a source column used by a generated expression without losing schema objects', async function () {
       const queryInterface = this.sequelize.queryInterface;
       await this.sequelize.query('CREATE TABLE `generated_columns_audit` (`value` INTEGER)');

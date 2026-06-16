@@ -24,6 +24,37 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
     return this.dialect.queryInterface;
   }
 
+  async #assertCanRebuildTableInTransaction(
+    tableName: TableOrModel,
+    options?: QueryRawOptions,
+  ): Promise<void> {
+    if (!options?.transaction) {
+      return;
+    }
+
+    const [foreignKeysPragma] = await this.#sequelize.queryRaw<{ foreign_keys: number }>(
+      'PRAGMA foreign_keys',
+      { ...options, type: QueryTypes.SELECT },
+    );
+
+    if (foreignKeysPragma?.foreign_keys !== 1) {
+      return;
+    }
+
+    const table = this.#queryGenerator.extractTableDetails(tableName);
+    const escapedTableName = this.#queryGenerator.escape(table.tableName);
+    const inboundForeignKeys = await this.#sequelize.queryRaw(
+      `SELECT 1 FROM sqlite_master AS tables JOIN pragma_foreign_key_list(tables.name) AS foreign_keys WHERE tables.type = 'table' AND foreign_keys."table" = ${escapedTableName} LIMIT 1`,
+      { ...options, type: QueryTypes.SELECT },
+    );
+
+    if (inboundForeignKeys.length > 0) {
+      throw new Error(
+        `SQLite cannot safely rebuild table ${this.#queryGenerator.quoteTable(table)} inside an existing transaction because another table references it. Run the schema change outside the transaction so Sequelize can temporarily disable foreign key enforcement.`,
+      );
+    }
+  }
+
   async addColumnInternal(
     tableName: TableOrModel,
     columnName: string,
@@ -32,26 +63,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
   ): Promise<void> {
     const table = this.#queryGenerator.extractTableDetails(tableName);
     const escapedTableName = this.#queryGenerator.escape(table.tableName);
-
-    if (options?.transaction) {
-      const [foreignKeysPragma] = await this.#sequelize.queryRaw<{ foreign_keys: number }>(
-        'PRAGMA foreign_keys',
-        { ...options, type: QueryTypes.SELECT },
-      );
-
-      if (foreignKeysPragma?.foreign_keys === 1) {
-        const inboundForeignKeys = await this.#sequelize.queryRaw(
-          `SELECT 1 FROM sqlite_master AS tables JOIN pragma_foreign_key_list(tables.name) AS foreign_keys WHERE tables.type = 'table' AND foreign_keys."table" = ${escapedTableName} LIMIT 1`,
-          { ...options, type: QueryTypes.SELECT },
-        );
-
-        if (inboundForeignKeys.length > 0) {
-          throw new Error(
-            `SQLite cannot safely rebuild table ${this.#queryGenerator.quoteTable(table)} to add a STORED generated column inside an existing transaction because another table references it. Run addColumn outside the transaction so Sequelize can temporarily disable foreign key enforcement.`,
-          );
-        }
-      }
-    }
+    await this.#assertCanRebuildTableInTransaction(tableName, options);
 
     await withSqliteForeignKeysOff(this.#sequelize, options, async () => {
       await this.#sequelize.transaction(
@@ -176,6 +188,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
     options?: QueryRawOptions,
   ): Promise<void> {
     const table = this.#queryGenerator.extractTableDetails(tableName);
+    await this.#assertCanRebuildTableInTransaction(tableName, options);
 
     await withSqliteForeignKeysOff(this.#sequelize, options, async () => {
       await this.#sequelize.transaction(
