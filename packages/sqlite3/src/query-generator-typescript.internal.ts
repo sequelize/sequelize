@@ -118,7 +118,13 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `PRAGMA TABLE_XINFO(${this.quoteTable(tableName)})`;
+    const pragma =
+      this.dialect.supports.generatedColumns.stored ||
+      this.dialect.supports.generatedColumns.virtual
+        ? 'TABLE_XINFO'
+        : 'TABLE_INFO';
+
+    return `PRAGMA ${pragma}(${this.quoteTable(tableName)})`;
   }
 
   describeCreateTableQuery(tableName: TableOrModel) {

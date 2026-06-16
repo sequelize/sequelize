@@ -28,6 +28,7 @@ import {
 import { validateGeneratedColumnOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import isEmpty from 'lodash/isEmpty';
+import semver from 'semver';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
@@ -276,6 +277,12 @@ export class SqliteQueryInterface<
     this.#internalQueryInterface = internalQueryInterface;
   }
 
+  async #ensureDatabaseVersion(): Promise<void> {
+    if (!this.sequelize.getDatabaseVersionIfExist()) {
+      await this.sequelize.authenticate({ logging: false });
+    }
+  }
+
   async dropAllTables(options?: QiDropAllTablesOptions): Promise<void> {
     const skip = options?.skip || [];
     const allTables = await this.listTables(options);
@@ -293,6 +300,8 @@ export class SqliteQueryInterface<
     tableName: TableOrModel,
     options?: DescribeTableOptions,
   ): Promise<SqliteColumnsDescription> {
+    await this.#ensureDatabaseVersion();
+
     const table = this.queryGenerator.extractTableDetails(tableName);
 
     if (typeof options === 'string') {
@@ -431,6 +440,10 @@ export class SqliteQueryInterface<
     }
 
     const normalizedAttribute = this.sequelize.normalizeAttribute(dataTypeOrOptions);
+    if (normalizedAttribute.generatedAs !== undefined) {
+      await this.#ensureDatabaseVersion();
+    }
+
     validateGeneratedColumnOptions(
       normalizedAttribute,
       this.sequelize.dialect,
@@ -838,6 +851,10 @@ export class SqliteQueryInterface<
     options?: QueryRawOptions,
   ): Promise<void> {
     const normalizedAttribute = this.sequelize.normalizeAttribute(dataTypeOrOptions);
+    if (normalizedAttribute.generatedAs !== undefined) {
+      await this.#ensureDatabaseVersion();
+    }
+
     validateGeneratedColumnOptions(
       normalizedAttribute,
       this.sequelize.dialect,
@@ -868,6 +885,26 @@ export class SqliteQueryInterface<
     attrNameAfter: string,
     options?: QueryRawOptions,
   ): Promise<void> {
+    await this.#ensureDatabaseVersion();
+
+    const databaseVersion = this.sequelize.getDatabaseVersionIfExist();
+    if (databaseVersion && semver.lt(databaseVersion, '3.25.0')) {
+      const fields = await this.assertTableHasColumn(tableName, attrNameBefore, options);
+
+      fields[attrNameAfter] = { ...fields[attrNameBefore] };
+      delete fields[attrNameBefore];
+
+      const sql = this.queryGenerator._replaceColumnQuery(
+        tableName,
+        attrNameBefore,
+        attrNameAfter,
+        fields,
+      );
+      await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
+
+      return;
+    }
+
     const table = this.queryGenerator.extractTableDetails(tableName);
     const columns = await this.sequelize.queryRaw<{ name: string }>(
       this.queryGenerator.describeTableQuery(tableName),

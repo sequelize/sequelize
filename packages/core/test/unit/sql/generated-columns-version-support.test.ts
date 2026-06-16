@@ -327,4 +327,180 @@ describe('generated column version support', () => {
       }).not.to.throw();
     });
   }
+
+  if (dialectName === 'sqlite3') {
+    it('preserves the SQLite 3.8 dialect floor', () => {
+      expect(sequelize.dialect.minimumDatabaseVersion).to.equal('3.8.0');
+    });
+
+    for (const version of ['3.8.0', '3.24.0', '3.30.0']) {
+      it(`uses TABLE_INFO on SQLite ${version}`, () => {
+        const oldSqlite = createSequelizeInstance({ databaseVersion: version });
+
+        expect(oldSqlite.queryGenerator.describeTableQuery('users')).to.equal(
+          'PRAGMA TABLE_INFO(`users`)',
+        );
+      });
+    }
+
+    it('discovers the SQLite version before its first describeTable query', async () => {
+      const freshSqlite = createSequelizeInstance();
+      const authenticate = sinon.stub(freshSqlite, 'authenticate').callsFake(async () => {
+        freshSqlite.setDatabaseVersion('3.24.0');
+      });
+      const queryRaw = sinon.stub(freshSqlite, 'queryRaw').resolves({ before: {} } as any);
+      sinon.stub(freshSqlite.queryInterface, 'showIndex').resolves([]);
+      sinon.stub(freshSqlite.queryInterface, 'showConstraints').resolves([]);
+
+      await freshSqlite.queryInterface.describeTable('users');
+
+      expect(authenticate).to.have.been.calledOnce;
+      expect(queryRaw.firstCall.args[0]).to.equal('PRAGMA TABLE_INFO(`users`)');
+    });
+
+    it('uses the table-rebuild rename fallback before SQLite 3.25', async () => {
+      const sqlite324 = createSequelizeInstance({ databaseVersion: '3.24.0' });
+      const queryInterface = sqlite324.queryInterface;
+      sinon.stub(queryInterface, 'describeTable').resolves({ before: {} } as any);
+      sinon.stub(sqlite324, 'queryRaw').resolves([{ name: 'before' }] as any);
+      const fallback = sinon
+        .stub(sqlite324.queryGenerator, '_replaceColumnQuery')
+        .throws(new Error('used rebuild fallback'));
+
+      await expect(queryInterface.renameColumn('users', 'before', 'after')).to.be.rejectedWith(
+        'used rebuild fallback',
+      );
+      expect(fallback).to.have.been.calledOnce;
+    });
+
+    it('discovers the SQLite version before its first renameColumn operation', async () => {
+      const freshSqlite = createSequelizeInstance();
+      const authenticate = sinon.stub(freshSqlite, 'authenticate').callsFake(async () => {
+        freshSqlite.setDatabaseVersion('3.24.0');
+      });
+      sinon.stub(freshSqlite.queryInterface, 'describeTable').resolves({ before: {} } as any);
+      sinon.stub(freshSqlite, 'queryRaw').resolves([{ name: 'before' }] as any);
+      const fallback = sinon
+        .stub(freshSqlite.queryGenerator, '_replaceColumnQuery')
+        .throws(new Error('used rebuild fallback'));
+
+      await expect(
+        freshSqlite.queryInterface.renameColumn('users', 'before', 'after'),
+      ).to.be.rejectedWith('used rebuild fallback');
+      expect(authenticate).to.have.been.calledOnce;
+      expect(fallback).to.have.been.calledOnce;
+    });
+
+    it('uses native column renames starting with SQLite 3.25', async () => {
+      const sqlite325 = createSequelizeInstance({ databaseVersion: '3.25.0' });
+      const queryRaw = sinon.stub(sqlite325, 'queryRaw');
+      queryRaw.onFirstCall().resolves([{ name: 'before' }] as any);
+      queryRaw.onSecondCall().resolves([] as any);
+      const fallback = sinon.spy(sqlite325.queryGenerator, '_replaceColumnQuery');
+
+      await sqlite325.queryInterface.renameColumn('users', 'before', 'after');
+
+      expect(fallback).not.to.have.been.called;
+      expect(queryRaw.secondCall.args[0]).to.equal(
+        'ALTER TABLE `users` RENAME COLUMN `before` TO `after`',
+      );
+    });
+
+    it('requires SQLite 3.31 for generated columns', () => {
+      const sqlite330 = createSequelizeInstance({ databaseVersion: '3.30.0' });
+
+      expect(sqlite330.dialect.supports.generatedColumns.stored).to.equal(false);
+      expect(sqlite330.dialect.supports.generatedColumns.virtual).to.equal(false);
+      expect(() => {
+        sqlite330.define(
+          'Sqlite330Generated',
+          {
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('1'),
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(/sqlite3 3\.31\.0 or newer.*STORED generated columns/i);
+    });
+
+    it('discovers the SQLite version before the first generated addColumn operation', async () => {
+      const freshSqlite = createSequelizeInstance();
+      const authenticate = sinon.stub(freshSqlite, 'authenticate').callsFake(async () => {
+        freshSqlite.setDatabaseVersion('3.30.0');
+      });
+      const queryRaw = sinon.stub(freshSqlite, 'queryRaw').throws(new Error('executed SQL'));
+
+      await expect(
+        freshSqlite.queryInterface.addColumn('users', 'computed', {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('1'),
+          generatedColumn: 'STORED',
+        }),
+      ).to.be.rejectedWith(/sqlite3 3\.31\.0 or newer.*STORED generated columns/i);
+      expect(authenticate).to.have.been.calledOnce;
+      expect(queryRaw).not.to.have.been.called;
+    });
+
+    it('discovers the SQLite version before the first generated changeColumn operation', async () => {
+      const freshSqlite = createSequelizeInstance();
+      const authenticate = sinon.stub(freshSqlite, 'authenticate').callsFake(async () => {
+        freshSqlite.setDatabaseVersion('3.30.0');
+      });
+      const queryRaw = sinon.stub(freshSqlite, 'queryRaw').throws(new Error('executed SQL'));
+
+      await expect(
+        freshSqlite.queryInterface.changeColumn('users', 'computed', {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('1'),
+          generatedColumn: 'VIRTUAL',
+        }),
+      ).to.be.rejectedWith(/sqlite3 3\.31\.0 or newer.*VIRTUAL generated columns/i);
+      expect(authenticate).to.have.been.calledOnce;
+      expect(queryRaw).not.to.have.been.called;
+    });
+
+    it('rejects invalid generated definitions before checking SQLite versions', () => {
+      const sqlite330 = createSequelizeInstance({ databaseVersion: '3.30.0' });
+
+      expect(() => {
+        sqlite330.define(
+          'Sqlite330InvalidGenerated',
+          {
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: '1' as any,
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(/generatedAs.*Sequelize SQL expression/i);
+    });
+
+    it('enables generated columns and TABLE_XINFO on SQLite 3.31', () => {
+      const sqlite331 = createSequelizeInstance({ databaseVersion: '3.31.0' });
+
+      expect(sqlite331.dialect.supports.generatedColumns.stored).to.equal(true);
+      expect(sqlite331.dialect.supports.generatedColumns.virtual).to.equal(true);
+      expect(sqlite331.queryGenerator.describeTableQuery('users')).to.equal(
+        'PRAGMA TABLE_XINFO(`users`)',
+      );
+      expect(() => {
+        sqlite331.define(
+          'Sqlite331Generated',
+          {
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('1'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).not.to.throw();
+    });
+  }
 });

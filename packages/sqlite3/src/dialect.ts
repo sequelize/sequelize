@@ -92,7 +92,9 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
     },
     generatedColumns: {
       stored: true,
+      storedMinVersion: '3.31.0',
       virtual: true,
+      virtualMinVersion: '3.31.0',
     },
   });
 
@@ -107,7 +109,7 @@ export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteC
       options,
       dataTypeOverrides: DataTypes,
       sequelize,
-      minimumDatabaseVersion: '3.31.0',
+      minimumDatabaseVersion: '3.8.0',
       dataTypesDocumentationUrl: 'https://www.sqlite.org/datatype3.html',
       name: 'sqlite3',
     });
