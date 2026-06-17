@@ -269,10 +269,15 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               }
             }
           }
+
+          const createTableSql =
+            schemaRow?.schemaCatalog === 'sqlite_temp_master'
+              ? schemaRow.sql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
+              : schemaRow?.sql;
           const sql = this.#queryGenerator._replaceTableQuery(
             tableName,
             columns,
-            schemaRow?.sql,
+            createTableSql,
             replacedColumnNames,
             autoincrementHighWater,
           );

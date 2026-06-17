@@ -394,6 +394,30 @@ if (Support.getTestDialect() === 'sqlite3') {
       expect(mainTable.count).to.equal(0);
     });
 
+    it('keeps a TEMP table in the temporary schema when rebuilding it', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(
+        'CREATE TEMP TABLE `generated_columns_temp` (`value` INTEGER, `obsolete` TEXT, `doubled` INTEGER GENERATED ALWAYS AS (`value` * 2) STORED)',
+      );
+      await this.sequelize.query(
+        "INSERT INTO `generated_columns_temp` (`value`, `obsolete`) VALUES (4, 'remove')",
+      );
+
+      await queryInterface.removeColumn('generated_columns_temp', 'obsolete');
+
+      const [[tempTable]] = await this.sequelize.query(
+        "SELECT count(*) AS count FROM sqlite_temp_master WHERE type = 'table' AND name = 'generated_columns_temp'",
+      );
+      const [[mainTable]] = await this.sequelize.query(
+        "SELECT count(*) AS count FROM sqlite_master WHERE type = 'table' AND name = 'generated_columns_temp'",
+      );
+      expect(tempTable.count).to.equal(1);
+      expect(mainTable.count).to.equal(0);
+      expect(await queryInterface.select(null, 'generated_columns_temp', {})).to.deep.equal([
+        { value: 4, doubled: 8 },
+      ]);
+    });
+
     it('does not expose TABLE_XINFO hidden virtual-table fields as columns', async function () {
       await this.sequelize.query(
         'CREATE VIRTUAL TABLE `generated_columns_fts` USING fts5(`content`)',
