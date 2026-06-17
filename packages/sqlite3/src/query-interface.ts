@@ -831,7 +831,9 @@ export class SqliteQueryInterface<
     const fields = await this.describeTable(tableName, options);
     delete fields[removeColumn];
 
-    await this.#internalQueryInterface.alterTableInternal(tableName, fields, options);
+    await this.#internalQueryInterface.alterTableInternal(tableName, fields, options, [
+      removeColumn,
+    ]);
   }
 
   /**
@@ -876,7 +878,9 @@ export class SqliteQueryInterface<
 
     Object.assign(columns[columnName], normalizedAttribute);
 
-    await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);
+    await this.#internalQueryInterface.alterTableInternal(tableName, columns, options, [
+      columnName,
+    ]);
   }
 
   async renameColumn(

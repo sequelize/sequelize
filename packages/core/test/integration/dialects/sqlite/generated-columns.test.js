@@ -429,6 +429,58 @@ if (Support.getTestDialect() === 'sqlite3') {
       ]);
     });
 
+    it('preserves raw table schema and composite unique constraints when rebuilding', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+          "a" INTEGER CHECK ("a" > 0),
+          "b" TEXT COLLATE NOCASE,
+          "change_me" INTEGER,
+          "obsolete" TEXT,
+          "doubled" INTEGER GENERATED ALWAYS AS ("a" * 2) STORED,
+          UNIQUE ("a", "b")
+        ) STRICT
+      `);
+      await this.sequelize.query(
+        "INSERT INTO generated_columns_test (`a`, `b`, `change_me`, `obsolete`) VALUES (1, 'x', 1, 'remove'), (1, 'y', 2, 'remove'), (2, 'x', 3, 'remove')",
+      );
+      await this.sequelize.query(
+        "UPDATE sqlite_sequence SET seq = 50 WHERE name = 'generated_columns_test'",
+      );
+
+      await queryInterface.changeColumn(tableName, 'change_me', DataTypes.TEXT);
+      await queryInterface.removeColumn(tableName, 'obsolete');
+
+      const [[table]] = await this.sequelize.query(
+        `SELECT sql FROM sqlite_master WHERE type = 'table' AND name = '${tableName}'`,
+      );
+      expect(table.sql).to.include('AUTOINCREMENT');
+      expect(table.sql).to.include('CHECK ("a" > 0)');
+      expect(table.sql).to.include('COLLATE NOCASE');
+      expect(table.sql).to.include('UNIQUE ("a", "b")');
+      expect(table.sql).to.match(/\) STRICT$/);
+      expect(table.sql).to.include('`change_me` TEXT');
+
+      await expect(
+        this.sequelize.query(
+          "INSERT INTO generated_columns_test (`a`, `b`, `change_me`) VALUES (-1, 'invalid', 4)",
+        ),
+      ).to.be.rejected;
+      await expect(
+        this.sequelize.query(
+          "INSERT INTO generated_columns_test (`a`, `b`, `change_me`) VALUES (1, 'X', 4)",
+        ),
+      ).to.be.rejected;
+      await this.sequelize.query(
+        "INSERT INTO generated_columns_test (`a`, `b`, `change_me`) VALUES (3, 'z', 4)",
+      );
+      const [[inserted]] = await this.sequelize.query(
+        'SELECT `id`, `doubled` FROM generated_columns_test WHERE `a` = 3',
+      );
+      expect(inserted).to.deep.equal({ id: 51, doubled: 6 });
+    });
+
     it('supports sync alter with an existing generated column', async function () {
       const GeneratedModel = this.sequelize.define(
         'SqliteGeneratedColumn',

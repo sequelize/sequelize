@@ -102,6 +102,134 @@ function replaceCreateTableName(createTableSql: string, replacement: string): st
   return `${tableName[1]}${replacement}${createTableSql.slice(tableName[0].length)}`;
 }
 
+function splitColumnDefinitions(createTableSql: string): {
+  closingParenthesis: number;
+  definitions: string[];
+  openingParenthesis: number;
+} {
+  const openingParenthesis = createTableSql.indexOf('(');
+  const closingParenthesis = findClosingParenthesis(createTableSql, openingParenthesis);
+  if (openingParenthesis === -1 || closingParenthesis === -1) {
+    throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+  }
+
+  const definitions: string[] = [];
+  let definitionStart = openingParenthesis + 1;
+  let depth = 0;
+  let closingQuote: string | undefined;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (let index = definitionStart; index < closingParenthesis; index++) {
+    const character = createTableSql[index];
+
+    if (inLineComment) {
+      if (character === '\n' || character === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (character === '*' && createTableSql[index + 1] === '/') {
+        inBlockComment = false;
+        index++;
+      }
+
+      continue;
+    }
+
+    if (closingQuote) {
+      if (character === closingQuote) {
+        if (createTableSql[index + 1] === closingQuote) {
+          index++;
+        } else {
+          closingQuote = undefined;
+        }
+      }
+
+      continue;
+    }
+
+    if (character === '-' && createTableSql[index + 1] === '-') {
+      inLineComment = true;
+      index++;
+    } else if (character === '/' && createTableSql[index + 1] === '*') {
+      inBlockComment = true;
+      index++;
+    } else if (character === "'" || character === '"' || character === '`') {
+      closingQuote = character;
+    } else if (character === '[') {
+      closingQuote = ']';
+    } else if (character === '(') {
+      depth++;
+    } else if (character === ')') {
+      depth--;
+    } else if (character === ',' && depth === 0) {
+      definitions.push(createTableSql.slice(definitionStart, index).trim());
+      definitionStart = index + 1;
+    }
+  }
+
+  definitions.push(createTableSql.slice(definitionStart, closingParenthesis).trim());
+
+  return { closingParenthesis, definitions, openingParenthesis };
+}
+
+function getColumnName(definition: string): string | undefined {
+  let start = 0;
+  while (/\s/.test(definition[start] ?? '')) {
+    start++;
+  }
+
+  const openingQuote = definition[start];
+  const closingQuote = openingQuote === '[' ? ']' : openingQuote;
+  if (
+    openingQuote === '`' ||
+    openingQuote === '"' ||
+    openingQuote === "'" ||
+    openingQuote === '['
+  ) {
+    let columnName = '';
+    for (let index = start + 1; index < definition.length; index++) {
+      const character = definition[index];
+      if (character !== closingQuote) {
+        columnName += character;
+      } else if (definition[index + 1] === closingQuote) {
+        columnName += closingQuote;
+        index++;
+      } else {
+        return columnName;
+      }
+    }
+
+    return undefined;
+  }
+
+  return /^([^\s]+)/.exec(definition.slice(start))?.[1];
+}
+
+function replaceColumnDefinitions(
+  createTableSql: string,
+  replacements: ReadonlyMap<string, string | undefined>,
+): string {
+  const { closingParenthesis, definitions, openingParenthesis } =
+    splitColumnDefinitions(createTableSql);
+  const replacedDefinitions = definitions.flatMap(definition => {
+    const columnName = getColumnName(definition)?.toLowerCase();
+    if (!columnName || !replacements.has(columnName)) {
+      return [definition];
+    }
+
+    const replacement = replacements.get(columnName);
+
+    return replacement === undefined ? [] : [replacement];
+  });
+
+  return `${createTableSql.slice(0, openingParenthesis + 1)}${replacedDefinitions.join(', ')}${createTableSql.slice(closingParenthesis)}`;
+}
+
 /**
  * Temporary class to ease the TypeScript migration
  */
@@ -276,6 +404,8 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     tableName: TableOrModel,
     attributes: SqliteColumnsDescription,
     createTableSql?: string,
+    replacedColumnNames: readonly string[] = [],
+    autoincrementHighWater?: number,
   ) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(
@@ -293,16 +423,42 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
-    const backupTableSql = createTableSql
-      ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
+    let replacementTableSql = createTableSql;
+    if (replacementTableSql && replacedColumnNames.length > 0) {
+      const replacements = new Map<string, string | undefined>();
+      for (const columnName of replacedColumnNames) {
+        const attributeName = Object.keys(tableAttributes).find(
+          name => name.toLowerCase() === columnName.toLowerCase(),
+        );
+        replacements.set(
+          columnName.toLowerCase(),
+          attributeName
+            ? `${this.quoteIdentifier(attributeName)} ${tableAttributes[attributeName]}`
+            : undefined,
+        );
+      }
+
+      replacementTableSql = replaceColumnDefinitions(replacementTableSql, replacements);
+    }
+
+    const backupTableSql = replacementTableSql
+      ? replaceCreateTableName(replacementTableSql, quotedBackupTableName)
       : this.createTableQuery(backupTable, tableAttributes);
 
-    return [
+    const queries = [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
     ];
+
+    if (autoincrementHighWater !== undefined) {
+      queries.push(
+        `UPDATE sqlite_sequence SET seq = MAX(seq, ${this.escape(autoincrementHighWater)}) WHERE name = ${this.escape(table.tableName)};`,
+      );
+    }
+
+    return queries;
   }
 
   _addColumnToTableQuery(

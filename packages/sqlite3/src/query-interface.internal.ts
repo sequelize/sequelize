@@ -4,7 +4,6 @@ import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { SqliteDialect } from './dialect.js';
 import type { SqliteQueryGenerator } from './query-generator.js';
-import type { SqliteQueryInterface } from './query-interface.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 
 export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
@@ -18,10 +17,6 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
 
   get #queryGenerator(): SqliteQueryGenerator {
     return this.dialect.queryGenerator;
-  }
-
-  get #queryInterface(): SqliteQueryInterface {
-    return this.dialect.queryInterface;
   }
 
   async #assertCanRebuildTableInTransaction(
@@ -206,11 +201,13 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
    * @param tableName
    * @param columns
    * @param options
+   * @param replacedColumnNames
    */
   async alterTableInternal(
     tableName: TableOrModel,
     columns: SqliteColumnsDescription,
     options?: QueryRawOptions,
+    replacedColumnNames: readonly string[] = [],
   ): Promise<void> {
     const table = this.#queryGenerator.extractTableDetails(tableName);
     await this.#assertCanRebuildTableInTransaction(tableName, options);
@@ -224,8 +221,9 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
         async transaction => {
           const [schemaRow] = await this.#sequelize.queryRaw<{
             schemaCatalog: 'sqlite_master' | 'sqlite_temp_master';
+            sql: string;
           }>(
-            `SELECT 'sqlite_temp_master' AS schemaCatalog FROM sqlite_temp_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)} UNION ALL SELECT 'sqlite_master' AS schemaCatalog FROM sqlite_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)}`,
+            `SELECT sql, 'sqlite_temp_master' AS schemaCatalog FROM sqlite_temp_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)} UNION ALL SELECT sql, 'sqlite_master' AS schemaCatalog FROM sqlite_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)}`,
             { ...options, transaction, type: QueryTypes.SELECT },
           );
           const schemaObjects = schemaRow
@@ -234,29 +232,50 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
                 { ...options, transaction, type: QueryTypes.SELECT },
               )
             : [];
-          const indexes = await this.#queryInterface.showIndex(tableName, {
-            ...options,
-            transaction,
-          });
+          let autoincrementHighWater: number | undefined;
+          if (
+            schemaRow?.schemaCatalog === 'sqlite_master' &&
+            /\bAUTOINCREMENT\b/i.test(schemaRow.sql)
+          ) {
+            const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: number }>(
+              `SELECT seq FROM sqlite_sequence WHERE name = ${this.#queryGenerator.escape(table.tableName)}`,
+              { ...options, transaction, type: QueryTypes.SELECT },
+            );
+            autoincrementHighWater = sequenceRow?.seq;
+          }
 
-          for (const index of indexes) {
-            // This index is reserved by SQLite, we can't add it through addIndex and must use "UNIQUE" on the column definition instead.
-            if (!index.name.startsWith('sqlite_autoindex_')) {
-              continue;
-            }
+          if (replacedColumnNames.length > 0) {
+            const replacedColumns = new Set(replacedColumnNames.map(name => name.toLowerCase()));
+            const indexes = await this.dialect.queryInterface.showIndex(tableName, {
+              ...options,
+              transaction,
+            });
+            for (const index of indexes) {
+              if (
+                !index.name.startsWith('sqlite_autoindex_') ||
+                !index.unique ||
+                index.fields.length !== 1
+              ) {
+                continue;
+              }
 
-            if (!index.unique) {
-              continue;
-            }
-
-            for (const field of index.fields) {
-              if (columns[field.attribute]) {
-                columns[field.attribute].unique = true;
+              const columnName = index.fields[0].attribute;
+              if (
+                columnName &&
+                columns[columnName] &&
+                replacedColumns.has(columnName.toLowerCase())
+              ) {
+                columns[columnName].unique = true;
               }
             }
           }
-
-          const sql = this.#queryGenerator._replaceTableQuery(tableName, columns);
+          const sql = this.#queryGenerator._replaceTableQuery(
+            tableName,
+            columns,
+            schemaRow?.sql,
+            replacedColumnNames,
+            autoincrementHighWater,
+          );
           await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
           await this.executeQueriesSequentially(
             schemaObjects.map(schemaObject => schemaObject.sql),
