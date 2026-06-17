@@ -731,6 +731,18 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
   it('does not interpret ::x as a replacement, as it is a cast', () => {
     expect(injectReplacements(`('foo')::string`, dialect, [0])).to.equal(`('foo')::string`);
   });
+
+  it('parses named replacements followed by a division operator', () => {
+    const sql = injectReplacements(
+      `SELECT ACOS(SIN(PI() * :lat/ 180) * SIN(PI() * :lat/ 180)) FROM jobs`,
+      dialect,
+      { lat: 28.5 },
+    );
+
+    expectsql(sql, {
+      default: `SELECT ACOS(SIN(PI() * 28.5/ 180) * SIN(PI() * 28.5/ 180)) FROM jobs`,
+    });
+  });
 });
 
 describe('injectReplacements (positional replacements)', () => {
