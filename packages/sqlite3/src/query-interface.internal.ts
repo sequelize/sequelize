@@ -232,6 +232,18 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
                 { ...options, transaction, type: QueryTypes.SELECT },
               )
             : [];
+          const views = schemaRow
+            ? await this.#sequelize.queryRaw<{ name: string; sql: string }>(
+                `SELECT name, sql FROM ${schemaRow.schemaCatalog} WHERE type = 'view' AND sql IS NOT NULL ORDER BY rowid`,
+                { ...options, transaction, type: QueryTypes.SELECT },
+              )
+            : [];
+          const viewTriggers = schemaRow
+            ? await this.#sequelize.queryRaw<{ sql: string }>(
+                `SELECT sql FROM ${schemaRow.schemaCatalog} WHERE type = 'trigger' AND tbl_name IN (SELECT name FROM ${schemaRow.schemaCatalog} WHERE type = 'view') AND sql IS NOT NULL ORDER BY rowid`,
+                { ...options, transaction, type: QueryTypes.SELECT },
+              )
+            : [];
           let autoincrementHighWater: number | undefined;
           if (
             schemaRow?.schemaCatalog === 'sqlite_master' &&
@@ -274,12 +286,27 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             schemaRow?.schemaCatalog === 'sqlite_temp_master'
               ? schemaRow.sql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
               : schemaRow?.sql;
+          const recreatedViews =
+            schemaRow?.schemaCatalog === 'sqlite_temp_master'
+              ? views.map(view => ({
+                  ...view,
+                  sql: view.sql.replace(/^CREATE\s+VIEW\b/i, 'CREATE TEMP VIEW'),
+                }))
+              : views;
+          const recreatedViewTriggers =
+            schemaRow?.schemaCatalog === 'sqlite_temp_master'
+              ? viewTriggers.map(trigger =>
+                  trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
+                )
+              : viewTriggers.map(trigger => trigger.sql);
           const sql = this.#queryGenerator._replaceTableQuery(
             tableName,
             columns,
             createTableSql,
             replacedColumnNames,
             autoincrementHighWater,
+            recreatedViews,
+            recreatedViewTriggers,
           );
           await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
           await this.executeQueriesSequentially(

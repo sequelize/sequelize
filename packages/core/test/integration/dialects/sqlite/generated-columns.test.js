@@ -505,6 +505,33 @@ if (Support.getTestDialect() === 'sqlite3') {
       expect(inserted).to.deep.equal({ id: 51, doubled: 6 });
     });
 
+    it('preserves dependent views when rebuilding a table', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, {
+        value: DataTypes.INTEGER,
+        obsolete: DataTypes.STRING,
+        doubled: {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('`value` * 2'),
+        },
+      });
+      await queryInterface.bulkInsert(tableName, [{ value: 7, obsolete: 'remove' }]);
+      await this.sequelize.query(
+        'CREATE VIEW `generated_columns_view` AS SELECT `value`, `doubled` FROM `generated_columns_test`',
+      );
+
+      await queryInterface.removeColumn(tableName, 'obsolete');
+
+      const [viewRows] = await this.sequelize.query(
+        'SELECT `value`, `doubled` FROM `generated_columns_view`',
+      );
+      expect(viewRows).to.deep.equal([{ value: 7, doubled: 14 }]);
+      const [[view]] = await this.sequelize.query(
+        "SELECT sql FROM sqlite_master WHERE type = 'view' AND name = 'generated_columns_view'",
+      );
+      expect(view.sql).to.include('FROM `generated_columns_test`');
+    });
+
     it('supports sync alter with an existing generated column', async function () {
       const GeneratedModel = this.sequelize.define(
         'SqliteGeneratedColumn',

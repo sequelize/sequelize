@@ -406,6 +406,8 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     createTableSql?: string,
     replacedColumnNames: readonly string[] = [],
     autoincrementHighWater?: number,
+    views: ReadonlyArray<{ name: string; sql: string }> = [],
+    viewTriggerSql: readonly string[] = [],
   ) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(
@@ -448,8 +450,11 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const queries = [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
+      ...views.map(view => `DROP VIEW ${this.quoteIdentifier(view.name)};`),
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
+      ...views.map(view => view.sql),
+      ...viewTriggerSql,
     ];
 
     if (autoincrementHighWater !== undefined) {
