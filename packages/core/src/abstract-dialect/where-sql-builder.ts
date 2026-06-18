@@ -406,12 +406,12 @@ export class WhereSqlBuilder {
       );
     }
 
-    // "IS" operator does not accept bind parameters, only literals
-    if (options.bindParam) {
-      delete options.bindParam;
-    }
+    // "IS" operator does not accept bind parameters, only literals.
+    // Use a local copy so we do not mutate the shared options object (which would silently
+    // strip bindParam from every subsequent sibling condition in the same WHERE clause).
+    const isOptions = options.bindParam ? { ...options, bindParam: undefined } : options;
 
-    return this.formatBinaryOperation(left, undefined, operator, right, undefined, options);
+    return this.formatBinaryOperation(left, undefined, operator, right, undefined, isOptions);
   }
 
   protected [Op.notBetween](...args: Parameters<WhereSqlBuilder[typeof Op.between]>): string {
