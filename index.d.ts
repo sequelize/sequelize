@@ -3612,6 +3612,33 @@ declare namespace sequelize {
     }
 
     /**
+     * Options used for Model.increment and Model.decrement
+     */
+    interface IncrementDecrementOptions extends LoggingOptions, ReturningOptions, SearchPathOptions {
+        /**
+         * The number to increment / decrement by
+         *
+         * Defaults to 1
+         */
+        by?: number | undefined;
+
+        /**
+         * If true, the updatedAt timestamp will not be updated.
+         */
+        silent?: boolean | undefined;
+
+        /**
+         * A hash of attributes to describe your search. See above for examples.
+         */
+        where: AnyWhereOptions;
+
+        /**
+         * Transaction to run query under
+         */
+        transaction?: Transaction | undefined;
+    }
+
+    /**
      * Models contains Model instances associated to their name
      */
     interface Models {
@@ -4023,6 +4050,54 @@ declare namespace sequelize {
          * affected rows (only supported in postgres with `options.returning` true.)
          */
         update(values: Partial<TAttributes>, options?: UpdateOptions): Promise<[number, TInstance[]]>;
+
+        /**
+         * Increment the value of one or more columns. This is done in the database, which means it does not use
+         * the values currently stored on the Instance. The increment is done using a
+         * ```sql
+         * SET column = column + X WHERE foo = 'bar'
+         * ```
+         * query.
+         *
+         * ```js
+         * Model.increment('number', { where: { foo: 'bar' } }) // increment number by 1
+         * Model.increment(['number', 'count'], { by: 2, where: { foo: 'bar' } }) // increment number and count by 2
+         * Model.increment({ answer: 42, tries: 1 }, { by: 2, where: { foo: 'bar' } }) // increment answer by 42, and tries by 1.
+         *                                                                            // `by` is ignored, since each column has its own value
+         * ```
+         *
+         * @param fields If a string is provided, that column is incremented by the value of `by` given in options.
+         *               If an array is provided, the same is true for each column.
+         *               If an object is provided, each column is incremented by the value given.
+         */
+        increment(
+            fields: Partial<TAttributes> | Array<keyof TAttributes> | keyof TAttributes,
+            options: IncrementDecrementOptions,
+        ): Promise<[TInstance[], number]>;
+
+        /**
+         * Decrement the value of one or more columns. This is done in the database, which means it does not use
+         * the values currently stored on the Instance. The decrement is done using a
+         * ```sql
+         * SET column = column - X WHERE foo = 'bar'
+         * ```
+         * query.
+         *
+         * ```js
+         * Model.decrement('number', { where: { foo: 'bar' } }) // decrement number by 1
+         * Model.decrement(['number', 'count'], { by: 2, where: { foo: 'bar' } }) // decrement number and count by 2
+         * Model.decrement({ answer: 42, tries: 1 }, { by: 2, where: { foo: 'bar' } }) // decrement answer by 42, and tries by 1.
+         *                                                                            // `by` is ignored, since each column has its own value
+         * ```
+         *
+         * @param fields If a string is provided, that column is decremented by the value of `by` given in options.
+         *               If an array is provided, the same is true for each column.
+         *               If an object is provided, each column is decremented by the value given.
+         */
+        decrement(
+            fields: Partial<TAttributes> | Array<keyof TAttributes> | keyof TAttributes,
+            options: IncrementDecrementOptions,
+        ): Promise<[TInstance[], number]>;
 
         /**
          * Run a describe query on the table. The result will be return to the listener as a hash of attributes and
