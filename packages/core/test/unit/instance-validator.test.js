@@ -191,7 +191,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     it('rejects an invalid JSON string when isJSON is true', async () => {
       const instance = JsonUser.build({ data: 'not-json' });
       await expect(instance.validate()).to.be.rejectedWith(
-        ValidationError,
+        SequelizeValidationError,
         /isJSON/,
       );
     });
