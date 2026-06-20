@@ -6,7 +6,7 @@
 // Based on original work by: samuelneff <https://github.com/samuelneff/sequelize-auto-ts/blob/master/lib/sequelize.d.ts>
 
 import * as _ from "lodash";
-import * as cls from "continuation-local-storage";
+import * as cls from "cls-hooked";
 
 import ValidatorJS = require("validator");
 
@@ -4196,13 +4196,89 @@ declare namespace sequelize {
      * This interface is available through sequelize.QueryInterface. It should not be commonly used, but it's
      * referenced anyway, so it can be used.
      */
+    /**
+     * The dialect-specific SQL string generator, reachable through
+     * `sequelize.getQueryInterface().QueryGenerator`. Only the most commonly
+     * consumed methods are typed explicitly; the index signature keeps the many
+     * remaining dialect helpers accessible without erroring.
+     */
+    interface QueryGenerator {
+        /**
+         * Returns a SELECT query string for the given table.
+         */
+        selectQuery(tableName: string | string[], options?: any, model?: Model<any, any>): string;
+
+        /**
+         * Returns an INSERT query string for a single row.
+         */
+        insertQuery(table: string | object, valueHash: object, modelAttributes?: object, options?: object): string;
+
+        /**
+         * Returns a multi-row INSERT query string.
+         */
+        bulkInsertQuery(tableName: string | object, fieldValueHashes: object[], options?: object, fieldMappedAttributes?: object): string;
+
+        /**
+         * Returns an UPDATE query string.
+         */
+        updateQuery(tableName: string | object, attrValueHash: object, where: any, options?: object, attributes?: object): string;
+
+        /**
+         * Returns an increment/decrement query string.
+         */
+        arithmeticQuery(operator: string, tableName: string | object, attrValueHash: object, where: any, options?: object, attributes?: object): string;
+
+        /**
+         * Returns a DROP TABLE query string.
+         */
+        dropTableQuery(tableName: string | object): string;
+
+        /**
+         * Builds a complete WHERE clause (including the `WHERE` keyword) from the given conditions.
+         */
+        whereQuery(where: any, options?: object): string;
+
+        /**
+         * Builds the body of a WHERE clause (without the `WHERE` keyword).
+         */
+        whereItemsQuery(where: any, options?: object, binding?: string): string;
+
+        /**
+         * Resolves a set of conditions into a SQL fragment.
+         */
+        getWhereConditions(smth: any, tableName?: string | object, factory?: any, options?: object, prepend?: boolean): string;
+
+        /**
+         * Quotes a table name (optionally with an alias).
+         */
+        quoteTable(param: string | object, as?: string | boolean): string;
+
+        /**
+         * Quotes a single identifier.
+         */
+        quoteIdentifier(identifier: string, force?: boolean): string;
+
+        /**
+         * Quotes a dotted identifier path.
+         */
+        quoteIdentifiers(identifiers: string): string;
+
+        /**
+         * Escapes a value for safe inclusion in a SQL string.
+         */
+        escape(value: any, field?: object, options?: object): string;
+
+        /**
+         * Other dialect-specific generator methods and properties.
+         */
+        [key: string]: any;
+    }
+
     interface QueryInterface {
         /**
          * Returns the dialect-specific sql generator.
-         *
-         * We don't have a definition for the QueryGenerator, because I doubt it is commonly in use separately.
          */
-        QueryGenerator: any;
+        QueryGenerator: QueryGenerator;
 
         /**
          * Returns the current sequelize instance.
@@ -6028,7 +6104,7 @@ declare namespace sequelize {
         new(options: Options): Sequelize;
 
         /**
-         * Provide access to continuation-local-storage (http://docs.sequelizejs.com/en/latest/api/sequelize/#transactionoptions-promise)
+         * Provide access to cls-hooked (http://docs.sequelizejs.com/en/latest/api/sequelize/#transactionoptions-promise)
          */
         cls: any;
         useCLS(namespace: cls.Namespace): Sequelize;
@@ -6335,12 +6411,12 @@ declare namespace sequelize {
          * });
          * ```
          *
-         * If you have [CLS](https://github.com/othiym23/node-continuation-local-storage) enabled, the transaction
+         * If you have [CLS](https://github.com/jeff-lewis/cls-hooked) enabled, the transaction
          * will automatically be passed to any query that runs witin the callback. To enable CLS, add it do your
          * project, create a namespace and set it on the sequelize constructor:
          *
          * ```js
-         * var cls = require('continuation-local-storage'),
+         * var cls = require('cls-hooked'),
          *     ns = cls.createNamespace('....');
          * var Sequelize = require('sequelize');
          * Sequelize.cls = ns;
