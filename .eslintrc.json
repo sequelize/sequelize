@@ -30,7 +30,7 @@
     "comma-style": ["warn", "last"],
     "no-bitwise": "off",
     "no-cond-assign": ["error", "except-parens"],
-    "curly": "off",
+    "curly": "error",
     "eqeqeq": "error",
     "no-extend-native": "error",
     "wrap-iife": ["error", "any"],
