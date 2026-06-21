@@ -54,7 +54,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(2);
             expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
             expect(users[1].get('email')).to.equal('dan@sequelizejs.com');
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(2);
             expect(users[0].get('email')).to.equal('tony@sequelizejs.com');
             expect(users[1].get('email')).to.equal('fred@foobar.com');
@@ -79,9 +79,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
-          .then(rubens => {
+          .then((rubens) => {
             expect(
-              _.every(rubens, r => {
+              _.every(rubens, (r) => {
                 return r.get('username') === 'ruben';
               })
             ).to.be.true;
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: { $ne: 'ruben' } } });
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(1);
             expect(users[0].get('email')).to.equal('tobi@fakeemail.com');
           });
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruben' } });
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(1);
             expect(users[0].get('email')).to.equal('dan@sequelizejs.com');
           });
@@ -120,9 +120,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll({ where: { username: 'ruby' } });
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(3);
-            users.forEach(user => {
+            users.forEach((user) => {
               expect(user.get('username')).to.equal('ruby');
             });
           });

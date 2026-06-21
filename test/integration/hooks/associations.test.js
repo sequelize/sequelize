@@ -74,8 +74,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             return Promise.resolve();
           });
 
-          return this.Projects.create({ title: 'New Project' }).then(project => {
-            return self.Tasks.create({ title: 'New Task' }).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then((project) => {
+            return self.Tasks.create({ title: 'New Task' }).then((task) => {
               return project.setTask(task).then(() => {
                 return project.updateAttributes({ id: 2 }).then(() => {
                   expect(beforeHook).to.be.true;
@@ -93,9 +93,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             return Promise.reject(new Error('Whoops!'));
           });
 
-          return this.Projects.create({ title: 'New Project' }).then(project => {
-            return self.Tasks.create({ title: 'New Task' }).then(task => {
-              return project.setTask(task).catch(err => {
+          return this.Projects.create({ title: 'New Project' }).then((project) => {
+            return self.Tasks.create({ title: 'New Task' }).then((task) => {
+              return project.setTask(task).catch((err) => {
                 expect(err).to.be.instanceOf(Error);
               });
             });
@@ -132,8 +132,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.setTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -174,8 +174,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.setTask(task).then(() => {
                   return expect(project.destroy())
                     .to.eventually.be.rejectedWith(CustomErrorText)
@@ -220,8 +220,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           this.Tasks.beforeUpdate(beforeHook);
           this.Tasks.afterUpdate(afterHook);
 
-          return this.Projects.create({ title: 'New Project' }).then(project => {
-            return self.Tasks.create({ title: 'New Task' }).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then((project) => {
+            return self.Tasks.create({ title: 'New Task' }).then((task) => {
               return project.setTask(task).then(() => {
                 return project.updateAttributes({ id: 2 }).then(() => {
                   expect(beforeHook).to.have.been.calledOnce;
@@ -239,8 +239,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             throw new Error('Whoops!');
           });
 
-          return this.Projects.create({ title: 'New Project' }).then(project => {
-            return self.Tasks.create({ title: 'New Task' }).then(task => {
+          return this.Projects.create({ title: 'New Project' }).then((project) => {
+            return self.Tasks.create({ title: 'New Task' }).then((task) => {
               return expect(project.setTask(task)).to.be.rejected;
             });
           });
@@ -280,8 +280,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
                     expect(beforeProject).to.have.been.called;
@@ -309,9 +309,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             });
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
-                return project.addTask(task).catch(err => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
+                return project.addTask(task).catch((err) => {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeProject).to.have.been.calledOnce;
                   expect(afterProject).to.have.been.calledOnce;
@@ -358,8 +358,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -399,10 +399,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
-                  return project.destroy().catch(err => {
+                  return project.destroy().catch((err) => {
                     expect(err).to.be.instanceOf(Error);
                     expect(beforeProject).to.be.true;
                     expect(afterProject).to.be.true;
@@ -445,8 +445,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
                     expect(beforeProject).to.have.been.called;
@@ -486,9 +486,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
-                return project.addTask(task).catch(err => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
+                return project.addTask(task).catch((err) => {
                   expect(err).to.be.instanceOf(Error);
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
@@ -532,8 +532,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeDestroy(beforeTask);
             this.Tasks.afterDestroy(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -574,8 +574,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
                     expect(beforeProject).to.be.true;
@@ -619,8 +619,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             this.Tasks.beforeUpdate(beforeTask);
             this.Tasks.afterUpdate(afterTask);
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
                     expect(beforeProject).to.have.been.calledOnce;
@@ -660,8 +660,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return Promise.resolve();
             });
 
-            return this.Projects.create({ title: 'New Project' }).then(project => {
-              return self.Tasks.create({ title: 'New Task' }).then(task => {
+            return this.Projects.create({ title: 'New Project' }).then((project) => {
+              return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   expect(beforeProject).to.be.true;
                   expect(afterProject).to.be.true;
@@ -750,7 +750,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 .then(([project, minitask]) => {
                   return project.addMiniTask(minitask);
                 })
-                .then(project => {
+                .then((project) => {
                   return project.destroy();
                 })
                 .then(() => {
@@ -808,7 +808,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 .then(([project, minitask]) => {
                   return project.addMiniTask(minitask);
                 })
-                .then(project => {
+                .then((project) => {
                   return project.destroy();
                 })
                 .catch(() => {
@@ -898,7 +898,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 .then(([project, task, minitask]) => {
                   return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => project);
                 })
-                .then(project => {
+                .then((project) => {
                   return project.destroy();
                 })
                 .then(() => {
@@ -953,7 +953,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
                 .then(([project, task, minitask]) => {
                   return Promise.all([task.addMiniTask(minitask), project.addTask(task)]).then(() => project);
                 })
-                .then(project => {
+                .then((project) => {
                   return expect(project.destroy())
                     .to.eventually.be.rejectedWith(CustomErrorText)
                     .then(() => {

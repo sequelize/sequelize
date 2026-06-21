@@ -13,7 +13,7 @@ if (dialect === 'mysql') {
 
       return expect(promise)
         .to.have.been.rejectedWith(errClass)
-        .then(() => promise.catch(err => Object.keys(wanted).forEach(k => expect(err[k]).to.eql(wanted[k]))));
+        .then(() => promise.catch((err) => Object.keys(wanted).forEach((k) => expect(err[k]).to.eql(wanted[k]))));
     };
 
     describe('ForeignKeyConstraintError', () => {

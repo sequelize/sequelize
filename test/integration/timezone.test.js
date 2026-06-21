@@ -48,11 +48,11 @@ if (dialect !== 'sqlite') {
           .then(() => {
             return NormalUser.create({});
           })
-          .then(normalUser => {
+          .then((normalUser) => {
             this.normalUser = normalUser;
             return TimezonedUser.findById(normalUser.id);
           })
-          .then(timezonedUser => {
+          .then((timezonedUser) => {
             // Expect 7 hours difference, in milliseconds.
             // This difference is expected since two instances, configured for each their timezone is trying to read the same timestamp
             // this test does not apply to PG, since it stores the timezone along with the timestamp.
@@ -72,7 +72,7 @@ if (dialect !== 'sqlite') {
           .then(() => {
             return TimezonedUser.create({});
           })
-          .then(timezonedUser => {
+          .then((timezonedUser) => {
             return Promise.all([NormalUser.findById(timezonedUser.id), TimezonedUser.findById(timezonedUser.id)]);
           })
           .then(([normalUser, timezonedUser]) => {

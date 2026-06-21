@@ -56,7 +56,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           })
           .then(
-            projects => {
+            (projects) => {
               expect(projects).to.have.length(1);
               expect(projects[0].LevelTwos).to.have.length(2);
               expect(projects[0].LevelTwos[0].type_ones).to.have.length(0);
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             });
           })
           .then(
-            projects => {
+            (projects) => {
               expect(projects).to.have.length(1);
               expect(projects[0].LevelTwos).to.have.length(2);
               expect(projects[0].LevelTwos[0].type_ones).to.have.length(0);

@@ -16,7 +16,7 @@ describe('errors', () => {
       'QueryError'
     ];
 
-    errorsWithMessage.forEach(errorName => {
+    errorsWithMessage.forEach((errorName) => {
       function throwError() {
         throw new errors[errorName]('this is a message');
       }
@@ -45,7 +45,7 @@ describe('errors', () => {
       'InvalidConnectionError'
     ];
 
-    errorsWithoutMessage.forEach(errorName => {
+    errorsWithoutMessage.forEach((errorName) => {
       function throwError() {
         throw new errors[errorName](null);
       }

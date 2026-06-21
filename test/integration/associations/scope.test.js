@@ -110,41 +110,41 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               title: 'I am a post comment'
             });
           })
-          .then(comment => {
+          .then((comment) => {
             expect(comment.get('commentable')).to.equal('post');
             expect(comment.get('isMain')).to.be.false;
             return this.Post.scope('withMainComment').findById(this.post.get('id'));
           })
-          .then(post => {
+          .then((post) => {
             expect(post.mainComment).to.be.null;
             return post.createMainComment({
               title: 'I am a main post comment'
             });
           })
-          .then(mainComment => {
+          .then((mainComment) => {
             this.mainComment = mainComment;
             expect(mainComment.get('commentable')).to.equal('post');
             expect(mainComment.get('isMain')).to.be.true;
             return this.Post.scope('withMainComment').findById(this.post.id);
           })
-          .then(post => {
+          .then((post) => {
             expect(post.mainComment.get('id')).to.equal(this.mainComment.get('id'));
             return post.getMainComment();
           })
-          .then(mainComment => {
+          .then((mainComment) => {
             expect(mainComment.get('commentable')).to.equal('post');
             expect(mainComment.get('isMain')).to.be.true;
             return this.Comment.create({
               title: 'I am a future main comment'
             });
           })
-          .then(comment => {
+          .then((comment) => {
             return this.post.setMainComment(comment);
           })
           .then(() => {
             return this.post.getMainComment();
           })
-          .then(mainComment => {
+          .then((mainComment) => {
             expect(mainComment.get('commentable')).to.equal('post');
             expect(mainComment.get('isMain')).to.be.true;
             expect(mainComment.get('title')).to.equal('I am a future main comment');
@@ -165,12 +165,12 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               }
             );
           })
-          .then(post => {
+          .then((post) => {
             expect(post.mainComment.get('commentable')).to.equal('post');
             expect(post.mainComment.get('isMain')).to.be.true;
             return this.Post.scope('withMainComment').findById(post.id);
           })
-          .then(post => {
+          .then((post) => {
             expect(post.mainComment.get('commentable')).to.equal('post');
             expect(post.mainComment.get('isMain')).to.be.true;
           });
@@ -210,13 +210,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           .then(() => {
             return self.Comment.findAll();
           })
-          .then(comments => {
-            comments.forEach(comment => {
+          .then((comments) => {
+            comments.forEach((comment) => {
               expect(comment.get('commentable')).to.be.ok;
             });
             expect(
               comments
-                .map(comment => {
+                .map((comment) => {
                   return comment.get('commentable');
                 })
                 .sort()
@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           .then(() => {
             return self.Post.create();
           })
-          .then(post => {
+          .then((post) => {
             return post.createComment({
               title: 'I am a post comment'
             });
@@ -316,11 +316,11 @@ describe(Support.getTestDialectTeaser('associations'), () => {
               }
             );
           })
-          .then(post => {
+          .then((post) => {
             this.post = post;
             return post.comments;
           })
-          .then(comments => {
+          .then((comments) => {
             for (const comment of comments) {
               expect(comment.get('commentable')).to.equal('post');
             }
@@ -328,10 +328,10 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           .then(() => {
             return this.Post.scope('withComments').findById(this.post.id);
           })
-          .then(post => {
+          .then((post) => {
             return post.getComments();
           })
-          .then(comments => {
+          .then((comments) => {
             for (const comment of comments) {
               expect(comment.get('commentable')).to.equal('post');
             }
@@ -593,7 +593,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
                     expect(
                       postTags
-                        .map(tag => {
+                        .map((tag) => {
                           return tag.name;
                         })
                         .sort()
@@ -601,7 +601,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
                     expect(
                       imageTags
-                        .map(tag => {
+                        .map((tag) => {
                           return tag.name;
                         })
                         .sort()
@@ -609,7 +609,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
                     expect(
                       questionTags
-                        .map(tag => {
+                        .map((tag) => {
                           return tag.name;
                         })
                         .sort()
@@ -636,7 +636,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
                       expect(
                         post.tags
-                          .map(tag => {
+                          .map((tag) => {
                             return tag.name;
                           })
                           .sort()
@@ -644,7 +644,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
                       expect(
                         image.tags
-                          .map(tag => {
+                          .map((tag) => {
                             return tag.name;
                           })
                           .sort()
@@ -652,7 +652,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
 
                       expect(
                         question.tags
-                          .map(tag => {
+                          .map((tag) => {
                             return tag.name;
                           })
                           .sort()

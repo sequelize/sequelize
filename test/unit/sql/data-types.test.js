@@ -500,7 +500,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }
       ];
-      cases.forEach(row => {
+      cases.forEach((row) => {
         testsql(row.title, row.dataType, row.expect);
       });
 
@@ -630,7 +630,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }
       ];
-      cases.forEach(row => {
+      cases.forEach((row) => {
         testsql(row.title, row.dataType, row.expect);
       });
 
@@ -740,7 +740,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           }
         }
       ];
-      cases.forEach(row => {
+      cases.forEach((row) => {
         testsql(row.title, row.dataType, row.expect);
       });
 

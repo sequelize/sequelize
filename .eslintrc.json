@@ -26,7 +26,7 @@
     "space-before-function-paren": ["error", { "anonymous": "always", "named": "never", "asyncArrow": "always" }],
     "space-before-blocks": "error",
     "prefer-arrow-callback": "error",
-    "arrow-parens": ["error", "as-needed"],
+    "arrow-parens": ["error", "always"],
     "comma-style": ["warn", "last"],
     "no-bitwise": "off",
     "no-cond-assign": ["error", "except-parens"],

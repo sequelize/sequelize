@@ -39,23 +39,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Account.sync({ force: true })
         .then(() => Account.create({ ownerId: 12 }))
         .then(() => Account.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(1);
-          return Account.destroy({ where: { ownerId: 12 } }).then(result => {
+          return Account.destroy({ where: { ownerId: 12 } }).then((result) => {
             expect(result).to.be.equal(1);
           });
         })
         .then(() => Account.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(0);
           return Account.count({ paranoid: false });
         })
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(1);
           return Account.restore({ where: { ownerId: 12 } });
         })
         .then(() => Account.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(1);
         });
     });
@@ -90,21 +90,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Account.sync({ force: true })
         .then(() => Account.create({ ownerId: 12 }))
         .then(() => Account.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(1);
           return Account.destroy({ where: { ownerId: 12 } });
         })
         .then(() => Account.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(0);
           return Account.count({ paranoid: false });
         })
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(1);
           return Account.restore({ where: { ownerId: 12 } });
         })
         .then(() => Account.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.be.equal(1);
         });
     });
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               })
             )
             .then(() => this.Model.findAll())
-            .then(records => {
+            .then((records) => {
               expect(records.length).to.equal(1);
               expect(records[0].get('name')).to.equal('Two');
             });

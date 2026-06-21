@@ -22,7 +22,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   it('allows me to return values from a custom parse function', () => {
-    const parse = (Sequelize.DATE.parse = sinon.spy(value => {
+    const parse = (Sequelize.DATE.parse = sinon.spy((value) => {
       return moment(value, 'YYYY-MM-DD HH:mm:ss');
     }));
 
@@ -53,9 +53,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         });
       })
       .then(() => {
-        return User.findAll().then(rows => rows[0]);
+        return User.findAll().then((rows) => rows[0]);
       })
-      .then(user => {
+      .then((user) => {
         expect(parse).to.have.been.called;
         expect(stringify).to.have.been.called;
 
@@ -66,7 +66,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   });
 
   const testSuccess = function (Type, value) {
-    const parse = (Type.constructor.parse = sinon.spy(value => {
+    const parse = (Type.constructor.parse = sinon.spy((value) => {
       return value;
     }));
 
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         });
       })
       .then(() => {
-        return User.findAll().then(rows => rows[0]);
+        return User.findAll().then((rows) => rows[0]);
       })
       .then(() => {
         expect(parse).to.have.been.called;
@@ -234,13 +234,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       .then(() => {
         return User.create({ age });
       })
-      .then(user => {
+      .then((user) => {
         expect(BigInt(user.age).toString()).to.equal(age.toString());
         return User.findAll({
           where: { age }
         });
       })
-      .then(users => {
+      .then((users) => {
         expect(users).to.have.lengthOf(1);
         expect(BigInt(users[0].age).toString()).to.equal(age.toString());
       });
@@ -257,7 +257,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         .then(() => {
           return User.create({ id: 1, isRegistered: true });
         })
-        .then(registeredUser => {
+        .then((registeredUser) => {
           expect(registeredUser.isRegistered).to.equal(true);
           return User.findOne({
             where: {
@@ -266,13 +266,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
             }
           });
         })
-        .then(registeredUser => {
+        .then((registeredUser) => {
           expect(registeredUser).to.be.ok;
           expect(registeredUser.isRegistered).to.equal(1);
 
           return User.create({ id: 2, isRegistered: false });
         })
-        .then(unregisteredUser => {
+        .then((unregisteredUser) => {
           expect(unregisteredUser.isRegistered).to.equal(false);
           return User.findOne({
             where: {
@@ -281,7 +281,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
             }
           });
         })
-        .then(unregisteredUser => {
+        .then((unregisteredUser) => {
           expect(unregisteredUser).to.be.ok;
           expect(unregisteredUser.isRegistered).to.equal(0);
         });
@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         if (/^postgres/.test(dialect)) {
           current
             .query('SELECT PostGIS_Lib_Version();')
-            .then(result => {
+            .then((result) => {
               if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
                 resolve(true);
               } else {
@@ -393,7 +393,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         } else {
           resolve(true);
         }
-      }).then(runTests => {
+      }).then((runTests) => {
         if (current.dialect.supports.GEOMETRY && runTests) {
           current.refreshTypes();
 
@@ -412,7 +412,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
               //This case throw unhandled exception
               return User.findAll();
             })
-            .then(users => {
+            .then((users) => {
               if (dialect === 'mysql') {
                 // MySQL will return NULL, becuase they lack EMPTY geometry data support.
                 expect(users[0].field).to.be.eql(null);
@@ -447,7 +447,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           //This case throw unhandled exception
           return User.findAll();
         })
-        .then(users => {
+        .then((users) => {
           expect(users[0].field).to.be.eql(null);
         });
     });
@@ -474,7 +474,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         .then(() => {
           return Model.find({ where: { id: 1 } });
         })
-        .then(user => {
+        .then((user) => {
           expect(user.get('float')).to.be.NaN;
           expect(user.get('double')).to.eq(Infinity);
           expect(user.get('real')).to.eq(-Infinity);
@@ -508,7 +508,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         .then(() => {
           return Model.findById(1);
         })
-        .then(user => {
+        .then((user) => {
           /**
            * MYSQL default precision is 10 and scale is 0
            * Thus test case below will return number without any fraction values
@@ -543,7 +543,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         .then(() => {
           return Model.findById(1);
         })
-        .then(user => {
+        .then((user) => {
           expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
           expect(user.get('jewelPurity')).to.be.string;
         });
@@ -580,7 +580,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       .then(() => {
         return Model.create({ name: 'sakura', type: 'class s' });
       })
-      .then(record => {
+      .then((record) => {
         expect(record.type).to.be.eql('class s');
       });
   });
@@ -594,13 +594,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     return Model.sync({ force: true })
       .then(() => Model.create({ stamp: testDate }))
-      .then(record => {
+      .then((record) => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return Model.findById(record.id);
       })
-      .then(record => {
+      .then((record) => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
@@ -608,10 +608,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           stamp: testDate
         });
       })
-      .then(record => {
+      .then((record) => {
         return record.reload();
       })
-      .then(record => {
+      .then((record) => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
@@ -619,10 +619,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           stamp: newDate
         });
       })
-      .then(record => {
+      .then((record) => {
         return record.reload();
       })
-      .then(record => {
+      .then((record) => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(moment(newDate).format('YYYY-MM-DD'));
       });
@@ -636,13 +636,13 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
 
     return Model.sync({ force: true })
       .then(() => Model.create({ stamp: testDate }))
-      .then(record => {
+      .then((record) => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
         return Model.findById(record.id);
       })
-      .then(record => {
+      .then((record) => {
         expect(typeof record.stamp).to.be.eql('string');
         expect(record.stamp).to.be.eql(testDate);
 
@@ -650,10 +650,10 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           stamp: null
         });
       })
-      .then(record => {
+      .then((record) => {
         return record.reload();
       })
-      .then(record => {
+      .then((record) => {
         expect(record.stamp).to.be.eql(null);
       });
   });
@@ -687,12 +687,12 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
           byteToBool: new Buffer([true])
         });
       })
-      .then(byte => {
+      .then((byte) => {
         expect(byte.byteToBool).to.be.ok;
 
         return BoolModel.findById(byte.id);
       })
-      .then(bool => {
+      .then((bool) => {
         expect(bool.byteToBool).to.be.true;
       });
   });

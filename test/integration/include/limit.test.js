@@ -14,7 +14,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
      * shortcut for building simple {name: 'foo'} seed data
      */
     function build() {
-      return Array.prototype.slice.call(arguments).map(arg => ({ name: arg }));
+      return Array.prototype.slice.call(arguments).map((arg) => ({ name: arg }));
     }
 
     /*
@@ -188,7 +188,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -231,7 +231,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -277,7 +277,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -326,7 +326,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -382,7 +382,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -416,7 +416,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -459,7 +459,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('delta');
         });
@@ -491,7 +491,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -536,7 +536,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('charlie');
         });
@@ -571,7 +571,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             ]
           })
         )
-        .then(post => {
+        .then((post) => {
           expect(post.name).to.equal('charlie');
         });
     });
@@ -614,7 +614,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('David');
         });
@@ -662,7 +662,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('David');
         });
@@ -708,7 +708,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('delta');
         });
@@ -755,7 +755,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('post3');
         });
@@ -805,7 +805,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('post3');
         });
@@ -868,7 +868,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('comment5');
         });
@@ -922,7 +922,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
             offset: 1
           })
         )
-        .then(result => {
+        .then((result) => {
           expect(result.length).to.equal(1);
           expect(result[0].name).to.equal('comment2');
         });

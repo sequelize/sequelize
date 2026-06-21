@@ -115,7 +115,7 @@ if (dialect === 'postgres') {
               }
             );
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('bob');
             expect(user.beforeTime).to.equal(-Infinity);
             expect(user.sometime).to.be.withinTime(date, new Date());
@@ -131,14 +131,14 @@ if (dialect === 'postgres') {
               }
             );
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equal(Infinity);
 
             return user.update({
               sometime: Infinity
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equal(Infinity);
 
             return user.update(
@@ -150,13 +150,13 @@ if (dialect === 'postgres') {
               }
             );
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.be.withinTime(date, new Date());
 
             // find
             return User.findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users[0].beforeTime).to.equal(-Infinity);
             expect(users[0].sometime).to.not.equal(Infinity);
             expect(users[0].afterTime).to.equal(Infinity);
@@ -165,14 +165,14 @@ if (dialect === 'postgres') {
               sometime: date
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equalTime(date);
 
             return user.update({
               sometime: date
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equalTime(date);
           });
       });
@@ -223,7 +223,7 @@ if (dialect === 'postgres') {
               }
             );
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('bob');
             expect(user.beforeTime).to.equal(-Infinity);
             expect(user.sometime).to.equal(moment(date).format('YYYY-MM-DD'));
@@ -239,14 +239,14 @@ if (dialect === 'postgres') {
               }
             );
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equal(Infinity);
 
             return user.update({
               sometime: Infinity
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equal(Infinity);
 
             return user.update(
@@ -258,14 +258,14 @@ if (dialect === 'postgres') {
               }
             );
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.not.equal(Infinity);
             expect(user.sometime).to.equal(moment(date).format('YYYY-MM-DD'));
 
             // find
             return User.findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users[0].beforeTime).to.equal(-Infinity);
             expect(users[0].sometime).to.not.equal(Infinity);
             expect(users[0].afterTime).to.equal(Infinity);
@@ -274,14 +274,14 @@ if (dialect === 'postgres') {
               sometime: '1969-07-20'
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equal('1969-07-20');
 
             return user.update({
               sometime: '1969-07-20'
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.sometime).to.equal('1969-07-20');
           });
       });

@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           );
 
         return User.sync({ force: true }).then(() => {
-          return User.create({}).then(user => {
+          return User.create({}).then((user) => {
             // Create the user first to set the proper default values. PG does not support column references in insert,
             // so we must create a record with the right value for always_false, then reference it in an update
             let now =
@@ -345,7 +345,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           });
           expect(contact.get('tags')).to.deep.equal(['yes', 'no']);
 
-          return contact.save().then(me => {
+          return contact.save().then((me) => {
             expect(me.get('tags')).to.deep.equal(['yes', 'no']);
           });
         });
@@ -488,7 +488,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
 
         return User.sync()
           .then(() => {
-            return User.create({ name: 'Jan Meier' }).then(user => {
+            return User.create({ name: 'Jan Meier' }).then((user) => {
               expect(user.changed('name')).to.be.false;
               expect(user.changed()).not.to.be.ok;
             });
@@ -540,7 +540,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         });
         let changed;
 
-        User.afterUpdate(instance => {
+        User.afterUpdate((instance) => {
           changed = instance.changed();
           return;
         });
@@ -551,12 +551,12 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
               name: 'Ford Prefect'
             });
           })
-          .then(user => {
+          .then((user) => {
             return user.update({
               name: 'Arthur Dent'
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(changed).to.be.ok;
             expect(changed.length).to.be.ok;
             expect(changed.indexOf('name') > -1).to.be.ok;

@@ -182,8 +182,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Company.findAll({
             include: [this.UserAssociation]
           })
-            .then(rows => rows[0])
-            .then(company => {
+            .then((rows) => rows[0])
+            .then((company) => {
               expect(company.users).to.have.length(2);
             });
         });
@@ -192,8 +192,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe, as: 'users' }]
           })
-            .then(rows => rows[0])
-            .then(company => {
+            .then((rows) => rows[0])
+            .then((company) => {
               expect(company.users).to.have.length(2);
             });
         });
@@ -202,8 +202,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.Company.findAll({
             include: [{ model: this.ScopeMe.scope('isTony'), as: 'users' }]
           })
-            .then(rows => rows[0])
-            .then(company => {
+            .then((rows) => rows[0])
+            .then((company) => {
               expect(company.users).to.have.length(1);
               expect(company.users[0].get('username')).to.equal('tony');
             });
@@ -220,10 +220,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         describe('it should be able to unscope', () => {
           it('hasMany', function () {
             return this.Company.findById(1)
-              .then(company => {
+              .then((company) => {
                 return company.getUsers({ scope: false });
               })
-              .then(users => {
+              .then((users) => {
                 expect(users).to.have.length(4);
               });
           });
@@ -236,10 +236,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(() => {
                 return this.ScopeMe.findById(1);
               })
-              .then(user => {
+              .then((user) => {
                 return user.getProfile({ scope: false });
               })
-              .then(profile => {
+              .then((profile) => {
                 expect(profile).to.be.ok;
               });
           });
@@ -247,21 +247,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('belongsTo', function () {
             return this.ScopeMe.unscoped()
               .find({ where: { username: 'bob' } })
-              .then(user => {
+              .then((user) => {
                 return user.getCompany({ scope: false });
               })
-              .then(company => {
+              .then((company) => {
                 expect(company).to.be.ok;
               });
           });
 
           it('belongsToMany', function () {
             return this.Project.findAll()
-              .then(rows => rows[0])
-              .then(p => {
+              .then((rows) => rows[0])
+              .then((p) => {
                 return p.getCompanies({ scope: false });
               })
-              .then(companies => {
+              .then((companies) => {
                 expect(companies).to.have.length(2);
               });
           });
@@ -270,10 +270,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         describe('it should apply default scope', () => {
           it('hasMany', function () {
             return this.Company.findById(1)
-              .then(company => {
+              .then((company) => {
                 return company.getUsers();
               })
-              .then(users => {
+              .then((users) => {
                 expect(users).to.have.length(2);
               });
           });
@@ -286,10 +286,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(() => {
                 return this.ScopeMe.findById(1);
               })
-              .then(user => {
+              .then((user) => {
                 return user.getProfile();
               })
-              .then(profile => {
+              .then((profile) => {
                 expect(profile).not.to.be.ok;
               });
           });
@@ -297,21 +297,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('belongsTo', function () {
             return this.ScopeMe.unscoped()
               .find({ where: { username: 'bob' } })
-              .then(user => {
+              .then((user) => {
                 return user.getCompany();
               })
-              .then(company => {
+              .then((company) => {
                 expect(company).not.to.be.ok;
               });
           });
 
           it('belongsToMany', function () {
             return this.Project.findAll()
-              .then(rows => rows[0])
-              .then(p => {
+              .then((rows) => rows[0])
+              .then((p) => {
                 return p.getCompanies();
               })
-              .then(companies => {
+              .then((companies) => {
                 expect(companies).to.have.length(1);
                 expect(companies[0].get('active')).to.be.ok;
               });
@@ -321,10 +321,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         describe('it should be able to apply another scope', () => {
           it('hasMany', function () {
             return this.Company.findById(1)
-              .then(company => {
+              .then((company) => {
                 return company.getUsers({ scope: 'isTony' });
               })
-              .then(users => {
+              .then((users) => {
                 expect(users).to.have.length(1);
                 expect(users[0].get('username')).to.equal('tony');
               });
@@ -338,10 +338,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               .then(() => {
                 return this.ScopeMe.findById(1);
               })
-              .then(user => {
+              .then((user) => {
                 return user.getProfile({ scope: 'notActive' });
               })
-              .then(profile => {
+              .then((profile) => {
                 expect(profile).not.to.be.ok;
               });
           });
@@ -349,21 +349,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           it('belongsTo', function () {
             return this.ScopeMe.unscoped()
               .find({ where: { username: 'bob' } })
-              .then(user => {
+              .then((user) => {
                 return user.getCompany({ scope: 'notActive' });
               })
-              .then(company => {
+              .then((company) => {
                 expect(company).to.be.ok;
               });
           });
 
           it('belongsToMany', function () {
             return this.Project.findAll()
-              .then(rows => rows[0])
-              .then(p => {
+              .then((rows) => rows[0])
+              .then((p) => {
                 return p.getCompanies({ scope: 'reversed' });
               })
-              .then(companies => {
+              .then((companies) => {
                 expect(companies).to.have.length(2);
                 expect(companies[0].id).to.equal(2);
                 expect(companies[1].id).to.equal(1);
@@ -390,7 +390,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should apply scope conditions', function () {
           return this.ScopeMe.scope('includeActiveProjects')
             .findOne({ where: { id: 1 } })
-            .then(user => {
+            .then((user) => {
               expect(user.company.projects).to.have.length(1);
             });
         });

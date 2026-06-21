@@ -134,9 +134,9 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
 
         return X.findAll({
           include: [Y]
-        }).then(rows => rows[0]);
+        }).then((rows) => rows[0]);
       })
-      .then(x => {
+      .then((x) => {
         expect(x.ys).to.have.length(0);
       });
   });

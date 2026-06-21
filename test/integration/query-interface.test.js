@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         })
         .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
         .then(() => this.queryInterface.showAllTables())
-        .then(tableNames => {
+        .then((tableNames) => {
           if (dialect === 'mssql') {
             tableNames = _.map(tableNames, 'tableName');
           }
@@ -39,19 +39,19 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
   describe('dropAllTables', () => {
     it('should drop all tables', function () {
-      const filterMSSQLDefault = tableNames => tableNames.filter(t => t.tableName !== 'spt_values');
+      const filterMSSQLDefault = (tableNames) => tableNames.filter((t) => t.tableName !== 'spt_values');
       const self = this;
       return this.queryInterface.dropAllTables().then(() => {
-        return self.queryInterface.showAllTables().then(tableNames => {
+        return self.queryInterface.showAllTables().then((tableNames) => {
           // MSSQL include spt_values table which is system defined, hence cant be dropped
           tableNames = filterMSSQLDefault(tableNames);
           expect(tableNames).to.be.empty;
           return self.queryInterface.createTable('table', { name: DataTypes.STRING }).then(() => {
-            return self.queryInterface.showAllTables().then(tableNames => {
+            return self.queryInterface.showAllTables().then((tableNames) => {
               tableNames = filterMSSQLDefault(tableNames);
               expect(tableNames).to.have.length(1);
               return self.queryInterface.dropAllTables().then(() => {
-                return self.queryInterface.showAllTables().then(tableNames => {
+                return self.queryInterface.showAllTables().then((tableNames) => {
                   // MSSQL include spt_values table which is system defined, hence cant be dropped
                   tableNames = filterMSSQLDefault(tableNames);
                   expect(tableNames).to.be.empty;
@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         })
         .then(() => {
           return self.queryInterface.dropAllTables({ skip: ['skipme'] }).then(() => {
-            return self.queryInterface.showAllTables().then(tableNames => {
+            return self.queryInterface.showAllTables().then((tableNames) => {
               if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
                 tableNames = _.map(tableNames, 'tableName');
               }
@@ -97,17 +97,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     it('adds, reads and removes an index to the table', function () {
       const self = this;
       return this.queryInterface.addIndex('Group', ['username', 'isAdmin']).then(() => {
-        return self.queryInterface.showIndex('Group').then(indexes => {
+        return self.queryInterface.showIndex('Group').then((indexes) => {
           let indexColumns = _.uniq(
-            indexes.map(index => {
+            indexes.map((index) => {
               return index.name;
             })
           );
           expect(indexColumns).to.include('group_username_is_admin');
           return self.queryInterface.removeIndex('Group', ['username', 'isAdmin']).then(() => {
-            return self.queryInterface.showIndex('Group').then(indexes => {
+            return self.queryInterface.showIndex('Group').then((indexes) => {
               indexColumns = _.uniq(
-                indexes.map(index => {
+                indexes.map((index) => {
                   return index.name;
                 })
               );
@@ -155,7 +155,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                   schema: 'schema',
                   tableName: 'table'
                 })
-                .then(indexes => {
+                .then((indexes) => {
                   expect(indexes.length).to.eq(1);
                   const index = indexes[0];
                   expect(index.name).to.eq('table_name_is_admin');
@@ -187,7 +187,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       );
 
       return Users.sync({ force: true }).then(() => {
-        return self.queryInterface.describeTable('_Users').then(metadata => {
+        return self.queryInterface.describeTable('_Users').then((metadata) => {
           const id = metadata.id;
           const username = metadata.username;
           const city = metadata.city;
@@ -276,12 +276,12 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       );
 
       return Country.sync({ force: true }).then(() => {
-        return self.queryInterface.describeTable('_Country').then(metacountry => {
+        return self.queryInterface.describeTable('_Country').then((metacountry) => {
           expect(metacountry.code.primaryKey).to.eql(true);
           expect(metacountry.name.primaryKey).to.eql(false);
 
           return Alumni.sync({ force: true }).then(() => {
-            return self.queryInterface.describeTable('_Alumni').then(metalumni => {
+            return self.queryInterface.describeTable('_Alumni').then((metalumni) => {
               expect(metalumni.year.primaryKey).to.eql(true);
               expect(metalumni.num.primaryKey).to.eql(true);
               expect(metalumni.username.primaryKey).to.eql(false);
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return this.queryInterface
             .insert(null, 'TableWithPK', {}, { raw: true, returning: true, plain: true })
-            .then(results => {
+            .then((results) => {
               const response = _.head(results);
               expect(response.table_id || (typeof response !== 'object' && response)).to.be.ok;
             });
@@ -394,7 +394,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return this.queryInterface.describeTable('_Users');
         })
-        .then(table => {
+        .then((table) => {
           expect(table).to.have.property('pseudo');
           expect(table).to.not.have.property('username');
         });
@@ -432,7 +432,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             tableName: 'Users'
           });
         })
-        .then(table => {
+        .then((table) => {
           expect(table).to.have.property('pseudo');
           expect(table).to.not.have.property('username');
         });
@@ -458,7 +458,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return this.queryInterface.describeTable('_Users');
         })
-        .then(table => {
+        .then((table) => {
           expect(table).to.have.property('pseudo');
           expect(table).to.not.have.property('username');
         });
@@ -485,7 +485,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return this.queryInterface.describeTable('_Users');
         })
-        .then(table => {
+        .then((table) => {
           expect(table).to.have.property('enabled');
           expect(table).to.not.have.property('active');
         });
@@ -513,7 +513,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return this.queryInterface.describeTable('Fruit');
         })
-        .then(table => {
+        .then((table) => {
           expect(table).to.have.property('fruit_id');
           expect(table).to.not.have.property('fruitId');
         });
@@ -573,7 +573,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return this.queryInterface.describeTable('users');
         })
-        .then(table => {
+        .then((table) => {
           expect(table).to.have.property('level_id');
         });
     });
@@ -611,7 +611,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 schema: 'archive'
               });
             })
-            .then(table => {
+            .then((table) => {
               expect(table).to.have.property('level_id');
             });
         });
@@ -679,7 +679,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       const self = this;
       return this.sequelize
         .query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS })
-        .then(fks => {
+        .then((fks) => {
           expect(fks).to.have.length(3);
           const keys = Object.keys(fks[0]),
             keys2 = Object.keys(fks[1]),
@@ -698,7 +698,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           }
           return fks;
         })
-        .then(fks => {
+        .then((fks) => {
           if (dialect === 'mysql') {
             return self.sequelize
               .query(self.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'), {})
@@ -711,10 +711,10 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     });
 
     it('should get a list of foreign key references details for the table', function () {
-      return this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options).then(references => {
+      return this.queryInterface.getForeignKeyReferencesForTable('hosts', this.sequelize.options).then((references) => {
         expect(references).to.have.length(3);
         const keys = [];
-        _.each(references, reference => {
+        _.each(references, (reference) => {
           expect(reference.tableName).to.eql('hosts');
           expect(reference.referencedColumnName).to.eql('id');
           expect(reference.referencedTableName).to.eql('users');
@@ -746,14 +746,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             type: 'unique'
           })
           .then(() => this.queryInterface.showConstraint('users'))
-          .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraintName);
+          .then((constraints) => {
+            constraints = constraints.map((constraint) => constraint.constraintName);
             expect(constraints).to.include('users_email_uk');
             return this.queryInterface.removeConstraint('users', 'users_email_uk');
           })
           .then(() => this.queryInterface.showConstraint('users'))
-          .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraintName);
+          .then((constraints) => {
+            constraints = constraints.map((constraint) => constraint.constraintName);
             expect(constraints).to.not.include('users_email_uk');
           });
       });
@@ -771,14 +771,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               name: 'check_user_roles'
             })
             .then(() => this.queryInterface.showConstraint('users'))
-            .then(constraints => {
-              constraints = constraints.map(constraint => constraint.constraintName);
+            .then((constraints) => {
+              constraints = constraints.map((constraint) => constraint.constraintName);
               expect(constraints).to.include('check_user_roles');
               return this.queryInterface.removeConstraint('users', 'check_user_roles');
             })
             .then(() => this.queryInterface.showConstraint('users'))
-            .then(constraints => {
-              constraints = constraints.map(constraint => constraint.constraintName);
+            .then((constraints) => {
+              constraints = constraints.map((constraint) => constraint.constraintName);
               expect(constraints).to.not.include('check_user_roles');
             });
         });
@@ -794,14 +794,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               defaultValue: 'guest'
             })
             .then(() => this.queryInterface.showConstraint('users'))
-            .then(constraints => {
-              constraints = constraints.map(constraint => constraint.constraintName);
+            .then((constraints) => {
+              constraints = constraints.map((constraint) => constraint.constraintName);
               expect(constraints).to.include('users_roles_df');
               return this.queryInterface.removeConstraint('users', 'users_roles_df');
             })
             .then(() => this.queryInterface.showConstraint('users'))
-            .then(constraints => {
-              constraints = constraints.map(constraint => constraint.constraintName);
+            .then((constraints) => {
+              constraints = constraints.map((constraint) => constraint.constraintName);
               expect(constraints).to.not.include('users_roles_df');
             });
         });
@@ -824,8 +824,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             });
           })
           .then(() => this.queryInterface.showConstraint('users'))
-          .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraintName);
+          .then((constraints) => {
+            constraints = constraints.map((constraint) => constraint.constraintName);
             //The name of primaryKey constraint is always PRIMARY in case of mysql
             if (dialect === 'mysql') {
               expect(constraints).to.include('PRIMARY');
@@ -836,8 +836,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             }
           })
           .then(() => this.queryInterface.showConstraint('users'))
-          .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraintName);
+          .then((constraints) => {
+            constraints = constraints.map((constraint) => constraint.constraintName);
             expect(constraints).to.not.include('users_username_pk');
           });
       });
@@ -871,14 +871,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             });
           })
           .then(() => this.queryInterface.showConstraint('posts'))
-          .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraintName);
+          .then((constraints) => {
+            constraints = constraints.map((constraint) => constraint.constraintName);
             expect(constraints).to.include('posts_username_users_fk');
             return this.queryInterface.removeConstraint('posts', 'posts_username_users_fk');
           })
           .then(() => this.queryInterface.showConstraint('posts'))
-          .then(constraints => {
-            constraints = constraints.map(constraint => constraint.constraintName);
+          .then((constraints) => {
+            constraints = constraints.map((constraint) => constraint.constraintName);
             expect(constraints).to.not.include('posts_username_users_fk');
           });
       });

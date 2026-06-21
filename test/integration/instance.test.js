@@ -66,8 +66,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const bio = dialect + '\'"\n', // Need to add the dialect here so in case of failure I know what DB it failed for
         self = this;
 
-      return this.User.create({ username: bio }).then(u1 => {
-        return self.User.findById(u1.id).then(u2 => {
+      return this.User.create({ username: bio }).then((u1) => {
+        return self.User.findById(u1.id).then((u2) => {
           expect(u2.username).to.equal(bio);
         });
       });
@@ -84,13 +84,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns false for saved objects', function () {
       return this.User.build({ username: 'user' })
         .save()
-        .then(user => {
+        .then((user) => {
           expect(user.isNewRecord).to.not.be.ok;
         });
     });
 
     it('returns false for created objects', function () {
-      return this.User.create({ username: 'user' }).then(user => {
+      return this.User.create({ username: 'user' }).then((user) => {
         expect(user.isNewRecord).to.not.be.ok;
       });
     });
@@ -98,8 +98,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns false for objects found by find method', function () {
       const self = this;
       return this.User.create({ username: 'user' }).then(() => {
-        return self.User.create({ username: 'user' }).then(user => {
-          return self.User.findById(user.id).then(user => {
+        return self.User.create({ username: 'user' }).then((user) => {
+          return self.User.findById(user.id).then((user) => {
             expect(user.isNewRecord).to.not.be.ok;
           });
         });
@@ -115,8 +115,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       }
 
       return this.User.bulkCreate(users).then(() => {
-        return self.User.findAll().then(users => {
-          users.forEach(u => {
+        return self.User.findAll().then((users) => {
+          users.forEach((u) => {
             expect(u.isNewRecord).to.not.be.ok;
           });
         });
@@ -131,15 +131,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
           const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
           return User.sync({ force: true }).then(() => {
-            return User.create({ number: 1 }).then(user => {
-              return sequelize.transaction().then(t => {
+            return User.create({ number: 1 }).then((user) => {
+              return sequelize.transaction().then((t) => {
                 return user.increment('number', { by: 2, transaction: t }).then(() => {
-                  return User.findAll().then(users1 => {
-                    return User.findAll({ transaction: t }).then(users2 => {
+                  return User.findAll().then((users1) => {
+                    return User.findAll({ transaction: t }).then((users2) => {
                       expect(users1[0].number).to.equal(1);
                       expect(users2[0].number).to.equal(3);
                       return t.rollback();
@@ -155,10 +155,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.returnValues.returning) {
       it('supports returning', function () {
-        return this.User.findById(1).then(user1 => {
+        return this.User.findById(1).then((user1) => {
           return user1.increment('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(2);
-            return user1.increment('bNumber', { by: 2, returning: false }).then(user3 => {
+            return user1.increment('bNumber', { by: 2, returning: false }).then((user3) => {
               expect(user3.bNumber).to.be.equal(0);
             });
           });
@@ -168,9 +168,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('supports where conditions', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.increment(['aNumber'], { by: 2, where: { bNumber: 1 } }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(0);
           });
         });
@@ -179,9 +179,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with array', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.increment(['aNumber'], { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(2);
           });
         });
@@ -190,9 +190,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.increment('aNumber', { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(2);
           });
         });
@@ -201,9 +201,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field and no value', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.increment('aNumber').then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findById(1).then((user2) => {
             expect(user2.aNumber).to.be.equal(1);
           });
         });
@@ -212,16 +212,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent updates', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         // Select the user again (simulating a concurrent query)
-        return self.User.findById(1).then(user2 => {
+        return self.User.findById(1).then((user2) => {
           return user2
             .updateAttributes({
               aNumber: user2.aNumber + 1
             })
             .then(() => {
               return user1.increment(['aNumber'], { by: 2 }).then(() => {
-                return self.User.findById(1).then(user5 => {
+                return self.User.findById(1).then((user5) => {
                   expect(user5.aNumber).to.be.equal(3);
                 });
               });
@@ -232,13 +232,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent increments', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return Promise.all([
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 }),
           user1.increment(['aNumber'], { by: 2 })
         ]).then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findById(1).then((user2) => {
             expect(user2.aNumber).to.equal(6);
           });
         });
@@ -247,9 +247,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with key value pair', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.increment({ aNumber: 1, bNumber: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(1);
             expect(user3.bNumber).to.be.equal(2);
           });
@@ -270,14 +270,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return User.sync({ force: true })
         .then(() => User.create({ aNumber: 1 }))
-        .then(user => {
+        .then((user) => {
           oldDate = user.get('updatedAt');
 
           this.clock.tick(1000);
           return user.increment('aNumber', { by: 1 });
         })
-        .then(user => user.reload())
-        .then(user => {
+        .then((user) => user.reload())
+        .then((user) => {
           return expect(user).to.have.property('updatedAt').afterTime(oldDate);
         });
     });
@@ -296,7 +296,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return User.create({ aNumber: 1 });
         })
-        .then(user => {
+        .then((user) => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return user.increment('aNumber', { by: 1, silent: true });
@@ -314,15 +314,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
           const User = sequelize.define('User', { number: Support.Sequelize.INTEGER });
 
           return User.sync({ force: true }).then(() => {
-            return User.create({ number: 3 }).then(user => {
-              return sequelize.transaction().then(t => {
+            return User.create({ number: 3 }).then((user) => {
+              return sequelize.transaction().then((t) => {
                 return user.decrement('number', { by: 2, transaction: t }).then(() => {
-                  return User.findAll().then(users1 => {
-                    return User.findAll({ transaction: t }).then(users2 => {
+                  return User.findAll().then((users1) => {
+                    return User.findAll({ transaction: t }).then((users2) => {
                       expect(users1[0].number).to.equal(3);
                       expect(users2[0].number).to.equal(1);
                       return t.rollback();
@@ -338,10 +338,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (current.dialect.supports.returnValues.returning) {
       it('supports returning', function () {
-        return this.User.findById(1).then(user1 => {
+        return this.User.findById(1).then((user1) => {
           return user1.decrement('aNumber', { by: 2 }).then(() => {
             expect(user1.aNumber).to.be.equal(-2);
-            return user1.decrement('bNumber', { by: 2, returning: false }).then(user3 => {
+            return user1.decrement('bNumber', { by: 2, returning: false }).then((user3) => {
               expect(user3.bNumber).to.be.equal(0);
             });
           });
@@ -351,9 +351,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with array', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.decrement(['aNumber'], { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(-2);
           });
         });
@@ -362,9 +362,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.decrement('aNumber', { by: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(-2);
           });
         });
@@ -373,9 +373,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with single field and no value', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.decrement('aNumber').then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findById(1).then((user2) => {
             expect(user2.aNumber).to.be.equal(-1);
           });
         });
@@ -384,16 +384,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent updates', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         // Select the user again (simulating a concurrent query)
-        return self.User.findById(1).then(user2 => {
+        return self.User.findById(1).then((user2) => {
           return user2
             .updateAttributes({
               aNumber: user2.aNumber + 1
             })
             .then(() => {
               return user1.decrement(['aNumber'], { by: 2 }).then(() => {
-                return self.User.findById(1).then(user5 => {
+                return self.User.findById(1).then((user5) => {
                   expect(user5.aNumber).to.be.equal(-1);
                 });
               });
@@ -404,13 +404,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should still work right with other concurrent increments', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return Promise.all([
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 }),
           user1.decrement(['aNumber'], { by: 2 })
         ]).then(() => {
-          return self.User.findById(1).then(user2 => {
+          return self.User.findById(1).then((user2) => {
             expect(user2.aNumber).to.equal(-6);
           });
         });
@@ -419,9 +419,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with key value pair', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return user1.decrement({ aNumber: 1, bNumber: 2 }).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(-1);
             expect(user3.bNumber).to.be.equal(-2);
           });
@@ -431,13 +431,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('with negative value', function () {
       const self = this;
-      return this.User.findById(1).then(user1 => {
+      return this.User.findById(1).then((user1) => {
         return Promise.all([
           user1.decrement('aNumber', { by: -2 }),
           user1.decrement(['aNumber', 'bNumber'], { by: -2 }),
           user1.decrement({ aNumber: -1, bNumber: -2 })
         ]).then(() => {
-          return self.User.findById(1).then(user3 => {
+          return self.User.findById(1).then((user3) => {
             expect(user3.aNumber).to.be.equal(+5);
             expect(user3.bNumber).to.be.equal(+4);
           });
@@ -459,7 +459,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return User.create({ aNumber: 1 });
         })
-        .then(user => {
+        .then((user) => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return user.decrement('aNumber', { by: 1 });
@@ -483,7 +483,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return User.create({ aNumber: 1 });
         })
-        .then(user => {
+        .then((user) => {
           oldDate = user.updatedAt;
           this.clock.tick(1000);
           return user.decrement('aNumber', { by: 1, silent: true });
@@ -497,16 +497,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('reload', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then(user => {
-              return sequelize.transaction().then(t => {
+            return User.create({ username: 'foo' }).then((user) => {
+              return sequelize.transaction().then((t) => {
                 return User.update({ username: 'bar' }, { where: { username: 'foo' }, transaction: t }).then(() => {
-                  return user.reload().then(user => {
+                  return user.reload().then((user) => {
                     expect(user.username).to.equal('foo');
-                    return user.reload({ transaction: t }).then(user => {
+                    return user.reload({ transaction: t }).then((user) => {
                       expect(user.username).to.equal('bar');
                       return t.rollback();
                     });
@@ -520,9 +520,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     }
 
     it('should return a reference to the same DAO instead of creating a new one', function () {
-      return this.User.create({ username: 'John Doe' }).then(originalUser => {
+      return this.User.create({ username: 'John Doe' }).then((originalUser) => {
         return originalUser.updateAttributes({ username: 'Doe John' }).then(() => {
-          return originalUser.reload().then(updatedUser => {
+          return originalUser.reload().then((updatedUser) => {
             expect(originalUser === updatedUser).to.be.true;
           });
         });
@@ -531,12 +531,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should update the values on all references to the DAO', function () {
       const self = this;
-      return this.User.create({ username: 'John Doe' }).then(originalUser => {
-        return self.User.findById(originalUser.id).then(updater => {
+      return this.User.create({ username: 'John Doe' }).then((originalUser) => {
+        return self.User.findById(originalUser.id).then((updater) => {
           return updater.updateAttributes({ username: 'Doe John' }).then(() => {
             // We used a different reference when calling updateAttributes, so originalUser is now out of sync
             expect(originalUser.username).to.equal('John Doe');
-            return originalUser.reload().then(updatedUser => {
+            return originalUser.reload().then((updatedUser) => {
               expect(originalUser.username).to.equal('Doe John');
               expect(updatedUser.username).to.equal('Doe John');
             });
@@ -550,7 +550,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         aNumber: 1,
         bNumber: 1
       })
-        .then(async user => {
+        .then(async (user) => {
           await this.User.update(
             {
               bNumber: 2
@@ -563,12 +563,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           );
           return user;
         })
-        .then(user => {
+        .then((user) => {
           return user.reload({
             attributes: ['bNumber']
           });
         })
-        .then(user => {
+        .then((user) => {
           expect(user.get('aNumber')).to.equal(1);
           expect(user.get('bNumber')).to.equal(2);
         });
@@ -576,7 +576,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('should update read only attributes as well (updatedAt)', function () {
       return this.User.create({ username: 'John Doe' })
-        .then(originalUser => {
+        .then((originalUser) => {
           this.originallyUpdatedAt = originalUser.updatedAt;
           this.originalUser = originalUser;
 
@@ -584,10 +584,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           this.clock.tick(1000);
           return this.User.findById(originalUser.id);
         })
-        .then(updater => {
+        .then((updater) => {
           return updater.updateAttributes({ username: 'Doe John' });
         })
-        .then(updatedUser => {
+        .then((updatedUser) => {
           this.updatedUser = updatedUser;
           return this.originalUser.reload();
         })
@@ -606,18 +606,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return Book.sync({ force: true }).then(() => {
         return Page.sync({ force: true }).then(() => {
-          return Book.create({ title: 'A very old book' }).then(book => {
-            return Page.create({ content: 'om nom nom' }).then(page => {
+          return Book.create({ title: 'A very old book' }).then((book) => {
+            return Page.create({ content: 'om nom nom' }).then((page) => {
               return book.setPages([page]).then(() => {
                 return Book.findOne({
                   where: { id: book.id },
                   include: [Page]
-                }).then(leBook => {
-                  return page.updateAttributes({ content: 'something totally different' }).then(page => {
+                }).then((leBook) => {
+                  return page.updateAttributes({ content: 'something totally different' }).then((page) => {
                     expect(leBook.Pages.length).to.equal(1);
                     expect(leBook.Pages[0].content).to.equal('om nom nom');
                     expect(page.content).to.equal('something totally different');
-                    return leBook.reload().then(leBook => {
+                    return leBook.reload().then((leBook) => {
                       expect(leBook.Pages.length).to.equal(1);
                       expect(leBook.Pages[0].content).to.equal('something totally different');
                       expect(page.content).to.equal('something totally different');
@@ -640,18 +640,18 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return Book.sync({ force: true }).then(() => {
         return Page.sync({ force: true }).then(() => {
-          return Book.create({ title: 'A very old book' }).then(book => {
-            return Page.create().then(page => {
+          return Book.create({ title: 'A very old book' }).then((book) => {
+            return Page.create().then((page) => {
               return book.setPages([page]).then(() => {
                 return Book.findOne({
                   where: { id: book.id }
-                }).then(leBook => {
+                }).then((leBook) => {
                   const oldOptions = leBook._options;
                   return leBook
                     .reload({
                       include: [Page]
                     })
-                    .then(leBook => {
+                    .then((leBook) => {
                       expect(oldOptions).not.to.equal(leBook._options);
                       expect(leBook._options.include.length).to.equal(1);
                       expect(leBook.Pages.length).to.equal(1);
@@ -666,7 +666,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should return an error when reload fails', function () {
-      return this.User.create({ username: 'John Doe' }).then(user => {
+      return this.User.create({ username: 'John Doe' }).then((user) => {
         return user.destroy().then(() => {
           return expect(user.reload()).to.be.rejectedWith(
             Sequelize.InstanceError,
@@ -696,19 +696,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             { include: [Player] }
           );
         })
-        .then(shoe => {
+        .then((shoe) => {
           return Player.findOne({
             where: { id: shoe.Player.id },
             include: [Shoe]
           })
-            .then(lePlayer => {
+            .then((lePlayer) => {
               expect(lePlayer.Shoe).not.to.be.null;
               return lePlayer.Shoe.destroy().then(() => lePlayer);
             })
-            .then(lePlayer => {
+            .then((lePlayer) => {
               return lePlayer.reload();
             })
-            .then(lePlayer => {
+            .then((lePlayer) => {
               expect(lePlayer.Shoe).to.be.null;
             });
         });
@@ -739,12 +739,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             { include: [Player] }
           );
         })
-        .then(team => {
+        .then((team) => {
           return Team.findOne({
             where: { id: team.id },
             include: [Player]
           })
-            .then(leTeam => {
+            .then((leTeam) => {
               expect(leTeam.Players).not.to.be.empty;
               return leTeam.Players[1]
                 .destroy()
@@ -753,10 +753,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                 })
                 .then(() => leTeam);
             })
-            .then(leTeam => {
+            .then((leTeam) => {
               return leTeam.reload();
             })
-            .then(leTeam => {
+            .then((leTeam) => {
               expect(leTeam.Players).to.be.empty;
             });
         });
@@ -787,19 +787,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             { include: [Player] }
           );
         })
-        .then(team => {
+        .then((team) => {
           return Team.findOne({
             where: { id: team.id },
             include: [Player]
           })
-            .then(leTeam => {
+            .then((leTeam) => {
               expect(leTeam.Players).to.have.length(2);
               return leTeam.Players[0].destroy().then(() => leTeam);
             })
-            .then(leTeam => {
+            .then((leTeam) => {
               return leTeam.reload();
             })
-            .then(leTeam => {
+            .then((leTeam) => {
               expect(leTeam.Players).to.have.length(1);
             });
         });
@@ -861,7 +861,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.build({ username: 'a user' })
           .save()
           .then(() => {
-            return self.User.findOne({ where: { username: 'a user' } }).then(user => {
+            return self.User.findOne({ where: { username: 'a user' } }).then((user) => {
               expect(user.dateAllowNullTrue).to.be.null;
             });
           });
@@ -873,7 +873,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.User.build({ username: 'a user', dateAllowNullTrue: date })
           .save()
           .then(() => {
-            return self.User.findOne({ where: { username: 'a user' } }).then(user => {
+            return self.User.findOne({ where: { username: 'a user' } }).then((user) => {
               expect(user.dateAllowNullTrue.toString()).to.equal(date.toString());
             });
           });
@@ -891,7 +891,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               where: {
                 username: 'a user'
               }
-            }).then(user => {
+            }).then((user) => {
               expect(user.isSuperUser).to.be.false;
             });
           });
@@ -908,7 +908,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               where: {
                 username: 'a user'
               }
-            }).then(user => {
+            }).then((user) => {
               expect(user.isSuperUser).to.be.true;
             });
           });
@@ -925,7 +925,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               where: {
                 username: 'a user'
               }
-            }).then(user => {
+            }).then((user) => {
               expect(user.isSuperUser).to.be.true;
             });
           });
@@ -942,7 +942,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               where: {
                 username: 'a user'
               }
-            }).then(user => {
+            }).then((user) => {
               expect(user.isSuperUser).to.be.true;
             });
           });
@@ -959,7 +959,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           .then(() => {
             callCount += 1;
           })
-          .catch(err => {
+          .catch((err) => {
             expect(callCount).to.equal(0);
             expect(err).to.exist;
             expect(err.message).to.exist;
@@ -970,14 +970,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('complete', () => {
     it('gets triggered if an error occurs', function () {
-      return this.User.findOne({ where: ['asdasdasd'] }).catch(err => {
+      return this.User.findOne({ where: ['asdasdasd'] }).catch((err) => {
         expect(err).to.exist;
         expect(err.message).to.exist;
       });
     });
 
     it('gets triggered if everything was ok', function () {
-      return this.User.count().then(result => {
+      return this.User.count().then((result) => {
         expect(result).to.exist;
       });
     });
@@ -986,15 +986,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('save', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
           return User.sync({ force: true }).then(() => {
-            return sequelize.transaction().then(t => {
+            return sequelize.transaction().then((t) => {
               return User.build({ username: 'foo' })
                 .save({ transaction: t })
                 .then(() => {
-                  return User.count().then(count1 => {
-                    return User.count({ transaction: t }).then(count2 => {
+                  return User.count().then((count1) => {
+                    return User.count({ transaction: t }).then((count2) => {
                       expect(count1).to.equal(0);
                       expect(count2).to.equal(1);
                       return t.rollback();
@@ -1014,13 +1014,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.create({
         username: 'foo',
         touchedAt: new Date()
-      }).then(user => {
+      }).then((user) => {
         user.username = 'fizz';
         user.touchedAt = date;
 
         return user.save({ fields: ['username'] }).then(() => {
           // re-select user
-          return self.User.findById(user.id).then(user2 => {
+          return self.User.findById(user.id).then((user2) => {
             // name should have changed
             expect(user2.username).to.equal('fizz');
             // bio should be unchanged
@@ -1043,7 +1043,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           width: 2,
           height: 3
         })
-          .then(box => {
+          .then((box) => {
             return box.update({
               length: 4,
               width: 5,
@@ -1051,7 +1051,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             });
           })
           .then(() => {
-            return Box.findOne({}).then(box => {
+            return Box.findOne({}).then((box) => {
               expect(box.get('length')).to.equal(4);
               expect(box.get('width')).to.equal(5);
               expect(box.get('height')).to.equal(6);
@@ -1077,7 +1077,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate(instance => {
+        User.beforeUpdate((instance) => {
           instance.set('email', 'B');
         });
 
@@ -1087,7 +1087,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             bio: 'A',
             email: 'A'
           })
-            .then(user => {
+            .then((user) => {
               return user
                 .set({
                   name: 'B',
@@ -1098,7 +1098,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             .then(() => {
               return User.findOne({});
             })
-            .then(user => {
+            .then((user) => {
               expect(user.get('name')).to.equal('B');
               expect(user.get('bio')).to.equal('B');
               expect(user.get('email')).to.equal('B');
@@ -1113,7 +1113,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           email: DataTypes.STRING
         });
 
-        User.beforeUpdate(instance => {
+        User.beforeUpdate((instance) => {
           instance.set('email', 'C');
         });
 
@@ -1123,7 +1123,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             bio: 'A',
             email: 'A'
           })
-            .then(user => {
+            .then((user) => {
               return user
                 .set({
                   name: 'B',
@@ -1135,7 +1135,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             .then(() => {
               return User.findOne({});
             })
-            .then(user => {
+            .then((user) => {
               expect(user.get('name')).to.equal('B');
               expect(user.get('bio')).to.equal('B');
               expect(user.get('email')).to.equal('C');
@@ -1155,7 +1155,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        User.beforeUpdate(instance => {
+        User.beforeUpdate((instance) => {
           instance.set('email', 'B');
         });
 
@@ -1165,7 +1165,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             bio: 'A',
             email: 'valid.email@gmail.com'
           })
-            .then(user => {
+            .then((user) => {
               return expect(
                 user
                   .set({
@@ -1175,7 +1175,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               ).to.be.rejectedWith(Sequelize.ValidationError);
             })
             .then(() => {
-              return User.findOne({}).then(user => {
+              return User.findOne({}).then((user) => {
                 expect(user.get('email')).to.equal('valid.email@gmail.com');
               });
             });
@@ -1194,7 +1194,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         });
 
-        User.beforeUpdate(instance => {
+        User.beforeUpdate((instance) => {
           instance.set('email', 'B');
         });
 
@@ -1204,7 +1204,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             bio: 'A',
             email: 'valid.email@gmail.com'
           })
-            .then(user => {
+            .then((user) => {
               return expect(
                 user
                   .set({
@@ -1215,7 +1215,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
               ).to.be.rejectedWith(Sequelize.ValidationError);
             })
             .then(() => {
-              return User.findOne({}).then(user => {
+              return User.findOne({}).then((user) => {
                 expect(user.get('email')).to.equal('valid.email@gmail.com');
               });
             });
@@ -1231,10 +1231,10 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           touchedAt: new Date(1984, 8, 23)
         });
 
-      return User.findAll().then(users => {
+      return User.findAll().then((users) => {
         expect(users).to.have.length(0);
         return user.save().then(() => {
-          return User.findAll().then(users => {
+          return User.findAll().then((users) => {
             expect(users).to.have.length(1);
             expect(users[0].username).to.equal(username);
             expect(users[0].touchedAt).to.be.instanceof(Date);
@@ -1257,15 +1257,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         });
 
       return User2.sync().then(() => {
-        return User2.create({ id: 0, username }).then(user => {
+        return User2.create({ id: 0, username }).then((user) => {
           expect(user).to.be.ok;
           expect(user.id).to.equal(0);
           expect(user.username).to.equal(username);
-          return User2.findById(0).then(user => {
+          return User2.findById(0).then((user) => {
             expect(user).to.be.ok;
             expect(user.id).to.equal(0);
             expect(user.username).to.equal(username);
-            return user.updateAttributes({ username: newUsername }).then(user => {
+            return user.updateAttributes({ username: newUsername }).then((user) => {
               expect(user).to.be.ok;
               expect(user.id).to.equal(0);
               expect(user.username).to.equal(newUsername);
@@ -1284,19 +1284,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return user
         .save()
-        .then(savedUser => {
+        .then((savedUser) => {
           expect(savedUser).have.property('updatedAt').afterTime(now);
 
           this.clock.tick(1000);
           return savedUser.save();
         })
-        .then(updatedUser => {
+        .then((updatedUser) => {
           expect(updatedUser).have.property('updatedAt').afterTime(now);
         });
     });
 
     it('does not update timestamps when passing silent=true', function () {
-      return this.User.create({ username: 'user' }).then(user => {
+      return this.User.create({ username: 'user' }).then((user) => {
         const updatedAt = user.updatedAt;
 
         this.clock.tick(1000);
@@ -1324,7 +1324,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return this.User.findAll();
         })
-        .then(users => {
+        .then((users) => {
           updatedAtPaul = users[0].updatedAt;
           updatedAtPeter = users[1].updatedAt;
         })
@@ -1335,7 +1335,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return self.User.findAll();
         })
-        .then(users => {
+        .then((users) => {
           expect(users[0].updatedAt).to.equalTime(updatedAtPeter);
           expect(users[1].updatedAt).to.equalTime(updatedAtPaul);
         });
@@ -1345,12 +1345,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       it('does not update timestamps', function () {
         const self = this;
         return self.User.create({ username: 'John' }).then(() => {
-          return self.User.findOne({ where: { username: 'John' } }).then(user => {
+          return self.User.findOne({ where: { username: 'John' } }).then((user) => {
             const updatedAt = user.updatedAt;
             self.clock.tick(2000);
-            return user.save().then(newlySavedUser => {
+            return user.save().then((newlySavedUser) => {
               expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
-              return self.User.findOne({ where: { username: 'John' } }).then(newlySavedUser => {
+              return self.User.findOne({ where: { username: 'John' } }).then((newlySavedUser) => {
                 expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
               });
             });
@@ -1373,7 +1373,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           }
         );
         return User.sync({ force: true }).then(() =>
-          User.create({ name: 'John', bio: 'swag 1' }).then(user => user.update({ bio: 'swag 2' }).should.be.fulfilled)
+          User.create({ name: 'John', bio: 'swag 1' }).then(
+            (user) => user.update({ bio: 'swag 2' }).should.be.fulfilled
+          )
         );
       });
     });
@@ -1383,11 +1385,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return this.User.create({
         aNumber: 42
-      }).then(user => {
+      }).then((user) => {
         user.bNumber = self.sequelize.col('aNumber');
         user.username = self.sequelize.fn('upper', 'sequelize');
         return user.save().then(() => {
-          return self.User.findById(user.id).then(user2 => {
+          return self.User.findById(user.id).then((user2) => {
             expect(user2.username).to.equal('SEQUELIZE');
             expect(user2.bNumber).to.equal(42);
           });
@@ -1406,7 +1408,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           { timestamps: false }
         );
         return User2.sync().then(() => {
-          return User2.create({ username: 'john doe' }).then(johnDoe => {
+          return User2.create({ username: 'john doe' }).then((johnDoe) => {
             // sqlite and mysql return undefined, whereas postgres returns null
             expect([undefined, null].indexOf(johnDoe.updatedAt)).not.to.be.equal(-1);
           });
@@ -1428,7 +1430,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         );
 
         return User2.sync().then(() => {
-          return User2.create({ username: 'john doe' }).then(johnDoe => {
+          return User2.create({ username: 'john doe' }).then((johnDoe) => {
             expect(johnDoe.updatedAt).to.be.undefined;
             expect(now).to.be.beforeTime(johnDoe.createdAt);
           });
@@ -1448,7 +1450,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         );
 
         return User2.sync().then(() => {
-          return User2.create({ username: 'john doe' }).then(johnDoe => {
+          return User2.create({ username: 'john doe' }).then((johnDoe) => {
             expect(johnDoe.createdAt).to.be.undefined;
             expect(now).to.be.beforeTime(johnDoe.updatedAt);
           });
@@ -1473,7 +1475,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         );
 
         return User2.sync().then(() => {
-          return User2.create({ username: 'john doe' }).then(johnDoe => {
+          return User2.create({ username: 'john doe' }).then((johnDoe) => {
             expect(johnDoe.createdAt).to.be.an.instanceof(Date);
             expect(!isNaN(johnDoe.createdAt.valueOf())).to.be.ok;
             expect(johnDoe.createdAt).to.equalTime(johnDoe.updatedAt);
@@ -1483,7 +1485,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should fail a validation upon creating', function () {
-      return this.User.create({ aNumber: 0, validateTest: 'hello' }).catch(err => {
+      return this.User.create({ aNumber: 0, validateTest: 'hello' }).catch((err) => {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
@@ -1493,7 +1495,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should fail a validation upon creating with hooks false', function () {
-      return this.User.create({ aNumber: 0, validateTest: 'hello' }, { hooks: false }).catch(err => {
+      return this.User.create({ aNumber: 0, validateTest: 'hello' }, { hooks: false }).catch((err) => {
         expect(err).to.exist;
         expect(err).to.be.instanceof(Object);
         expect(err.get('validateTest')).to.be.instanceof(Array);
@@ -1505,7 +1507,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('should fail a validation upon building', function () {
       return this.User.build({ aNumber: 0, validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' })
         .save()
-        .catch(err => {
+        .catch((err) => {
           expect(err).to.exist;
           expect(err).to.be.instanceof(Object);
           expect(err.get('validateCustom')).to.exist;
@@ -1516,8 +1518,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     });
 
     it('should fail a validation when updating', function () {
-      return this.User.create({ aNumber: 0 }).then(user => {
-        return user.updateAttributes({ validateTest: 'hello' }).catch(err => {
+      return this.User.create({ aNumber: 0 }).then((user) => {
+        return user.updateAttributes({ validateTest: 'hello' }).catch((err) => {
           expect(err).to.exist;
           expect(err).to.be.instanceof(Object);
           expect(err.get('validateTest')).to.exist;
@@ -1533,7 +1535,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .save({
           fields: ['aNumber']
         })
-        .then(user => {
+        .then((user) => {
           expect(user.aNumber).to.equal(0);
         });
     });
@@ -1545,8 +1547,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         aRandomId: { type: DataTypes.INTEGER }
       });
       return HistoryLog.sync().then(() => {
-        return HistoryLog.create({ someText: 'Some random text', aNumber: 3, aRandomId: 5 }).then(log => {
-          return log.updateAttributes({ aNumber: 5 }).then(newLog => {
+        return HistoryLog.create({ someText: 'Some random text', aNumber: 3, aRandomId: 5 }).then((log) => {
+          return log.updateAttributes({ aNumber: 5 }).then((newLog) => {
             expect(newLog.aNumber).to.equal(5);
           });
         });
@@ -1584,21 +1586,21 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('saves one object that has a collection of eagerly loaded objects', function () {
         const self = this;
-        return this.UserEager.create({ username: 'joe', age: 1 }).then(user => {
-          return self.ProjectEager.create({ title: 'project-joe1', overdue_days: 0 }).then(project1 => {
-            return self.ProjectEager.create({ title: 'project-joe2', overdue_days: 0 }).then(project2 => {
+        return this.UserEager.create({ username: 'joe', age: 1 }).then((user) => {
+          return self.ProjectEager.create({ title: 'project-joe1', overdue_days: 0 }).then((project1) => {
+            return self.ProjectEager.create({ title: 'project-joe2', overdue_days: 0 }).then((project2) => {
               return user.setProjects([project1, project2]).then(() => {
                 return self.UserEager.findOne({
                   where: { age: 1 },
                   include: [{ model: self.ProjectEager, as: 'Projects' }]
-                }).then(user => {
+                }).then((user) => {
                   expect(user.username).to.equal('joe');
                   expect(user.age).to.equal(1);
                   expect(user.Projects).to.exist;
                   expect(user.Projects.length).to.equal(2);
 
                   user.age = user.age + 1; // happy birthday joe
-                  return user.save().then(user => {
+                  return user.save().then((user) => {
                     expect(user.username).to.equal('joe');
                     expect(user.age).to.equal(2);
                     expect(user.Projects).to.exist;
@@ -1613,19 +1615,19 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('saves many objects that each a have collection of eagerly loaded objects', function () {
         const self = this;
-        return this.UserEager.create({ username: 'bart', age: 20 }).then(bart => {
-          return self.UserEager.create({ username: 'lisa', age: 20 }).then(lisa => {
-            return self.ProjectEager.create({ title: 'detention1', overdue_days: 0 }).then(detention1 => {
-              return self.ProjectEager.create({ title: 'detention2', overdue_days: 0 }).then(detention2 => {
-                return self.ProjectEager.create({ title: 'exam1', overdue_days: 0 }).then(exam1 => {
-                  return self.ProjectEager.create({ title: 'exam2', overdue_days: 0 }).then(exam2 => {
+        return this.UserEager.create({ username: 'bart', age: 20 }).then((bart) => {
+          return self.UserEager.create({ username: 'lisa', age: 20 }).then((lisa) => {
+            return self.ProjectEager.create({ title: 'detention1', overdue_days: 0 }).then((detention1) => {
+              return self.ProjectEager.create({ title: 'detention2', overdue_days: 0 }).then((detention2) => {
+                return self.ProjectEager.create({ title: 'exam1', overdue_days: 0 }).then((exam1) => {
+                  return self.ProjectEager.create({ title: 'exam2', overdue_days: 0 }).then((exam2) => {
                     return bart.setProjects([detention1, detention2]).then(() => {
                       return lisa.setProjects([exam1, exam2]).then(() => {
                         return self.UserEager.findAll({
                           where: { age: 20 },
                           order: [['username', 'ASC']],
                           include: [{ model: self.ProjectEager, as: 'Projects' }]
-                        }).then(simpsons => {
+                        }).then((simpsons) => {
                           expect(simpsons.length).to.equal(2);
 
                           const _bart = simpsons[0];
@@ -1638,13 +1640,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
                           _bart.age = _bart.age + 1; // happy birthday bart - off to Moe's
 
-                          return _bart.save().then(savedbart => {
+                          return _bart.save().then((savedbart) => {
                             expect(savedbart.username).to.equal('bart');
                             expect(savedbart.age).to.equal(21);
 
                             _lisa.username = 'lsimpson';
 
-                            return _lisa.save().then(savedlisa => {
+                            return _lisa.save().then((savedlisa) => {
                               expect(savedlisa.username).to.equal('lsimpson');
                               expect(savedlisa.age).to.equal(20);
                             });
@@ -1662,12 +1664,12 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('saves many objects that each has one eagerly loaded object (to which they belong)', function () {
         const self = this;
-        return this.UserEager.create({ username: 'poobah', age: 18 }).then(user => {
-          return self.ProjectEager.create({ title: 'homework', overdue_days: 10 }).then(homework => {
-            return self.ProjectEager.create({ title: 'party', overdue_days: 2 }).then(party => {
+        return this.UserEager.create({ username: 'poobah', age: 18 }).then((user) => {
+          return self.ProjectEager.create({ title: 'homework', overdue_days: 10 }).then((homework) => {
+            return self.ProjectEager.create({ title: 'party', overdue_days: 2 }).then((party) => {
               return user.setProjects([homework, party]).then(() => {
                 return self.ProjectEager.findAll({ include: [{ model: self.UserEager, as: 'Poobah' }] }).then(
-                  projects => {
+                  (projects) => {
                     expect(projects.length).to.equal(2);
                     expect(projects[0].Poobah).to.exist;
                     expect(projects[1].Poobah).to.exist;
@@ -1684,7 +1686,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                         return self.ProjectEager.findAll({
                           where: { title: 'partymore', overdue_days: 0 },
                           include: [{ model: self.UserEager, as: 'Poobah' }]
-                        }).then(savedprojects => {
+                        }).then((savedprojects) => {
                           expect(savedprojects.length).to.equal(2);
                           expect(savedprojects[0].Poobah).to.exist;
                           expect(savedprojects[1].Poobah).to.exist;
@@ -1723,14 +1725,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return self.ParanoidUser.findAll();
         })
-        .then(users => {
+        .then((users) => {
           expect(users).to.have.length(1);
           return users[0].destroy();
         })
         .then(() => {
           return self.ParanoidUser.findAll();
         })
-        .then(users => {
+        .then((users) => {
           expect(users).to.have.length(0);
         });
     });
@@ -1745,7 +1747,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             })
           });
         })
-        .then(users => {
+        .then((users) => {
           expect(users).to.have.length(1);
           return users[0].destroy();
         })
@@ -1756,7 +1758,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             })
           });
         })
-        .then(users => {
+        .then((users) => {
           expect(users).to.have.length(0);
         });
     });
@@ -1771,7 +1773,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             })
           });
         })
-        .then(users => {
+        .then((users) => {
           expect(users).to.have.length(1);
           return users[0].destroy();
         })
@@ -1782,7 +1784,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
             })
           });
         })
-        .then(users => {
+        .then((users) => {
           expect(users).to.have.length(0);
         });
     });
@@ -1792,7 +1794,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.create({ username: "user'name" }).then(() => {
         return self.User.findAll({
           where: { username: "user'name" }
-        }).then(users => {
+        }).then((users) => {
           expect(users.length).to.equal(1);
           expect(users[0].username).to.equal("user'name");
         });
@@ -1804,7 +1806,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       return this.User.create({ username: "user''name" }).then(() => {
         return self.User.findAll({
           where: { username: "user''name" }
-        }).then(users => {
+        }).then((users) => {
           expect(users.length).to.equal(1);
           expect(users[0].username).to.equal("user''name");
         });
@@ -1814,7 +1816,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('returns the timestamps if no attributes have been specified', function () {
       const self = this;
       return this.User.create({ username: 'fnord' }).then(() => {
-        return self.User.findAll().then(users => {
+        return self.User.findAll().then((users) => {
           expect(users[0].createdAt).to.exist;
         });
       });
@@ -1823,7 +1825,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('does not return the timestamps if the username attribute has been specified', function () {
       const self = this;
       return this.User.create({ username: 'fnord' }).then(() => {
-        return self.User.findAll({ attributes: ['username'] }).then(users => {
+        return self.User.findAll({ attributes: ['username'] }).then((users) => {
           expect(users[0].createdAt).not.to.exist;
           expect(users[0].username).to.exist;
         });
@@ -1833,7 +1835,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('creates the deletedAt property, when defining paranoid as true', function () {
       const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return self.ParanoidUser.findAll().then(users => {
+        return self.ParanoidUser.findAll().then((users) => {
           expect(users[0].deletedAt).to.be.null;
         });
       });
@@ -1850,7 +1852,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return UserDestroy.sync().then(() => {
         return UserDestroy.create({ newId: '123ABC', email: 'hello' }).then(() => {
-          return UserDestroy.findOne({ where: { email: 'hello' } }).then(user => {
+          return UserDestroy.findOne({ where: { email: 'hello' } }).then((user) => {
             return user.destroy();
           });
         });
@@ -1860,11 +1862,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('sets deletedAt property to a specific date when deleting an instance', function () {
       const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return self.ParanoidUser.findAll().then(users => {
+        return self.ParanoidUser.findAll().then((users) => {
           return users[0].destroy().then(() => {
             expect(users[0].deletedAt.getMonth).to.exist;
 
-            return users[0].reload({ paranoid: false }).then(user => {
+            return users[0].reload({ paranoid: false }).then((user) => {
               expect(user.deletedAt.getMonth).to.exist;
             });
           });
@@ -1875,8 +1877,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('keeps the deletedAt-attribute with value null, when running updateAttributes', function () {
       const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return self.ParanoidUser.findAll().then(users => {
-          return users[0].updateAttributes({ username: 'newFnord' }).then(user => {
+        return self.ParanoidUser.findAll().then((users) => {
+          return users[0].updateAttributes({ username: 'newFnord' }).then((user) => {
             expect(user.deletedAt).not.to.exist;
           });
         });
@@ -1886,9 +1888,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('keeps the deletedAt-attribute with value null, when updating associations', function () {
       const self = this;
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return self.ParanoidUser.findAll().then(users => {
-          return self.ParanoidUser.create({ username: 'linkedFnord' }).then(linkedUser => {
-            return users[0].setParanoidUser(linkedUser).then(user => {
+        return self.ParanoidUser.findAll().then((users) => {
+          return self.ParanoidUser.create({ username: 'linkedFnord' }).then((linkedUser) => {
+            return users[0].setParanoidUser(linkedUser).then((user) => {
               expect(user.deletedAt).not.to.exist;
             });
           });
@@ -1900,9 +1902,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const self = this;
       return this.User.create({ username: 'fnord' }).then(() => {
         const query = { where: { username: 'fnord' } };
-        return self.User.findAll(query).then(users => {
+        return self.User.findAll(query).then((users) => {
           expect(users[0].username).to.equal('fnord');
-          return self.User.findAll(query).then(users => {
+          return self.User.findAll(query).then((users) => {
             expect(users[0].username).to.equal('fnord');
           });
         });
@@ -1915,9 +1917,9 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const self = this;
       return this.User.create({ username: 'fnord' }).then(() => {
         const query = { where: { username: 'fnord' } };
-        return self.User.findOne(query).then(user => {
+        return self.User.findOne(query).then((user) => {
           expect(user.username).to.equal('fnord');
-          return self.User.findOne(query).then(user => {
+          return self.User.findOne(query).then((user) => {
             expect(user.username).to.equal('fnord');
           });
         });
@@ -1937,7 +1939,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return Setting.sync({ force: true }).then(() => {
         return Setting.create({ setting_key: 'test', bool_value: null, bool_value2: undefined }).then(() => {
-          return Setting.findOne({ where: { setting_key: 'test' } }).then(setting => {
+          return Setting.findOne({ where: { setting_key: 'test' } }).then((setting) => {
             expect(setting.bool_value).to.equal(null);
             expect(setting.bool_value2).to.equal(null);
             expect(setting.bool_value3).to.equal(null);
@@ -1950,8 +1952,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('equals', () => {
     it('can compare records with Date field', function () {
       const self = this;
-      return this.User.create({ username: 'fnord' }).then(user1 => {
-        return self.User.findOne({ where: { username: 'fnord' } }).then(user2 => {
+      return this.User.create({ username: 'fnord' }).then((user1) => {
+        return self.User.findOne({ where: { username: 'fnord' } }).then((user2) => {
           expect(user1.equals(user2)).to.be.true;
         });
       });
@@ -1983,14 +1985,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return this.UserAssociationEqual.sync({ force: true }).then(() => {
         return self.ProjectAssociationEqual.sync({ force: true }).then(() => {
-          return self.UserAssociationEqual.create({ username: 'jimhalpert' }).then(user1 => {
-            return self.ProjectAssociationEqual.create({ title: 'A Cool Project' }).then(project1 => {
+          return self.UserAssociationEqual.create({ username: 'jimhalpert' }).then((user1) => {
+            return self.ProjectAssociationEqual.create({ title: 'A Cool Project' }).then((project1) => {
               return user1.setProjects([project1]).then(() => {
                 return self.UserAssociationEqual.findOne({
                   where: { username: 'jimhalpert' },
                   include: [{ model: self.ProjectAssociationEqual, as: 'Projects' }]
-                }).then(user2 => {
-                  return self.UserAssociationEqual.create({ username: 'pambeesly' }).then(user3 => {
+                }).then((user2) => {
+                  return self.UserAssociationEqual.create({ username: 'pambeesly' }).then((user3) => {
                     expect(user1.get('Projects')).to.not.exist;
                     expect(user2.get('Projects')).to.exist;
                     expect(user1.equals(user2)).to.be.true;
@@ -2027,15 +2029,15 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('destroy', () => {
     if (current.dialect.supports.transactions) {
       it('supports transactions', function () {
-        return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
           const User = sequelize.define('User', { username: Support.Sequelize.STRING });
 
           return User.sync({ force: true }).then(() => {
-            return User.create({ username: 'foo' }).then(user => {
-              return sequelize.transaction().then(t => {
+            return User.create({ username: 'foo' }).then((user) => {
+              return sequelize.transaction().then((t) => {
                 return user.destroy({ transaction: t }).then(() => {
-                  return User.count().then(count1 => {
-                    return User.count({ transaction: t }).then(count2 => {
+                  return User.count().then((count1) => {
+                    return User.count({ transaction: t }).then((count2) => {
                       expect(count1).to.equal(1);
                       expect(count2).to.equal(0);
                       return t.rollback();
@@ -2060,7 +2062,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       );
 
       return UserDestroy.sync({ force: true }).then(() => {
-        return UserDestroy.create({ name: 'hallo', bio: 'welt' }).then(user => {
+        return UserDestroy.create({ name: 'hallo', bio: 'welt' }).then((user) => {
           return user.destroy().then(() => {
             return user.reload({ paranoid: false }).then(() => {
               const deletedAt = user.deletedAt;
@@ -2083,11 +2085,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       return UserDestroy.sync({ force: true }).then(() => {
-        return UserDestroy.create({ name: 'hallo', bio: 'welt' }).then(u => {
-          return UserDestroy.findAll().then(users => {
+        return UserDestroy.create({ name: 'hallo', bio: 'welt' }).then((u) => {
+          return UserDestroy.findAll().then((users) => {
             expect(users.length).to.equal(1);
             return u.destroy().then(() => {
-              return UserDestroy.findAll().then(users => {
+              return UserDestroy.findAll().then((users) => {
                 expect(users.length).to.equal(0);
               });
             });
@@ -2103,8 +2105,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       return UserDelete.sync({ force: true }).then(() => {
-        return UserDelete.create({ name: 'hallo', bio: 'welt' }).then(u => {
-          return UserDelete.findAll().then(users => {
+        return UserDelete.create({ name: 'hallo', bio: 'welt' }).then((u) => {
+          return UserDelete.findAll().then((users) => {
             expect(users.length).to.equal(1);
             return u.destroy({
               logging(sql) {
@@ -2132,8 +2134,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return MultiPrimary.sync({ force: true }).then(() => {
         return MultiPrimary.create({ bilibili: 'bl', guruguru: 'gu' }).then(() => {
-          return MultiPrimary.create({ bilibili: 'bl', guruguru: 'ru' }).then(m2 => {
-            return MultiPrimary.findAll().then(ms => {
+          return MultiPrimary.create({ bilibili: 'bl', guruguru: 'ru' }).then((m2) => {
+            return MultiPrimary.findAll().then((ms) => {
               expect(ms.length).to.equal(2);
               return m2
                 .destroy({
@@ -2145,7 +2147,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
                   }
                 })
                 .then(() => {
-                  return MultiPrimary.findAll().then(ms => {
+                  return MultiPrimary.findAll().then((ms) => {
                     expect(ms.length).to.equal(1);
                     expect(ms[0].bilibili).to.equal('bl');
                     expect(ms[0].guruguru).to.equal('gu');
@@ -2177,7 +2179,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         return this.sequelize.sync({ force: true }).then(() => {
           return Date.build({ date: Infinity })
             .save()
-            .then(date => {
+            .then((date) => {
               return date.destroy();
             });
         });
@@ -2200,7 +2202,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('returns false if user is not soft deleted', function () {
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
+        return this.ParanoidUser.findAll().then((users) => {
           expect(users[0].isSoftDeleted()).to.be.false;
         });
       });
@@ -2208,11 +2210,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('returns true if user is soft deleted', function () {
       return this.ParanoidUser.create({ username: 'fnord' }).then(() => {
-        return this.ParanoidUser.findAll().then(users => {
+        return this.ParanoidUser.findAll().then((users) => {
           return users[0].destroy().then(() => {
             expect(users[0].isSoftDeleted()).to.be.true;
 
-            return users[0].reload({ paranoid: false }).then(user => {
+            return users[0].reload({ paranoid: false }).then((user) => {
               expect(user.isSoftDeleted()).to.be.true;
             });
           });
@@ -2237,13 +2239,13 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       return this.ParanoidUserWithCustomDeletedAt.sync({ force: true }).then(() => {
         return this.ParanoidUserWithCustomDeletedAt.create({ username: 'fnord' }).then(() => {
-          return self.ParanoidUserWithCustomDeletedAt.findAll().then(users => {
+          return self.ParanoidUserWithCustomDeletedAt.findAll().then((users) => {
             expect(users[0].isSoftDeleted()).to.be.false;
 
             return users[0].destroy().then(() => {
               expect(users[0].isSoftDeleted()).to.be.true;
 
-              return users[0].reload({ paranoid: false }).then(user => {
+              return users[0].reload({ paranoid: false }).then((user) => {
                 expect(user.isSoftDeleted()).to.be.true;
               });
             });
@@ -2255,7 +2257,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
   describe('restore', () => {
     it('returns an error if the model is not paranoid', function () {
-      return this.User.create({ username: 'Peter', secretValue: '42' }).then(user => {
+      return this.User.create({ username: 'Peter', secretValue: '42' }).then((user) => {
         expect(() => {
           user.restore();
         }).to.throw(Error, 'Model is not paranoid');
@@ -2289,7 +2291,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return ParanoidUser.findOne({ where: { secretValue: '42' } });
         })
-        .then(user => {
+        .then((user) => {
           return user.destroy().then(() => {
             return user.restore();
           });
@@ -2297,7 +2299,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         .then(() => {
           return ParanoidUser.findOne({ where: { secretValue: '42' } });
         })
-        .then(user => {
+        .then((user) => {
           expect(user).to.be.ok;
           expect(user.username).to.equal('Peter');
         });

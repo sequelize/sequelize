@@ -57,14 +57,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               ]
             }
-          ).then(savedProduct => {
+          ).then((savedProduct) => {
             expect(savedProduct.isIncludeCreatedOnAfterCreate).to.be.true;
             expect(savedProduct.User.createOptions.myOption).to.be.equal('option');
             expect(savedProduct.User.createOptions.parentRecord).to.be.equal(savedProduct);
             return Product.findOne({
               where: { id: savedProduct.id },
               include: [User]
-            }).then(persistedProduct => {
+            }).then((persistedProduct) => {
               expect(persistedProduct.User).to.be.ok;
               expect(persistedProduct.User.first_name).to.be.equal('Mick');
               expect(persistedProduct.User.last_name).to.be.equal('Broadstone');
@@ -96,11 +96,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               include: [Creator]
             }
-          ).then(savedProduct => {
+          ).then((savedProduct) => {
             return Product.findOne({
               where: { id: savedProduct.id },
               include: [Creator]
-            }).then(persistedProduct => {
+            }).then((persistedProduct) => {
               expect(persistedProduct.creator).to.be.ok;
               expect(persistedProduct.creator.first_name).to.be.equal('Matt');
               expect(persistedProduct.creator.last_name).to.be.equal('Hansen');
@@ -120,7 +120,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               afterCreate(product) {
                 product.areIncludesCreatedOnAfterCreate =
                   product.Tags &&
-                  product.Tags.every(tag => {
+                  product.Tags.every((tag) => {
                     return !!tag.id;
                   });
               }
@@ -161,7 +161,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               ]
             }
-          ).then(savedProduct => {
+          ).then((savedProduct) => {
             expect(savedProduct.areIncludesCreatedOnAfterCreate).to.be.true;
             expect(savedProduct.Tags[0].createOptions.myOption).to.be.equal('option');
             expect(savedProduct.Tags[0].createOptions.parentRecord).to.be.equal(savedProduct);
@@ -170,7 +170,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return Product.find({
               where: { id: savedProduct.id },
               include: [Tag]
-            }).then(persistedProduct => {
+            }).then((persistedProduct) => {
               expect(persistedProduct.Tags).to.be.ok;
               expect(persistedProduct.Tags.length).to.equal(2);
             });
@@ -201,11 +201,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               include: [Categories]
             }
-          ).then(savedProduct => {
+          ).then((savedProduct) => {
             return Product.find({
               where: { id: savedProduct.id },
               include: [Categories]
-            }).then(persistedProduct => {
+            }).then((persistedProduct) => {
               expect(persistedProduct.categories).to.be.ok;
               expect(persistedProduct.categories.length).to.equal(2);
             });
@@ -235,11 +235,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               include: [Task]
             }
-          ).then(savedUser => {
+          ).then((savedUser) => {
             return User.find({
               where: { id: savedUser.id },
               include: [Task]
-            }).then(persistedUser => {
+            }).then((persistedUser) => {
               expect(persistedUser.Task).to.be.ok;
             });
           });
@@ -268,11 +268,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               include: [Job]
             }
-          ).then(savedUser => {
+          ).then((savedUser) => {
             return User.find({
               where: { id: savedUser.id },
               include: [Job]
-            }).then(persistedUser => {
+            }).then((persistedUser) => {
               expect(persistedUser.job).to.be.ok;
             });
           });
@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               afterCreate(user) {
                 user.areIncludesCreatedOnAfterCreate =
                   user.Tasks &&
-                  user.Tasks.every(task => {
+                  user.Tasks.every((task) => {
                     return !!task.id;
                   });
               }
@@ -333,7 +333,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               ]
             }
-          ).then(savedUser => {
+          ).then((savedUser) => {
             expect(savedUser.areIncludesCreatedOnAfterCreate).to.be.true;
             expect(savedUser.Tasks[0].createOptions.myOption).to.be.equal('option');
             expect(savedUser.Tasks[0].createOptions.parentRecord).to.be.equal(savedUser);
@@ -342,7 +342,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return User.find({
               where: { id: savedUser.id },
               include: [Task]
-            }).then(persistedUser => {
+            }).then((persistedUser) => {
               expect(persistedUser.Tasks).to.be.ok;
               expect(persistedUser.Tasks.length).to.equal(2);
             });
@@ -449,21 +449,21 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             );
           })
-          .then(savedPost => {
+          .then((savedPost) => {
             // The saved post should include the two tags
             expect(savedPost.tags.length).to.equal(2);
             // The saved post should be able to retrieve the two tags
             // using the convenience accessor methods
             return savedPost.getTags();
           })
-          .then(savedTags => {
+          .then((savedTags) => {
             // All nested tags should be returned
             expect(savedTags.length).to.equal(2);
           })
           .then(() => {
             return ItemTag.findAll();
           })
-          .then(itemTags => {
+          .then((itemTags) => {
             // Two "through" models should be created
             expect(itemTags.length).to.equal(2);
             // And their polymorphic field should be correctly set to 'post'
@@ -497,11 +497,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             {
               include: [Jobs]
             }
-          ).then(savedUser => {
+          ).then((savedUser) => {
             return User.find({
               where: { id: savedUser.id },
               include: [Jobs]
-            }).then(persistedUser => {
+            }).then((persistedUser) => {
               expect(persistedUser.jobs).to.be.ok;
               expect(persistedUser.jobs.length).to.equal(2);
             });

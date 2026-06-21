@@ -20,11 +20,11 @@ chai.config.includeStack = true;
 chai.should();
 
 // Make sure errors get thrown when testing
-process.on('uncaughtException', e => {
+process.on('uncaughtException', (e) => {
   console.error('An unhandled exception occured:');
   throw e;
 });
-process.on('unhandledRejection', e => {
+process.on('unhandledRejection', (e) => {
   console.error('An unhandled rejection occured:');
   throw e;
 });
@@ -136,7 +136,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(__dirname + '/../lib/dialects').filter(file => {
+    return fs.readdirSync(__dirname + '/../lib/dialects').filter((file) => {
       return file.indexOf('.js') === -1 && file.indexOf('abstract') === -1;
     });
   },

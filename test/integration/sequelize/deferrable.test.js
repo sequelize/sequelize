@@ -47,9 +47,9 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             return Task.sync({ force: true });
           })
           .then(() => {
-            return this.sequelize.transaction(transactionOptions, t => {
+            return this.sequelize.transaction(transactionOptions, (t) => {
               return Task.create({ title: 'a task', user_id: -1 }, { transaction: t })
-                .then(task => {
+                .then((task) => {
                   return Promise.all([task, User.create({}, { transaction: t })]);
                 })
                 .then(([task, user]) => {
@@ -71,7 +71,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('INITIALLY_IMMEDIATE', () => {
       it('allows the violation of the foreign key constraint if the transaction is deferred', function () {
-        return this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE).then(task => {
+        return this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE).then((task) => {
           expect(task.title).to.equal('a task');
           expect(task.user_id).to.equal(1);
         });
@@ -91,7 +91,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         return this.run(Sequelize.Deferrable.INITIALLY_IMMEDIATE, {
           deferrable: Sequelize.Deferrable.SET_DEFERRED([taskTableName + '_user_id_fkey']),
           taskTableName
-        }).then(task => {
+        }).then((task) => {
           expect(task.title).to.equal('a task');
           expect(task.user_id).to.equal(1);
         });
@@ -100,7 +100,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
     describe('INITIALLY_DEFERRED', () => {
       it('allows the violation of the foreign key constraint', function () {
-        return this.run(Sequelize.Deferrable.INITIALLY_DEFERRED).then(task => {
+        return this.run(Sequelize.Deferrable.INITIALLY_DEFERRED).then((task) => {
           expect(task.title).to.equal('a task');
           expect(task.user_id).to.equal(1);
         });

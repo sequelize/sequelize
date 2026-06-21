@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return Pub.create({ location: point });
           })
-          .then(pub => {
+          .then((pub) => {
             expect(pub).not.to.be.null;
             expect(pub.location).to.be.deep.eql(point);
           });
@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const point = { type: 'Point', coordinates: [39.807222, -76.984722] };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
+        return User.create({ username: 'username', geography: point }).then((newUser) => {
           expect(newUser).not.to.be.null;
           expect(newUser.geography).to.be.deep.eql(point);
         });
@@ -58,7 +58,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return User.findOne({ where: { username: props.username } });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.geography).to.be.deep.eql(point2);
           });
       });
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const User = this.User;
         const point = { type: 'Point', coordinates: [39.807222, -76.984722] };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
+        return User.create({ username: 'username', geography: point }).then((newUser) => {
           expect(newUser).not.to.be.null;
           expect(newUser.geography).to.be.deep.eql(point);
         });
@@ -97,7 +97,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return User.findOne({ where: { username: props.username } });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.geography).to.be.deep.eql(point2);
           });
       });
@@ -123,7 +123,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
+        return User.create({ username: 'username', geography: point }).then((newUser) => {
           expect(newUser).not.to.be.null;
           expect(newUser.geography).to.be.deep.eql(point);
         });
@@ -154,7 +154,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return User.findOne({ where: { username: props.username } });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.geography).to.be.deep.eql(point2);
           });
       });
@@ -185,7 +185,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]
         };
 
-        return User.create({ username: 'username', geography: point }).then(newUser => {
+        return User.create({ username: 'username', geography: point }).then((newUser) => {
           expect(newUser).not.to.be.null;
           expect(newUser.geography).to.be.deep.eql(point);
         });
@@ -226,7 +226,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return User.findOne({ where: { username: props.username } });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.geography).to.be.deep.eql(polygon2);
           });
       });
@@ -258,7 +258,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             ]
           };
 
-          return User.create({ username: 'username', geography: point }).then(newUser => {
+          return User.create({ username: 'username', geography: point }).then((newUser) => {
             expect(newUser).not.to.be.null;
             expect(newUser.geography).to.be.deep.eql(point);
           });
@@ -299,7 +299,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => {
               return User.findOne({ where: { username: props.username } });
             })
-            .then(user => {
+            .then((user) => {
               expect(user.geography).to.be.deep.eql(polygon2);
             });
         });

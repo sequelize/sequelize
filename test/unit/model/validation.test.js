@@ -202,7 +202,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
             const failingUser = UserFail.build({ name: failingValue });
 
-            return expect(failingUser.validate()).to.be.rejected.then(_errors => {
+            return expect(failingUser.validate()).to.be.rejected.then((_errors) => {
               expect(_errors.get('name')[0].message).to.equal(message);
               expect(_errors.get('name')[0].value).to.equal(failingValue);
             });
@@ -290,7 +290,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     before(function () {
       this.stub = sinon.stub(current, 'query').callsFake(() => {
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           resolve([User.build({}), 1]);
         });
       });

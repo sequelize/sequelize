@@ -22,7 +22,7 @@ if (dialect.match(/^mssql/)) {
       const User = this.User;
 
       return expect(
-        this.sequelize.transaction(t => {
+        this.sequelize.transaction((t) => {
           return Promise.all([
             User.findOne({
               transaction: t

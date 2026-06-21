@@ -56,7 +56,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         return User.create({
           username: 'triggertest'
         })
-          .then(user => {
+          .then((user) => {
             user.username = 'usernamechanged';
             return user.save();
           })
@@ -71,7 +71,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         return User.create({
           username: 'triggertest'
         })
-          .then(user => {
+          .then((user) => {
             return User.update(
               {
                 username: 'usernamechanged'
@@ -94,7 +94,7 @@ if (current.dialect.supports.tmpTableTrigger) {
         return User.create({
           username: 'triggertest'
         })
-          .then(user => {
+          .then((user) => {
             return user.destroy();
           })
           .then(() => {

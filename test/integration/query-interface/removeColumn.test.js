@@ -52,7 +52,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(() => {
             return this.queryInterface.describeTable('users');
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('firstName');
           });
       });
@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(() => {
             return this.queryInterface.describeTable('users');
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('lastName');
           });
       });
@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(() => {
             return this.queryInterface.describeTable('users');
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('manager');
           });
       });
@@ -85,14 +85,14 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(() => {
             return this.queryInterface.describeTable('users');
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('manager');
             return this.queryInterface.removeColumn('users', 'id');
           })
           .then(() => {
             return this.queryInterface.describeTable('users');
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('id');
           });
       });
@@ -108,7 +108,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
             .then(() => {
               return this.queryInterface.describeTable('users');
             })
-            .then(table => {
+            .then((table) => {
               expect(table).to.not.have.property('email');
             });
         });
@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               schema: 'archive'
             });
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('firstName');
           });
       });
@@ -180,7 +180,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               schema: 'archive'
             });
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('lastName');
           });
       });
@@ -200,7 +200,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
               schema: 'archive'
             });
           })
-          .then(table => {
+          .then((table) => {
             expect(table).to.not.have.property('id');
           });
       });
@@ -225,7 +225,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
                 schema: 'archive'
               });
             })
-            .then(table => {
+            .then((table) => {
               expect(table).to.not.have.property('email');
             });
         });

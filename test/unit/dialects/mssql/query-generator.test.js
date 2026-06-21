@@ -367,7 +367,7 @@ if (current.dialect.name === 'mssql') {
           arguments: ['-', 'myTable', { foo: 'bar' }, { bar: 'biz' }, {}],
           expectation: "UPDATE myTable SET foo=foo- 'bar' WHERE bar = 'biz'"
         }
-      ].forEach(test => {
+      ].forEach((test) => {
         it(test.title, () => {
           expectsql(QueryGenerator.arithmeticQuery.call(QueryGenerator, test.arguments), {
             mssql: test.expectation

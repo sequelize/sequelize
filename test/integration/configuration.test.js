@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
         return fsp
           .unlink(p)
-          .catch(err => {
+          .catch((err) => {
             expect(err.code).to.equal('ENOENT');
           })
           .then(() => {

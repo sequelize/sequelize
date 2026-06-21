@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         .then(([, user2]) => {
           return this.Project.create({
             name: 'Investigate'
-          }).then(project => user2.setProjects([project]));
+          }).then((project) => user2.setProjects([project]));
         })
         .then(() => {
           return this.User.findOrBuild({

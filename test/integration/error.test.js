@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         'Validation error': 'FUNCTION'
       };
 
-      Object.keys(data).forEach(k => {
+      Object.keys(data).forEach((k) => {
         const error = new Sequelize.ValidationErrorItem('error!', k, 'foo', null);
 
         expect(error).to.have.property('origin', data[k]);
@@ -280,7 +280,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         type: 'ValidationError',
         exception: Sequelize.ValidationError
       }
-    ].forEach(constraintTest => {
+    ].forEach((constraintTest) => {
       it('Can be intercepted as ' + constraintTest.type + ' using .catch', function () {
         const spy = sinon.spy(),
           User = this.sequelize.define('user', {
@@ -301,7 +301,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
             return User.create(record);
           })
           .then(() => {
-            return User.create(record).catch(err => {
+            return User.create(record).catch((err) => {
               if (err instanceof constraintTest.exception) {
                 return spy(err);
               }
@@ -330,7 +330,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         })
         .then(() => {
           // If the error was successfully parsed, we can catch it!
-          return User.create({ name: 'jan' }).catch(err => {
+          return User.create({ name: 'jan' }).catch((err) => {
             if (err instanceof this.sequelize.UniqueConstraintError) {
               return spy(err);
             }
@@ -400,7 +400,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         .then(() => {
           return expect(User.create({ name: 'jan' })).to.be.rejected;
         })
-        .then(error => {
+        .then((error) => {
           expect(error).to.be.instanceOf(this.sequelize.UniqueConstraintError);
           expect(error).to.have.property('parent');
           expect(error).to.have.property('original');

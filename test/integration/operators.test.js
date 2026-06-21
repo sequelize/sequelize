@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
                 }
               });
             })
-            .then(user => {
+            .then((user) => {
               expect(user).to.be.ok;
             });
         });
@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
                 }
               });
             })
-            .then(user => {
+            .then((user) => {
               expect(user).to.not.be.ok;
             });
         });
@@ -116,7 +116,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
             .then(() => {
               return this.User.findAll();
             })
-            .then(users => {
+            .then((users) => {
               expect(users).length(2);
             });
         });
@@ -140,7 +140,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
                 }
               });
             })
-            .then(user => {
+            .then((user) => {
               expect(user).to.be.ok;
             });
         });
@@ -160,7 +160,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
                 }
               });
             })
-            .then(user => {
+            .then((user) => {
               expect(user).to.not.be.ok;
             });
         });
@@ -195,7 +195,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
             .then(() => {
               return this.User.findAll();
             })
-            .then(users => {
+            .then((users) => {
               expect(users).length(2);
             });
         });

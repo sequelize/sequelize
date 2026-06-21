@@ -60,7 +60,7 @@ if (dialect === 'mssql') {
         }
       });
 
-      return this.instance.dialect.connectionManager._connect(this.config).catch(err => {
+      return this.instance.dialect.connectionManager._connect(this.config).catch((err) => {
         expect(err.name).to.equal('SequelizeConnectionError');
         expect(err.parent).to.equal('Connection was closed by remote server');
       });

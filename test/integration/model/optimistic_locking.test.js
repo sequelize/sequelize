@@ -25,28 +25,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should increment the version on save', () => {
       return Account.create({ number: 1 })
-        .then(account => {
+        .then((account) => {
           account.number += 1;
           expect(account.version).to.eq(0);
           return account.save();
         })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(1);
         });
     });
 
     it('should increment the version on update', () => {
       return Account.create({ number: 1 })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(0);
           return account.update({ number: 2 });
         })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(1);
           account.number += 1;
           return account.save();
         })
-        .then(account => {
+        .then((account) => {
           expect(account.number).to.eq(3);
           expect(account.version).to.eq(2);
         });
@@ -55,15 +55,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     it('prevents stale instances from being saved', () => {
       return expect(
         Account.create({ number: 1 })
-          .then(accountA => {
-            return Account.findById(accountA.id).then(accountB => {
+          .then((accountA) => {
+            return Account.findById(accountA.id).then((accountB) => {
               accountA.number += 1;
               return accountA.save().then(() => {
                 return accountB;
               });
             });
           })
-          .then(accountB => {
+          .then((accountB) => {
             accountB.number += 1;
             return accountB.save();
           })
@@ -72,28 +72,28 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('increment() also increments the version', () => {
       return Account.create({ number: 1 })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(0);
           return account.increment('number', { by: 1 });
         })
-        .then(account => {
+        .then((account) => {
           return account.reload();
         })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(1);
         });
     });
 
     it('decrement() also increments the version', () => {
       return Account.create({ number: 1 })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(0);
           return account.decrement('number', { by: 1 });
         })
-        .then(account => {
+        .then((account) => {
           return account.reload();
         })
-        .then(account => {
+        .then((account) => {
           expect(account.version).to.eq(1);
         });
     });

@@ -27,7 +27,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       if (current.dialect.supports.lock) {
         it('findOrCreate supports transactions, json and locks', function () {
-          return current.transaction().then(transaction => {
+          return current.transaction().then((transaction) => {
             return this.Event.findOrCreate({
               where: {
                 json: { some: { input: 'Hello' } }
@@ -38,16 +38,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               },
               transaction,
               lock: transaction.LOCK.UPDATE,
-              logging: sql => {
+              logging: (sql) => {
                 if (sql.indexOf('SELECT') !== -1 && sql.indexOf('CREATE') === -1) {
                   expect(sql.indexOf('FOR UPDATE')).not.to.be.equal(-1);
                 }
               }
             }).then(() => {
-              return this.Event.count().then(count => {
+              return this.Event.count().then((count) => {
                 expect(count).to.equal(0);
                 return transaction.commit().then(() => {
-                  return this.Event.count().then(count => {
+                  return this.Event.count().then((count) => {
                     expect(count).to.equal(1);
                   });
                 });
@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               employment: 'Nuclear Safety Inspector'
             }
           }).then(() => {
-            return this.Event.findAll().then(events => {
+            return this.Event.findAll().then((events) => {
               const event = events[0];
 
               expect(event.get('data')).to.eql({
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               )
             )
             .then(() => this.Event.findById(2))
-            .then(event => {
+            .then((event) => {
               expect(event.get('data')).to.eql({
                 name: {
                   first: 'Rick',
@@ -183,7 +183,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               )
             )
             .then(() => this.Event.findById(2))
-            .then(event => {
+            .then((event) => {
               expect(event.get('data')).to.eql({
                 name: {
                   first: 'Rick',
@@ -204,7 +204,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               employment: 'Nuclear Safety Inspector'
             }
           })
-            .then(event => {
+            .then((event) => {
               return event.update({
                 data: {
                   name: {
@@ -216,7 +216,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               });
             })
             .then(() => {
-              return this.Event.findAll().then(events => {
+              return this.Event.findAll().then((events) => {
                 const event = events[0];
 
                 expect(event.get('data')).to.eql({
@@ -259,7 +259,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   employment: 'Housewife'
                 }
               }
-            }).then(events => {
+            }).then((events) => {
               const event = events[0];
 
               expect(events.length).to.equal(1);
@@ -293,7 +293,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     lastLogin: now
                   }
                 }
-              }).then(events => {
+              }).then((events) => {
                 const event = events[0];
 
                 expect(events.length).to.equal(1);
@@ -310,7 +310,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     lastLogin: { $between: [before, after] }
                   }
                 }
-              }).then(events => {
+              }).then((events) => {
                 const event = events[0];
 
                 expect(events.length).to.equal(1);
@@ -338,7 +338,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     active: true
                   }
                 }
-              }).then(events => {
+              }).then((events) => {
                 const event = events[0];
 
                 expect(events.length).to.equal(1);
@@ -355,7 +355,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     active: { $in: [true, false] }
                   }
                 }
-              }).then(events => {
+              }).then((events) => {
                 const event = events[0];
 
                 expect(events.length).to.equal(1);
@@ -396,7 +396,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 }
               }
-            }).then(events => {
+            }).then((events) => {
               const event = events[0];
 
               expect(events.length).to.equal(1);
@@ -438,7 +438,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   employment: null
                 }
               }
-            }).then(events => {
+            }).then((events) => {
               expect(events.length).to.equal(1);
               expect(events[0].get('data')).to.eql({
                 name: {
@@ -487,7 +487,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 }
               }
-            }).then(events => {
+            }).then((events) => {
               expect(events.length).to.equal(1);
               expect(events[0].get('data')).to.eql({
                 name: {
@@ -550,7 +550,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 },
                 order: [['id', 'ASC']]
-              }).then(events => {
+              }).then((events) => {
                 expect(events.length).to.equal(2);
 
                 expect(events[0].get('data')).to.eql({
@@ -614,7 +614,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   }
                 },
                 order: [['data.name.first']]
-              }).then(events => {
+              }).then((events) => {
                 expect(events.length).to.equal(3);
 
                 expect(events[0].get('data')).to.eql({
@@ -753,7 +753,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 }
               });
             })
-            .then(result => {
+            .then((result) => {
               expect(result.get('data')).to.deep.equal({
                 type: 'Point',
                 properties: {
@@ -806,7 +806,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                     }
                   },
                   order: [["data.name.first}'); INSERT INJECTION HERE! SELECT ('"]]
-                }).then(events => {
+                }).then((events) => {
                   expect(events).to.be.ok;
                   expect(events[0].get('data')).to.eql({
                     name: {

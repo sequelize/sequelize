@@ -84,7 +84,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           .then(() => {
             return john.getChilds();
           })
-          .then(children => {
+          .then((children) => {
             expect(_.map(children, 'id')).to.have.members([mary.id, chris.id]);
           });
       });
@@ -175,7 +175,7 @@ describe(Support.getTestDialectTeaser('Self'), () => {
           }
         });
       })
-      .then(children => {
+      .then((children) => {
         expect(count).to.be.equal(3);
         expect(_.map(children, 'id')).to.have.members([this.mary.id]);
       });

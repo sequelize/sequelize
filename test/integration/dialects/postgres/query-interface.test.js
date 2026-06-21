@@ -34,7 +34,7 @@ if (dialect.match(/^postgres/)) {
               { type: this.sequelize.QueryTypes.SELECT }
             )
           )
-          .then(res => {
+          .then((res) => {
             expect(res, 'query results').to.not.be.empty;
             expect(res[0].schema_name).to.be.equal('testschema');
           });
@@ -54,7 +54,7 @@ if (dialect.match(/^postgres/)) {
               { type: this.sequelize.QueryTypes.SELECT }
             )
           )
-          .then(res => {
+          .then((res) => {
             expect(res, 'query results').to.not.be.empty;
             expect(res[0].schema_name).to.be.equal('testschema');
           });
@@ -63,7 +63,7 @@ if (dialect.match(/^postgres/)) {
 
     describe('databaseVersion', () => {
       it('reports version', function () {
-        return this.queryInterface.databaseVersion().then(res => {
+        return this.queryInterface.databaseVersion().then((res) => {
           // check that result matches expected version number format. example 9.5.4
           expect(res).to.match(/[0-9\.[0-9]\.[0-9]/);
         });
@@ -88,7 +88,7 @@ if (dialect.match(/^postgres/)) {
         return this.queryInterface
           .renameFunction('rftest1', [], 'rftest2')
           .then(() => this.sequelize.query('select rftest2();', { type: this.sequelize.QueryTypes.SELECT }))
-          .then(res => {
+          .then((res) => {
             expect(res[0].rftest2).to.be.eql('testreturn');
           });
       });
@@ -127,7 +127,7 @@ if (dialect.match(/^postgres/)) {
             .createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, options)
             // validate
             .then(() => this.sequelize.query("select create_job('test');", { type: this.sequelize.QueryTypes.SELECT }))
-            .then(res => {
+            .then((res) => {
               expect(res[0].create_job).to.be.eql('test');
             })
         );
@@ -142,7 +142,7 @@ if (dialect.match(/^postgres/)) {
             .createFunction('create_job', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, null)
             // validate
             .then(() => this.sequelize.query("select create_job('test');", { type: this.sequelize.QueryTypes.SELECT }))
-            .then(res => {
+            .then((res) => {
               expect(res[0].create_job).to.be.eql('test');
             })
         );
@@ -293,8 +293,8 @@ if (dialect.match(/^postgres/)) {
             { name: 'group_username_case' }
           )
           .then(() => this.queryInterface.showIndex('Group'))
-          .then(indexes => {
-            const indexColumns = _.uniq(indexes.map(index => index.name));
+          .then((indexes) => {
+            const indexColumns = _.uniq(indexes.map((index) => index.name));
 
             expect(indexColumns).to.include('group_username_case');
           });
@@ -306,15 +306,15 @@ if (dialect.match(/^postgres/)) {
             name: 'group_username_lower'
           })
           .then(() => this.queryInterface.showIndex('Group'))
-          .then(indexes => {
-            const indexColumns = _.uniq(indexes.map(index => index.name));
+          .then((indexes) => {
+            const indexColumns = _.uniq(indexes.map((index) => index.name));
 
             expect(indexColumns).to.include('group_username_lower');
           })
           .then(() => this.queryInterface.removeIndex('Group', 'group_username_lower'))
           .then(() => this.queryInterface.showIndex('Group'))
-          .then(indexes => {
-            const indexColumns = _.uniq(indexes.map(index => index.name));
+          .then((indexes) => {
+            const indexColumns = _.uniq(indexes.map((index) => index.name));
             expect(indexColumns).to.be.empty;
           });
       });

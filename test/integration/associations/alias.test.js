@@ -19,12 +19,12 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
       .then(() => {
         return User.create({ id: 1 });
       })
-      .then(user => {
+      .then((user) => {
         expect(user.getAssignments).to.be.ok;
 
         return Task.create({ id: 1, userId: 1 });
       })
-      .then(task => {
+      .then((task) => {
         expect(task.getOwner).to.be.ok;
 
         return Promise.all([
@@ -50,12 +50,12 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
       .then(() => {
         return User.create({ id: 1 });
       })
-      .then(user => {
+      .then((user) => {
         expect(user.getASSIGNMENTS).to.be.ok;
 
         return Task.create({ id: 1, userId: 1 });
       })
-      .then(task => {
+      .then((task) => {
         expect(task.getOWNER).to.be.ok;
 
         return Promise.all([
@@ -80,7 +80,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
       .then(() => {
         return User.create({ id: 1 });
       })
-      .then(user => {
+      .then((user) => {
         expect(user.getTaskz).to.be.ok;
         expect(user.addTask).to.be.ok;
         expect(user.addTaskz).to.be.ok;
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
       .then(() => {
         return User.find({ where: { id: 1 }, include: [{ model: Task, as: 'taskz' }] });
       })
-      .then(user => {
+      .then((user) => {
         expect(user.taskz).to.be.ok;
       });
   });
@@ -113,7 +113,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
       .then(() => {
         return User.create({ id: 1 });
       })
-      .then(user => {
+      .then((user) => {
         expect(user.getAssignments).to.be.ok;
         expect(user.addAssignment).to.be.ok;
         expect(user.addAssignments).to.be.ok;
@@ -121,7 +121,7 @@ describe(Support.getTestDialectTeaser('Alias'), () => {
       .then(() => {
         return User.find({ where: { id: 1 }, include: [Task] });
       })
-      .then(user => {
+      .then((user) => {
         expect(user.assignments).to.be.ok;
       });
   });

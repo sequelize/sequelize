@@ -68,7 +68,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             })
             .then(() => {
               expect(self.callCount).to.equal(1);
-              return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then(score => {
+              return self.Score.find({ where: { StudentId: 1, CourseId: 100 } }).then((score) => {
                 expect(score.test_value).to.equal(1001);
               });
             })
@@ -109,7 +109,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             })
           )
-          .then(person => {
+          .then((person) => {
             expect(person.dataValues['toString']).to.equal('Jozef');
             expect(person.get('toString')).to.equal('Jozef');
           });
@@ -130,7 +130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.sequelize
           .sync({ force: true })
           .then(() => Person.create({ name: 'Jozef', nick: 'Joe' }))
-          .then(person => person.createComputer({ hostname: 'laptop' }))
+          .then((person) => person.createComputer({ hostname: 'laptop' }))
           .then(() =>
             Person.findAll({
               attributes: ['nick', ['name', 'toString']],
@@ -142,7 +142,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               }
             })
           )
-          .then(result => {
+          .then((result) => {
             expect(result.length).to.equal(1);
             expect(result[0].dataValues['toString']).to.equal('Jozef');
             expect(result[0].get('toString')).to.equal('Jozef');

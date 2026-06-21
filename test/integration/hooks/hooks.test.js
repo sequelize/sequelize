@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         attributes.type = DataTypes.STRING;
       });
 
-      this.sequelize.addHook('afterDefine', factory => {
+      this.sequelize.addHook('afterDefine', (factory) => {
         factory.options.name.singular = 'barr';
       });
 
@@ -82,7 +82,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         options.host = 'server9';
       });
 
-      Sequelize.addHook('afterInit', sequelize => {
+      Sequelize.addHook('afterInit', (sequelize) => {
         sequelize.options.protocol = 'udp';
       });
 
@@ -201,7 +201,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         );
 
         return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(user => {
+          return User.create({ username: 'bob' }).then((user) => {
             return user.destroy().then(() => {
               expect(beforeHooked).to.be.true;
               expect(afterHooked).to.be.true;
@@ -237,7 +237,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         );
 
         return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(user => {
+          return User.create({ username: 'bob' }).then((user) => {
             return user.destroy().then(() => {
               expect(beforeHooked).to.be.true;
               expect(afterHooked).to.be.true;
@@ -273,7 +273,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         );
 
         return User.sync({ force: true }).then(() => {
-          return User.create({ username: 'bob' }).then(user => {
+          return User.create({ username: 'bob' }).then((user) => {
             user.username = 'bawb';
             return user.save({ fields: ['username'] }).then(() => {
               expect(beforeHooked).to.be.true;
@@ -481,7 +481,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       this.User.hook('beforeSave', narutoHook);
 
       return this.User.create({ username: 'makunouchi' })
-        .then(user => {
+        .then((user) => {
           expect(sasukeHook).to.have.been.calledOnce;
           expect(narutoHook).to.have.been.calledOnce;
           this.User.removeHook('beforeSave', sasukeHook);

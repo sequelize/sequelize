@@ -53,7 +53,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(2);
             expect(users[0].get('username')).to.equal('tony');
             expect(users[1].get('username')).to.equal('fred');
@@ -65,7 +65,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(2);
             expect(users[0].get('username')).to.equal('tobi');
             expect(users[1].get('username')).to.equal('dan');
@@ -86,7 +86,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(1);
             expect(users[0].get('username')).to.equal('tobi');
           });
@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(3);
             expect(users[0].get('username')).to.equal('tony');
             expect(users[1].get('username')).to.equal('tobi');
@@ -112,7 +112,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return this.ScopeMe.unscoped().findAll();
           })
-          .then(users => {
+          .then((users) => {
             expect(users).to.have.length(1);
             expect(users[0].get('username')).to.equal('tobi');
           });

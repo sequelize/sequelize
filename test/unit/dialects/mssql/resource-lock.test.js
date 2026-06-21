@@ -30,19 +30,19 @@ if (dialect === 'mssql') {
       }
 
       return Promise.all([
-        using(lock, resource => {
+        using(lock, (resource) => {
           validateResource(resource);
           assert.equal(last, 0);
           last = 1;
 
           return delay(15);
         }),
-        using(lock, resource => {
+        using(lock, (resource) => {
           validateResource(resource);
           assert.equal(last, 1);
           last = 2;
         }),
-        using(lock, resource => {
+        using(lock, (resource) => {
           validateResource(resource);
           assert.equal(last, 2);
           last = 3;
@@ -61,7 +61,7 @@ if (dialect === 'mssql') {
       }
 
       return Promise.all([
-        using(lock, resource => {
+        using(lock, (resource) => {
           validateResource(resource);
 
           throw new Error('unexpected error');

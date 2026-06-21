@@ -5,6 +5,5 @@
   "semi": true,
   "printWidth": 120,
   "trailingComma": "none",
-  "arrowParens": "avoid",
   "ignorePatterns": ["node_modules"]
 }

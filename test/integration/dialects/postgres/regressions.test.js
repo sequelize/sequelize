@@ -28,19 +28,19 @@ if (dialect.match(/^postgres/)) {
       return this.sequelize
         .sync({ force: true })
         .then(() => User.create({ active: true }))
-        .then(user => {
+        .then((user) => {
           expect(user.active).to.be.true;
           expect(user.get('active')).to.be.true;
 
           return User.findOne();
         })
-        .then(user => {
+        .then((user) => {
           expect(user.active).to.be.true;
           expect(user.get('active')).to.be.true;
 
           return User.findOne({ raw: true });
         })
-        .then(user => {
+        .then((user) => {
           expect(user.active).to.be.true;
         });
     });

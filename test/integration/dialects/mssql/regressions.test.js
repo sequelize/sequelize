@@ -78,7 +78,7 @@ if (dialect.match(/^mssql/)) {
             limit: 10
           });
         })
-        .then(logs => {
+        .then((logs) => {
           expect(logs).to.have.length(2);
           expect(logs[0].User.get('UserName')).to.equal('Shaktimaan');
           expect(logs[1].User.get('UserName')).to.equal('Aryamaan');

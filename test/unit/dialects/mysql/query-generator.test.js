@@ -828,7 +828,7 @@ if (dialect === 'mysql') {
 
     _.each(suites, (tests, suiteTitle) => {
       describe(suiteTitle, () => {
-        tests.forEach(test => {
+        tests.forEach((test) => {
           const title =
             test.title || 'MySQL correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function () {

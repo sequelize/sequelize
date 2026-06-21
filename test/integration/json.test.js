@@ -20,7 +20,7 @@ describe('model', () => {
       });
 
       it('should tell me that a column is json', function () {
-        return this.sequelize.queryInterface.describeTable('Users').then(table => {
+        return this.sequelize.queryInterface.describeTable('Users').then((table) => {
           expect(table.emergency_contact.type).to.equal('JSON');
         });
       });
@@ -33,7 +33,7 @@ describe('model', () => {
           },
           {
             fields: ['id', 'username', 'document', 'emergency_contact'],
-            logging: sql => {
+            logging: (sql) => {
               const expected = '\'{"name":"joe","phones":[1337,42]}\'';
               const expectedEscaped = '\'{\\"name\\":\\"joe\\",\\"phones\\":[1337,42]}\'';
               if (sql.indexOf(expected) === -1) {
@@ -53,7 +53,7 @@ describe('model', () => {
         return this.UserFields.sync({ force: true }).then(() => {
           return this.UserFields.create({
             emergencyContact: { name: 'joe', phones: [1337, 42] }
-          }).then(user => {
+          }).then((user) => {
             expect(user.emergencyContact.name).to.equal('joe');
           });
         });
@@ -67,11 +67,11 @@ describe('model', () => {
           return this.UserFields.create({
             emergencyContact: { name: 'joe', phones: [1337, 42] }
           })
-            .then(user => {
+            .then((user) => {
               user.emergencyContact = { name: 'larry' };
               return user.save();
             })
-            .then(user => {
+            .then((user) => {
               expect(user.emergencyContact.name).to.equal('larry');
             });
         });
@@ -81,11 +81,11 @@ describe('model', () => {
         const emergencyContact = { name: 'kate', phone: 1337 };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return this.User.find({ where: { username: 'swen' }, attributes: ['emergency_contact'] });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact).to.eql(emergencyContact);
           });
       });
@@ -94,14 +94,14 @@ describe('model', () => {
         const emergencyContact = { name: 'kate', phones: [1337, 42] };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return this.User.find({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.phones[1]'), 'firstEmergencyNumber']]
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(parseInt(user.getDataValue('firstEmergencyNumber'))).to.equal(42);
           });
       });
@@ -110,14 +110,14 @@ describe('model', () => {
         const emergencyContact = { kate: 1337 };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return this.User.find({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.kate'), 'katesNumber']]
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(parseInt(user.getDataValue('katesNumber'))).to.equal(1337);
           });
       });
@@ -126,14 +126,14 @@ describe('model', () => {
         const emergencyContact = { kate: { email: 'kate@kate.com', phones: [1337, 42] } };
 
         return this.User.create({ username: 'swen', emergency_contact: emergencyContact })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact).to.eql(emergencyContact);
             return this.User.find({
               where: { username: 'swen' },
               attributes: [[Sequelize.json('emergency_contact.kate.email'), 'katesEmail']]
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.getDataValue('katesEmail')).to.equal('kate@kate.com');
           })
           .then(() => {
@@ -142,7 +142,7 @@ describe('model', () => {
               attributes: [[Sequelize.json('emergency_contact.kate.phones[1]'), 'katesFirstPhone']]
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(parseInt(user.getDataValue('katesFirstPhone'))).to.equal(42);
           });
       });
@@ -158,7 +158,7 @@ describe('model', () => {
               attributes: ['username', 'emergency_contact']
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact.name).to.equal('kate');
           });
       });
@@ -173,7 +173,7 @@ describe('model', () => {
               where: Sequelize.json({ emergency_contact: { name: 'kate' } })
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact.name).to.equal('kate');
           });
       });
@@ -186,7 +186,7 @@ describe('model', () => {
           .then(() => {
             return this.User.find({ where: Sequelize.json('emergency_contact.name', 'joe') });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact.name).to.equal('joe');
           });
       });
@@ -202,7 +202,7 @@ describe('model', () => {
               where: Sequelize.json('emergencyContact.name', 'joe')
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.get('contactName')).to.equal('joe');
           });
       });
@@ -215,13 +215,13 @@ describe('model', () => {
           .then(() => {
             return this.User.find({ where: Sequelize.json('emergency_contact.0', 'kate') });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('swen');
           })
           .then(() => {
             return this.User.find({ where: Sequelize.json('emergency_contact[0].name', 'joe') });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('anna');
           });
       });
@@ -233,7 +233,7 @@ describe('model', () => {
           username: 'swen',
           emergency_contact: { value: text }
         })
-          .then(user => {
+          .then((user) => {
             expect(user.isNewRecord).to.equal(false);
           })
           .then(() => {
@@ -242,7 +242,7 @@ describe('model', () => {
           .then(() => {
             return this.User.find({ where: Sequelize.json('emergency_contact.value', text) });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('swen');
           });
       });
@@ -254,7 +254,7 @@ describe('model', () => {
           where: { username: 'swen' },
           defaults: { emergency_contact: { value: text } }
         })
-          .then(user => {
+          .then((user) => {
             expect(!user.isNewRecord).to.equal(true);
           })
           .then(() => {
@@ -263,7 +263,7 @@ describe('model', () => {
           .then(() => {
             return this.User.find({ where: Sequelize.json('emergency_contact.value', text) });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('swen');
           });
       });
@@ -282,7 +282,7 @@ describe('model', () => {
                 }
               });
             })
-            .then(user => {
+            .then((user) => {
               expect(user.username).to.equal('swen123');
             });
         });

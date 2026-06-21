@@ -17,13 +17,13 @@ if (dialect === 'mysql') {
       return User.sync({ force: true })
         .then(() => User.create({ username: 'user1' }))
         .then(() => User.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.equal(1);
           spy();
           return delay(1000);
         })
         .then(() => User.count())
-        .then(count => {
+        .then((count) => {
           expect(count).to.equal(1);
           spy();
           if (!spy.calledTwice) {
@@ -45,7 +45,7 @@ if (dialect === 'mysql') {
           //This query will be queued just after the `client.end` is executed and before its callback is called
           return sequelize.query('SELECT COUNT(*) AS count FROM Users', { type: sequelize.QueryTypes.SELECT });
         })
-        .then(count => {
+        .then((count) => {
           expect(sequelize.connectionManager.pool.size).to.equal(1);
           expect(count[0].count).to.equal(1);
         });
@@ -61,7 +61,7 @@ if (dialect === 'mysql') {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           // Save current connection
           conn = connection;
 
@@ -71,7 +71,7 @@ if (dialect === 'mysql') {
           // Get next available connection
           return cm.getConnection();
         })
-        .then(connection => {
+        .then((connection) => {
           // Old threadId should be same as current connection
           expect(conn.threadId).to.be.equal(connection.threadId);
           expect(cm.validate(conn)).to.be.ok;
@@ -90,7 +90,7 @@ if (dialect === 'mysql') {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           // Save current connection
           conn = connection;
           // simulate a unexpected end from MySQL2
@@ -102,7 +102,7 @@ if (dialect === 'mysql') {
           // Get next available connection
           return cm.getConnection();
         })
-        .then(connection => {
+        .then((connection) => {
           // Old threadId should be different from current new one
           expect(conn.threadId).to.not.be.equal(connection.threadId);
           expect(sequelize.connectionManager.pool.size).to.equal(1);
@@ -144,7 +144,7 @@ if (dialect === 'mysql') {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           // Save current connection
           conn = connection;
           return cm.releaseConnection(conn);
@@ -156,7 +156,7 @@ if (dialect === 'mysql') {
           // Get next available connection
           return cm.getConnection();
         })
-        .then(connection => {
+        .then((connection) => {
           // Old threadId should be different from current new one
           expect(conn.threadId).to.not.be.equal(connection.threadId);
           expect(cm.validate(conn)).to.not.be.ok;

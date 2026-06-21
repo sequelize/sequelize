@@ -121,12 +121,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeValidate', function () {
         let hookCalled = 0;
 
-        this.User.beforeValidate(user => {
+        this.User.beforeValidate((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({ mood: 'sad', username: 'leafninja' }).then(user => {
+        return this.User.create({ mood: 'sad', username: 'leafninja' }).then((user) => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('leafninja');
           expect(hookCalled).to.equal(1);
@@ -136,12 +136,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('afterValidate', function () {
         let hookCalled = 0;
 
-        this.User.afterValidate(user => {
+        this.User.afterValidate((user) => {
           user.mood = 'neutral';
           hookCalled++;
         });
 
-        return this.User.create({ mood: 'sad', username: 'fireninja' }).then(user => {
+        return this.User.create({ mood: 'sad', username: 'fireninja' }).then((user) => {
           expect(user.mood).to.equal('neutral');
           expect(user.username).to.equal('fireninja');
           expect(hookCalled).to.equal(1);
@@ -151,12 +151,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeCreate', function () {
         let hookCalled = 0;
 
-        this.User.beforeCreate(user => {
+        this.User.beforeCreate((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({ username: 'akira' }).then(user => {
+        return this.User.create({ username: 'akira' }).then((user) => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(1);
@@ -166,12 +166,12 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave', function () {
         let hookCalled = 0;
 
-        this.User.beforeSave(user => {
+        this.User.beforeSave((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({ username: 'akira' }).then(user => {
+        return this.User.create({ username: 'akira' }).then((user) => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(1);
@@ -181,17 +181,17 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
       it('beforeSave with beforeCreate', function () {
         let hookCalled = 0;
 
-        this.User.beforeCreate(user => {
+        this.User.beforeCreate((user) => {
           user.mood = 'sad';
           hookCalled++;
         });
 
-        this.User.beforeSave(user => {
+        this.User.beforeSave((user) => {
           user.mood = 'happy';
           hookCalled++;
         });
 
-        return this.User.create({ username: 'akira' }).then(user => {
+        return this.User.create({ username: 'akira' }).then((user) => {
           expect(user.mood).to.equal('happy');
           expect(user.username).to.equal('akira');
           expect(hookCalled).to.equal(2);

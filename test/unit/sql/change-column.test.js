@@ -26,7 +26,7 @@ if (current.dialect.name !== 'sqlite') {
       );
 
       before(function () {
-        this.stub = sinon.stub(current, 'query').callsFake(sql => {
+        this.stub = sinon.stub(current, 'query').callsFake((sql) => {
           return Promise.resolve(sql);
         });
       });
@@ -46,7 +46,7 @@ if (current.dialect.name !== 'sqlite') {
             type: DataTypes.FLOAT,
             allowNull: false
           })
-          .then(sql => {
+          .then((sql) => {
             expectsql(sql, {
               mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] FLOAT NOT NULL;',
               mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
@@ -68,7 +68,7 @@ if (current.dialect.name !== 'sqlite') {
             onUpdate: 'cascade',
             onDelete: 'cascade'
           })
-          .then(sql => {
+          .then((sql) => {
             expectsql(sql, {
               mssql:
                 'ALTER TABLE [users] ADD CONSTRAINT [level_id_foreign_idx] FOREIGN KEY ([level_id]) REFERENCES [level] ([id]) ON DELETE CASCADE;',

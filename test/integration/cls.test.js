@@ -19,7 +19,7 @@ if (current.dialect.supports.transactions) {
     });
 
     beforeEach(function () {
-      return Support.prepareTransactionTest(this.sequelize).then(sequelize => {
+      return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
         this.sequelize = sequelize;
 
         this.ns = cls.getNamespace('sequelize');
@@ -36,7 +36,7 @@ if (current.dialect.supports.transactions) {
         const self = this;
 
         return Sequelize._clsRun(() => {
-          return this.sequelize.transaction().then(transaction => {
+          return this.sequelize.transaction().then((transaction) => {
             expect(self.ns.get('transaction')).to.be.undefined;
             return transaction.rollback();
           });
@@ -95,7 +95,7 @@ if (current.dialect.supports.transactions) {
           });
         });
 
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           // Wait for the transaction to be setup
           const interval = setInterval(() => {
             if (transactionSetup) {
@@ -160,7 +160,7 @@ if (current.dialect.supports.transactions) {
     });
 
     it('promises returned by sequelize.query carry CLS context', function () {
-      return this.sequelize.transaction(t =>
+      return this.sequelize.transaction((t) =>
         this.sequelize
           .query('select 1', { type: Sequelize.QueryTypes.SELECT })
           .then(() => expect(this.ns.get('transaction')).to.equal(t))

@@ -39,7 +39,7 @@ describe('Transaction', function () {
       mssql: ['BEGIN TRANSACTION;']
     };
     return current.transaction(() => {
-      expect(this.stub.args.map(arg => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
+      expect(this.stub.args.map((arg) => arg[0])).to.deep.equal(expectations[dialect] || expectations.all);
       return Promise.resolve();
     });
   });

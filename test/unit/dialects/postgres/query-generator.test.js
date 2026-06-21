@@ -1423,7 +1423,7 @@ if (dialect.match(/^postgres/)) {
           QueryGenerator.options.quoteIdentifiers = true;
         });
 
-        tests.forEach(test => {
+        tests.forEach((test) => {
           const title =
             test.title || 'Postgres correctly returns ' + test.expectation + ' for ' + JSON.stringify(test.arguments);
           it(title, function () {

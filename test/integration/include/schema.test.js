@@ -134,7 +134,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                   return Promise.all([Group.findAll(), Company.findAll(), Rank.findAll(), Tag.findAll()]);
                 })
                 .then(([groups, companies, ranks, tags]) => {
-                  return pEach([0, 1, 2, 3, 4], i => {
+                  return pEach([0, 1, 2, 3, 4], (i) => {
                     return Promise.all([
                       AccUser.create(),
                       Product.bulkCreate([
@@ -275,7 +275,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
               })
             ])
               .then(([groups, ranks, tags]) => {
-                return pEach([0, 1, 2, 3, 4], i => {
+                return pEach([0, 1, 2, 3, 4], (i) => {
                   return Promise.all([
                     AccUser.create(),
                     Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => {
@@ -310,8 +310,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                     { model: Product, include: [Tag, { model: Tag, as: 'Category' }, Price] }
                   ],
                   order: [[AccUser.rawAttributes.id, 'ASC']]
-                }).then(users => {
-                  users.forEach(user => {
+                }).then((users) => {
+                  users.forEach((user) => {
                     expect(user.Memberships).to.be.ok;
                     user.Memberships.sort(sortById);
 
@@ -363,8 +363,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         return A.bulkCreate([{}, {}, {}, {}, {}, {}, {}, {}])
           .then(() => {
             let previousInstance;
-            return pEach(singles, model => {
-              return model.create({}).then(instance => {
+            return pEach(singles, (model) => {
+              return model.create({}).then((instance) => {
                 if (previousInstance) {
                   return previousInstance['set' + Sequelize.Utils.uppercaseFirst(model.name)](instance).then(() => {
                     previousInstance = instance;
@@ -378,9 +378,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return A.findAll();
           })
-          .then(as => {
+          .then((as) => {
             const promises = [];
-            as.forEach(a => {
+            as.forEach((a) => {
               promises.push(a.setB(b));
             });
             return Promise.all(promises);
@@ -405,9 +405,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                   ]
                 }
               ]
-            }).then(as => {
+            }).then((as) => {
               expect(as.length).to.be.ok;
-              as.forEach(a => {
+              as.forEach((a) => {
                 expect(a.b.c.d.e.f.g.h).to.be.ok;
               });
             });
@@ -450,7 +450,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll({
               include: [{ model: Item, as: 'itemA', where: { test: 'abc' } }, { model: Item, as: 'itemB' }, Order],
               order: [[Order, 'position']]
-            }).then(as => {
+            }).then((as) => {
               expect(as.length).to.eql(2);
               expect(as[0].itemA.test).to.eql('abc');
               expect(as[1].itemA.test).to.eql('abc');
@@ -512,7 +512,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 ['id', 'ASC'],
                 [Tag, 'id', 'ASC']
               ]
-            }).then(products => {
+            }).then((products) => {
               expect(products[0].Tags[0].ProductTag.priority).to.equal(1);
               expect(products[0].Tags[1].ProductTag.priority).to.equal(2);
               expect(products[1].Tags[0].ProductTag.priority).to.equal(1);
@@ -541,7 +541,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return User.findAll({
               include: [{ model: Group, required: true }]
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(1);
               expect(users[0].Group).to.be.ok;
             });
@@ -572,7 +572,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return User.findAll({
               include: [{ model: Group, where: { name: 'A' } }]
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(1);
               expect(users[0].Group).to.be.ok;
               expect(users[0].Group.name).to.equal('A');
@@ -604,8 +604,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return User.findAll({
               include: [{ model: Group, required: true }]
-            }).then(users => {
-              users.forEach(user => {
+            }).then((users) => {
+              users.forEach((user) => {
                 expect(user.Group).to.be.ok;
               });
             });
@@ -644,7 +644,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           })
           .then(([groups, users, categories]) => {
             const promises = [users[0].setGroup(groups[1]), users[1].setGroup(groups[0])];
-            groups.forEach(group => {
+            groups.forEach((group) => {
               promises.push(group.setCategories(categories));
             });
             return Promise.all(promises);
@@ -653,9 +653,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll({
               include: [{ model: Group, required: true, include: [{ model: Category }] }],
               limit: 1
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(1);
-              users.forEach(user => {
+              users.forEach((user) => {
                 expect(user.Group).to.be.ok;
                 expect(user.Group.Categories).to.be.ok;
               });
@@ -695,7 +695,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           })
           .then(([groups, users, categories]) => {
             const promises = [users[0].setTeam(groups[1]), users[1].setTeam(groups[0])];
-            groups.forEach(group => {
+            groups.forEach((group) => {
               promises.push(group.setTags(categories));
             });
             return Promise.all(promises);
@@ -704,9 +704,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll({
               include: [{ model: Group, required: true, as: 'Team', include: [{ model: Category, as: 'Tags' }] }],
               limit: 1
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(1);
-              users.forEach(user => {
+              users.forEach((user) => {
                 expect(user.Team).to.be.ok;
                 expect(user.Team.Tags).to.be.ok;
               });
@@ -746,7 +746,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           })
           .then(([groups, users, categories]) => {
             const promises = [users[0].setGroup(groups[1]), users[1].setGroup(groups[0])];
-            groups.forEach(group => {
+            groups.forEach((group) => {
               promises.push(group.setCategories(categories));
             });
             return Promise.all(promises);
@@ -755,9 +755,9 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll({
               include: [{ model: Group, required: true, include: [{ model: Category, required: false }] }],
               limit: 1
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(1);
-              users.forEach(user => {
+              users.forEach((user) => {
                 expect(user.Group).to.be.ok;
                 expect(user.Group.Categories).to.be.ok;
               });
@@ -789,7 +789,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return User.findAll({
               include: [{ model: Project, as: 'LeaderOf', where: { title: 'Beta' } }]
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(1);
               expect(users[0].LeaderOf).to.be.ok;
               expect(users[0].LeaderOf.title).to.equal('Beta');
@@ -845,7 +845,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           .then(() => {
             return Product.findAll({
               include: [{ model: Tag, where: { name: 'C' } }]
-            }).then(products => {
+            }).then((products) => {
               expect(products.length).to.equal(1);
               expect(products[0].Tags.length).to.equal(1);
             });
@@ -935,7 +935,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return Promise.all([Group.findAll(), Rank.findAll(), Tag.findAll()]);
           })
           .then(([groups, ranks, tags]) => {
-            return pEach([0, 1, 2, 3, 4], i => {
+            return pEach([0, 1, 2, 3, 4], (i) => {
               return Promise.all([
                 User.create({ name: 'FooBarzz' }),
                 Product.bulkCreate([{ title: 'Chair' }, { title: 'Desk' }]).then(() => {
@@ -984,8 +984,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 }
               ],
               order: [['id', 'ASC']]
-            }).then(users => {
-              users.forEach(user => {
+            }).then((users) => {
+              users.forEach((user) => {
                 expect(user.Memberships.length).to.equal(1);
                 expect(user.Memberships[0].Rank.name).to.equal('Admin');
                 expect(user.Products.length).to.equal(1);
@@ -1017,7 +1017,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll();
           })
         })
-          .then(results => {
+          .then((results) => {
             return Promise.all([
               results.users[1].setGroup(results.groups[0]),
               results.users[2].setGroup(results.groups[0]),
@@ -1029,10 +1029,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
             return User.findAll({
               include: [{ model: Group, where: { name: 'A' } }],
               limit: 2
-            }).then(users => {
+            }).then((users) => {
               expect(users.length).to.equal(2);
 
-              users.forEach(user => {
+              users.forEach((user) => {
                 expect(user.Group.name).to.equal('A');
               });
             });
@@ -1052,10 +1052,10 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           limit: 3,
           order: [['id', 'ASC']]
-        }).then(products => {
+        }).then((products) => {
           expect(products.length).to.equal(3);
 
-          products.forEach(product => {
+          products.forEach((product) => {
             expect(product.Company.name).to.equal('NYSE');
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
@@ -1080,14 +1080,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           limit: 6,
           order: [['id', 'ASC']]
-        }).then(products => {
+        }).then((products) => {
           expect(products.length).to.equal(6);
 
-          products.forEach(product => {
+          products.forEach((product) => {
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
 
-            product.Prices.forEach(price => {
+            product.Prices.forEach((price) => {
               expect(price.value).to.be.above(5);
             });
           });
@@ -1106,14 +1106,14 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           limit: 10,
           order: [['id', 'ASC']]
-        }).then(products => {
+        }).then((products) => {
           expect(products.length).to.equal(10);
 
-          products.forEach(product => {
+          products.forEach((product) => {
             expect(product.Tags.length).to.be.ok;
             expect(product.Prices.length).to.be.ok;
 
-            product.Tags.forEach(tag => {
+            product.Tags.forEach((tag) => {
               expect(['A', 'B', 'C']).to.include(tag.name);
             });
           });
@@ -1141,15 +1141,15 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
       Group.belongsToMany(User, { through: 'group_user' });
 
       return this.sequelize.sync().then(() => {
-        return User.create({ dateField: Date.UTC(2014, 1, 20) }).then(user => {
-          return Group.create({ dateField: Date.UTC(2014, 1, 20) }).then(group => {
+        return User.create({ dateField: Date.UTC(2014, 1, 20) }).then((user) => {
+          return Group.create({ dateField: Date.UTC(2014, 1, 20) }).then((group) => {
             return user.addGroup(group).then(() => {
               return User.findAll({
                 where: {
                   id: user.id
                 },
                 include: [Group]
-              }).then(users => {
+              }).then((users) => {
                 if (dialect === 'sqlite') {
                   expect(new Date(users[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
                   expect(new Date(users[0].groups[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));

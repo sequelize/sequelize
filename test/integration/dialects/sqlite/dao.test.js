@@ -40,7 +40,7 @@ if (dialect === 'sqlite') {
           return this.User.create({ username: 'new user' }).then(() => {
             return this.User.findAll({
               where: { createdAt: { $gt: new Date(2012, 1, 1) } }
-            }).then(users => {
+            }).then((users) => {
               expect(users).to.have.length(1);
             });
           });
@@ -52,9 +52,9 @@ if (dialect === 'sqlite') {
           dateField: new Date(2010, 10, 10)
         })
           .then(() => {
-            return this.User.findAll().then(rows => rows[0]);
+            return this.User.findAll().then((rows) => rows[0]);
           })
-          .then(user => {
+          .then((user) => {
             expect(user.get('dateField')).to.be.an.instanceof(Date);
             expect(user.get('dateField')).to.equalTime(new Date(2010, 10, 10));
           });
@@ -70,9 +70,9 @@ if (dialect === 'sqlite') {
           .then(() => {
             return this.User.findAll({
               include: [this.Project]
-            }).then(rows => rows[0]);
+            }).then((rows) => rows[0]);
           })
-          .then(user => {
+          .then((user) => {
             expect(user.projects[0].get('dateField')).to.be.an.instanceof(Date);
             expect(user.projects[0].get('dateField')).to.equalTime(new Date(1990, 5, 5));
           });
@@ -91,7 +91,7 @@ if (dialect === 'sqlite') {
               attributes: ['username', 'emergency_contact']
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.emergency_contact.name).to.equal('kate');
           });
       });
@@ -107,7 +107,7 @@ if (dialect === 'sqlite') {
               attributes: ['username', 'emergency_contact']
             });
           })
-          .then(user => {
+          .then((user) => {
             expect(user.username).to.equal('anna');
           });
       });

@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should only update the passed fields', function () {
-      return this.Account.create({ ownerId: 2 }).then(account =>
+      return this.Account.create({ ownerId: 2 }).then((account) =>
         this.Account.update(
           {
             name: Math.random().toString()
@@ -40,7 +40,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     if (_.get(current.dialect.supports, 'returnValues.returning')) {
       it('should return the updated record', function () {
-        return this.Account.create({ ownerId: 2 }).then(account => {
+        return this.Account.create({ ownerId: 2 }).then((account) => {
           return this.Account.update(
             { name: 'FooBar' },
             {
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             };
             return this.Account.update({ name: 'New Name' }, options);
           })
-          .then(account => {
+          .then((account) => {
             expect(account[0]).to.equal(1);
           });
       });

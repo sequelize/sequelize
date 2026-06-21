@@ -49,7 +49,7 @@ if (current.dialect.supports.groupedLimit) {
                 logging: sqlSpy
               });
             })
-            .then(users => {
+            .then((users) => {
               expect(users[0].get('tasks')).to.be.ok;
               expect(users[0].get('tasks').length).to.equal(3);
               expect(users[1].get('tasks')).to.be.ok;
@@ -90,7 +90,7 @@ if (current.dialect.supports.groupedLimit) {
                 logging: sqlSpy
               });
             })
-            .then(users => {
+            .then((users) => {
               expect(users[0].get('tasks')).to.be.ok;
               expect(users[0].get('tasks').length).to.equal(3);
               expect(sqlSpy).to.have.been.calledTwice;
@@ -158,7 +158,7 @@ if (current.dialect.supports.groupedLimit) {
                 logging: sqlSpy
               });
             })
-            .then(users => {
+            .then((users) => {
               expect(users[0].get('tasks')).to.be.ok;
               expect(users[0].get('tasks').length).to.equal(2);
               expect(users[1].get('tasks')).to.be.ok;
@@ -209,7 +209,7 @@ if (current.dialect.supports.groupedLimit) {
                 logging: sqlSpy
               });
             })
-            .then(users => {
+            .then((users) => {
               expect(users[0].get('company').get('tasks')).to.be.ok;
               expect(users[0].get('company').get('tasks').length).to.equal(3);
               expect(users[1].get('company').get('tasks')).to.be.ok;
@@ -260,7 +260,7 @@ if (current.dialect.supports.groupedLimit) {
                 logging: sqlSpy
               });
             })
-            .then(companies => {
+            .then((companies) => {
               expect(sqlSpy).to.have.been.calledTwice;
 
               expect(companies[0].users[0].tasks[0].project).to.be.ok;
@@ -325,7 +325,7 @@ if (current.dialect.supports.groupedLimit) {
                 logging: sqlSpy
               });
             })
-            .then(users => {
+            .then((users) => {
               const u1projects = users[0].get('projects');
 
               expect(u1projects).to.be.ok;
@@ -335,12 +335,12 @@ if (current.dialect.supports.groupedLimit) {
 
               // WTB ES2015 syntax ...
               expect(
-                _.find(u1projects, p => {
+                _.find(u1projects, (p) => {
                   return p.id === 1;
                 }).get('tasks').length
               ).to.equal(3);
               expect(
-                _.find(u1projects, p => {
+                _.find(u1projects, (p) => {
                   return p.id === 2;
                 }).get('tasks').length
               ).to.equal(1);
@@ -407,7 +407,7 @@ if (current.dialect.supports.groupedLimit) {
                 return User.findAll({
                   include: [{ model: Task, limit: 2, as: 'tasks', order: [['id', 'ASC']] }],
                   order: [['id', 'ASC']]
-                }).then(result => {
+                }).then((result) => {
                   expect(result[0].tasks.length).to.equal(2);
                   expect(result[0].tasks[0].title).to.equal('b');
                   expect(result[0].tasks[1].title).to.equal('d');
@@ -416,7 +416,7 @@ if (current.dialect.supports.groupedLimit) {
                   expect(result[1].tasks[0].title).to.equal('a');
                   expect(result[1].tasks[1].title).to.equal('c');
                   return this.sequelize.dropSchema('archive').then(() => {
-                    return this.sequelize.showAllSchemas().then(schemas => {
+                    return this.sequelize.showAllSchemas().then((schemas) => {
                       if (dialect === 'postgres' || dialect === 'mssql') {
                         expect(schemas).to.be.empty;
                       }

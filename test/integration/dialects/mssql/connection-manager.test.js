@@ -15,7 +15,7 @@ if (dialect.match(/^mssql/)) {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           // Save current connection
           conn = connection;
 
@@ -24,7 +24,7 @@ if (dialect.match(/^mssql/)) {
           conn.unwrap().emit('error', { code: 'ECONNRESET' });
         })
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           expect(conn).to.not.be.equal(connection);
           expect(cm.validate(conn)).to.not.be.ok;
 
@@ -41,7 +41,7 @@ if (dialect.match(/^mssql/)) {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           conn = connection;
           const unwrapConn = conn.unwrap();
           unwrapConn.on('end', () => {
@@ -65,7 +65,7 @@ if (dialect.match(/^mssql/)) {
       return sequelize
         .sync()
         .then(() => cm.getConnection())
-        .then(connection => {
+        .then((connection) => {
           conn = connection;
 
           // remove from pool

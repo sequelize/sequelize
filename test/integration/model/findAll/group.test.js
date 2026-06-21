@@ -46,7 +46,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               order: [[Sequelize.literal('"Post"."id"'), 'ASC']]
             });
           })
-          .then(posts => {
+          .then((posts) => {
             expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);
             expect(parseInt(posts[1].get('comment_count'))).to.be.equal(2);
           });
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               order: [['PostId', 'ASC']]
             });
           })
-          .then(posts => {
+          .then((posts) => {
             expect(posts[0].get().hasOwnProperty('id')).to.equal(false);
             expect(posts[1].get().hasOwnProperty('id')).to.equal(false);
             expect(parseInt(posts[0].get('comment_count'))).to.be.equal(3);
