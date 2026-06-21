@@ -835,8 +835,12 @@ if (dialect === 'mysql') {
             // Options would normally be set by the query interface that instantiates the query-generator, but here we specify it explicitly
             const context = test.context || { options: {} };
             if (test.needsSequelize) {
-              if (_.isFunction(test.arguments[1])) test.arguments[1] = test.arguments[1](this.sequelize);
-              if (_.isFunction(test.arguments[2])) test.arguments[2] = test.arguments[2](this.sequelize);
+              if (_.isFunction(test.arguments[1])) {
+                test.arguments[1] = test.arguments[1](this.sequelize);
+              }
+              if (_.isFunction(test.arguments[2])) {
+                test.arguments[2] = test.arguments[2](this.sequelize);
+              }
             }
             QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;

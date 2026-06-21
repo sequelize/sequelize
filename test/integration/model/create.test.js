@@ -412,8 +412,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             setTimeout(() => reject(new TimeoutError('operation timed out')), 1000)
           );
           return Promise.race([findOrCreate, timeout]).catch(e => {
-            if (e instanceof TimeoutError) throw new Error(e);
-            if (e instanceof Sequelize.ValidationError) return test(times + 1);
+            if (e instanceof TimeoutError) {
+              throw new Error(e);
+            }
+            if (e instanceof Sequelize.ValidationError) {
+              return test(times + 1);
+            }
             throw e;
           });
         };
@@ -1037,7 +1041,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return User.sync({ force: true }).then(() => {
         return User.create({ username: 'foo' }).then(() => {
           return User.create({ username: 'foo' }).catch(err => {
-            if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+            if (!(err instanceof self.sequelize.UniqueConstraintError)) {
+              throw err;
+            }
             expect(err).to.be.ok;
           });
         });
@@ -1075,7 +1081,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return UserNull.sync({ force: true }).then(() => {
         return UserNull.create({ username: 'foo', smth: 'foo' }).then(() => {
           return UserNull.create({ username: 'foo', smth: 'bar' }).catch(err => {
-            if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+            if (!(err instanceof self.sequelize.UniqueConstraintError)) {
+              throw err;
+            }
             expect(err).to.be.ok;
           });
         });

@@ -8,7 +8,9 @@ const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Replication'), function () {
-  if (dialect === 'sqlite') return;
+  if (dialect === 'sqlite') {
+    return;
+  }
 
   let sandbox;
   let readSpy, writeSpy;

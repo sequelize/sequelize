@@ -31,7 +31,9 @@ process.on('unhandledRejection', e => {
 
 // shim all Sequelize methods for testing for correct `options.logging` passing
 // and no modification of `options` objects
-if (!process.env.COVERAGE && process.env.SHIM) supportShim(Sequelize);
+if (!process.env.COVERAGE && process.env.SHIM) {
+  supportShim(Sequelize);
+}
 
 const Support = {
   Sequelize,

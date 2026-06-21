@@ -302,7 +302,9 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
           })
           .then(() => {
             return User.create(record).catch(err => {
-              if (err instanceof constraintTest.exception) return spy(err);
+              if (err instanceof constraintTest.exception) {
+                return spy(err);
+              }
               throw err;
             });
           })
@@ -329,7 +331,9 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
         .then(() => {
           // If the error was successfully parsed, we can catch it!
           return User.create({ name: 'jan' }).catch(err => {
-            if (err instanceof this.sequelize.UniqueConstraintError) return spy(err);
+            if (err instanceof this.sequelize.UniqueConstraintError) {
+              return spy(err);
+            }
             throw err;
           });
         })

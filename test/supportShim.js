@@ -46,7 +46,9 @@ module.exports = function (Sequelize) {
   function shimAll(obj, objName) {
     forOwn(obj, (method, name) => {
       const result = examine(method, name);
-      if (result) shim(obj, name, result.index, result.conform, objName + name);
+      if (result) {
+        shim(obj, name, result.index, result.conform, objName + name);
+      }
     });
   }
 
@@ -79,10 +81,14 @@ module.exports = function (Sequelize) {
    */
   function examine(method, name) {
     // skip if not a function
-    if (typeof method !== 'function') return;
+    if (typeof method !== 'function') {
+      return;
+    }
 
     // skip classes, constructors and private methods
-    if (name === 'constructor' || !name.match(/^[a-z]/)) return;
+    if (name === 'constructor' || !name.match(/^[a-z]/)) {
+      return;
+    }
 
     // find test hints if provided
     const fnStr = getFunctionCode(method),
@@ -100,7 +106,9 @@ module.exports = function (Sequelize) {
 
     // use hints to find index
     const hint = hints.options;
-    if (hint === 'none') return;
+    if (hint === 'none') {
+      return;
+    }
     if (hint && hint.match(/^\d+$/)) {
       result.index = hint * 1;
       return result;
@@ -108,7 +116,9 @@ module.exports = function (Sequelize) {
 
     // find 'options' argument - if none, then skip
     const index = args.indexOf('options');
-    if (index === -1) return;
+    if (index === -1) {
+      return;
+    }
 
     result.index = index + 1;
     return result;
@@ -134,13 +144,19 @@ module.exports = function (Sequelize) {
 
       return function () {
         let sequelize = sequelizeProto ? this : this.sequelize;
-        if (this instanceof Sequelize.Association) sequelize = this.target.sequelize;
-        if (!sequelize) throw new Error('Object does not have a `sequelize` attribute');
+        if (this instanceof Sequelize.Association) {
+          sequelize = this.target.sequelize;
+        }
+        if (!sequelize) {
+          throw new Error('Object does not have a `sequelize` attribute');
+        }
 
         let args = Sequelize.Utils.sliceArgs(arguments);
         const fromTests = calledFromTests();
 
-        if (conform) args = conform.apply(this, arguments);
+        if (conform) {
+          args = conform.apply(this, arguments);
+        }
 
         let options = args[index];
 
@@ -168,13 +184,19 @@ module.exports = function (Sequelize) {
           }
 
           result = result.finally(() => {
-            if (err) throw err;
+            if (err) {
+              throw err;
+            }
             checkOptions(options, originalOptions, debugName);
-            if (fromTests) removeLogger(options);
+            if (fromTests) {
+              removeLogger(options);
+            }
           });
         } else {
           checkOptions(options, originalOptions, debugName);
-          if (fromTests) removeLogger(options);
+          if (fromTests) {
+            removeLogger(options);
+          }
         }
 
         return result;
@@ -191,7 +213,9 @@ module.exports = function (Sequelize) {
    */
   function shimMethod(obj, name, wrapper) {
     const original = obj[name];
-    if (original.__testShim) return;
+    if (original.__testShim) {
+      return;
+    }
 
     if (original.__testShimmedTo) {
       obj[name] = original.__testShimmedTo;
@@ -210,7 +234,9 @@ module.exports = function (Sequelize) {
    * @returns {Object} - Options with `logging` attribute added
    */
   function addLogger(options, sequelize) {
-    if (!options) options = {};
+    if (!options) {
+      options = {};
+    }
 
     const hadLogging = options.hasOwnProperty('logging'),
       originalLogging = options.logging;
@@ -227,7 +253,9 @@ module.exports = function (Sequelize) {
     };
 
     options.logging.__testLoggingFn = true;
-    if (hadLogging) options.logging.__originalLogging = originalLogging;
+    if (hadLogging) {
+      options.logging.__originalLogging = originalLogging;
+    }
 
     return options;
   }
@@ -253,8 +281,9 @@ module.exports = function (Sequelize) {
    * @throws {Error} - Throws if `options.logging` is not a shimmed logging function
    */
   function testLogger(options, name) {
-    if (!options || !options.logging || !options.logging.__testLoggingFn)
+    if (!options || !options.logging || !options.logging.__testLoggingFn) {
       throw new Error('options.logging has been lost in method ' + name);
+    }
   }
 
   /**
@@ -285,7 +314,9 @@ module.exports = function (Sequelize) {
  */
 function forOwn(obj, fn) {
   Object.getOwnPropertyNames(obj).forEach(key => {
-    if (Object.getOwnPropertyDescriptor(obj, key).hasOwnProperty('value')) fn(obj[key], key, obj);
+    if (Object.getOwnPropertyDescriptor(obj, key).hasOwnProperty('value')) {
+      fn(obj[key], key, obj);
+    }
   });
   return obj;
 }
@@ -300,8 +331,12 @@ function forOwn(obj, fn) {
  */
 function getFunctionCode(fn) {
   let code = fn.toString();
-  if (code.match(/^function[\s\*\(]/) || code.match(/^class[\s\{]/)) return code;
-  if (code.match(/^(import|delete)[\s\*\(]/)) code = '_' + code.substr(1);
+  if (code.match(/^function[\s\*\(]/) || code.match(/^class[\s\{]/)) {
+    return code;
+  }
+  if (code.match(/^(import|delete)[\s\*\(]/)) {
+    code = '_' + code.substr(1);
+  }
   return 'function ' + code;
 }
 
@@ -333,9 +368,15 @@ function getFunctionArguments(tree) {
 function getArgumentsConformFn(method, args, hints, tree) {
   // check if argsConform hints present
   hints = hints.argsConform;
-  if (!hints) return;
-  if (hints.start && !hints.end) throw new Error('Options conform section has no end');
-  if (!hints.end) return;
+  if (!hints) {
+    return;
+  }
+  if (hints.start && !hints.end) {
+    throw new Error('Options conform section has no end');
+  }
+  if (!hints.end) {
+    return;
+  }
 
   // extract
   const start = hints.start ? hints.start.end : tree.body[0].body.start + 1,
@@ -352,7 +393,9 @@ function getArgumentsConformFn(method, args, hints, tree) {
  */
 function cloneOptions(options) {
   return _.cloneDeepWith(options, value => {
-    if (typeof value === 'object' && !_.isPlainObject(value)) return value;
+    if (typeof value === 'object' && !_.isPlainObject(value)) {
+      return value;
+    }
   });
 }
 
@@ -364,10 +407,11 @@ function cloneOptions(options) {
  * @throws {Error} - Throws if options and original are not identical
  */
 function checkOptions(options, original, name) {
-  if (!optionsEqual(options, original))
+  if (!optionsEqual(options, original)) {
     throw new Error(
       'options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options)
     );
+  }
 }
 
 /**
@@ -384,7 +428,8 @@ function optionsEqual(options, original) {
     if (
       (typeof value1 === 'object' && !_.isPlainObject(value1)) ||
       (typeof value2 === 'object' && !_.isPlainObject(value2))
-    )
+    ) {
       return value1 === value2;
+    }
   });
 }

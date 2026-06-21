@@ -378,7 +378,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         })
         .catch(err => {
-          if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+          if (!(err instanceof self.sequelize.UniqueConstraintError)) {
+            throw err;
+          }
           expect(err.message).to.equal('User and email must be unique');
         });
     });
@@ -426,7 +428,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ]);
         })
         .catch(err => {
-          if (!(err instanceof self.sequelize.UniqueConstraintError)) throw err;
+          if (!(err instanceof self.sequelize.UniqueConstraintError)) {
+            throw err;
+          }
           expect(err.message).to.equal('User and email must be unique');
         });
     });

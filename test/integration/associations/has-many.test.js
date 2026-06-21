@@ -1391,7 +1391,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
             })
             .then(() => {
               return this.user.destroy().catch(err => {
-                if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
+                if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) {
+                  throw err;
+                }
                 // Should fail due to FK violation
                 return Task.findAll();
               });
@@ -1426,7 +1428,9 @@ describe(Support.getTestDialectTeaser('HasMany'), () => {
                 .getQueryInterface()
                 .update(user, tableName, { id: 999 }, { id: user.id })
                 .catch(err => {
-                  if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) throw err;
+                  if (!(err instanceof self.sequelize.ForeignKeyConstraintError)) {
+                    throw err;
+                  }
                   // Should fail due to FK violation
                   return Task.findAll();
                 });
