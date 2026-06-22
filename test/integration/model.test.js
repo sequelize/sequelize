@@ -1961,9 +1961,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const self = this;
 
       return this.User.create({ username: 'Peter', secretValue: '42' }).then(() => {
-        expect(() => {
-          self.User.restore({ where: { secretValue: '42' } });
-        }).to.throw(Error, 'Model is not paranoid');
+        return expect(self.User.restore({ where: { secretValue: '42' } })).to.be.rejectedWith(
+          Error,
+          'Model is not paranoid'
+        );
       });
     });
 

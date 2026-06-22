@@ -13,9 +13,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const Model = current.define('User', {}),
         instance = Model.build({}, { isNewRecord: false });
 
-      expect(() => {
-        instance.save();
-      }).to.throw();
+      return expect(instance.save()).to.be.rejected;
     });
 
     describe('options tests', () => {

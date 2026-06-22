@@ -73,8 +73,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('Throws an error when the attributes option is formatted incorrectly', () => {
-        const errorFunction = Model.findAll.bind(Model, { attributes: 'name' });
-        expect(errorFunction).to.throw(sequelizeErrors.QueryError);
+        return expect(Model.findAll({ attributes: 'name' })).to.be.rejectedWith(sequelizeErrors.QueryError);
       });
     });
 

@@ -52,9 +52,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.secretValue = '1';
       };
 
-      expect(() => {
-        this.User.update(this.updates, { where: new Where() });
-      }).to.throw();
+      return expect(this.User.update(this.updates, { where: new Where() })).to.be.rejected;
     });
   });
 });

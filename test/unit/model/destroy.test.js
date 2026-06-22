@@ -42,9 +42,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         this.secretValue = '1';
       };
 
-      expect(() => {
-        User.destroy({ where: new Where() });
-      }).to.throw();
+      return expect(User.destroy({ where: new Where() })).to.be.rejected;
     });
   });
 });

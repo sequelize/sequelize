@@ -19,13 +19,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should reject if options are missing', () => {
-        return expect(() => Model.increment(['id', 'count'])).to.throw(
+        return expect(Model.increment(['id', 'count'])).to.be.rejectedWith(
           'Missing where attribute in the options parameter'
         );
       });
 
       it('should reject if options.where are missing', () => {
-        return expect(() => Model.increment(['id', 'count'], { by: 10 })).to.throw(
+        return expect(Model.increment(['id', 'count'], { by: 10 })).to.be.rejectedWith(
           'Missing where attribute in the options parameter'
         );
       });
