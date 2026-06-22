@@ -37,7 +37,9 @@ if (dialect === 'postgres') {
     describe('DATE/DATEONLY Sanitize', () => {
       const now = new Date();
       const nowString = now.toISOString();
-      const nowDateOnly = nowString.substr(0, 10);
+      // DATEONLY._sanitize formats the value in local time, so derive the expected day the same way.
+      // Deriving it from the UTC ISO string makes this assertion flaky across the midnight-UTC boundary.
+      const nowDateOnly = moment(now).format('YYYY-MM-DD');
 
       it('DATE should sanitize a Date as normal', () => {
         expect(DataTypes[dialect].DATE()._sanitize(now)).to.equalTime(now);
@@ -226,7 +228,9 @@ if (dialect === 'postgres') {
           .then((user) => {
             expect(user.username).to.equal('bob');
             expect(user.beforeTime).to.equal(-Infinity);
-            expect(user.sometime).to.equal(moment(date).format('YYYY-MM-DD'));
+            // `sometime` is populated by the DB's NOW() under the connection timezone (UTC by default),
+            // so compare against the UTC day to avoid flakiness across the midnight-UTC boundary.
+            expect(user.sometime).to.equal(moment.utc(date).format('YYYY-MM-DD'));
             expect(user.anotherTime).to.equal(Infinity);
             expect(user.afterTime).to.equal(Infinity);
 
@@ -260,7 +264,9 @@ if (dialect === 'postgres') {
           })
           .then((user) => {
             expect(user.sometime).to.not.equal(Infinity);
-            expect(user.sometime).to.equal(moment(date).format('YYYY-MM-DD'));
+            // `sometime` is populated by the DB's NOW() under the connection timezone (UTC by default),
+            // so compare against the UTC day to avoid flakiness across the midnight-UTC boundary.
+            expect(user.sometime).to.equal(moment.utc(date).format('YYYY-MM-DD'));
 
             // find
             return User.findAll();
