@@ -24,6 +24,7 @@ import {
   getObjectFromMap,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { pojo } from '@sequelize/utils';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
@@ -183,7 +184,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     const primaryKeys = [];
-    const foreignKeys = Object.create(null);
+    const foreignKeys = pojo();
     const attrStr = [];
     const checkStr = [];
 
@@ -586,7 +587,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     returnAttributes,
     options,
   ) {
-    const outBindAttributes = Object.create(null);
+    const outBindAttributes = pojo();
     const outbind = {};
     const outbindParam = this.bindParam(outbind, inbindLength);
     returningModelAttributes.forEach((element, index) => {

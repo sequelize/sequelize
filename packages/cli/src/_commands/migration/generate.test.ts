@@ -10,10 +10,13 @@ const packageRoot = join(__dirname, '..', '..', '..');
 
 describe('migration:generate', () => {
   it('generates an SQL migration', async () => {
-    const { stdout } = await runCommand(
+    const { stdout, stderr } = await runCommand(
       ['migration:generate', '--format=sql', '--name=test-migration', '--json'],
       { root: packageRoot },
     );
+
+    expect(stderr).to.equal('');
+
     const asJson = JSON.parse(stdout);
 
     expect(Object.keys(asJson)).to.deep.eq(['path']);

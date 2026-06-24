@@ -1,25 +1,19 @@
-import { AbstractQueryInterface, Sequelize } from '@sequelize/core';
+import { UmzugContext } from '@sequelize/cli';
 
-export async function up(
-  queryInterface: AbstractQueryInterface,
-  sequelize: Sequelize,
-): Promise<void> {
+export async function up({ sequelize }: UmzugContext): Promise<void> {
   /**
    * Add altering commands here.
    *
    * Example:
-   * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+   * await sequelize.queryInterface.createTable('users', { id: DataTypes.INTEGER });
    */
 }
 
-export async function down(
-  queryInterface: AbstractQueryInterface,
-  sequelize: Sequelize,
-): Promise<void> {
+export async function down({ sequelize }: UmzugContext): Promise<void> {
   /**
    * Add reverting commands here.
    *
    * Example:
-   * await queryInterface.dropTable('users');
+   * await sequelize.queryInterface.dropTable('users');
    */
 }

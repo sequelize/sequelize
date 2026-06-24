@@ -10,7 +10,7 @@ import { BelongsToAssociation } from './associations/belongs-to';
 import * as SequelizeError from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import { getAllOwnKeys } from './utils/object';
-import { validator } from './utils/validator-extras';
+import { Validator } from './utils/validator-extras';
 
 /**
  * Instance Validator.
@@ -47,7 +47,7 @@ export class InstanceValidator {
      * @name validator
      * @private
      */
-    this.validator = validator;
+    this.validator = Validator;
 
     /**
      *  All errors will be stored here from the validations.
@@ -349,13 +349,13 @@ export class InstanceValidator {
     // Cast value as string to pass new Validator.js string requirement
     const valueString = String(value);
     // check if Validator knows that kind of validation test
-    if (typeof validator[validatorType] !== 'function') {
+    if (typeof Validator[validatorType] !== 'function') {
       throw new TypeError(`Invalid validator function: ${validatorType}`);
     }
 
     const validatorArgs = this._extractValidatorArgs(test, validatorType, field);
 
-    if (!validator[validatorType](valueString, ...validatorArgs)) {
+    if (!Validator[validatorType](valueString, ...validatorArgs)) {
       throw Object.assign(new Error(test.msg || `Validation ${validatorType} on ${field} failed`), {
         validatorName: validatorType,
         validatorArgs,

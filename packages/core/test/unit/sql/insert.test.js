@@ -6,7 +6,7 @@ const { expect } = require('chai');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const queryGenerator = current.dialect.queryGenerator;
 const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
@@ -33,7 +33,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasTrigger: true,
       };
       expectsql(
-        sql.insertQuery(User.table, { user_name: 'triggertest' }, User.getAttributes(), options),
+        queryGenerator.insertQuery(
+          User.table,
+          { user_name: 'triggertest' },
+          User.getAttributes(),
+          options,
+        ),
         {
           query: {
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
@@ -62,7 +67,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       });
 
-      expectsql(sql.insertQuery(M.table, { id: 0 }, M.getAttributes()), {
+      expectsql(queryGenerator.insertQuery(M.table, { id: 0 }, M.getAttributes()), {
         query: {
           mssql:
             'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES ($sequelize_1); SET IDENTITY_INSERT [ms] OFF;',
@@ -113,7 +118,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         let result;
 
         try {
-          result = sql.insertQuery(
+          result = queryGenerator.insertQuery(
             User.table,
             { user_name: 'testuser', pass_word: '12345' },
             User.fieldRawAttributesMap,
@@ -295,21 +300,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       );
 
-      expectsql(sql.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()), {
-        query: {
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
-          postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-          db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
-          snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
-          mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
-          oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1);`,
-          default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
+      expectsql(
+        queryGenerator.insertQuery(User.table, { user_name: 'null\0test' }, User.getAttributes()),
+        {
+          query: {
+            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1))',
+            postgres: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name") VALUES ($sequelize_1));',
+            snowflake: 'INSERT INTO "users" ("user_name") VALUES ($sequelize_1);',
+            mssql: 'INSERT INTO [users] ([user_name]) VALUES ($sequelize_1);',
+            oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1);`,
+            default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
+          },
+          bind: {
+            postgres: { sequelize_1: 'null\u0000test' },
+            default: { sequelize_1: 'null\0test' },
+          },
         },
-        bind: {
-          postgres: { sequelize_1: 'null\u0000test' },
-          default: { sequelize_1: 'null\0test' },
-        },
-      });
+      );
     });
   });
 
@@ -345,7 +353,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       expectsql(
-        sql.bulkInsertQuery(
+        queryGenerator.bulkInsertQuery(
           User.table,
           [{ user_name: 'testuser', pass_word: '12345' }],
           { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys },
@@ -381,7 +389,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       expectsql(
-        sql.bulkInsertQuery(M.table, [{ id: 0 }, { id: null }], {}, M.fieldRawAttributesMap),
+        queryGenerator.bulkInsertQuery(
+          M.table,
+          [{ id: 0 }, { id: null }],
+          {},
+          M.fieldRawAttributesMap,
+        ),
         {
           query: {
             mssql:
@@ -436,7 +449,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         let result;
 
         try {
-          result = sql.bulkInsertQuery(
+          result = queryGenerator.bulkInsertQuery(
             User.table,
             [{ user_name: 'testuser', pass_word: '12345' }],
             {

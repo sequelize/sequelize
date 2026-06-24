@@ -10,6 +10,7 @@ import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import { pojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import isObject from 'lodash/isObject';
@@ -131,7 +132,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
-    const modelAttributeMap = Object.create(null);
+    const modelAttributeMap = pojo();
     const values = [];
     let suffix = '';
     let bind;
@@ -139,7 +140,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
+      bind = pojo();
       bindParam = createBindParamGenerator(bind);
     }
 

@@ -10,6 +10,12 @@
 
 type PathSeg = string | number;
 
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+function isDangerousSegment(seg: PathSeg): boolean {
+  return typeof seg === 'string' && DANGEROUS_KEYS.has(seg);
+}
+
 export interface CompiledPath {
   sourceKey: string;
   path: PathSeg[];
@@ -38,6 +44,10 @@ export function tokenizePath(key: string): PathSeg[] {
 
   const flushBuf = () => {
     if (buf.length) {
+      if (isDangerousSegment(buf)) {
+        throw new Error(`Prototype pollution attempt detected in key: ${key}`);
+      }
+
       out.push(buf);
       buf = '';
     }
@@ -126,13 +136,52 @@ export function precompileKeys(keys: readonly string[]): PrecompiledTransform {
     /* eslint-disable-next-line @typescript-eslint/prefer-includes, unicorn/prefer-includes  */
     const hasBracket = k.indexOf('[') >= 0;
 
-    const path = hasDot || hasBracket ? tokenizePath(k) : [k];
+    let path: PathSeg[];
+    if (hasDot || hasBracket) {
+      path = tokenizePath(k);
+    } else {
+      if (isDangerousSegment(k)) {
+        throw new Error(`Prototype pollution attempt detected in key: ${k}`);
+      }
+
+      path = [k];
+    }
 
     compiled[i] = { sourceKey: k, path };
     index.set(k, path);
   }
 
   return { compiled, index };
+}
+
+/**
+ * Get a value by a tokenized path from the target.
+ * Returns undefined if any intermediate segment is missing or nullish.
+ *
+ * @param target The target object to read from
+ * @param path The tokenized path array
+ */
+export function getByPathArray(target: Record<string, unknown>, path: readonly PathSeg[]): unknown {
+  // Guard against prototype pollution at any position in the path
+  /* eslint-disable-next-line unicorn/no-for-loop -- disabled for performance */
+  for (let j = 0; j < path.length; j++) {
+    if (isDangerousSegment(path[j])) {
+      return undefined;
+    }
+  }
+
+  let obj: any = target;
+
+  /* eslint-disable-next-line unicorn/no-for-loop -- disabled for performance */
+  for (let i = 0; i < path.length; i++) {
+    if (obj == null) {
+      return undefined;
+    }
+
+    obj = obj[path[i]];
+  }
+
+  return obj;
 }
 
 /**
@@ -148,6 +197,14 @@ export function setByPathArray(
   path: readonly PathSeg[],
   value: unknown,
 ): void {
+  // Guard against prototype pollution at any position in the path
+  /* eslint-disable-next-line unicorn/no-for-loop -- disabled for performance */
+  for (let j = 0; j < path.length; j++) {
+    if (isDangerousSegment(path[j])) {
+      return;
+    }
+  }
+
   let obj: any = target;
   const last = path.length - 1;
 

@@ -10,7 +10,7 @@ const { beforeAll2, createSequelizeInstance } = require('../../support');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.queryGenerator;
+const queryGenerator = current.queryGenerator;
 
 const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
 const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
@@ -23,7 +23,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       const model = options.model;
 
       return expectsql(
-        () => sql.selectQuery(options.table || (model && model.table), options, options.model),
+        () =>
+          queryGenerator.selectQuery(
+            options.table || (model && model.table),
+            options,
+            options.model,
+          ),
         expectation,
       );
     }
@@ -213,10 +218,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 ) sub`,
               `SELECT * FROM (
                   SELECT "user"."id_user" AS "id", "user"."last_name" AS "subquery_order_0", "project_user"."user_id" AS "project_user.userId", "project_user"."project_id" AS "project_user.projectId"
-                  FROM "users" "user" 
-                  INNER JOIN "project_users" "project_user" 
+                  FROM "users" "user"
+                  INNER JOIN "project_users" "project_user"
                     ON "user"."id_user" = "project_user"."user_id"
-                    AND "project_user"."project_id" = 5 
+                    AND "project_user"."project_id" = 5
                   ORDER BY "subquery_order_0" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
                   ) sub`,
             ].join(
@@ -316,8 +321,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             oracle: `SELECT "user".* FROM (${[
               `SELECT * FROM (
                 SELECT "user"."id_user" AS "id", "user"."last_name" AS "subquery_order_0", "project_user"."user_id" AS "project_user.userId", "project_user"."project_id" AS "project_user.projectId"
-                FROM "users" "user" 
-                INNER JOIN "project_users" "project_user" 
+                FROM "users" "user"
+                INNER JOIN "project_users" "project_user"
                   ON "user"."id_user" = "project_user"."user_id"
                   AND ("project_user"."project_id" = 1 AND "project_user"."status" = 1)
                 ORDER BY "subquery_order_0" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
@@ -326,7 +331,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                   SELECT "user"."id_user" AS "id", "user"."last_name" AS "subquery_order_0", "project_user"."user_id" AS "project_user.userId", "project_user"."project_id" AS "project_user.projectId"
                   FROM "users" "user"
                   INNER JOIN "project_users" "project_user"
-                    ON "user"."id_user" = "project_user"."user_id" 
+                    ON "user"."id_user" = "project_user"."user_id"
                     AND ("project_user"."project_id" = 5 AND "project_user"."status" = 1)
                   ORDER BY "subquery_order_0" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
                 ) sub`,
@@ -427,15 +432,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             oracle: `SELECT "user".* FROM (${[
               `SELECT * FROM (
                   SELECT "user"."id_user" AS "id", "user"."id_user" AS "subquery_order_0", "project_user"."user_id" AS "project_user.userId", "project_user"."project_id" AS "project_user.projectId"
-                  FROM "users" "user" 
+                  FROM "users" "user"
                   INNER JOIN "project_users" "project_user"
                     ON "user"."id_user" = "project_user"."user_id"
-                    AND "project_user"."project_id" = 1 WHERE "user"."age" >= 21 
+                    AND "project_user"."project_id" = 1 WHERE "user"."age" >= 21
                   ORDER BY "subquery_order_0" ASC OFFSET 0 ROWS FETCH NEXT 3 ROWS ONLY
                 ) sub`,
               `SELECT * FROM (
                   SELECT "user"."id_user" AS "id", "user"."id_user" AS "subquery_order_0", "project_user"."user_id" AS "project_user.userId", "project_user"."project_id" AS "project_user.projectId"
-                  FROM "users" "user" 
+                  FROM "users" "user"
                   INNER JOIN "project_users" "project_user"
                     ON "user"."id_user" = "project_user"."user_id"
                     AND "project_user"."project_id" = 5
@@ -745,7 +750,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
 
       expectsql(
-        sql.selectQuery(
+        queryGenerator.selectQuery(
           'User',
           {
             attributes: ['name', 'age'],
@@ -795,7 +800,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
 
       expectsql(
-        sql.selectQuery(
+        queryGenerator.selectQuery(
           'User',
           {
             attributes: ['name', 'age'],
@@ -852,7 +857,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       Project.belongsToMany(User, { through: ProjectUser });
 
       expectsql(
-        sql.selectQuery(
+        queryGenerator.selectQuery(
           'User',
           {
             attributes: ['id_user', 'id'],
@@ -896,15 +901,15 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                   "projects"."id" AS "projects.id",
                   "projects"."title" AS "projects.title",
                   "projects"."createdAt" AS "projects.createdAt",
-                  "projects"."updatedAt" AS "projects.updatedAt", 
+                  "projects"."updatedAt" AS "projects.updatedAt",
                   "projects->project_user"."user_id" AS "projects.project_user.userId",
                   "projects->project_user"."project_id" AS "projects.project_user.projectId"
-          FROM "User" "user" 
+          FROM "User" "user"
           ${current.dialect.supports['RIGHT JOIN'] ? 'RIGHT' : 'LEFT'} OUTER JOIN (
             "project_users" "projects->project_user"
             INNER JOIN "projects" "projects"
               ON "projects"."id" = "projects->project_user"."project_id"
-          ) 
+          )
             ON "user"."id_user" = "projects->project_user"."user_id"
             ORDER BY "projects->project_user"."user_id" ASC;`,
         },
@@ -943,7 +948,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         const { User } = vars;
 
         expectsql(
-          sql.selectQuery(
+          queryGenerator.selectQuery(
             'User',
             {
               table: User.table,
@@ -985,7 +990,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(
           () =>
-            sql.selectQuery(
+            queryGenerator.selectQuery(
               'User',
               {
                 table: User.table,
@@ -1013,7 +1018,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               'SELECT [User].* FROM ' +
               '(SELECT [User].[name], [User].[age], [User].[id], [postaliasname].[id] AS [postaliasname.id], [postaliasname].[title] AS [postaliasname.title] FROM [User] AS [User] ' +
               'INNER JOIN [Post] AS [postaliasname] ON [User].[id] = [postaliasname].[user_id] ' +
-              `WHERE [postaliasname].[title] = ${sql.escape('test')} AND EXISTS ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]) ) AS [User];`,
+              `WHERE [postaliasname].[title] = ${queryGenerator.escape('test')} AND EXISTS ( SELECT [user_id] FROM [Post] AS [postaliasname] WHERE [postaliasname].[user_id] = [User].[id]) ) AS [User];`,
             oracle:
               `SELECT "User".* FROM ` +
               `(SELECT "User"."name", "User"."age", "User"."id", "postaliasname"."id" AS "postaliasname.id", "postaliasname"."title" AS "postaliasname.title" FROM "User" "User" ` +
@@ -1046,7 +1051,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       Profession.Users = Profession.hasMany(User, { as: 'Users', foreignKey: 'professionId' });
 
       expectsql(
-        sql.selectQuery(
+        queryGenerator.selectQuery(
           'Company',
           {
             table: Company.table,
@@ -1083,7 +1088,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
-            `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
+            `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${queryGenerator.escape('test')}) AND ` +
             'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
             `WHERE [Users].[companyId] = [Company].[id] ) ORDER BY [Company].[id] LIMIT 5) AS [Company];`,
@@ -1092,7 +1097,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
-            `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
+            `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${queryGenerator.escape('test')}) AND ` +
             'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
             `WHERE [Users].[companyId] = [Company].[id] ) ` +
@@ -1102,7 +1107,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'SELECT [Company].[name], [Company].[public], [Company].[id] FROM [Company] AS [Company] ' +
             'INNER JOIN [Users] AS [Users] ON [Company].[id] = [Users].[companyId] ' +
             'INNER JOIN [Professions] AS [Users->profession] ON [Users].[professionId] = [Users->profession].[id] ' +
-            `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${sql.escape('test')}) AND ` +
+            `WHERE ([Company].[scopeId] IN (42) AND [Users->profession].[name] = ${queryGenerator.escape('test')}) AND ` +
             'EXISTS ( SELECT [Users].[companyId] FROM [Users] AS [Users] ' +
             'INNER JOIN [Professions] AS [profession] ON [Users].[professionId] = [profession].[id] ' +
             `WHERE [Users].[companyId] = [Company].[id] ) ` +
@@ -1135,7 +1140,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       expectsql(
-        sql.selectQuery(
+        queryGenerator.selectQuery(
           'User',
           {
             attributes: ['name', 'age', 'data'],
@@ -1162,7 +1167,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('attribute escaping', () => {
       it('plain attributes (1)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: [
               '* FROM [User];'
                 .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
@@ -1177,7 +1182,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('plain attributes (2)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: ['* FROM User; DELETE FROM User;SELECT id'],
           }),
           {
@@ -1189,7 +1194,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('plain attributes (3)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: [`a', * FROM User; DELETE FROM User;SELECT id`],
           }),
           {
@@ -1202,7 +1207,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('plain attributes (4)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: ['*, COUNT(*) FROM User; DELETE FROM User;SELECT id'],
           }),
           {
@@ -1214,7 +1219,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('aliased attributes (1)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: [
               // this is not wrapped in `literal()`, so it's a column name.
               // [ & ] will be escaped as [[ & ]]
@@ -1235,7 +1240,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('aliased attributes (2)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: [['* FROM User; DELETE FROM User;SELECT id', 'myCol']],
           }),
           {
@@ -1247,7 +1252,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('aliased attributes (3)', () => {
         expectsql(
-          sql.selectQuery('User', {
+          queryGenerator.selectQuery('User', {
             attributes: [['id', '* FROM User; DELETE FROM User;SELECT id']],
           }),
           {
@@ -1282,7 +1287,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
         expectsql(
-          sql.selectQuery(
+          queryGenerator.selectQuery(
             'User',
             {
               attributes: ['name', 'age'],
@@ -1314,7 +1319,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.selectQuery(
+          queryGenerator.selectQuery(
             'User',
             {
               attributes: ['name', 'age'],
@@ -1349,7 +1354,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         expectsql(
-          sql.selectQuery(
+          queryGenerator.selectQuery(
             'User',
             {
               attributes: ['name', 'age'],

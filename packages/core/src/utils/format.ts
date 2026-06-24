@@ -1,3 +1,4 @@
+import { pojo } from '@sequelize/utils';
 import forIn from 'lodash/forIn';
 import assert from 'node:assert';
 import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
@@ -89,7 +90,7 @@ export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames
   attributeNames: Iterable<string>,
   ModelClass: ModelStatic,
 ): Record<string, any> {
-  const values: Record<string, any> = Object.create(null);
+  const values = pojo<Record<string, any>>();
   const modelDefinition = ModelClass.modelDefinition;
 
   for (const attributeName of attributeNames) {
@@ -130,7 +131,7 @@ export function removeNullishValuesFromHash(
     return result;
   }
 
-  const _hash: { [key: string]: any } = Object.create(null);
+  const _hash = pojo<{ [key: string]: any }>();
 
   forIn(hash, (val: any, key: string) => {
     if (allowNull.includes(key) || key.endsWith('Id') || (val !== null && val !== undefined)) {

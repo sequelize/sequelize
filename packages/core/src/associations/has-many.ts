@@ -48,11 +48,11 @@ import {
  * In the API reference below, add the name of the association to the method, e.g. for `User.hasMany(Project)` the getter will be `user.getProjects()`.
  * If the association is aliased, use the alias instead, e.g. `User.hasMany(Project, { as: 'jobs' })` will be `user.getJobs()`.
  *
- * @typeParam S The model on which {@link Model.hasMany} has been called, on which the association methods will be added.
- * @typeParam T The model passed to {@link Model.hasMany}. This model will receive the Foreign Key attribute.
- * @typeParam SourceKey The name of the attribute that the foreign key in the target model will reference.
- * @typeParam TargetKey The name of the Foreign Key attribute on the Target model.
- * @typeParam TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasManySetAssociationsMixin} & others.
+ * @template S The model on which {@link Model.hasMany} has been called, on which the association methods will be added.
+ * @template T The model passed to {@link Model.hasMany}. This model will receive the Foreign Key attribute.
+ * @template SourceKey The name of the attribute that the foreign key in the target model will reference.
+ * @template TargetKey The name of the Foreign Key attribute on the Target model.
+ * @template TargetPrimaryKey The name of the Primary Key attribute of the Target model. Used by {@link HasManySetAssociationsMixin} & others.
  */
 // Note: this class is named HasManyAssociation instead of HasMany to prevent naming conflicts with the HasMany decorator
 export class HasManyAssociation<

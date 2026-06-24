@@ -10,6 +10,7 @@ import {
   UnknownConstraintError,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { pojo } from '@sequelize/utils';
 
 const debug = logger.debugContext('sql:ibmi');
 
@@ -166,7 +167,7 @@ export class IBMiQuery extends AbstractQuery {
   }
 
   handleShowIndexesQuery(data) {
-    const indexes = Object.create(null);
+    const indexes = pojo();
 
     data.forEach(item => {
       if (Object.hasOwn(indexes, item.NAME)) {

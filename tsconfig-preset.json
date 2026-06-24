@@ -5,6 +5,7 @@
     "moduleResolution": "nodenext",
     "allowJs": false,
     "declaration": true,
+    "declarationMap": true,
     "sourceRoot": "",
     "outDir": "./lib",
     "strict": true,

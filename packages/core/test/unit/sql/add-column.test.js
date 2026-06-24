@@ -5,7 +5,7 @@ const { DataTypes } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
+const queryGenerator = current.dialect.queryGenerator;
 
 const customSequelize = Support.createSequelizeInstance({
   schema: 'custom',
@@ -19,7 +19,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     if (['mysql', 'mariadb'].includes(current.dialect.name)) {
       it('properly generate alter queries', () => {
         return expectsql(
-          sql.addColumnQuery(
+          queryGenerator.addColumnQuery(
             User.table,
             'level_id',
             current.normalizeAttribute({
@@ -36,7 +36,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('properly generate alter queries for foreign keys', () => {
         return expectsql(
-          sql.addColumnQuery(
+          queryGenerator.addColumnQuery(
             User.table,
             'level_id',
             current.normalizeAttribute({
@@ -60,7 +60,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('properly generate alter queries with FIRST', () => {
         return expectsql(
-          sql.addColumnQuery(
+          queryGenerator.addColumnQuery(
             User.table,
             'test_added_col_first',
             current.normalizeAttribute({
@@ -77,7 +77,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       it('properly generates alter queries with column level comment', () => {
         return expectsql(
-          sql.addColumnQuery(
+          queryGenerator.addColumnQuery(
             User.table,
             'column_with_comment',
             current.normalizeAttribute({

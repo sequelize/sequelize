@@ -63,6 +63,10 @@ describe('Utils', () => {
         sql.identifier('foo'),
         sql.jsonPath(sql.attribute('foo'), ['foo']),
         sql.list(['a', 'b']),
+        sql.uuidV1,
+        sql.uuidV4,
+        sql.uuidV7,
+        sql.random,
       ];
 
       const clone = cloneDeep(obj);
