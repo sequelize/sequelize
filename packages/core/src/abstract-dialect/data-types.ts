@@ -1774,6 +1774,71 @@ export interface BlobOptions {
  * @category DataTypes
  */
 // TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
+
+export interface VarbinaryOptions {
+  length?: number;
+}
+
+export class VARBINARY extends AbstractDataType<Buffer | string> {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'VARBINARY';
+  readonly options: VarbinaryOptions;
+
+  constructor(lengthOrOptions?: number | VarbinaryOptions) {
+    super();
+
+    if (typeof lengthOrOptions === 'object') {
+      this.options = { length: lengthOrOptions.length };
+    } else {
+      this.options = { length: lengthOrOptions };
+    }
+  }
+
+  toSql(): string {
+    return `VARBINARY(${this.options.length ?? 255})`;
+  }
+
+  validate(value: any): asserts value is Buffer | string {
+    if (Buffer.isBuffer(value)) {
+      return;
+    }
+
+    if (typeof value === 'string') {
+      return;
+    }
+
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return;
+    }
+
+    ValidationErrorItem.throwDataTypeValidationError(
+      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
+    );
+  }
+
+  sanitize(value: unknown): unknown {
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return makeBufferFromTypedArray(value);
+    }
+
+    if (typeof value === 'string') {
+      return Buffer.from(value);
+    }
+
+    return value;
+  }
+
+  escape(value: string | Buffer): string {
+    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+
+    return this._getDialect().escapeBuffer(buf);
+  }
+
+  toBindableValue(value: Buffer | string): unknown {
+    return this.sanitize(value);
+  }
+}
+
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   /** @hidden */
   static readonly [DataTypeIdentifier]: string = 'BLOB';
