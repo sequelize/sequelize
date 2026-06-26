@@ -1811,6 +1811,8 @@ export class VARBINARY extends AbstractDataType<Buffer | string> {
       return;
     }
 
+    rejectBlobs(value);
+
     ValidationErrorItem.throwDataTypeValidationError(
       `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
     );
