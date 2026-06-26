@@ -163,7 +163,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     let JsonUser;
 
     beforeEach(() => {
-      JsonUser = Support.sequelize.define(`JsonUser${Math.random().toString(36).slice(2)}`, {
+      JsonUser = Support.sequelize.define('JsonUser', {
         data: {
           type: DataTypes.STRING,
           validate: {
@@ -186,6 +186,14 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     it('accepts a non-empty JSON array string when isJSON is true', async () => {
       const instance = JsonUser.build({ data: '[1,2,3]' });
       await expect(instance.validate()).not.to.be.rejected;
+    });
+
+    it('rejects JSON primitive values when isJSON is true with default options', async () => {
+      const instance = JsonUser.build({ data: '123' });
+      await expect(instance.validate()).to.be.rejectedWith(
+        SequelizeValidationError,
+        /isJSON/,
+      );
     });
 
     it('rejects an invalid JSON string when isJSON is true', async () => {
