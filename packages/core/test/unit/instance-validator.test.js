@@ -81,7 +81,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       await expect(result).to.be.rejectedWith(
         SequelizeValidationError,
-        /user\.name cannot be null/,
+        /user\\.name cannot be null/,
       );
     });
   });
@@ -156,6 +156,57 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const err = await expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected;
         expect(err.message).to.equal('validation failed hook error');
       });
+    });
+  });
+
+  describe('isJSON validator regression (validator.js v13+)', () => {
+    let JsonUser;
+
+    beforeEach(() => {
+      JsonUser = Support.sequelize.define('JsonUser', {
+        data: {
+          type: DataTypes.STRING,
+          validate: {
+            isJSON: true,
+          },
+        },
+      });
+    });
+
+    it('accepts a valid JSON object string when isJSON is true', async () => {
+      const instance = JsonUser.build({ data: '{"key":"value"}' });
+      await expect(instance.validate()).not.to.be.rejected;
+    });
+
+    it('accepts a valid JSON array string when isJSON is true', async () => {
+      const instance = JsonUser.build({ data: '[]' });
+      await expect(instance.validate()).not.to.be.rejected;
+    });
+
+    it('accepts a non-empty JSON array string when isJSON is true', async () => {
+      const instance = JsonUser.build({ data: '[1,2,3]' });
+      await expect(instance.validate()).not.to.be.rejected;
+    });
+
+    it('rejects JSON primitive values when isJSON is true with default options', async () => {
+      const instance = JsonUser.build({ data: '123' });
+      await expect(instance.validate()).to.be.rejectedWith(
+        SequelizeValidationError,
+        /isJSON/,
+      );
+    });
+
+    it('rejects an invalid JSON string when isJSON is true', async () => {
+      const instance = JsonUser.build({ data: 'not-json' });
+      await expect(instance.validate()).to.be.rejectedWith(
+        SequelizeValidationError,
+        /isJSON/,
+      );
+    });
+
+    it('does not throw a TypeError when isJSON is set to true (regression for validator.js v13+)', async () => {
+      const instance = JsonUser.build({ data: '{"valid":true}' });
+      await expect(instance.validate()).not.to.be.rejected;
     });
   });
 });

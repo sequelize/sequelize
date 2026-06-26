@@ -174,6 +174,12 @@ describe('InstanceValidator', () => {
         fail: '401288888888188f',
         pass: '4012888888881881',
       },
+      isJSON: {
+        // Both objects and arrays are valid JSON; primitives are not accepted by default.
+        // Empty arrays ([]) are also valid JSON and must not be rejected.
+        fail: 'not-json',
+        pass: '{"key":"value"}',
+      },
     };
 
     const applyFailTest = function applyFailTest(validatorDetails, i, validator) {
