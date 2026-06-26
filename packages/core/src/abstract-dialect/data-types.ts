@@ -485,9 +485,8 @@ export class STRING extends AbstractDataType<string | Buffer> {
   }
 
   escape(value: string | Buffer): string {
-    if (Buffer.isBuffer(value)) {
-      return this._getDialect().escapeBuffer(value);
-    }
+    return this._getDialect().escapeBuffer(this.sanitize(value) as Buffer);
+  }
 
     return this._getDialect().escapeString(value);
   }
@@ -1779,7 +1778,7 @@ export interface VarbinaryOptions {
   length?: number;
 }
 
-export class VARBINARY extends AbstractDataType<Buffer | string> {
+export class VARBINARY extends AbstractDataType<Buffer | string | Uint8Array | ArrayBuffer> {
   /** @hidden */
   static readonly [DataTypeIdentifier]: string = 'VARBINARY';
   readonly options: VarbinaryOptions;
@@ -1798,7 +1797,7 @@ export class VARBINARY extends AbstractDataType<Buffer | string> {
     return `VARBINARY(${this.options.length ?? 255})`;
   }
 
-  validate(value: any): asserts value is Buffer | string {
+  validate(value: any): asserts value is Buffer | string | Uint8Array | ArrayBuffer {
     if (Buffer.isBuffer(value)) {
       return;
     }
@@ -1831,12 +1830,10 @@ export class VARBINARY extends AbstractDataType<Buffer | string> {
   }
 
   escape(value: string | Buffer): string {
-    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
-
-    return this._getDialect().escapeBuffer(buf);
+    return this._getDialect().escapeBuffer(this.sanitize(value) as Buffer);
   }
 
-  toBindableValue(value: Buffer | string): unknown {
+  toBindableValue(value: Buffer | string | Uint8Array | ArrayBuffer): unknown {
     return this.sanitize(value);
   }
 }
