@@ -1746,7 +1746,7 @@ export class NOW extends AbstractDataType<never> {
   }
 }
 
-export type AcceptedBlob = Buffer | string;
+export type AcceptedBlob = Buffer | string | Uint8Array | ArrayBuffer;
 
 export type BlobLength = 'tiny' | 'medium' | 'long';
 
@@ -1898,10 +1898,14 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return value;
   }
 
-  escape(value: string | Buffer) {
-    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+  escape(value: string | Buffer | Uint8Array | ArrayBuffer) {
+    const buf = this.sanitize(value) as Buffer;
 
     return this._getDialect().escapeBuffer(buf);
+  }
+
+  toBindableValue(value: AcceptedBlob): unknown {
+    return this.sanitize(value);
   }
 
   getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
