@@ -25,69 +25,16 @@ import { randomBytes } from 'node:crypto';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryGeneratorInternal } from './query-generator.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
+import {
+  findSqlClosingParenthesis,
+  findSqlOpeningParenthesis,
+  getSqlColumnName,
+} from './sqlite-schema-parser.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>([
   'restartIdentity',
 ]);
-
-function findClosingParenthesis(sql: string, openingParenthesis: number): number {
-  let depth = 0;
-  let closingQuote: string | undefined;
-  let inLineComment = false;
-  let inBlockComment = false;
-
-  for (let index = openingParenthesis; index < sql.length; index++) {
-    const character = sql[index];
-
-    if (inLineComment) {
-      if (character === '\n' || character === '\r') {
-        inLineComment = false;
-      }
-
-      continue;
-    }
-
-    if (inBlockComment) {
-      if (character === '*' && sql[index + 1] === '/') {
-        inBlockComment = false;
-        index++;
-      }
-
-      continue;
-    }
-
-    if (closingQuote) {
-      if (character === closingQuote) {
-        if (sql[index + 1] === closingQuote) {
-          index++;
-        } else {
-          closingQuote = undefined;
-        }
-      }
-
-      continue;
-    }
-
-    if (character === '-' && sql[index + 1] === '-') {
-      inLineComment = true;
-      index++;
-    } else if (character === '/' && sql[index + 1] === '*') {
-      inBlockComment = true;
-      index++;
-    } else if (character === "'" || character === '"' || character === '`') {
-      closingQuote = character;
-    } else if (character === '[') {
-      closingQuote = ']';
-    } else if (character === '(') {
-      depth++;
-    } else if (character === ')' && --depth === 0) {
-      return index;
-    }
-  }
-
-  return -1;
-}
 
 function replaceCreateTableName(createTableSql: string, replacement: string): string {
   const tableName =
@@ -107,8 +54,8 @@ function splitColumnDefinitions(createTableSql: string): {
   definitions: string[];
   openingParenthesis: number;
 } {
-  const openingParenthesis = createTableSql.indexOf('(');
-  const closingParenthesis = findClosingParenthesis(createTableSql, openingParenthesis);
+  const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
+  const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
   if (openingParenthesis === -1 || closingParenthesis === -1) {
     throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
   }
@@ -177,39 +124,6 @@ function splitColumnDefinitions(createTableSql: string): {
   return { closingParenthesis, definitions, openingParenthesis };
 }
 
-function getColumnName(definition: string): string | undefined {
-  let start = 0;
-  while (/\s/.test(definition[start] ?? '')) {
-    start++;
-  }
-
-  const openingQuote = definition[start];
-  const closingQuote = openingQuote === '[' ? ']' : openingQuote;
-  if (
-    openingQuote === '`' ||
-    openingQuote === '"' ||
-    openingQuote === "'" ||
-    openingQuote === '['
-  ) {
-    let columnName = '';
-    for (let index = start + 1; index < definition.length; index++) {
-      const character = definition[index];
-      if (character !== closingQuote) {
-        columnName += character;
-      } else if (definition[index + 1] === closingQuote) {
-        columnName += closingQuote;
-        index++;
-      } else {
-        return columnName;
-      }
-    }
-
-    return undefined;
-  }
-
-  return /^([^\s]+)/.exec(definition.slice(start))?.[1];
-}
-
 function replaceColumnDefinitions(
   createTableSql: string,
   replacements: ReadonlyMap<string, string | undefined>,
@@ -217,7 +131,7 @@ function replaceColumnDefinitions(
   const { closingParenthesis, definitions, openingParenthesis } =
     splitColumnDefinitions(createTableSql);
   const replacedDefinitions = definitions.flatMap(definition => {
-    const columnName = getColumnName(definition)?.toLowerCase();
+    const columnName = getSqlColumnName(definition)?.toLowerCase();
     if (!columnName || !replacements.has(columnName)) {
       return [definition];
     }
@@ -487,8 +401,8 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     );
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
-    const openingParenthesis = createTableSql.indexOf('(');
-    const closingParenthesis = findClosingParenthesis(createTableSql, openingParenthesis);
+    const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
+    const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
 
     if (openingParenthesis === -1 || closingParenthesis === -1) {
       throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);

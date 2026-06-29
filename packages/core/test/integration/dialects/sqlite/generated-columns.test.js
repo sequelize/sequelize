@@ -16,6 +16,7 @@ if (Support.getTestDialect() === 'sqlite3') {
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp_audit`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_fts`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_(test`');
       await this.sequelize.queryInterface.dropTable(tableName);
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_audit`');
     });
@@ -431,6 +432,37 @@ if (Support.getTestDialect() === 'sqlite3') {
       );
 
       expect(description).to.have.all.keys('content');
+    });
+
+    it('parses generated clauses outside comments and quoted table names', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      const unusualTableName = 'generated_columns_(test';
+      await this.sequelize.query(`
+        CREATE TABLE "${unusualTableName}" (
+          "value" INTEGER,
+          "doubled" INTEGER CHECK (CAST("value" AS INTEGER) > 0 /* AS (wrong) */)
+            GENERATED ALWAYS AS ("value" * 2) STORED,
+          /* leading column comment */ "obsolete" TEXT
+        )
+      `);
+      await this.sequelize.query(
+        `INSERT INTO "${unusualTableName}" ("value", "obsolete") VALUES (3, 'remove')`,
+      );
+
+      const description = await queryInterface.describeTable(unusualTableName);
+      expect(description.doubled.generatedAs.val.join('')).to.equal('"value" * 2');
+
+      await queryInterface.removeColumn(unusualTableName, 'obsolete');
+      expect(await queryInterface.describeTable(unusualTableName)).not.to.have.property('obsolete');
+
+      await queryInterface.addColumn(unusualTableName, 'tripled', {
+        type: DataTypes.INTEGER,
+        generatedAs: sql.literal('"value" * 3'),
+      });
+
+      expect(await queryInterface.select(null, unusualTableName, {})).to.deep.equal([
+        { value: 3, doubled: 6, tripled: 9 },
+      ]);
     });
 
     it('preserves a generated column when rebuilding for an unrelated column', async function () {

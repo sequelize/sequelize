@@ -32,73 +32,20 @@ import semver from 'semver';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
-
-function findClosingParenthesis(sql: string, openingParenthesis: number): number {
-  let depth = 0;
-  let closingQuote: string | undefined;
-  let inLineComment = false;
-  let inBlockComment = false;
-
-  for (let index = openingParenthesis; index < sql.length; index++) {
-    const character = sql[index];
-
-    if (inLineComment) {
-      if (character === '\n' || character === '\r') {
-        inLineComment = false;
-      }
-
-      continue;
-    }
-
-    if (inBlockComment) {
-      if (character === '*' && sql[index + 1] === '/') {
-        inBlockComment = false;
-        index++;
-      }
-
-      continue;
-    }
-
-    if (closingQuote) {
-      if (character === closingQuote) {
-        // SQL escapes quoted content by doubling the closing quote.
-        if (sql[index + 1] === closingQuote) {
-          index++;
-        } else {
-          closingQuote = undefined;
-        }
-      }
-
-      continue;
-    }
-
-    if (character === '-' && sql[index + 1] === '-') {
-      inLineComment = true;
-      index++;
-    } else if (character === '/' && sql[index + 1] === '*') {
-      inBlockComment = true;
-      index++;
-    } else if (character === "'" || character === '"' || character === '`') {
-      closingQuote = character;
-    } else if (character === '[') {
-      closingQuote = ']';
-    } else if (character === '(') {
-      depth++;
-    } else if (character === ')' && --depth === 0) {
-      return index;
-    }
-  }
-
-  return -1;
-}
+import {
+  findSqlClosingParenthesis,
+  findSqlOpeningParenthesis,
+  findSqlTokenOpeningParenthesis,
+  getSqlColumnName,
+} from './sqlite-schema-parser.js';
 
 function splitColumnDefinitions(createTableSql: string): string[] {
-  const openingParenthesis = createTableSql.indexOf('(');
+  const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
   if (openingParenthesis === -1) {
     return [];
   }
 
-  const closingParenthesis = findClosingParenthesis(createTableSql, openingParenthesis);
+  const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
   if (closingParenthesis === -1) {
     return [];
   }
@@ -167,91 +114,21 @@ function splitColumnDefinitions(createTableSql: string): string[] {
   return definitions;
 }
 
-function getColumnName(definition: string): string | undefined {
-  let start = 0;
-  while (start < definition.length) {
-    if (/\s/.test(definition[start])) {
-      start++;
-      continue;
-    }
-
-    if (definition[start] === '-' && definition[start + 1] === '-') {
-      const lineEnd = definition.indexOf('\n', start + 2);
-      start = lineEnd === -1 ? definition.length : lineEnd + 1;
-      continue;
-    }
-
-    if (definition[start] === '/' && definition[start + 1] === '*') {
-      const commentEnd = definition.indexOf('*/', start + 2);
-      start = commentEnd === -1 ? definition.length : commentEnd + 2;
-      continue;
-    }
-
-    break;
-  }
-
-  const firstCharacter = definition[start];
-  if (firstCharacter === '`' || firstCharacter === '"' || firstCharacter === "'") {
-    let columnName = '';
-    for (let index = start + 1; index < definition.length; index++) {
-      const character = definition[index];
-      if (character !== firstCharacter) {
-        columnName += character;
-        continue;
-      }
-
-      if (definition[index + 1] === firstCharacter) {
-        columnName += firstCharacter;
-        index++;
-        continue;
-      }
-
-      return columnName;
-    }
-
-    return undefined;
-  }
-
-  if (firstCharacter === '[') {
-    let columnName = '';
-    for (let index = start + 1; index < definition.length; index++) {
-      const character = definition[index];
-      if (character !== ']') {
-        columnName += character;
-        continue;
-      }
-
-      if (definition[index + 1] === ']') {
-        columnName += ']';
-        index++;
-        continue;
-      }
-
-      return columnName;
-    }
-
-    return undefined;
-  }
-
-  return /^([^\s]+)/.exec(definition.slice(start))?.[1];
-}
-
 function parseGeneratedExpressions(createTableSql: string): Map<string, string> {
   const expressions = new Map<string, string>();
 
   for (const definition of splitColumnDefinitions(createTableSql)) {
-    const columnName = getColumnName(definition);
+    const columnName = getSqlColumnName(definition);
     if (!columnName) {
       continue;
     }
 
-    const generatedAs = /\b(?:GENERATED\s+ALWAYS\s+)?AS\s*\(/i.exec(definition);
-    if (!generatedAs) {
+    const openingParenthesis = findSqlTokenOpeningParenthesis(definition, 'AS');
+    if (openingParenthesis === -1) {
       continue;
     }
 
-    const openingParenthesis = generatedAs.index + generatedAs[0].lastIndexOf('(');
-    const closingParenthesis = findClosingParenthesis(definition, openingParenthesis);
+    const closingParenthesis = findSqlClosingParenthesis(definition, openingParenthesis);
     if (closingParenthesis === -1) {
       continue;
     }
