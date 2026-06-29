@@ -77,6 +77,8 @@ export const GEOMETRY = classToInvokable(DataTypes.GEOMETRY);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const GEOGRAPHY = classToInvokable(DataTypes.GEOGRAPHY);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
+export const VARBINARY = classToInvokable(DataTypes.VARBINARY);
+/** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const CIDR = classToInvokable(DataTypes.CIDR);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const INET = classToInvokable(DataTypes.INET);

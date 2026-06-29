@@ -485,11 +485,13 @@ export class STRING extends AbstractDataType<string | Buffer> {
   }
 
   escape(value: string | Buffer): string {
-    if (Buffer.isBuffer(value)) {
-      return this._getDialect().escapeBuffer(value);
+    const sanitized = this.sanitize(value);
+
+    if (this.options.binary) {
+      return this._getDialect().escapeBuffer(sanitized as Buffer);
     }
 
-    return this._getDialect().escapeString(value);
+    return this._getDialect().escapeString(sanitized as string);
   }
 
   toBindableValue(value: string | Buffer): unknown {
@@ -1747,7 +1749,7 @@ export class NOW extends AbstractDataType<never> {
   }
 }
 
-export type AcceptedBlob = Buffer | string;
+export type AcceptedBlob = Buffer | string | Uint8Array | ArrayBuffer;
 
 export type BlobLength = 'tiny' | 'medium' | 'long';
 
@@ -1774,6 +1776,71 @@ export interface BlobOptions {
  * @category DataTypes
  */
 // TODO: add FIXED_BINARY & VAR_BINARY data types. They are not the same as CHAR BINARY / VARCHAR BINARY.
+
+export interface VarbinaryOptions {
+  length?: number;
+}
+
+export class VARBINARY extends AbstractDataType<Buffer | string | Uint8Array | ArrayBuffer> {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'VARBINARY';
+  readonly options: VarbinaryOptions;
+
+  constructor(lengthOrOptions?: number | VarbinaryOptions) {
+    super();
+
+    if (typeof lengthOrOptions === 'object') {
+      this.options = { length: lengthOrOptions.length };
+    } else {
+      this.options = { length: lengthOrOptions };
+    }
+  }
+
+  toSql(): string {
+    return `VARBINARY(${this.options.length ?? 255})`;
+  }
+
+  validate(value: any): asserts value is Buffer | string | Uint8Array | ArrayBuffer {
+    if (Buffer.isBuffer(value)) {
+      return;
+    }
+
+    if (typeof value === 'string') {
+      return;
+    }
+
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return;
+    }
+
+    rejectBlobs(value);
+
+    ValidationErrorItem.throwDataTypeValidationError(
+      `${util.inspect(value)} is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.`,
+    );
+  }
+
+  sanitize(value: unknown): unknown {
+    if (value instanceof Uint8Array || value instanceof ArrayBuffer) {
+      return makeBufferFromTypedArray(value);
+    }
+
+    if (typeof value === 'string') {
+      return Buffer.from(value);
+    }
+
+    return value;
+  }
+
+  escape(value: Buffer | string | Uint8Array | ArrayBuffer): string {
+    return this._getDialect().escapeBuffer(this.sanitize(value) as Buffer);
+  }
+
+  toBindableValue(value: Buffer | string | Uint8Array | ArrayBuffer): unknown {
+    return this.sanitize(value);
+  }
+}
+
 export class BLOB extends AbstractDataType<AcceptedBlob> {
   /** @hidden */
   static readonly [DataTypeIdentifier]: string = 'BLOB';
@@ -1834,14 +1901,18 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return value;
   }
 
-  escape(value: string | Buffer) {
-    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+  escape(value: string | Buffer | Uint8Array | ArrayBuffer) {
+    const buf = this.sanitize(value) as Buffer;
 
     return this._getDialect().escapeBuffer(buf);
   }
 
+  toBindableValue(value: AcceptedBlob): unknown {
+    return this.sanitize(value);
+  }
+
   getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
-    return options.bindParam(value);
+    return options.bindParam(this.toBindableValue(value));
   }
 }
 
