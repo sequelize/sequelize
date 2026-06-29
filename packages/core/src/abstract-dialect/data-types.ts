@@ -485,10 +485,13 @@ export class STRING extends AbstractDataType<string | Buffer> {
   }
 
   escape(value: string | Buffer): string {
-    return this._getDialect().escapeBuffer(this.sanitize(value) as Buffer);
-  }
+    const sanitized = this.sanitize(value);
 
-    return this._getDialect().escapeString(value);
+    if (this.options.binary) {
+      return this._getDialect().escapeBuffer(sanitized as Buffer);
+    }
+
+    return this._getDialect().escapeString(sanitized as string);
   }
 
   toBindableValue(value: string | Buffer): unknown {
@@ -1829,7 +1832,7 @@ export class VARBINARY extends AbstractDataType<Buffer | string | Uint8Array | A
     return value;
   }
 
-  escape(value: string | Buffer): string {
+  escape(value: Buffer | string | Uint8Array | ArrayBuffer): string {
     return this._getDialect().escapeBuffer(this.sanitize(value) as Buffer);
   }
 
@@ -1909,7 +1912,7 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
   }
 
   getBindParamSql(value: AcceptedBlob, options: BindParamOptions) {
-    return options.bindParam(value);
+    return options.bindParam(this.toBindableValue(value));
   }
 }
 
