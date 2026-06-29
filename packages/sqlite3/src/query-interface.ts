@@ -608,11 +608,17 @@ export class SqliteQueryInterface<
       type: QueryTypes.SELECT,
     });
 
-    if (!describeCreateTable.length || !('sql' in describeCreateTable[0])) {
+    const createTableRow = describeCreateTable.find(
+      row =>
+        'sql' in row &&
+        typeof row.sql === 'string' &&
+        /^CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\b/i.test(row.sql),
+    );
+    if (!createTableRow || !('sql' in createTableRow)) {
       throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
+    const { sql: createTableSql } = createTableRow as { sql: string };
     const match =
       /CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:(?:`|'|")(\S+)(?:`|'|")|([^\s(]+))\s+\(([\s\S]+)\)/i.exec(
         createTableSql,

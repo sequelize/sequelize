@@ -406,7 +406,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     createTableSql?: string,
     replacedColumnNames: readonly string[] = [],
     autoincrementHighWater?: number,
-    views: ReadonlyArray<{ name: string; sql: string }> = [],
+    views: ReadonlyArray<{ name: string; schemaName: 'main' | 'temp'; sql: string }> = [],
     viewTriggerSql: readonly string[] = [],
   ) {
     const table = this.extractTableDetails(tableName);
@@ -450,7 +450,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const queries = [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
-      ...views.map(view => `DROP VIEW ${this.quoteIdentifier(view.name)};`),
+      ...views.map(
+        view =>
+          `DROP VIEW ${this.quoteIdentifier(view.schemaName)}.${this.quoteIdentifier(view.name)};`,
+      ),
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
       ...views.map(view => view.sql),
@@ -473,7 +476,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     columnDefinition: string,
     copiedColumnNames: readonly string[],
     schemaObjectSql: readonly string[],
-    views: ReadonlyArray<{ name: string; sql: string }>,
+    views: ReadonlyArray<{ name: string; schemaName: 'main' | 'temp'; sql: string }>,
     viewTriggerSql: readonly string[],
     autoincrementHighWater?: number,
   ) {
@@ -497,7 +500,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const queries = [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} (${copiedColumns}) SELECT ${copiedColumns} FROM ${quotedTableName};`,
-      ...views.map(view => `DROP VIEW ${this.quoteIdentifier(view.name)};`),
+      ...views.map(
+        view =>
+          `DROP VIEW ${this.quoteIdentifier(view.schemaName)}.${this.quoteIdentifier(view.name)};`,
+      ),
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${this.quoteIdentifier(table.tableName)};`,
       ...views.map(view => view.sql),

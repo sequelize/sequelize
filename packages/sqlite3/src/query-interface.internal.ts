@@ -6,6 +6,9 @@ import type { SqliteDialect } from './dialect.js';
 import type { SqliteQueryGenerator } from './query-generator.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 
+type SqliteSchemaCatalog = 'sqlite_master' | 'sqlite_temp_master';
+type SqliteSchemaName = 'main' | 'temp';
+
 export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   constructor(readonly dialect: SqliteDialect) {
     super(dialect);
@@ -17,6 +20,55 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
 
   get #queryGenerator(): SqliteQueryGenerator {
     return this.dialect.queryGenerator;
+  }
+
+  async #getViewsForTableRebuild(
+    schemaCatalog: SqliteSchemaCatalog,
+    options: QueryRawOptions,
+  ): Promise<{
+    triggers: string[];
+    views: Array<{ name: string; schemaName: SqliteSchemaName; sql: string }>;
+  }> {
+    const schemas: Array<{ catalog: SqliteSchemaCatalog; name: SqliteSchemaName }> =
+      schemaCatalog === 'sqlite_master'
+        ? [
+            { catalog: 'sqlite_master', name: 'main' },
+            { catalog: 'sqlite_temp_master', name: 'temp' },
+          ]
+        : [{ catalog: 'sqlite_temp_master', name: 'temp' }];
+    const schemaObjects = await Promise.all(
+      schemas.map(async schema => {
+        const views = await this.#sequelize.queryRaw<{ name: string; sql: string }>(
+          `SELECT name, sql FROM ${schema.catalog} WHERE type = 'view' AND sql IS NOT NULL ORDER BY rowid`,
+          { ...options, type: QueryTypes.SELECT },
+        );
+        const triggers = await this.#sequelize.queryRaw<{ sql: string }>(
+          `SELECT sql FROM ${schema.catalog} WHERE type = 'trigger' AND tbl_name IN (SELECT name FROM ${schema.catalog} WHERE type = 'view') AND sql IS NOT NULL ORDER BY rowid`,
+          { ...options, type: QueryTypes.SELECT },
+        );
+
+        return {
+          triggers: triggers.map(trigger => {
+            return schema.name === 'temp'
+              ? trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER')
+              : trigger.sql;
+          }),
+          views: views.map(view => ({
+            ...view,
+            schemaName: schema.name,
+            sql:
+              schema.name === 'temp'
+                ? view.sql.replace(/^CREATE\s+VIEW\b/i, 'CREATE TEMP VIEW')
+                : view.sql,
+          })),
+        };
+      }),
+    );
+
+    return {
+      triggers: schemaObjects.flatMap(schema => schema.triggers),
+      views: schemaObjects.flatMap(schema => schema.views),
+    };
   }
 
   async #assertCanRebuildTableInTransaction(
@@ -39,8 +91,8 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
     const table = this.#queryGenerator.extractTableDetails(tableName);
     const escapedTableName = this.#queryGenerator.escape(table.tableName);
     const [tableSchema] = await this.#sequelize.queryRaw<{
-      catalog: 'sqlite_master' | 'sqlite_temp_master';
-      schemaName: 'main' | 'temp';
+      catalog: SqliteSchemaCatalog;
+      schemaName: SqliteSchemaName;
     }>(
       `SELECT 'sqlite_temp_master' AS catalog, 'temp' AS schemaName FROM sqlite_temp_master WHERE type = 'table' AND name = ${escapedTableName} UNION ALL SELECT 'sqlite_master' AS catalog, 'main' AS schemaName FROM sqlite_master WHERE type = 'table' AND name = ${escapedTableName}`,
       { ...options, type: QueryTypes.SELECT },
@@ -93,7 +145,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
         },
         async transaction => {
           const [createTableRow] = await this.#sequelize.queryRaw<{
-            schemaCatalog: 'sqlite_master' | 'sqlite_temp_master';
+            schemaCatalog: SqliteSchemaCatalog;
             sql: string;
           }>(
             `SELECT sql, 'sqlite_temp_master' AS schemaCatalog FROM sqlite_temp_master WHERE type = 'table' AND name = ${escapedTableName} UNION ALL SELECT sql, 'sqlite_master' AS schemaCatalog FROM sqlite_master WHERE type = 'table' AND name = ${escapedTableName}`,
@@ -115,13 +167,16 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             `SELECT sql FROM ${createTableRow.schemaCatalog} WHERE tbl_name = ${escapedTableName} AND type IN ('index', 'trigger') AND sql IS NOT NULL ORDER BY rowid`,
             { ...options, transaction, type: QueryTypes.SELECT },
           );
-          const views = await this.#sequelize.queryRaw<{ name: string; sql: string }>(
-            `SELECT name, sql FROM ${createTableRow.schemaCatalog} WHERE type = 'view' AND sql IS NOT NULL ORDER BY rowid`,
-            { ...options, transaction, type: QueryTypes.SELECT },
-          );
-          const viewTriggers = await this.#sequelize.queryRaw<{ sql: string }>(
-            `SELECT sql FROM ${createTableRow.schemaCatalog} WHERE type = 'trigger' AND tbl_name IN (SELECT name FROM ${createTableRow.schemaCatalog} WHERE type = 'view') AND sql IS NOT NULL ORDER BY rowid`,
-            { ...options, transaction, type: QueryTypes.SELECT },
+          const temporaryTableTriggers =
+            createTableRow.schemaCatalog === 'sqlite_master'
+              ? await this.#sequelize.queryRaw<{ sql: string }>(
+                  `SELECT sql FROM sqlite_temp_master WHERE tbl_name = ${escapedTableName} AND type = 'trigger' AND sql IS NOT NULL ORDER BY rowid`,
+                  { ...options, transaction, type: QueryTypes.SELECT },
+                )
+              : [];
+          const { triggers: viewTriggers, views } = await this.#getViewsForTableRebuild(
+            createTableRow.schemaCatalog,
+            { ...options, transaction },
           );
           let autoincrementHighWater: number | undefined;
 
@@ -152,28 +207,20 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             createTableRow.schemaCatalog === 'sqlite_temp_master'
               ? createTableRow.sql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
               : createTableRow.sql;
-          const recreatedViews =
-            createTableRow.schemaCatalog === 'sqlite_temp_master'
-              ? views.map(view => ({
-                  ...view,
-                  sql: view.sql.replace(/^CREATE\s+VIEW\b/i, 'CREATE TEMP VIEW'),
-                }))
-              : views;
-          const recreatedViewTriggers =
-            createTableRow.schemaCatalog === 'sqlite_temp_master'
-              ? viewTriggers.map(trigger =>
-                  trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
-                )
-              : viewTriggers.map(trigger => trigger.sql);
           const queries = this.#queryGenerator._addColumnToTableQuery(
             tableName,
             createTableSql,
             physicalColumnName,
             columnDefinition,
             copiedColumnNames,
-            schemaObjects.map(schemaObject => schemaObject.sql),
-            recreatedViews,
-            recreatedViewTriggers,
+            [
+              ...schemaObjects.map(schemaObject => schemaObject.sql),
+              ...temporaryTableTriggers.map(trigger =>
+                trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
+              ),
+            ],
+            views,
+            viewTriggers,
             autoincrementHighWater,
           );
           await this.executeQueriesSequentially(queries, { ...options, transaction, raw: true });
@@ -220,7 +267,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
         },
         async transaction => {
           const [schemaRow] = await this.#sequelize.queryRaw<{
-            schemaCatalog: 'sqlite_master' | 'sqlite_temp_master';
+            schemaCatalog: SqliteSchemaCatalog;
             sql: string;
           }>(
             `SELECT sql, 'sqlite_temp_master' AS schemaCatalog FROM sqlite_temp_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)} UNION ALL SELECT sql, 'sqlite_master' AS schemaCatalog FROM sqlite_master WHERE type = 'table' AND name = ${this.#queryGenerator.escape(table.tableName)}`,
@@ -232,18 +279,19 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
                 { ...options, transaction, type: QueryTypes.SELECT },
               )
             : [];
-          const views = schemaRow
-            ? await this.#sequelize.queryRaw<{ name: string; sql: string }>(
-                `SELECT name, sql FROM ${schemaRow.schemaCatalog} WHERE type = 'view' AND sql IS NOT NULL ORDER BY rowid`,
-                { ...options, transaction, type: QueryTypes.SELECT },
-              )
-            : [];
-          const viewTriggers = schemaRow
-            ? await this.#sequelize.queryRaw<{ sql: string }>(
-                `SELECT sql FROM ${schemaRow.schemaCatalog} WHERE type = 'trigger' AND tbl_name IN (SELECT name FROM ${schemaRow.schemaCatalog} WHERE type = 'view') AND sql IS NOT NULL ORDER BY rowid`,
-                { ...options, transaction, type: QueryTypes.SELECT },
-              )
-            : [];
+          const temporaryTableTriggers =
+            schemaRow?.schemaCatalog === 'sqlite_master'
+              ? await this.#sequelize.queryRaw<{ sql: string }>(
+                  `SELECT sql FROM sqlite_temp_master WHERE tbl_name = ${this.#queryGenerator.escape(table.tableName)} AND type = 'trigger' AND sql IS NOT NULL ORDER BY rowid`,
+                  { ...options, transaction, type: QueryTypes.SELECT },
+                )
+              : [];
+          const { triggers: viewTriggers, views } = schemaRow
+            ? await this.#getViewsForTableRebuild(schemaRow.schemaCatalog, {
+                ...options,
+                transaction,
+              })
+            : { triggers: [], views: [] };
           let autoincrementHighWater: number | undefined;
           if (
             schemaRow?.schemaCatalog === 'sqlite_master' &&
@@ -286,31 +334,23 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             schemaRow?.schemaCatalog === 'sqlite_temp_master'
               ? schemaRow.sql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
               : schemaRow?.sql;
-          const recreatedViews =
-            schemaRow?.schemaCatalog === 'sqlite_temp_master'
-              ? views.map(view => ({
-                  ...view,
-                  sql: view.sql.replace(/^CREATE\s+VIEW\b/i, 'CREATE TEMP VIEW'),
-                }))
-              : views;
-          const recreatedViewTriggers =
-            schemaRow?.schemaCatalog === 'sqlite_temp_master'
-              ? viewTriggers.map(trigger =>
-                  trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
-                )
-              : viewTriggers.map(trigger => trigger.sql);
           const sql = this.#queryGenerator._replaceTableQuery(
             tableName,
             columns,
             createTableSql,
             replacedColumnNames,
             autoincrementHighWater,
-            recreatedViews,
-            recreatedViewTriggers,
+            views,
+            viewTriggers,
           );
           await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
           await this.executeQueriesSequentially(
-            schemaObjects.map(schemaObject => schemaObject.sql),
+            [
+              ...schemaObjects.map(schemaObject => schemaObject.sql),
+              ...temporaryTableTriggers.map(trigger =>
+                trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
+              ),
+            ],
             { ...options, transaction, raw: true },
           );
 

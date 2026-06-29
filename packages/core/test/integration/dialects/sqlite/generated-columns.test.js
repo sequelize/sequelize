@@ -10,8 +10,10 @@ if (Support.getTestDialect() === 'sqlite3') {
 
     afterEach(async function () {
       await this.sequelize.query('DROP VIEW IF EXISTS `generated_columns_view`');
+      await this.sequelize.query('DROP VIEW IF EXISTS `generated_columns_temp_view`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_child`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp_child`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp_audit`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_fts`');
       await this.sequelize.queryInterface.dropTable(tableName);
@@ -530,6 +532,54 @@ if (Support.getTestDialect() === 'sqlite3') {
         "SELECT sql FROM sqlite_master WHERE type = 'view' AND name = 'generated_columns_view'",
       );
       expect(view.sql).to.include('FROM `generated_columns_test`');
+    });
+
+    it('preserves TEMP views that depend on a main-schema table', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, {
+        value: DataTypes.INTEGER,
+        obsolete: DataTypes.STRING,
+      });
+      await queryInterface.bulkInsert(tableName, [{ value: 7, obsolete: 'remove' }]);
+      await this.sequelize.query(
+        'CREATE TEMP VIEW `generated_columns_temp_view` AS SELECT `value` FROM `main`.`generated_columns_test`',
+      );
+      await this.sequelize.query(
+        'CREATE TEMP TABLE `generated_columns_temp_audit` (`value` INTEGER)',
+      );
+      await this.sequelize.query(`
+        CREATE TEMP TRIGGER generated_columns_temp_trigger
+        AFTER INSERT ON generated_columns_test
+        BEGIN
+          INSERT INTO generated_columns_temp_audit (value) VALUES (NEW.value);
+        END
+      `);
+
+      await queryInterface.addColumn(tableName, 'doubled', {
+        type: DataTypes.INTEGER,
+        generatedAs: sql.literal('`value` * 2'),
+      });
+      await queryInterface.removeColumn(tableName, 'obsolete');
+
+      const [viewRows] = await this.sequelize.query(
+        'SELECT `value` FROM `generated_columns_temp_view`',
+      );
+      expect(viewRows).to.deep.equal([{ value: 7 }]);
+      const [[tempView]] = await this.sequelize.query(
+        "SELECT count(*) AS count FROM sqlite_temp_master WHERE type = 'view' AND name = 'generated_columns_temp_view'",
+      );
+      const [[mainView]] = await this.sequelize.query(
+        "SELECT count(*) AS count FROM sqlite_master WHERE type = 'view' AND name = 'generated_columns_temp_view'",
+      );
+      expect(tempView.count).to.equal(1);
+      expect(mainView.count).to.equal(0);
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { value: 7, doubled: 14 },
+      ]);
+      await this.sequelize.query('INSERT INTO `generated_columns_test` (`value`) VALUES (8)');
+      expect(await queryInterface.select(null, 'generated_columns_temp_audit', {})).to.deep.equal([
+        { value: 8 },
+      ]);
     });
 
     it('supports sync alter with an existing generated column', async function () {
