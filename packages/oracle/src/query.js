@@ -663,11 +663,6 @@ export class OracleQuery extends AbstractQuery {
     return new DatabaseError(err);
   }
 
-  isShowIndexesQuery() {
-    // eslint-disable-next-line unicorn/prefer-includes
-    return this.sql.indexOf('SELECT i.index_name,i.table_name, i.column_name, u.uniqueness') > -1;
-  }
-
   isSelectCountQuery() {
     return this.sql.toUpperCase().includes('SELECT COUNT(');
   }
@@ -679,12 +674,26 @@ export class OracleQuery extends AbstractQuery {
     data.forEach(indexRecord => {
       // We create the object
       if (!acc[indexRecord.INDEX_NAME]) {
+        const oracleIndexType = indexRecord.INDEX_TYPE?.toUpperCase();
+        let type;
+        let method;
+
+        if (oracleIndexType === 'VECTOR') {
+          type = 'VECTOR';
+          method = this.#determineVectorMethod(indexRecord.INDEX_SUBTYPE);
+        } else if (oracleIndexType === 'NORMAL' || !oracleIndexType) {
+          type = undefined;
+        } else {
+          type = oracleIndexType;
+        }
+
         acc[indexRecord.INDEX_NAME] = {
           unique: indexRecord.UNIQUENESS === 'UNIQUE',
           primary: indexRecord.CONSTRAINT_TYPE === 'P',
           name: indexRecord.INDEX_NAME,
           tableName: indexRecord.TABLE_NAME.toLowerCase(),
-          type: undefined,
+          type,
+          method,
         };
         acc[indexRecord.INDEX_NAME].fields = [];
       }
@@ -720,6 +729,18 @@ export class OracleQuery extends AbstractQuery {
     }
 
     return returnIndexes;
+  }
+
+  // Oracle exposes vector index method in INDEX_SUBTYPE.
+  #determineVectorMethod(indexSubtype) {
+    const subtype = typeof indexSubtype === 'string' ? indexSubtype.toLowerCase() : undefined;
+    if (subtype?.includes('hnsw')) {
+      return 'hnsw';
+    }
+
+    if (subtype?.includes('ivf')) {
+      return 'ivf';
+    }
   }
 
   handleInsertQuery(results, metaData) {

@@ -623,6 +623,38 @@ Use Sequelize#query if you wish to use replacements.`);
     return sql.random;
   }
 
+  cosineDistance(column, value) {
+    return this.#vectorSimilarityFn('COSINE_DISTANCE', column, value);
+  }
+
+  innerProduct(column, value) {
+    return this.#vectorSimilarityFn('INNER_PRODUCT', column, value);
+  }
+
+  l1Distance(column, value) {
+    return this.#vectorSimilarityFn('L1_DISTANCE', column, value);
+  }
+
+  l2Distance(column, value) {
+    return this.#vectorSimilarityFn('L2_DISTANCE', column, value);
+  }
+
+  vectorDistance(column, value) {
+    return this.#vectorSimilarityFn('VECTOR_DISTANCE', column, value);
+  }
+
+  #vectorSimilarityFn(fnName, column, value) {
+    // Dialects that advertise VECTOR support can translate these generic helper names in their
+    // query generator. Oracle is the primary implementation; other dialects may follow this pattern.
+    if (!this.dialect.supports?.dataTypes?.VECTOR) {
+      throw new Error(
+        `${fnName.toLowerCase()} for dialect "${this.dialect.name}" is not implemented`,
+      );
+    }
+
+    return fn(fnName, column, value);
+  }
+
   // Global exports
   static Fn = Fn;
   static Col = Col;

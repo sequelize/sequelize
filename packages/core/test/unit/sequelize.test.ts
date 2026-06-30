@@ -106,4 +106,21 @@ describe('Sequelize', () => {
       });
     });
   });
+
+  describe('vector helpers', () => {
+    it('throws on dialects that do not support VECTOR', () => {
+      if (sequelize.dialect.supports.dataTypes.VECTOR) {
+        const fn = sequelize.vectorDistance('embedding', [1, 2, 3]);
+
+        expect(fn.fn).to.equal('VECTOR_DISTANCE');
+
+        return;
+      }
+
+      expect(() => sequelize.vectorDistance('embedding', [1, 2, 3])).to.throw(
+        Error,
+        `vector_distance for dialect "${sequelize.dialect.name}" is not implemented`,
+      );
+    });
+  });
 });

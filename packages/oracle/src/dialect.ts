@@ -49,6 +49,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
       COLLATE_BINARY: true,
       GEOMETRY: false,
       JSON: true,
+      VECTOR: true,
       INTS: numericOptions,
       DOUBLE: numericOptions,
       DECIMAL: { unconstrained: true },
