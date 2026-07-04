@@ -2102,7 +2102,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (parentIsTop) {
         // The main model attributes is not aliased to a prefix
         const tableName = parent.as || parent.model.name;
-        const quotedTableName = this.quoteTable(tableName);
+        const quotedTableName = this.quoteIdentifier(tableName);
 
         // Check for potential aliased JOIN condition
         joinOn =
@@ -2411,7 +2411,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
     } else {
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+      sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
 
     sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
@@ -2520,7 +2520,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             [Op.and]: [
               new Literal(
                 [
-                  `${this.quoteTable(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
+                  `${this.quoteIdentifier(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
                   `${this.quoteIdentifier(topInclude.through.model.name)}.${this.quoteIdentifier(topAssociation.identifierField)}`,
                 ].join(' = '),
               ),
@@ -2542,7 +2542,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const join = [
         `${this.quoteIdentifier(topInclude.as)}.${this.quoteIdentifier(targetField)}`,
-        `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
+        `${this.quoteIdentifier(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
       ].join(' = ');
 
       query = this.selectQuery(
