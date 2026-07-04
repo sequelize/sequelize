@@ -2092,7 +2092,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // TODO: use whereItemsQuery to generate the entire "ON" condition.
-    let joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
+    let joinOn = `${this.quoteIdentifier(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
     const subqueryAttributes = [];
 
     if (

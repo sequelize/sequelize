@@ -8,7 +8,13 @@ import { DataTypes, IndexHints, Op, TableHints, or, sql as sqlTag } from '@seque
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expect } from 'chai';
-import { beforeAll2, expectsql, getTestDialect, sequelize } from '../../support';
+import {
+  beforeAll2,
+  createSequelizeInstance,
+  expectsql,
+  getTestDialect,
+  sequelize,
+} from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
 const dialectName = getTestDialect();
@@ -889,6 +895,162 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       expectsql(sql, {
         default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [User].[creationYear] > 2002;`,
         oracle: `SELECT *, YEAR("createdAt") AS "creationYear" FROM "Users" "User" GROUP BY "creationYear", "title" HAVING "User"."creationYear" > 2002;`,
+      });
+    });
+  });
+
+  describe('include with a globally set schema', () => {
+    const schemaVars = beforeAll2(() => {
+      const schemaSequelize = createSequelizeInstance({ schema: 'mySchema' });
+
+      interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+        id: CreationOptional<number>;
+      }
+
+      const User = schemaSequelize.define<TUser>(
+        'User',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+        },
+        { timestamps: false },
+      );
+
+      interface TProject
+        extends Model<InferAttributes<TProject>, InferCreationAttributes<TProject>> {
+        id: CreationOptional<number>;
+      }
+
+      const Project = schemaSequelize.define<TProject>(
+        'Project',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+        },
+        { timestamps: false },
+      );
+
+      User.hasMany(Project, { as: 'projects' });
+      Project.belongsTo(User, { as: 'owner' });
+
+      return { schemaQueryGenerator: schemaSequelize.queryGenerator, User, Project };
+    });
+
+    it('does not schema-qualify the table alias in the generated JOIN condition', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            include: [{ association: User.associations.projects, attributes: ['id'] }],
+          }).include,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT [User].[id], [projects].[id] AS [projects.id]
+          FROM [mySchema].[Users] AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [projects]
+            ON [User].[id] = [projects].[userId];
+        `,
+        sqlite3: `
+          SELECT \`User\`.\`id\`, \`projects\`.\`id\` AS \`projects.id\`
+          FROM \`mySchema.Users\` AS \`User\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`projects\`
+            ON \`User\`.\`id\` = \`projects\`.\`userId\`;
+        `,
+        oracle: `
+          SELECT "User"."id", "projects"."id" AS "projects.id"
+          FROM "mySchema"."Users" "User"
+          LEFT OUTER JOIN "mySchema"."Projects" "projects"
+            ON "User"."id" = "projects"."userId";
+        `,
+      });
+    });
+
+    it('does not schema-qualify nested table aliases in the generated JOIN condition', () => {
+      const { schemaQueryGenerator, User, Project } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            include: [
+              {
+                association: User.associations.projects,
+                attributes: ['id'],
+                include: [
+                  {
+                    association: Project.associations.owner,
+                    attributes: ['id'],
+                    include: [{ association: User.associations.projects, attributes: ['id'] }],
+                  },
+                ],
+              },
+            ],
+          }).include,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].[id],
+            [projects].[id] AS [projects.id],
+            [projects->owner].[id] AS [projects.owner.id],
+            [projects->owner->projects].[id] AS [projects.owner.projects.id]
+          FROM [mySchema].[Users] AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [projects]
+            ON [User].[id] = [projects].[userId]
+          LEFT OUTER JOIN [mySchema].[Users] AS [projects->owner]
+            ON [projects].[ownerId] = [projects->owner].[id]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [projects->owner->projects]
+            ON [projects->owner].[id] = [projects->owner->projects].[userId];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.\`id\`,
+            \`projects\`.\`id\` AS \`projects.id\`,
+            \`projects->owner\`.\`id\` AS \`projects.owner.id\`,
+            \`projects->owner->projects\`.\`id\` AS \`projects.owner.projects.id\`
+          FROM \`mySchema.Users\` AS \`User\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`projects\`
+            ON \`User\`.\`id\` = \`projects\`.\`userId\`
+          LEFT OUTER JOIN \`mySchema.Users\` AS \`projects->owner\`
+            ON \`projects\`.\`ownerId\` = \`projects->owner\`.\`id\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`projects->owner->projects\`
+            ON \`projects->owner\`.\`id\` = \`projects->owner->projects\`.\`userId\`;
+        `,
+        oracle: `
+          SELECT
+            "User"."id",
+            "projects"."id" AS "projects.id",
+            "projects->owner"."id" AS "projects.owner.id",
+            "projects->owner->projects"."id" AS "projects.owner.projects.id"
+          FROM "mySchema"."Users" "User"
+          LEFT OUTER JOIN "mySchema"."Projects" "projects"
+            ON "User"."id" = "projects"."userId"
+          LEFT OUTER JOIN "mySchema"."Users" "projects->owner"
+            ON "projects"."ownerId" = "projects->owner"."id"
+          LEFT OUTER JOIN "mySchema"."Projects" "projects->owner->projects"
+            ON "projects->owner"."id" = "projects->owner->projects"."userId";
+        `,
       });
     });
   });
