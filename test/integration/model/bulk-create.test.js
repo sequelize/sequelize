@@ -461,9 +461,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch(
             (err) => {
               if (dialect === 'mssql') {
-                expect(err.message).to.match(/mssql does not support the \'ignoreDuplicates\' option./);
+                expect(err.message).to.match(/mssql does not support the 'ignoreDuplicates' option./);
               } else {
-                expect(err.message).to.match(/postgres does not support the \'ignoreDuplicates\' option./);
+                expect(err.message).to.match(/postgres does not support the 'ignoreDuplicates' option./);
               }
             }
           );

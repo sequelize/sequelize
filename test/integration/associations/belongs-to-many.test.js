@@ -912,7 +912,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           return Promise.all([
             group.createUser({ id: 1 }, { through: { isAdmin: true } }),
             group.createUser({ id: 2 }, { through: { isAdmin: false } })
-          ]).then(([]) => {
+          ]).then(() => {
             return UserGroups.findAll();
           });
         })

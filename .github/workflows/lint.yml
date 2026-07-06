@@ -25,3 +25,10 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: No focused tests
+        run: |
+          if grep -rnE '\b(describe|context|it|specify|before|after|beforeEach|afterEach)\.only\b' test; then
+            echo "::error::Found focused test(s) (.only). Remove before merging."
+            exit 1
+          fi

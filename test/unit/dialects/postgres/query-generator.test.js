@@ -160,8 +160,7 @@ if (dialect.match(/^postgres/)) {
       createTableQuery: [
         {
           arguments: ['myTable', { int: 'INTEGER', bigint: 'BIGINT', smallint: 'SMALLINT' }],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS \"myTable\" (\"int\" INTEGER, \"bigint\" BIGINT, \"smallint\" SMALLINT);'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("int" INTEGER, "bigint" BIGINT, "smallint" SMALLINT);'
         },
         {
           arguments: [
@@ -169,37 +168,36 @@ if (dialect.match(/^postgres/)) {
             { serial: 'INTEGER SERIAL', bigserial: 'BIGINT SERIAL', smallserial: 'SMALLINT SERIAL' }
           ],
           expectation:
-            'CREATE TABLE IF NOT EXISTS \"myTable\" (\"serial\"  SERIAL, \"bigserial\"  BIGSERIAL, \"smallserial\"  SMALLSERIAL);'
+            'CREATE TABLE IF NOT EXISTS "myTable" ("serial"  SERIAL, "bigserial"  BIGSERIAL, "smallserial"  SMALLSERIAL);'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255));'
         },
         {
           arguments: ['myTable', { data: current.normalizeDataType(DataTypes.BLOB).toSql() }],
-          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" BYTEA);'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);'
         },
         {
           arguments: ['myTable', { data: current.normalizeDataType(DataTypes.BLOB('long')).toSql() }],
-          expectation: 'CREATE TABLE IF NOT EXISTS \"myTable\" (\"data\" BYTEA);'
+          expectation: 'CREATE TABLE IF NOT EXISTS "myTable" ("data" BYTEA);'
         },
         {
           arguments: [
             { tableName: 'myTable', schema: 'mySchema' },
             { title: 'VARCHAR(255)', name: 'VARCHAR(255)' }
           ],
-          expectation:
-            'CREATE TABLE IF NOT EXISTS \"mySchema\".\"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255));'
+          expectation: 'CREATE TABLE IF NOT EXISTS "mySchema"."myTable" ("title" VARCHAR(255), "name" VARCHAR(255));'
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
           expectation:
-            'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" \"public\".\"enum_myTable_title\", \"name\" VARCHAR(255));'
+            'CREATE TABLE IF NOT EXISTS "myTable" ("title" "public"."enum_myTable_title", "name" VARCHAR(255));'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
           expectation:
-            'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255), \"id\" INTEGER , PRIMARY KEY (\"id\"));'
+            'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "id" INTEGER , PRIMARY KEY ("id"));'
         },
         {
           arguments: [
@@ -211,7 +209,7 @@ if (dialect.match(/^postgres/)) {
             }
           ],
           expectation:
-            'CREATE TABLE IF NOT EXISTS \"myTable\" (\"title\" VARCHAR(255), \"name\" VARCHAR(255), \"otherId\" INTEGER REFERENCES \"otherTable\" (\"id\") ON DELETE CASCADE ON UPDATE NO ACTION);'
+            'CREATE TABLE IF NOT EXISTS "myTable" ("title" VARCHAR(255), "name" VARCHAR(255), "otherId" INTEGER REFERENCES "otherTable" ("id") ON DELETE CASCADE ON UPDATE NO ACTION);'
         },
 
         // Variants when quoteIdentifiers is false
@@ -257,19 +255,19 @@ if (dialect.match(/^postgres/)) {
       dropTableQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'DROP TABLE IF EXISTS \"myTable\";'
+          expectation: 'DROP TABLE IF EXISTS "myTable";'
         },
         {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'DROP TABLE IF EXISTS \"mySchema\".\"myTable\";'
+          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable";'
         },
         {
           arguments: ['myTable', { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS \"myTable\" CASCADE;'
+          expectation: 'DROP TABLE IF EXISTS "myTable" CASCADE;'
         },
         {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { cascade: true }],
-          expectation: 'DROP TABLE IF EXISTS \"mySchema\".\"myTable\" CASCADE;'
+          expectation: 'DROP TABLE IF EXISTS "mySchema"."myTable" CASCADE;'
         },
 
         // Variants when quoteIdentifiers is false
@@ -312,15 +310,15 @@ if (dialect.match(/^postgres/)) {
       selectQuery: [
         {
           arguments: ['myTable'],
-          expectation: 'SELECT * FROM \"myTable\";'
+          expectation: 'SELECT * FROM "myTable";'
         },
         {
           arguments: ['myTable', { attributes: ['id', 'name'] }],
-          expectation: 'SELECT \"id\", \"name\" FROM \"myTable\";'
+          expectation: 'SELECT "id", "name" FROM "myTable";'
         },
         {
           arguments: ['myTable', { where: { id: 2 } }],
-          expectation: 'SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\" = 2;'
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;'
         },
         {
           arguments: ['myTable', { where: { name: 'foo' } }],
@@ -332,11 +330,11 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: ['myTable', { where: 2 }],
-          expectation: 'SELECT * FROM \"myTable\" WHERE \"myTable\".\"id\" = 2;'
+          expectation: 'SELECT * FROM "myTable" WHERE "myTable"."id" = 2;'
         },
         {
           arguments: ['foo', { attributes: [['count(*)', 'count']] }],
-          expectation: 'SELECT count(*) AS \"count\" FROM \"foo\";',
+          expectation: 'SELECT count(*) AS "count" FROM "foo";',
           context: { options: { attributeBehavior: 'unsafe-legacy' } }
         },
         {
@@ -488,11 +486,11 @@ if (dialect.match(/^postgres/)) {
         {
           title: 'single string argument should be quoted',
           arguments: ['myTable', { group: 'name' }],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
+          expectation: 'SELECT * FROM "myTable" GROUP BY "name";'
         },
         {
           arguments: ['myTable', { group: ['name'] }],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\";'
+          expectation: 'SELECT * FROM "myTable" GROUP BY "name";'
         },
         {
           title: 'functions work for group by',
@@ -504,7 +502,7 @@ if (dialect.match(/^postgres/)) {
               };
             }
           ],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\");',
+          expectation: 'SELECT * FROM "myTable" GROUP BY YEAR("createdAt");',
           needsSequelize: true
         },
         {
@@ -517,13 +515,13 @@ if (dialect.match(/^postgres/)) {
               };
             }
           ],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY YEAR(\"createdAt\"), \"title\";',
+          expectation: 'SELECT * FROM "myTable" GROUP BY YEAR("createdAt"), "title";',
           context: QueryGenerator,
           needsSequelize: true
         },
         {
           arguments: ['myTable', { group: ['name', 'title'] }],
-          expectation: 'SELECT * FROM \"myTable\" GROUP BY \"name\", \"title\";'
+          expectation: 'SELECT * FROM "myTable" GROUP BY "name", "title";'
         },
         {
           title: 'HAVING clause works with where-like hash',
@@ -538,26 +536,26 @@ if (dialect.match(/^postgres/)) {
             }
           ],
           expectation:
-            'SELECT *, YEAR(\"createdAt\") AS \"creationYear\" FROM \"myTable\" GROUP BY \"creationYear\", \"title\" HAVING \"creationYear\" > 2002;',
+            'SELECT *, YEAR("createdAt") AS "creationYear" FROM "myTable" GROUP BY "creationYear", "title" HAVING "creationYear" > 2002;',
           context: QueryGenerator,
           needsSequelize: true
         },
         {
           arguments: ['myTable', { limit: 10 }],
-          expectation: 'SELECT * FROM \"myTable\" LIMIT 10;'
+          expectation: 'SELECT * FROM "myTable" LIMIT 10;'
         },
         {
           arguments: ['myTable', { limit: 10, offset: 2 }],
-          expectation: 'SELECT * FROM \"myTable\" LIMIT 10 OFFSET 2;'
+          expectation: 'SELECT * FROM "myTable" LIMIT 10 OFFSET 2;'
         },
         {
           title: 'uses offset even if no limit was passed',
           arguments: ['myTable', { offset: 2 }],
-          expectation: 'SELECT * FROM \"myTable\" OFFSET 2;'
+          expectation: 'SELECT * FROM "myTable" OFFSET 2;'
         },
         {
           arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
-          expectation: 'SELECT * FROM \"mySchema\".\"myTable\";'
+          expectation: 'SELECT * FROM "mySchema"."myTable";'
         },
         {
           arguments: [
@@ -718,7 +716,7 @@ if (dialect.match(/^postgres/)) {
       insertQuery: [
         {
           arguments: ['myTable', {}],
-          expectation: 'INSERT INTO \"myTable\" DEFAULT VALUES;'
+          expectation: 'INSERT INTO "myTable" DEFAULT VALUES;'
         },
         {
           arguments: ['myTable', { name: 'foo' }],
@@ -802,7 +800,7 @@ if (dialect.match(/^postgres/)) {
               };
             }
           ],
-          expectation: 'INSERT INTO \"myTable\" (\"foo\") VALUES (NOW());',
+          expectation: 'INSERT INTO "myTable" ("foo") VALUES (NOW());',
           needsSequelize: true
         },
 
@@ -1265,15 +1263,15 @@ if (dialect.match(/^postgres/)) {
       removeIndexQuery: [
         {
           arguments: ['User', 'user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS \"user_foo_bar\"'
+          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"'
         },
         {
           arguments: ['User', ['foo', 'bar']],
-          expectation: 'DROP INDEX IF EXISTS \"user_foo_bar\"'
+          expectation: 'DROP INDEX IF EXISTS "user_foo_bar"'
         },
         {
           arguments: ['User', 'mySchema.user_foo_bar'],
-          expectation: 'DROP INDEX IF EXISTS \"mySchema\".\"user_foo_bar\"'
+          expectation: 'DROP INDEX IF EXISTS "mySchema"."user_foo_bar"'
         },
 
         // Variants when quoteIdentifiers is false
@@ -1302,12 +1300,12 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'SAVEPOINT \"transaction-uid\";',
+          expectation: 'SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'SAVEPOINT \"transaction-uid\";',
+          expectation: 'SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: true } }
         }
       ],
@@ -1320,12 +1318,12 @@ if (dialect.match(/^postgres/)) {
         },
         {
           arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
+          expectation: 'ROLLBACK TO SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: false } }
         },
         {
           arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-          expectation: 'ROLLBACK TO SAVEPOINT \"transaction-uid\";',
+          expectation: 'ROLLBACK TO SAVEPOINT "transaction-uid";',
           context: { options: { quoteIdentifiers: true } }
         }
       ],

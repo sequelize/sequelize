@@ -540,7 +540,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             attributes: ["a', * FROM User; DELETE FROM User;SELECT id"]
           }),
           {
-            default: "SELECT [a\', * FROM User; DELETE FROM User;SELECT id] FROM [User];",
+            default: "SELECT [a', * FROM User; DELETE FROM User;SELECT id] FROM [User];",
             mssql: 'SELECT [a, * FROM User; DELETE FROM User;SELECT id] FROM [User];'
           }
         );

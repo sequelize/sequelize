@@ -1,0 +1,39 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": [],
+  "categories": {
+    "correctness": "error"
+  },
+  "env": {
+    "node": true,
+    "mocha": true,
+    "es2021": true
+  },
+  "rules": {
+    "new-cap": ["warn", { "capIsNewExceptionPattern": "^BigInt", "properties": false }],
+    "no-extra-boolean-cast": "warn",
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-arrow-callback": "error",
+    "no-cond-assign": ["error", "except-parens"],
+    "curly": "error",
+    "eqeqeq": "error",
+    "no-extend-native": "error",
+    "no-caller": "error",
+    "no-undef": "error",
+    "no-unused-vars": "error",
+    "no-irregular-whitespace": "error",
+    "max-depth": ["error", 8],
+    "no-loop-func": "warn",
+    "object-shorthand": "error",
+    "no-shadow": "warn"
+  },
+  "overrides": [
+    {
+      "files": ["test/**"],
+      "rules": {
+        "no-unused-expressions": "off"
+      }
+    }
+  ]
+}

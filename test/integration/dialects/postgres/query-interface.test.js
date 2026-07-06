@@ -65,7 +65,7 @@ if (dialect.match(/^postgres/)) {
       it('reports version', function () {
         return this.queryInterface.databaseVersion().then((res) => {
           // check that result matches expected version number format. example 9.5.4
-          expect(res).to.match(/[0-9\.[0-9]\.[0-9]/);
+          expect(res).to.match(/[0-9.[0-9]\.[0-9]/);
         });
       });
     });

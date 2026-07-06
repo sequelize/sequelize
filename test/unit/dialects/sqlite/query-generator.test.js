@@ -139,7 +139,7 @@ if (dialect === 'sqlite') {
         },
         {
           arguments: ['myTable', { title: 'ENUM("A", "B", "C")', name: 'VARCHAR(255)' }],
-          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM(\"A\", \"B\", \"C\"), `name` VARCHAR(255));'
+          expectation: 'CREATE TABLE IF NOT EXISTS `myTable` (`title` ENUM("A", "B", "C"), `name` VARCHAR(255));'
         },
         {
           arguments: ['myTable', { title: 'VARCHAR(255)', name: 'VARCHAR(255)', id: 'INTEGER PRIMARY KEY' }],
@@ -197,7 +197,7 @@ if (dialect === 'sqlite') {
         },
         {
           arguments: ['myTable', { where: { name: "foo';DROP TABLE myTable;" } }],
-          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo\'\';DROP TABLE myTable;';",
+          expectation: "SELECT * FROM `myTable` WHERE `myTable`.`name` = 'foo'';DROP TABLE myTable;';",
           context: QueryGenerator
         },
         {

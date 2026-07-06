@@ -331,10 +331,10 @@ function forOwn(obj, fn) {
  */
 function getFunctionCode(fn) {
   let code = fn.toString();
-  if (code.match(/^function[\s\*\(]/) || code.match(/^class[\s\{]/)) {
+  if (code.match(/^function[\s*(]/) || code.match(/^class[\s{]/)) {
     return code;
   }
-  if (code.match(/^(import|delete)[\s\*\(]/)) {
+  if (code.match(/^(import|delete)[\s*(]/)) {
     code = '_' + code.substr(1);
   }
   return 'function ' + code;
