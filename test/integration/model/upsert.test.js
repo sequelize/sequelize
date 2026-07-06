@@ -342,7 +342,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('does not overwrite createdAt time on update', function () {
         let originalCreatedAt;
         let originalUpdatedAt;
-        const clock = sinon.useFakeTimers();
+        const clock = this.clock;
         return this.User.create({ id: 42, username: 'john' })
           .then(() => {
             return this.User.findById(42);
@@ -359,7 +359,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then((user) => {
             expect(user.updatedAt).to.be.gt(originalUpdatedAt);
             expect(user.createdAt).to.deep.equal(originalCreatedAt);
-            clock.restore();
           });
       });
 
@@ -420,7 +419,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             type: Sequelize.STRING
           }
         });
-        const clock = sinon.useFakeTimers();
+        const clock = this.clock;
         return User.sync({ force: true }).then(() => {
           return User.upsert({ username: 'user1', email: 'user1@domain.ext', city: 'City' })
             .then((created) => {

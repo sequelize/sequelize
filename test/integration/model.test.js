@@ -15,7 +15,10 @@ const chai = require('chai'),
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    // Only fake `Date` — faking timers/immediates freezes the timer pg's pool
+    // and retry logic rely on, which hangs queries like `CREATE INDEX CONCURRENTLY`
+    // (see the "indexes in options" test). sinon >=11 fakes those by default.
+    this.clock = sinon.useFakeTimers({ toFake: ['Date'] });
   });
 
   after(function () {
