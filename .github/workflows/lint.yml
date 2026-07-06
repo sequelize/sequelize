@@ -2,9 +2,10 @@ name: Lint & Format
 
 on:
   push:
-    branches: [main, 'release/**']
+    branches: [main, 'release/**', 'develop-v4']
   pull_request:
-    branches: [main, 'release/**']
+    branches: [main, 'release/**', 'develop-v4']
+  workflow_dispatch:
 
 jobs:
   lint:
