@@ -97,12 +97,12 @@
     "chai-spies": "^1.0.0",
     "cheerio": "^1.0.0-rc.2",
     "cls-hooked": "4.2.2",
-    "cross-env": "^5.0.5",
+    "cross-env": "^10.1.0",
     "env-cmd": "^7.0.0",
     "eslint": "^8.0.0",
     "eslint-plugin-mocha": "^10.0.0",
     "hints": "^1.1.0",
-    "mocha": "^9.2.2",
+    "mocha": "^11.7.6",
     "mysql2": "1.5.3",
     "oxfmt": "^0.57.0",
     "pg": "^8.19.0",
@@ -113,7 +113,7 @@
     "sinon-chai": "^3.7.0",
     "sqlite3": "^6.0.1",
     "tedious": "1.14.0",
-    "uuid-validate": "^0.0.2"
+    "uuid-validate": "^0.0.3"
   },
   "peerDependencies": {
     "pg": "^8.19.0"
