@@ -57,6 +57,96 @@ export function getSqlColumnName(definition: string): string | undefined {
   return /^([^\s]+)/.exec(definition.slice(start))?.[1];
 }
 
+export function replaceSqlIdentifier(sql: string, identifier: string, replacement: string): string {
+  let result = '';
+  let index = 0;
+
+  while (index < sql.length) {
+    const character = sql[index];
+
+    if (character === '-' && sql[index + 1] === '-') {
+      const lineEnd = /[\r\n]/.exec(sql.slice(index + 2));
+      const commentEnd = lineEnd ? index + 2 + lineEnd.index : sql.length;
+      result += sql.slice(index, commentEnd);
+      index = commentEnd;
+      continue;
+    }
+
+    if (character === '/' && sql[index + 1] === '*') {
+      const blockEnd = sql.indexOf('*/', index + 2);
+      const commentEnd = blockEnd === -1 ? sql.length : blockEnd + 2;
+      result += sql.slice(index, commentEnd);
+      index = commentEnd;
+      continue;
+    }
+
+    // Single-quoted tokens are string literals. SQLite accepts them as identifiers in a few
+    // legacy contexts, but changing their contents here would corrupt defaults and trigger bodies.
+    if (character === "'") {
+      let stringEnd = index + 1;
+      while (stringEnd < sql.length) {
+        if (sql[stringEnd] !== "'") {
+          stringEnd++;
+        } else if (sql[stringEnd + 1] === "'") {
+          stringEnd += 2;
+        } else {
+          stringEnd++;
+          break;
+        }
+      }
+
+      result += sql.slice(index, stringEnd);
+      index = stringEnd;
+      continue;
+    }
+
+    if (character === '"' || character === '`' || character === '[') {
+      const closingQuote = character === '[' ? ']' : character;
+      let quotedIdentifier = '';
+      let quoteEnd = index + 1;
+      while (quoteEnd < sql.length) {
+        if (sql[quoteEnd] !== closingQuote) {
+          quotedIdentifier += sql[quoteEnd];
+          quoteEnd++;
+        } else if (sql[quoteEnd + 1] === closingQuote) {
+          quotedIdentifier += closingQuote;
+          quoteEnd += 2;
+        } else {
+          quoteEnd++;
+          break;
+        }
+      }
+
+      if (quotedIdentifier.toLowerCase() === identifier.toLowerCase()) {
+        const escapedReplacement = replacement.replaceAll(closingQuote, closingQuote.repeat(2));
+        result += `${character}${escapedReplacement}${closingQuote}`;
+      } else {
+        result += sql.slice(index, quoteEnd);
+      }
+
+      index = quoteEnd;
+      continue;
+    }
+
+    if (isIdentifierCharacter(character)) {
+      let identifierEnd = index + 1;
+      while (isIdentifierCharacter(sql[identifierEnd])) {
+        identifierEnd++;
+      }
+
+      const token = sql.slice(index, identifierEnd);
+      result += token.toLowerCase() === identifier.toLowerCase() ? replacement : token;
+      index = identifierEnd;
+      continue;
+    }
+
+    result += character;
+    index++;
+  }
+
+  return result;
+}
+
 export function findSqlClosingParenthesis(sql: string, openingParenthesis: number): number {
   let depth = 0;
   let closingQuote: string | undefined;

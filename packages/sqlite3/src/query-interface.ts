@@ -114,6 +114,32 @@ function splitColumnDefinitions(createTableSql: string): string[] {
   return definitions;
 }
 
+function removeNamedTableConstraint(createTableSql: string, constraintName: string): string {
+  const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
+  const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
+  if (openingParenthesis === -1 || closingParenthesis === -1) {
+    throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+  }
+
+  const definitions = splitColumnDefinitions(createTableSql);
+  const remainingDefinitions = definitions.filter(definition => {
+    const constraintPrefix = /^\s*CONSTRAINT\b/i.exec(definition);
+    if (!constraintPrefix) {
+      return true;
+    }
+
+    const definitionConstraintName = getSqlColumnName(definition.slice(constraintPrefix[0].length));
+
+    return definitionConstraintName?.toLowerCase() !== constraintName.toLowerCase();
+  });
+
+  if (remainingDefinitions.length === definitions.length) {
+    throw new Error(`Could not remove constraint ${constraintName} from SQL: ${createTableSql}`);
+  }
+
+  return `${createTableSql.slice(0, openingParenthesis + 1)}${remainingDefinitions.join(', ')}${createTableSql.slice(closingParenthesis)}`;
+}
+
 function parseGeneratedExpressions(createTableSql: string): Map<string, string> {
   const expressions = new Map<string, string>();
 
@@ -392,19 +418,36 @@ export class SqliteQueryInterface<
       type: QueryTypes.SELECT,
     });
 
-    if (!describeCreateTable.length || !('sql' in describeCreateTable[0])) {
+    const createTableRow = describeCreateTable.find(
+      row =>
+        'sql' in row &&
+        typeof row.sql === 'string' &&
+        /^CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\b/i.test(row.sql),
+    );
+    if (!createTableRow || !('sql' in createTableRow)) {
       throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    let { sql: createTableSql } = describeCreateTable[0] as { sql: string };
-    // Replace double quotes with backticks and ending ')' with constraint snippet
-    createTableSql = createTableSql
-      .replaceAll('"', '`')
-      .replace(/\);?$/, `, ${constraintSnippet})`);
+    const { sql: originalCreateTableSql } = createTableRow as { sql: string };
+    const openingParenthesis = findSqlOpeningParenthesis(originalCreateTableSql);
+    const closingParenthesis = findSqlClosingParenthesis(
+      originalCreateTableSql,
+      openingParenthesis,
+    );
+    if (openingParenthesis === -1 || closingParenthesis === -1) {
+      throw new Error(`Could not parse CREATE TABLE statement: ${originalCreateTableSql}`);
+    }
+
+    const createTableSql = `${originalCreateTableSql.slice(0, closingParenthesis)}, ${constraintSnippet}${originalCreateTableSql.slice(closingParenthesis)}`;
 
     const fields = await this.describeTable(tableName, options);
-    const sql = this.queryGenerator._replaceTableQuery(tableName, fields, createTableSql);
-    await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
+    await this.#internalQueryInterface.alterTableInternal(
+      tableName,
+      fields,
+      options,
+      [],
+      createTableSql,
+    );
   }
 
   async removeConstraint(
@@ -419,11 +462,17 @@ export class SqliteQueryInterface<
       type: QueryTypes.SELECT,
     });
 
-    if (!describeCreateTable.length || !('sql' in describeCreateTable[0])) {
+    const createTableRow = describeCreateTable.find(
+      row =>
+        'sql' in row &&
+        typeof row.sql === 'string' &&
+        /^CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\b/i.test(row.sql),
+    );
+    if (!createTableRow || !('sql' in createTableRow)) {
       throw new Error('Unable to find constraints for table. Perhaps the table does not exist?');
     }
 
-    const { sql: createTableSql } = describeCreateTable[0] as { sql: string };
+    const { sql: createTableSql } = createTableRow as { sql: string };
     const constraints = await this.showConstraints(tableName, options);
     const constraint = constraints.find(c => c.constraintName === constraintName);
 
@@ -436,42 +485,14 @@ export class SqliteQueryInterface<
       });
     }
 
-    constraint.constraintName = this.queryGenerator.quoteIdentifier(constraint.constraintName);
-    let constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType} ${constraint.definition}`;
-
-    if (constraint.constraintType === 'FOREIGN KEY') {
-      if (!constraint.referencedTableName) {
-        throw new Error(`Constraint ${constraintName} does not reference a table.`);
-      }
-
-      constraintSnippet = `, CONSTRAINT ${constraint.constraintName} FOREIGN KEY`;
-      const columns = constraint
-        .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
-        .join(', ');
-      const referenceTableName = this.queryGenerator.quoteTable(constraint.referencedTableName);
-      const referenceTableColumns = constraint
-        .referencedColumnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
-        .join(', ');
-      constraintSnippet += ` (${columns})`;
-      constraintSnippet += ` REFERENCES ${referenceTableName} (${referenceTableColumns})`;
-      constraintSnippet += constraint.updateAction ? ` ON UPDATE ${constraint.updateAction}` : '';
-      constraintSnippet += constraint.deleteAction ? ` ON DELETE ${constraint.deleteAction}` : '';
-    } else if (['PRIMARY KEY', 'UNIQUE'].includes(constraint.constraintType)) {
-      constraintSnippet = `, CONSTRAINT ${constraint.constraintName} ${constraint.constraintType}`;
-      const columns = constraint
-        .columnNames!.map(columnName => this.queryGenerator.quoteIdentifier(columnName))
-        .join(', ');
-      constraintSnippet += ` (${columns})`;
-    }
-
     const fields = await this.describeTable(tableName, options);
-    // Replace double quotes with backticks and remove constraint snippet
-    const sql = this.queryGenerator._replaceTableQuery(
+    await this.#internalQueryInterface.alterTableInternal(
       tableName,
       fields,
-      createTableSql.replaceAll('"', '`').replace(constraintSnippet, ''),
+      options,
+      [],
+      removeNamedTableConstraint(createTableSql, constraintName),
     );
-    await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
 
   async showConstraints(
@@ -496,15 +517,19 @@ export class SqliteQueryInterface<
     }
 
     const { sql: createTableSql } = createTableRow as { sql: string };
-    const match =
-      /CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:(?:`|'|")(\S+)(?:`|'|")|([^\s(]+))\s+\(([\s\S]+)\)/i.exec(
+    const createTablePrefix =
+      /^\s*CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?/i.exec(
         createTableSql,
       );
+    const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
+    const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
+    const constraintTableName = createTablePrefix
+      ? getSqlColumnName(createTableSql.slice(createTablePrefix[0].length, openingParenthesis))
+      : undefined;
     const data: ConstraintDescription[] = [];
 
-    if (match) {
-      const [, quotedTableName, unquotedTableName, attributeSQL] = match;
-      const constraintTableName = quotedTableName ?? unquotedTableName;
+    if (constraintTableName && openingParenthesis !== -1 && closingParenthesis !== -1) {
+      const attributeSQL = createTableSql.slice(openingParenthesis + 1, closingParenthesis);
       const keys = [];
       const attributes = [];
       const constraints = [];
@@ -781,13 +806,14 @@ export class SqliteQueryInterface<
       fields[attrNameAfter] = { ...fields[attrNameBefore] };
       delete fields[attrNameBefore];
 
-      const sql = this.queryGenerator._replaceColumnQuery(
+      await this.#internalQueryInterface.alterTableInternal(
         tableName,
-        attrNameBefore,
-        attrNameAfter,
         fields,
+        options,
+        [],
+        undefined,
+        new Map([[attrNameAfter, attrNameBefore]]),
       );
-      await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
 
       return;
     }

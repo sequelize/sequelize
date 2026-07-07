@@ -112,6 +112,34 @@ describe('Model - Generated Columns (unit)', () => {
         }).to.throw(/does not support VIRTUAL generated columns/i);
       });
     }
+
+    if (dialectName === 'mariadb') {
+      it('rejects generated primary keys', () => {
+        expect(() => {
+          sequelize.define('GeneratedPrimaryKey', {
+            value: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('1'),
+              generatedColumn: 'STORED',
+              primaryKey: true,
+            },
+          });
+        }).to.throw(/mariadb.*generated columns.*primary keys/i);
+      });
+
+      it('rejects VIRTUAL generated foreign keys', () => {
+        expect(() => {
+          sequelize.define('VirtualGeneratedForeignKey', {
+            value: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('1'),
+              generatedColumn: 'VIRTUAL',
+              references: { table: 'parents', key: 'id' },
+            },
+          });
+        }).to.throw(/mariadb.*foreign keys.*STORED generated columns/i);
+      });
+    }
   });
 
   describe('feature flags', () => {

@@ -222,6 +222,127 @@ describe('Model generated column safeguards', () => {
       });
     });
 
+    describe('belongsToMany association mutators', () => {
+      function defineBelongsToMany(generatedForeignKey: 'sourceId' | 'targetId') {
+        const Source = sequelize.define('GeneratedBelongsToManySource', {}, { timestamps: false });
+        const Target = sequelize.define('GeneratedBelongsToManyTarget', {}, { timestamps: false });
+        const Through = sequelize.define(
+          'GeneratedBelongsToManyThrough',
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              autoIncrement: true,
+              primaryKey: true,
+            },
+            [`${generatedForeignKey}Seed`]: DataTypes.INTEGER,
+            [generatedForeignKey]: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal(`${generatedForeignKey}Seed`),
+              generatedColumn: supportedMode,
+            },
+          },
+          { timestamps: false },
+        );
+        const association = Source.belongsToMany(Target, {
+          through: Through,
+          foreignKey: 'sourceId',
+          otherKey: 'targetId',
+        });
+
+        return { association, Source, Target, Through };
+      }
+
+      for (const mutator of ['set', 'add'] as const) {
+        it(`rejects belongsToMany#${mutator} before accessing the through model`, async () => {
+          const { association, Source, Target, Through } = defineBelongsToMany('sourceId');
+          const findAll = sinon.stub(Through, 'findAll');
+          const bulkCreate = sinon.stub(Through, 'bulkCreate');
+
+          await expect(
+            association[mutator](
+              Source.build({ id: 1 }, { isNewRecord: false }),
+              Target.build({ id: 2 }, { isNewRecord: false }),
+            ),
+          ).to.be.rejectedWith(/association mutator.*sourceId.*generated/i);
+          expect(findAll).not.to.have.been.called;
+          expect(bulkCreate).not.to.have.been.called;
+        });
+      }
+
+      it('allows belongsToMany#add with no targets as a no-op', async () => {
+        const { association, Source, Through } = defineBelongsToMany('sourceId');
+        const findAll = sinon.stub(Through, 'findAll');
+
+        await association.add(Source.build({ id: 1 }, { isNewRecord: false }), []);
+
+        expect(findAll).not.to.have.been.called;
+      });
+
+      it('allows belongsToMany#set with no targets because it only deletes through rows', async () => {
+        const { association, Source, Through } = defineBelongsToMany('sourceId');
+        const findAll = sinon.stub(Through, 'findAll').resolves([]);
+        const destroy = sinon.stub(Through, 'destroy');
+
+        await association.set(Source.build({ id: 1 }, { isNewRecord: false }), [] as never);
+
+        expect(findAll).to.have.been.calledOnce;
+        expect(destroy).not.to.have.been.called;
+      });
+
+      it('rejects a generated otherKey before accessing the through model', async () => {
+        const { association, Source, Target, Through } = defineBelongsToMany('targetId');
+        const findAll = sinon.stub(Through, 'findAll');
+
+        await expect(
+          association.add(
+            Source.build({ id: 1 }, { isNewRecord: false }),
+            Target.build({ id: 2 }, { isNewRecord: false }),
+          ),
+        ).to.be.rejectedWith(/association mutator.*targetId.*generated/i);
+        expect(findAll).not.to.have.been.called;
+      });
+
+      it('rejects belongsToMany#create before creating an orphan target', async () => {
+        const { association, Source, Target } = defineBelongsToMany('sourceId');
+        const create = sinon.stub(Target, 'create');
+
+        await expect(
+          association.create(Source.build({ id: 1 }, { isNewRecord: false })),
+        ).to.be.rejectedWith(/association mutator.*sourceId.*generated/i);
+        expect(create).not.to.have.been.called;
+      });
+
+      it('allows belongsToMany#remove because it deletes rather than writes through keys', async () => {
+        const { association, Source, Target, Through } = defineBelongsToMany('sourceId');
+        const destroy = sinon.stub(Through, 'destroy').resolves(1);
+
+        await association.remove(
+          Source.build({ id: 1 }, { isNewRecord: false }),
+          Target.build({ id: 2 }, { isNewRecord: false }),
+        );
+
+        expect(destroy).to.have.been.calledOnce;
+      });
+
+      for (const method of ['create', 'bulkCreate'] as const) {
+        it(`preflights belongsToMany includes before Model.${method} inserts anything`, async () => {
+          const { association, Source } = defineBelongsToMany('sourceId');
+          const insert = sinon.stub(sequelize.queryInterface, 'insert');
+          const bulkInsert = sinon.stub(sequelize.queryInterface, 'bulkInsert');
+          const values = { [association.as]: [{}] };
+
+          const operation =
+            method === 'create'
+              ? Source.create(values, { include: [association] })
+              : Source.bulkCreate([values], { include: [association] });
+
+          await expect(operation).to.be.rejectedWith(/association mutator.*sourceId.*generated/i);
+          expect(insert).not.to.have.been.called;
+          expect(bulkInsert).not.to.have.been.called;
+        });
+      }
+    });
+
     it('ignores generated attributes before invoking custom setters', () => {
       let setterCalls = 0;
       const TestModel = sequelize.define(
@@ -297,12 +418,12 @@ describe('Model generated column safeguards', () => {
         {
           id: {
             type: DataTypes.INTEGER,
-            primaryKey: true,
+            primaryKey: sequelize.dialect.name !== 'mariadb',
             generatedAs: sql.literal('1'),
             generatedColumn: supportedMode,
           },
         },
-        { timestamps: false },
+        { noPrimaryKey: sequelize.dialect.name === 'mariadb', timestamps: false },
       );
       let insertedValues: Record<string, unknown> | undefined;
       const insert = sinon
@@ -319,6 +440,207 @@ describe('Model generated column safeguards', () => {
       expect(insert).to.have.been.calledOnce;
       expect(insertedValues).to.deep.equal({});
       expect(instance.isNewRecord).to.equal(false);
+    });
+
+    it('issues one returning-capable insert per generated-only bulk row', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedOnlyBulkRecords',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: sequelize.dialect.name !== 'mariadb',
+            generatedAs: sql.literal('1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { noPrimaryKey: sequelize.dialect.name === 'mariadb', timestamps: false },
+      );
+      const bulkInsert = sinon.stub(sequelize.queryInterface, 'bulkInsert');
+      let nextId = 1;
+      const insert = sinon
+        .stub(sequelize.queryInterface, 'insert')
+        .callsFake(async (instance, _tableName, values, options) => {
+          expect(values).to.deep.equal({});
+          expect(options?.returning).to.equal(true);
+          instance!.setDataValue('id', nextId++);
+
+          return [instance, 1];
+        });
+
+      const instances = await TestModel.bulkCreate([{}, {}], {
+        hooks: false,
+        validate: false,
+      });
+
+      expect(insert).to.have.been.calledTwice;
+      expect(bulkInsert).not.to.have.been.called;
+      expect(instances.map(instance => instance.getDataValue('id'))).to.deep.equal([1, 2]);
+      expect(instances.every(instance => !instance.isNewRecord)).to.equal(true);
+    });
+
+    it('preserves bulk options and order when only some rows become empty', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedMixedEmptyBulkRecords',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            columnName: 'generated_id',
+            primaryKey: sequelize.dialect.name !== 'mariadb',
+            generatedAs: sql.literal('1'),
+            generatedColumn: supportedMode,
+          },
+          source: DataTypes.INTEGER,
+        },
+        { noPrimaryKey: sequelize.dialect.name === 'mariadb', timestamps: false },
+      );
+      const bulkInsert = sinon.stub(sequelize.queryInterface, 'bulkInsert');
+      const insertedValues: Array<Record<string, unknown>> = [];
+      const insertOptions: Array<Record<string, unknown>> = [];
+      let nextId = 1;
+      const insert = sinon
+        .stub(sequelize.queryInterface, 'insert')
+        .callsFake(async (instance, _tableName, values, options) => {
+          insertedValues.push({ ...values });
+          insertOptions.push({ ...options });
+          instance!.setDataValue('id', nextId++);
+
+          return [instance, 1];
+        });
+      const options: Record<string, unknown> = { returning: ['id'] };
+      if (sequelize.dialect.supports.inserts.ignoreDuplicates !== false) {
+        options.ignoreDuplicates = true;
+      }
+
+      if (sequelize.dialect.supports.inserts.updateOnDuplicate) {
+        options.updateOnDuplicate = ['source'];
+      }
+
+      const instances = await TestModel.bulkCreate([{}, { source: 2 }], options);
+
+      expect(insert).to.have.been.calledTwice;
+      expect(bulkInsert).not.to.have.been.called;
+      expect(insertedValues).to.deep.equal([{}, { source: 2 }]);
+      expect(insertOptions.map(option => option.returning)).to.deep.equal([
+        ['generated_id'],
+        ['generated_id'],
+      ]);
+      expect(insertOptions.map(option => option.ignoreDuplicates)).to.deep.equal([
+        options.ignoreDuplicates ?? false,
+        options.ignoreDuplicates ?? false,
+      ]);
+      if (options.updateOnDuplicate) {
+        expect(insertOptions.map(option => option.updateOnDuplicate)).to.deep.equal([
+          ['source'],
+          ['source'],
+        ]);
+      }
+
+      expect(instances.map(instance => instance.getDataValue('id'))).to.deep.equal([1, 2]);
+    });
+
+    it('uses a valid dialect default-values insert for generated-only rows', () => {
+      const TestModel = sequelize.define(
+        'GeneratedOnlyDefaultValuesSql',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: sequelize.dialect.name !== 'mariadb',
+            generatedAs: sql.literal('1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { noPrimaryKey: sequelize.dialect.name === 'mariadb', timestamps: false },
+      );
+
+      const { query } = sequelize.queryGenerator.insertQuery(
+        TestModel.table,
+        {},
+        TestModel.getAttributes(),
+        { returning: true },
+      );
+
+      expect(query).to.match(/DEFAULT VALUES|VALUES \(\)/i);
+    });
+
+    it('filters generated columns addressed by their physical column name', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedPhysicalColumnUpdate',
+        {
+          source: DataTypes.INTEGER,
+          computedValue: {
+            type: DataTypes.INTEGER,
+            columnName: 'computed_value',
+            generatedAs: sql.literal('source + 1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { timestamps: false },
+      );
+      const bulkUpdate = sinon.stub(sequelize.queryInterface, 'bulkUpdate');
+
+      const [affectedRows] = await TestModel.update({ computed_value: 99 } as never, {
+        fields: ['computed_value'] as never,
+        validate: false,
+        where: { id: 1 },
+      });
+
+      expect(affectedRows).to.equal(0);
+      expect(bulkUpdate).not.to.have.been.called;
+    });
+
+    it('filters physical generated column names injected by beforeBulkUpdate', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedPhysicalColumnBulkHook',
+        {
+          source: DataTypes.INTEGER,
+          computedValue: {
+            type: DataTypes.INTEGER,
+            columnName: 'computed_value',
+            generatedAs: sql.literal('source + 1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { timestamps: false },
+      );
+      TestModel.beforeBulkUpdate(options => {
+        const mutableOptions = options as typeof options & {
+          attributes: Record<string, unknown>;
+        };
+        mutableOptions.attributes.computed_value = 99;
+        mutableOptions.fields!.push('computed_value');
+      });
+      const bulkUpdate = sinon.stub(sequelize.queryInterface, 'bulkUpdate').resolves();
+
+      await TestModel.update({ source: 2 }, { validate: false, where: { id: 1 } });
+
+      expect(bulkUpdate).to.have.been.calledOnce;
+      expect(bulkUpdate.firstCall.args[1]).to.deep.equal({ source: 2 });
+    });
+
+    it('filters physical generated column names injected by beforeSave', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedPhysicalColumnSaveHook',
+        {
+          source: DataTypes.INTEGER,
+          computedValue: {
+            type: DataTypes.INTEGER,
+            columnName: 'computed_value',
+            generatedAs: sql.literal('source + 1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { timestamps: false },
+      );
+      TestModel.beforeSave((instance, options) => {
+        instance.setDataValue('computed_value' as never, 99);
+        options.fields!.push('computed_value');
+      });
+      const update = sinon.stub(sequelize.queryInterface, 'update');
+      const instance = TestModel.build({ id: 1, source: 2 }, { isNewRecord: false, raw: true });
+
+      await instance.save({ validate: false });
+
+      expect(update).not.to.have.been.called;
     });
 
     it('verifies existing generated columns during sync({ alter: true })', async () => {

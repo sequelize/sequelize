@@ -14,7 +14,6 @@ import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-
 import {
   findTopLevelSqlKeyword,
   removeTopLevelSqlKeyword,
-  splitSqlAtLastTopLevelKeyword,
   splitSqlAtTopLevelKeyword,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
@@ -70,7 +69,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
 
-        const commentParts = splitSqlAtLastTopLevelKeyword(dataType, 'COMMENT', this.dialect);
+        const commentParts = splitSqlAtTopLevelKeyword(dataType, 'COMMENT', this.dialect);
         if (commentParts) {
           const commentText = commentParts[1].slice('COMMENT'.length).trim();
           commentStr += template(

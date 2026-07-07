@@ -1,11 +1,16 @@
 import { DataTypes, sql } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import sinon from 'sinon';
+import { createSequelizeInstance, sequelize } from '../../support';
 
 const queryInterface = sequelize.queryInterface;
 const supports = sequelize.dialect.supports.generatedColumns;
 
 describe('QueryInterface generated column validation', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('validates generated expressions in createTable', async () => {
     await expect(
       queryInterface.createTable('generated_test', {
@@ -82,6 +87,23 @@ describe('QueryInterface generated column validation', () => {
           generatedColumn: unsupportedMode,
         }),
       ).to.be.rejectedWith(/does not support (?:STORED |VIRTUAL )?generated columns/i);
+    });
+  }
+
+  if (sequelize.dialect.name === 'postgres') {
+    it('rejects PostgreSQL VIRTUAL generated columns with user-defined result types', async () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+      sinon.stub(postgres18, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres18.queryInterface.createTable('generated_test', {
+          value: {
+            type: DataTypes.ENUM('one', 'two'),
+            generatedAs: sql.literal("'one'"),
+            generatedColumn: 'VIRTUAL',
+          },
+        }),
+      ).to.be.rejectedWith(/PostgreSQL.*VIRTUAL generated columns.*ENUM.*user-defined/i);
     });
   }
 });

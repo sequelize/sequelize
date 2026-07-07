@@ -85,10 +85,10 @@ const GeneratedDecorator = createRequiredAttributeOptionsDecorator<{
  *
  * @example
  * ```ts
- * class LineItem extends Model<InferAttributes<LineItem>> {
+ * class LineItem extends Model<InferAttributes<LineItem>, InferCreationAttributes<LineItem>> {
  *   @Attribute(DataTypes.INTEGER)
  *   @Generated(sql`price * quantity`)
- *   declare total: number;
+ *   declare total: CreationOptional<number>;
  * }
  * ```
  *

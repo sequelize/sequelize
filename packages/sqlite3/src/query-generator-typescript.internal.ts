@@ -36,6 +36,17 @@ const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryO
   'restartIdentity',
 ]);
 
+export interface SqliteAutoincrementSequence {
+  schemaName: 'main' | 'temp';
+  value: string;
+}
+
+function isTableConstraintDefinition(definition: string): boolean {
+  return /^(?:CONSTRAINT\b|PRIMARY\s+KEY\s*\(|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()/i.test(
+    definition,
+  );
+}
+
 function replaceCreateTableName(createTableSql: string, replacement: string): string {
   const tableName =
     /^(\s*CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(?:"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[(?:[^\]]|\]\])*\]|[^\s(]+)/i.exec(
@@ -131,6 +142,10 @@ function replaceColumnDefinitions(
   const { closingParenthesis, definitions, openingParenthesis } =
     splitColumnDefinitions(createTableSql);
   const replacedDefinitions = definitions.flatMap(definition => {
+    if (isTableConstraintDefinition(definition)) {
+      return [definition];
+    }
+
     const columnName = getSqlColumnName(definition)?.toLowerCase();
     if (!columnName || !replacements.has(columnName)) {
       return [definition];
@@ -319,9 +334,10 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     attributes: SqliteColumnsDescription,
     createTableSql?: string,
     replacedColumnNames: readonly string[] = [],
-    autoincrementHighWater?: number,
+    autoincrementSequence?: SqliteAutoincrementSequence,
     views: ReadonlyArray<{ name: string; schemaName: 'main' | 'temp'; sql: string }> = [],
     viewTriggerSql: readonly string[] = [],
+    renamedColumns: ReadonlyMap<string, string> = new Map(),
   ) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(
@@ -334,9 +350,12 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const tableAttributes = this.attributesToSQL(attributes);
     // Generated columns cannot be inserted into explicitly. SQLite recomputes both
     // VIRTUAL and STORED columns while the ordinary columns are copied.
-    const attributeNames = Object.keys(tableAttributes)
-      .filter(attributeName => attributes[attributeName].generatedAs === undefined)
-      .map(attr => this.quoteIdentifier(attr))
+    const copiedAttributeNames = Object.keys(tableAttributes).filter(
+      attributeName => attributes[attributeName].generatedAs === undefined,
+    );
+    const attributeNames = copiedAttributeNames.map(attr => this.quoteIdentifier(attr)).join(', ');
+    const sourceAttributeNames = copiedAttributeNames
+      .map(attr => this.quoteIdentifier(renamedColumns.get(attr) ?? attr))
       .join(', ');
 
     let replacementTableSql = createTableSql;
@@ -363,7 +382,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     const queries = [
       backupTableSql,
-      `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
+      `INSERT INTO ${quotedBackupTableName} (${attributeNames}) SELECT ${sourceAttributeNames} FROM ${quotedTableName};`,
       ...views.map(
         view =>
           `DROP VIEW ${this.quoteIdentifier(view.schemaName)}.${this.quoteIdentifier(view.name)};`,
@@ -374,9 +393,11 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ...viewTriggerSql,
     ];
 
-    if (autoincrementHighWater !== undefined) {
+    if (autoincrementSequence) {
+      const sequenceTable = `${this.quoteIdentifier(autoincrementSequence.schemaName)}.${this.quoteIdentifier('sqlite_sequence')}`;
+      const sequenceValue = `CAST(${this.escape(autoincrementSequence.value)} AS INTEGER)`;
       queries.push(
-        `UPDATE sqlite_sequence SET seq = MAX(seq, ${this.escape(autoincrementHighWater)}) WHERE name = ${this.escape(table.tableName)};`,
+        `UPDATE ${sequenceTable} SET seq = MAX(seq, ${sequenceValue}) WHERE name = ${this.escape(table.tableName)};`,
       );
     }
 
@@ -392,7 +413,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     schemaObjectSql: readonly string[],
     views: ReadonlyArray<{ name: string; schemaName: 'main' | 'temp'; sql: string }>,
     viewTriggerSql: readonly string[],
-    autoincrementHighWater?: number,
+    autoincrementSequence?: SqliteAutoincrementSequence,
   ) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(
@@ -425,10 +446,12 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ...schemaObjectSql,
     ];
 
-    if (autoincrementHighWater !== undefined) {
+    if (autoincrementSequence) {
+      const sequenceTable = `${this.quoteIdentifier(autoincrementSequence.schemaName)}.${this.quoteIdentifier('sqlite_sequence')}`;
+      const sequenceValue = `CAST(${this.escape(autoincrementSequence.value)} AS INTEGER)`;
       queries.push(
-        `INSERT INTO sqlite_sequence (name, seq) SELECT ${this.escape(table.tableName)}, ${this.escape(autoincrementHighWater)} WHERE NOT EXISTS (SELECT 1 FROM sqlite_sequence WHERE name = ${this.escape(table.tableName)});`,
-        `UPDATE sqlite_sequence SET seq = MAX(seq, ${this.escape(autoincrementHighWater)}) WHERE name = ${this.escape(table.tableName)};`,
+        `INSERT INTO ${sequenceTable} (name, seq) SELECT ${this.escape(table.tableName)}, ${sequenceValue} WHERE NOT EXISTS (SELECT 1 FROM ${sequenceTable} WHERE name = ${this.escape(table.tableName)});`,
+        `UPDATE ${sequenceTable} SET seq = MAX(seq, ${sequenceValue}) WHERE name = ${this.escape(table.tableName)};`,
       );
     }
 

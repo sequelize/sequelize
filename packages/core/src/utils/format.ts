@@ -97,7 +97,7 @@ export function mapValueFieldNames( // TODO: rename to mapAttributesToColumNames
     if (
       dataValues[attributeName] !== undefined &&
       !modelDefinition.virtualAttributeNames.has(attributeName) &&
-      !modelDefinition.generatedAttributeNames.has(attributeName)
+      !modelDefinition.isGeneratedAttribute(attributeName)
     ) {
       // Field name mapping
       const columnName = modelDefinition.getColumnNameLoose(attributeName);

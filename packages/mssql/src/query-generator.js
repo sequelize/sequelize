@@ -13,7 +13,6 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import {
   findTopLevelSqlKeyword,
   removeTopLevelSqlKeyword,
-  splitSqlAtLastTopLevelKeyword,
   splitSqlAtTopLevelKeyword,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
@@ -56,7 +55,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
 
-        const commentParts = splitSqlAtLastTopLevelKeyword(dataType, 'COMMENT', this.dialect);
+        const commentParts = splitSqlAtTopLevelKeyword(dataType, 'COMMENT', this.dialect);
         if (commentParts) {
           const commentText = commentParts[1].slice('COMMENT'.length).trim();
           commentStr += this.commentTemplate(commentText, tableName, attr);

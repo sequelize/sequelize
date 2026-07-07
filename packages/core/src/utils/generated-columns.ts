@@ -1,7 +1,15 @@
 import semver from 'semver';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
-import { VIRTUAL } from '../data-types.js';
+import { ARRAY, VIRTUAL } from '../data-types.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
+
+const POSTGRES_USER_DEFINED_TYPE_IDS = new Set([
+  'CITEXT',
+  'ENUM',
+  'GEOGRAPHY',
+  'GEOMETRY',
+  'HSTORE',
+]);
 
 interface GeneratedColumnOptions {
   autoIncrement?: boolean | undefined;
@@ -111,7 +119,28 @@ export function validateGeneratedColumnOptions(
     );
   }
 
+  if (dialect.name === 'mariadb') {
+    if (attribute.primaryKey) {
+      throw new Error(
+        `${attributeDescription}: MariaDB does not support generated columns as primary keys.`,
+      );
+    }
+
+    if (mode === 'VIRTUAL' && attribute.references) {
+      throw new Error(
+        `${attributeDescription}: MariaDB only supports foreign keys on STORED generated columns.`,
+      );
+    }
+  }
+
   if (dialect.name === 'postgres' && mode === 'VIRTUAL') {
+    const userDefinedTypeId = findPostgresUserDefinedTypeId(attribute.type);
+    if (userDefinedTypeId) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL VIRTUAL generated columns cannot use the ${userDefinedTypeId} user-defined data type.`,
+      );
+    }
+
     if (attribute.primaryKey) {
       throw new Error(
         `${attributeDescription}: PostgreSQL does not support primary keys on VIRTUAL generated columns.`,
@@ -292,9 +321,10 @@ export function sqlFragmentReferencesIdentifier(
       continue;
     }
 
-    if (char === '-' && sql[index + 1] === '-') {
+    const lineCommentStartLength = getLineCommentStartLength(sql, index, dialect);
+    if (lineCommentStartLength > 0) {
       inLineComment = true;
-      index++;
+      index += lineCommentStartLength - 1;
       continue;
     }
 
@@ -463,9 +493,10 @@ export function findTopLevelSqlKeyword(
       continue;
     }
 
-    if (char === '-' && sql[index + 1] === '-') {
+    const lineCommentStartLength = getLineCommentStartLength(sql, index, dialect);
+    if (lineCommentStartLength > 0) {
       inLineComment = true;
-      index++;
+      index += lineCommentStartLength - 1;
       continue;
     }
 
@@ -576,6 +607,56 @@ export function splitSqlAtLastTopLevelKeyword(
 
 function isTokenBoundary(char: string | undefined): boolean {
   return char === undefined || !/[0-9a-z_$]/i.test(char);
+}
+
+function findPostgresUserDefinedTypeId(type: unknown): string | undefined {
+  if (typeof type === 'string') {
+    const normalizedType = type.trim().toUpperCase().replace(/\[\]$/, '');
+
+    return POSTGRES_USER_DEFINED_TYPE_IDS.has(normalizedType) ? normalizedType : undefined;
+  }
+
+  if ((typeof type !== 'object' || type === null) && typeof type !== 'function') {
+    return undefined;
+  }
+
+  const getDataTypeId = (type as { getDataTypeId?(): string }).getDataTypeId;
+  const typeId = typeof getDataTypeId === 'function' ? getDataTypeId.call(type) : undefined;
+  if (typeId && POSTGRES_USER_DEFINED_TYPE_IDS.has(typeId)) {
+    return typeId;
+  }
+
+  if (type instanceof ARRAY) {
+    return findPostgresUserDefinedTypeId(type.options.type);
+  }
+
+  return undefined;
+}
+
+function getLineCommentStartLength(sql: string, index: number, dialect: AbstractDialect): number {
+  const char = sql[index];
+  const isMySqlFamily = dialect.name === 'mysql' || dialect.name === 'mariadb';
+
+  if (isMySqlFamily && char === '#') {
+    return 1;
+  }
+
+  if (char !== '-' || sql[index + 1] !== '-') {
+    return 0;
+  }
+
+  if (!isMySqlFamily) {
+    return 2;
+  }
+
+  const followingCharacter = sql[index + 2];
+  if (followingCharacter === undefined) {
+    return 0;
+  }
+
+  const codePoint = followingCharacter.codePointAt(0)!;
+
+  return codePoint <= 0x20 || codePoint === 0x7f ? 2 : 0;
 }
 
 function isBackslashEscaped(value: string, index: number): boolean {

@@ -913,6 +913,19 @@ Specify a different name for either index to resolve this issue.`);
   }
 
   /**
+   * Returns whether the provided attribute or column name identifies a generated column.
+   *
+   * @param attributeOrColumnName Attribute or physical column name to inspect.
+   * @internal
+   */
+  isGeneratedAttribute(attributeOrColumnName: string): boolean {
+    const attribute =
+      this.#attributes.get(attributeOrColumnName) ?? this.#columns.get(attributeOrColumnName);
+
+    return attribute !== undefined && this.#generatedAttributeNames.has(attribute.attributeName);
+  }
+
+  /**
    * Returns the column name corresponding to the given attribute name if it exists, otherwise returns the attribute name.
    *
    * ⚠️ Using this method is highly discouraged. Users should specify column names & attribute names separately, to prevent any ambiguity.

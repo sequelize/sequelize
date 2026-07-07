@@ -76,6 +76,42 @@ describe('generated column version support', () => {
       expect(definition).to.equal('INTEGER GENERATED ALWAYS AS (1) VIRTUAL');
     });
 
+    it('rejects user-defined result types on PostgreSQL 18 VIRTUAL generated columns', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualEnumResult',
+          {
+            computed: {
+              type: DataTypes.ENUM('one', 'two'),
+              generatedAs: sql.literal("'one'"),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(/PostgreSQL.*VIRTUAL generated columns.*ENUM.*user-defined/i);
+    });
+
+    it('allows user-defined result types on PostgreSQL STORED generated columns', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'StoredEnumResult',
+          {
+            computed: {
+              type: DataTypes.ENUM('one', 'two'),
+              generatedAs: sql.literal("'one'"),
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+      }).not.to.throw();
+    });
+
     it('re-evaluates generated column support when the database version becomes known', () => {
       const postgres = createSequelizeInstance();
       const supportBeforeConnection = postgres.dialect.supports.generatedColumns;
@@ -362,9 +398,20 @@ describe('generated column version support', () => {
       const sqlite324 = createSequelizeInstance({ databaseVersion: '3.24.0' });
       const queryInterface = sqlite324.queryInterface;
       sinon.stub(queryInterface, 'describeTable').resolves({ before: {} } as any);
-      sinon.stub(sqlite324, 'queryRaw').resolves([{ name: 'before' }] as any);
+      sinon.stub(sqlite324, 'queryRaw').callsFake(async query => {
+        if (String(query).startsWith('SELECT sql,')) {
+          return [
+            {
+              schemaCatalog: 'sqlite_master',
+              sql: 'CREATE TABLE `users` (`before` INTEGER)',
+            },
+          ] as any;
+        }
+
+        return [] as any;
+      });
       const fallback = sinon
-        .stub(sqlite324.queryGenerator, '_replaceColumnQuery')
+        .stub(sqlite324.queryGenerator, '_replaceTableQuery')
         .throws(new Error('used rebuild fallback'));
 
       await expect(queryInterface.renameColumn('users', 'before', 'after')).to.be.rejectedWith(
@@ -379,9 +426,20 @@ describe('generated column version support', () => {
         freshSqlite.setDatabaseVersion('3.24.0');
       });
       sinon.stub(freshSqlite.queryInterface, 'describeTable').resolves({ before: {} } as any);
-      sinon.stub(freshSqlite, 'queryRaw').resolves([{ name: 'before' }] as any);
+      sinon.stub(freshSqlite, 'queryRaw').callsFake(async query => {
+        if (String(query).startsWith('SELECT sql,')) {
+          return [
+            {
+              schemaCatalog: 'sqlite_master',
+              sql: 'CREATE TABLE `users` (`before` INTEGER)',
+            },
+          ] as any;
+        }
+
+        return [] as any;
+      });
       const fallback = sinon
-        .stub(freshSqlite.queryGenerator, '_replaceColumnQuery')
+        .stub(freshSqlite.queryGenerator, '_replaceTableQuery')
         .throws(new Error('used rebuild fallback'));
 
       await expect(

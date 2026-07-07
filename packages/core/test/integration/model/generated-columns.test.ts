@@ -561,7 +561,7 @@ if (!dialect.supports.generatedColumns.stored && !dialect.supports.generatedColu
 
             @Attribute(DataTypes.INTEGER)
             @Generated(sql.fn('abs', sql.attribute('sourceValue')))
-            declare absoluteValue: number | null;
+            declare absoluteValue: CreationOptional<number | null>;
           }
 
           sequelize.addModels([DecoratorModel]);

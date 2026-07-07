@@ -279,7 +279,6 @@ describe('QueryGenerator#createTableQuery', () => {
     );
   });
 
-  // TODO: the second COMMENT should likely be replaced by an empty string in DB2 and MSSQL
   it('produces a query to create a table with multiple comments in one column', () => {
     expectsql(
       queryGenerator.createTableQuery('myTable', { myColumn: 'DATE COMMENT Foo COMMENT Bar' }),
@@ -288,10 +287,10 @@ describe('QueryGenerator#createTableQuery', () => {
         'mariadb mysql':
           'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE COMMENT Foo COMMENT Bar) ENGINE=InnoDB;',
         postgres: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo COMMENT Bar';`,
-        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE COMMENT Foo);
-        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Bar', @level0type = N'Schema', @level0name = N'dbo',
+        mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);
+        EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Foo COMMENT Bar', @level0type = N'Schema', @level0name = N'dbo',
         @level1type = N'Table', @level1name = [myTable], @level2type = N'Column', @level2name = [myColumn];`,
-        db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE COMMENT Foo); -- 'Bar', TableName = "myTable", ColumnName = "myColumn";`,
+        db2: `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); -- 'Foo COMMENT Bar', TableName = "myTable", ColumnName = "myColumn";`,
         ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar); END`,
         oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE COMMENT Foo COMMENT Bar)'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
       },

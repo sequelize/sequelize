@@ -127,6 +127,34 @@ const nonCascadingOptions = [
  */
 const CONSTRUCTOR_SECRET = Symbol('model-constructor-secret');
 
+function assertEagerLoadedThroughForeignKeysAreWritable(instances, includes) {
+  if (!includes || includes.length === 0) {
+    return;
+  }
+
+  for (const include of includes) {
+    const includedInstances = [];
+    for (const instance of instances) {
+      const included = instance.get(include.as);
+      if (Array.isArray(included)) {
+        includedInstances.push(...included);
+      } else if (included) {
+        includedInstances.push(included);
+      }
+    }
+
+    if (includedInstances.length === 0) {
+      continue;
+    }
+
+    if (include.association instanceof BelongsToManyAssociation) {
+      include.association.assertThroughForeignKeysAreWritable(include.association.accessors.create);
+    }
+
+    assertEagerLoadedThroughForeignKeysAreWritable(includedInstances, include.include);
+  }
+}
+
 /**
  * A Model represents a table in the database. Instances of this class represent a database row.
  *
@@ -2422,6 +2450,8 @@ ${associationOwner._getAssociationDebugList()}`);
         await model.hooks.runAsync('beforeBulkCreate', instances, options);
       }
 
+      assertEagerLoadedThroughForeignKeysAreWritable(instances, options.include);
+
       // Validate
       if (options.validate) {
         const errors = [];
@@ -2581,12 +2611,28 @@ ${associationOwner._getAssociationDebugList()}`);
           );
         }
 
-        const results = await model.queryInterface.bulkInsert(
-          model.table,
-          records,
-          options,
-          fieldMappedAttributes,
-        );
+        let results;
+        if (records.some(record => isEmpty(record))) {
+          results = [];
+          for (const [index, record] of records.entries()) {
+            const [insertedRecord] = await model.queryInterface.insert(
+              instances[index],
+              model.table,
+              record,
+              options,
+            );
+
+            results.push(insertedRecord?.dataValues ?? insertedRecord);
+          }
+        } else {
+          results = await model.queryInterface.bulkInsert(
+            model.table,
+            records,
+            options,
+            fieldMappedAttributes,
+          );
+        }
+
         if (Array.isArray(results)) {
           for (const [i, result] of results.entries()) {
             const instance = instances[i];
@@ -3039,12 +3085,14 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
-    for (const attributeName of modelDefinition.generatedAttributeNames) {
-      delete values[attributeName];
+    for (const attributeName of Object.keys(values)) {
+      if (modelDefinition.isGeneratedAttribute(attributeName)) {
+        delete values[attributeName];
+      }
     }
 
     options.fields = options.fields.filter(
-      attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+      attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
     );
 
     if (updatedAtAttrName && !options.silent) {
@@ -3162,12 +3210,14 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
-    for (const attributeName of modelDefinition.generatedAttributeNames) {
-      delete valuesUse[attributeName];
+    for (const attributeName of Object.keys(valuesUse)) {
+      if (modelDefinition.isGeneratedAttribute(attributeName)) {
+        delete valuesUse[attributeName];
+      }
     }
 
     options.fields = options.fields.filter(
-      attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+      attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
     );
 
     let result;
@@ -4140,6 +4190,10 @@ Instead of specifying a Model, either:
       }
     }
 
+    if (this.isNewRecord) {
+      assertEagerLoadedThroughForeignKeysAreWritable([this], this._options.include);
+    }
+
     if (
       options.fields.length > 0 &&
       this.isNewRecord &&
@@ -4175,7 +4229,7 @@ Instead of specifying a Model, either:
     const realFields = options.fields.filter(
       attributeName =>
         !modelDefinition.virtualAttributeNames.has(attributeName) &&
-        !modelDefinition.generatedAttributeNames.has(attributeName),
+        !modelDefinition.isGeneratedAttribute(attributeName),
     );
     if (realFields.length === 0 && !this.isNewRecord) {
       return this;

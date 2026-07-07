@@ -3,8 +3,10 @@ import { ForeignKeyConstraintError, QueryTypes, TransactionNestMode } from '@seq
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { SqliteDialect } from './dialect.js';
+import type { SqliteAutoincrementSequence } from './query-generator-typescript.internal.js';
 import type { SqliteQueryGenerator } from './query-generator.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
+import { replaceSqlIdentifier } from './sqlite-schema-parser.js';
 
 type SqliteSchemaCatalog = 'sqlite_master' | 'sqlite_temp_master';
 type SqliteSchemaName = 'main' | 'temp';
@@ -178,20 +180,16 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             createTableRow.schemaCatalog,
             { ...options, transaction },
           );
-          let autoincrementHighWater: number | undefined;
+          let autoincrementSequence: SqliteAutoincrementSequence | undefined;
 
-          if (createTableRow.schemaCatalog === 'sqlite_master') {
-            const sqliteSequenceExists = await this.#sequelize.queryRaw(
-              `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sqlite_sequence'`,
+          if (/\bAUTOINCREMENT\b/i.test(createTableRow.sql)) {
+            const schemaName = createTableRow.schemaCatalog === 'sqlite_master' ? 'main' : 'temp';
+            const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: string }>(
+              `SELECT CAST(seq AS TEXT) AS seq FROM ${this.#queryGenerator.quoteIdentifier(schemaName)}.${this.#queryGenerator.quoteIdentifier('sqlite_sequence')} WHERE name = ${escapedTableName}`,
               { ...options, transaction, type: QueryTypes.SELECT },
             );
-
-            if (sqliteSequenceExists.length > 0) {
-              const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: number }>(
-                `SELECT seq FROM sqlite_sequence WHERE name = ${escapedTableName}`,
-                { ...options, transaction, type: QueryTypes.SELECT },
-              );
-              autoincrementHighWater = sequenceRow?.seq;
+            if (sequenceRow) {
+              autoincrementSequence = { schemaName, value: sequenceRow.seq };
             }
           }
 
@@ -221,7 +219,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             ],
             views,
             viewTriggers,
-            autoincrementHighWater,
+            autoincrementSequence,
           );
           await this.executeQueriesSequentially(queries, { ...options, transaction, raw: true });
 
@@ -249,12 +247,16 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
    * @param columns
    * @param options
    * @param replacedColumnNames
+   * @param createTableSqlOverride
+   * @param renamedColumns
    */
   async alterTableInternal(
     tableName: TableOrModel,
     columns: SqliteColumnsDescription,
     options?: QueryRawOptions,
     replacedColumnNames: readonly string[] = [],
+    createTableSqlOverride?: string,
+    renamedColumns: ReadonlyMap<string, string> = new Map(),
   ): Promise<void> {
     const table = this.#queryGenerator.extractTableDetails(tableName);
     await this.#assertCanRebuildTableInTransaction(tableName, options);
@@ -292,16 +294,16 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
                 transaction,
               })
             : { triggers: [], views: [] };
-          let autoincrementHighWater: number | undefined;
-          if (
-            schemaRow?.schemaCatalog === 'sqlite_master' &&
-            /\bAUTOINCREMENT\b/i.test(schemaRow.sql)
-          ) {
-            const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: number }>(
-              `SELECT seq FROM sqlite_sequence WHERE name = ${this.#queryGenerator.escape(table.tableName)}`,
+          let autoincrementSequence: SqliteAutoincrementSequence | undefined;
+          if (schemaRow && /\bAUTOINCREMENT\b/i.test(schemaRow.sql)) {
+            const schemaName = schemaRow.schemaCatalog === 'sqlite_master' ? 'main' : 'temp';
+            const [sequenceRow] = await this.#sequelize.queryRaw<{ seq: string }>(
+              `SELECT CAST(seq AS TEXT) AS seq FROM ${this.#queryGenerator.quoteIdentifier(schemaName)}.${this.#queryGenerator.quoteIdentifier('sqlite_sequence')} WHERE name = ${this.#queryGenerator.escape(table.tableName)}`,
               { ...options, transaction, type: QueryTypes.SELECT },
             );
-            autoincrementHighWater = sequenceRow?.seq;
+            if (sequenceRow) {
+              autoincrementSequence = { schemaName, value: sequenceRow.seq };
+            }
           }
 
           if (replacedColumnNames.length > 0) {
@@ -330,25 +332,47 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             }
           }
 
+          const replaceRenamedColumns = (sql: string): string => {
+            let replacedSql = sql;
+            for (const [newColumnName, oldColumnName] of renamedColumns) {
+              replacedSql = replaceSqlIdentifier(replacedSql, oldColumnName, newColumnName);
+            }
+
+            return replacedSql;
+          };
+
+          const rawCreateTableSql = createTableSqlOverride ?? schemaRow?.sql;
+          const transformedCreateTableSql = rawCreateTableSql
+            ? replaceRenamedColumns(rawCreateTableSql)
+            : undefined;
+
           const createTableSql =
-            schemaRow?.schemaCatalog === 'sqlite_temp_master'
-              ? schemaRow.sql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
-              : schemaRow?.sql;
+            schemaRow?.schemaCatalog === 'sqlite_temp_master' && transformedCreateTableSql
+              ? transformedCreateTableSql.replace(/^CREATE\s+TABLE\b/i, 'CREATE TEMP TABLE')
+              : transformedCreateTableSql;
+          const transformedViews = views.map(view => ({
+            ...view,
+            sql: replaceRenamedColumns(view.sql),
+          }));
+          const transformedViewTriggers = viewTriggers.map(replaceRenamedColumns);
           const sql = this.#queryGenerator._replaceTableQuery(
             tableName,
             columns,
             createTableSql,
             replacedColumnNames,
-            autoincrementHighWater,
-            views,
-            viewTriggers,
+            autoincrementSequence,
+            transformedViews,
+            transformedViewTriggers,
+            renamedColumns,
           );
           await this.executeQueriesSequentially(sql, { ...options, transaction, raw: true });
           await this.executeQueriesSequentially(
             [
-              ...schemaObjects.map(schemaObject => schemaObject.sql),
+              ...schemaObjects.map(schemaObject => replaceRenamedColumns(schemaObject.sql)),
               ...temporaryTableTriggers.map(trigger =>
-                trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
+                replaceRenamedColumns(
+                  trigger.sql.replace(/^CREATE\s+TRIGGER\b/i, 'CREATE TEMP TRIGGER'),
+                ),
               ),
             ],
             { ...options, transaction, raw: true },

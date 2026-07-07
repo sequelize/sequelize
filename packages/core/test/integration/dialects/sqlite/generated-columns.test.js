@@ -17,6 +17,7 @@ if (Support.getTestDialect() === 'sqlite3') {
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_temp`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_fts`');
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_(test`');
+      await this.sequelize.query('DROP TABLE IF EXISTS `generated columns test`');
       await this.sequelize.queryInterface.dropTable(tableName);
       await this.sequelize.query('DROP TABLE IF EXISTS `generated_columns_audit`');
     });
@@ -124,6 +125,177 @@ if (Support.getTestDialect() === 'sqlite3') {
         'SELECT `name` FROM `generated_columns_audit` ORDER BY rowid',
       );
       expect(auditRows.at(-1)).to.deep.equal({ name: 'four' });
+    });
+
+    it('preserves referenced rows and generated columns when adding and removing constraints', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          id INTEGER PRIMARY KEY,
+          value INTEGER,
+          note TEXT DEFAULT '"kept"',
+          doubled INTEGER GENERATED ALWAYS AS (value * 2) STORED
+        )
+      `);
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_child (
+          id INTEGER PRIMARY KEY,
+          parent_id INTEGER REFERENCES generated_columns_test (id) ON DELETE CASCADE
+        )
+      `);
+      await this.sequelize.query('INSERT INTO generated_columns_test (id, value) VALUES (1, 3)');
+      await this.sequelize.query(
+        'INSERT INTO generated_columns_child (id, parent_id) VALUES (1, 1)',
+      );
+
+      await queryInterface.addConstraint(tableName, {
+        fields: ['value'],
+        name: 'generated_columns_value_unique',
+        type: 'UNIQUE',
+      });
+      expect(await queryInterface.select(null, 'generated_columns_child', {})).to.deep.equal([
+        { id: 1, parent_id: 1 },
+      ]);
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { id: 1, value: 3, note: '"kept"', doubled: 6 },
+      ]);
+
+      await queryInterface.removeConstraint(tableName, 'generated_columns_value_unique');
+      expect(await queryInterface.select(null, 'generated_columns_child', {})).to.deep.equal([
+        { id: 1, parent_id: 1 },
+      ]);
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { id: 1, value: 3, note: '"kept"', doubled: 6 },
+      ]);
+      await this.sequelize.query('INSERT INTO generated_columns_test (id, value) VALUES (2, 3)');
+      const [[inserted]] = await this.sequelize.query(
+        'SELECT note FROM generated_columns_test WHERE id = 2',
+      );
+      expect(inserted.note).to.equal('"kept"');
+    });
+
+    it('preserves raw schema and referenced rows in the legacy rename fallback', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          value INTEGER CHECK (value > 0),
+          note TEXT DEFAULT 'value',
+          doubled INTEGER GENERATED ALWAYS AS (value * 2) STORED
+        )
+      `);
+      await this.sequelize.query(
+        'CREATE UNIQUE INDEX generated_columns_value_index ON generated_columns_test (value)',
+      );
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_child (
+          id INTEGER PRIMARY KEY,
+          parent_id INTEGER REFERENCES generated_columns_test (id) ON DELETE CASCADE
+        )
+      `);
+      await this.sequelize.query('INSERT INTO generated_columns_test (value) VALUES (3)');
+      await this.sequelize.query(
+        'INSERT INTO generated_columns_child (id, parent_id) VALUES (1, 1)',
+      );
+
+      const databaseVersion = this.sequelize.getDatabaseVersionIfExist();
+      this.sequelize.setDatabaseVersion('3.24.0');
+      try {
+        await queryInterface.renameColumn(tableName, 'value', 'renamed');
+      } finally {
+        this.sequelize.setDatabaseVersion(databaseVersion);
+      }
+
+      expect(await queryInterface.select(null, 'generated_columns_child', {})).to.deep.equal([
+        { id: 1, parent_id: 1 },
+      ]);
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { id: 1, renamed: 3, note: 'value', doubled: 6 },
+      ]);
+      const [schemaRows] = await this.sequelize.query(
+        `SELECT type, name, sql FROM sqlite_master WHERE tbl_name = '${tableName}' ORDER BY type, name`,
+      );
+      const tableSql = schemaRows.find(row => row.type === 'table').sql;
+      expect(tableSql).to.include('AUTOINCREMENT');
+      expect(tableSql).to.include('CHECK (renamed > 0)');
+      expect(tableSql).to.include("DEFAULT 'value'");
+      expect(tableSql).to.include('GENERATED ALWAYS AS (renamed * 2) STORED');
+      expect(schemaRows.find(row => row.name === 'generated_columns_value_index').sql).to.include(
+        '(renamed)',
+      );
+    });
+
+    it('preserves exact main and TEMP AUTOINCREMENT high-water values', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(
+        'CREATE TABLE generated_columns_test (id INTEGER PRIMARY KEY AUTOINCREMENT, value INTEGER)',
+      );
+      await this.sequelize.query('INSERT INTO generated_columns_test (value) VALUES (1)');
+      await this.sequelize.query(
+        "UPDATE sqlite_sequence SET seq = 9007199254740993 WHERE name = 'generated_columns_test'",
+      );
+      await this.sequelize.query(
+        'CREATE TEMP TABLE generated_columns_temp (id INTEGER PRIMARY KEY AUTOINCREMENT, value INTEGER)',
+      );
+      await this.sequelize.query('INSERT INTO generated_columns_temp (value) VALUES (1)');
+      await this.sequelize.query(
+        "UPDATE temp.sqlite_sequence SET seq = 50 WHERE name = 'generated_columns_temp'",
+      );
+
+      for (const targetTable of [tableName, 'generated_columns_temp']) {
+        await queryInterface.addColumn(targetTable, 'doubled', {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('value * 2'),
+        });
+      }
+
+      const [[mainSequence]] = await this.sequelize.query(
+        "SELECT CAST(seq AS TEXT) AS seq FROM main.sqlite_sequence WHERE name = 'generated_columns_test'",
+      );
+      expect(mainSequence.seq).to.equal('9007199254740993');
+      await this.sequelize.query('INSERT INTO generated_columns_temp (value) VALUES (2)');
+      expect(await queryInterface.select(null, 'generated_columns_temp', {})).to.deep.equal([
+        { id: 1, value: 1, doubled: 2 },
+        { id: 51, value: 2, doubled: 4 },
+      ]);
+    });
+
+    it('does not treat table constraints as colliding column definitions', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          "unique" TEXT,
+          a INTEGER,
+          b INTEGER,
+          doubled INTEGER GENERATED ALWAYS AS (a * 2) STORED,
+          UNIQUE (a, b)
+        )
+      `);
+      await this.sequelize.query('INSERT INTO generated_columns_test (a, b) VALUES (1, 1)');
+
+      await queryInterface.removeColumn(tableName, 'unique');
+
+      await expect(this.sequelize.query('INSERT INTO generated_columns_test (a, b) VALUES (1, 1)'))
+        .to.be.rejected;
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { a: 1, b: 1, doubled: 2 },
+      ]);
+    });
+
+    it('introspects generated columns on quoted table names containing spaces', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      const quotedTableName = 'generated columns test';
+      await this.sequelize.query(`
+        CREATE TABLE "${quotedTableName}" (
+          value INTEGER,
+          doubled INTEGER GENERATED ALWAYS AS (value * 2) STORED
+        )
+      `);
+
+      const description = await queryInterface.describeTable(quotedTableName);
+
+      expect(description.doubled.generatedColumn).to.equal('STORED');
+      expect(description.doubled.generatedAs.val.join('')).to.equal('value * 2');
     });
 
     it('rejects an unsafe transactional rebuild of a referenced table before altering it', async function () {
@@ -504,7 +676,7 @@ if (Support.getTestDialect() === 'sqlite3') {
         "INSERT INTO generated_columns_test (`a`, `b`, `change_me`, `obsolete`) VALUES (1, 'x', 1, 'remove'), (1, 'y', 2, 'remove'), (2, 'x', 3, 'remove')",
       );
       await this.sequelize.query(
-        "UPDATE sqlite_sequence SET seq = 50 WHERE name = 'generated_columns_test'",
+        "UPDATE main.sqlite_sequence SET seq = 50 WHERE name = 'generated_columns_test'",
       );
 
       await queryInterface.changeColumn(tableName, 'change_me', DataTypes.TEXT);

@@ -111,6 +111,42 @@ describe('generated columns dialect edge cases', () => {
     });
   }
 
+  if (dialectName === 'mysql' || dialectName === 'mariadb') {
+    it('ignores constraint keywords in hash comments inside generated expressions', () => {
+      const definition = sequelize.queryGenerator.attributeToSQL(
+        generatedAttribute({
+          generatedAs: sql.literal('source + # ) PRIMARY KEY REFERENCES COMMENT\n 1'),
+        }),
+      );
+      const ddl = sequelize.queryGenerator.createTableQuery('generated_hash_comment', {
+        computed: definition,
+      });
+
+      expect(ddl).to.include(
+        `${sequelize.queryGenerator.quoteIdentifier('computed')} ${definition}`,
+      );
+      expect(ddl.replace(definition, '')).not.to.include('PRIMARY KEY');
+      expect(ddl.replace(definition, '')).not.to.include('REFERENCES');
+    });
+
+    it('does not treat two minus operators as a line comment', () => {
+      const definition = sequelize.queryGenerator.attributeToSQL(
+        generatedAttribute({
+          generatedAs: sql.literal('source--1'),
+          references: { table: 'parents', key: 'id' },
+        }),
+      );
+      const ddl = sequelize.queryGenerator.createTableQuery('generated_double_minus', {
+        computed: definition,
+      });
+
+      expect(ddl).to.include('GENERATED ALWAYS AS (source--1) STORED');
+      expect(ddl).to.include(
+        `FOREIGN KEY (${sequelize.queryGenerator.quoteIdentifier('computed')})`,
+      );
+    });
+  }
+
   if (dialectName === 'mariadb') {
     it('rejects unsupported nullability and primary keys', () => {
       expect(() =>
