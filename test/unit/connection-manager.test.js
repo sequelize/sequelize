@@ -75,4 +75,57 @@ describe('connection manager', () => {
       });
     });
   });
+
+  describe('_checkDatabaseVersion', () => {
+    beforeEach(function () {
+      this.sinon = sinon.createSandbox();
+
+      this.dialect = {
+        connectionManager: {
+          connect: this.sinon.stub().returns(Promise.resolve({}))
+        }
+      };
+
+      this.sequelize = Support.createSequelizeInstance();
+      this.sequelize.options.databaseVersion = 0;
+
+      this.connectionManager = new ConnectionManager(this.dialect, this.sequelize);
+    });
+
+    afterEach(function () {
+      this.sinon.restore();
+    });
+
+    // Regression: a transient failure while detecting the database version used to leave the
+    // rejected `versionPromise` cached, permanently poisoning every future `getConnection`.
+    it('retries version detection after a transient connect failure', function () {
+      const cm = this.connectionManager;
+      const connectError = new Error('ECONNREFUSED');
+
+      const connectStub = this.sinon.stub(cm, '_connect');
+      connectStub.onFirstCall().returns(Promise.reject(connectError));
+      connectStub.returns(Promise.resolve({}));
+
+      this.sinon.stub(cm, '_disconnect').returns(Promise.resolve());
+      this.sinon.stub(this.sequelize, 'databaseVersion').returns(Promise.resolve('9.6.0'));
+
+      const pooledConnection = {};
+      this.sinon.stub(cm.pool, 'acquire').returns(Promise.resolve(pooledConnection));
+
+      // First acquisition fails while detecting the DB version.
+      return expect(cm.getConnection())
+        .to.be.rejectedWith(connectError)
+        .then(() => {
+          // The failed detection must not stay cached.
+          expect(cm.versionPromise).to.equal(null);
+
+          // The next acquisition retries the connect and succeeds.
+          return expect(cm.getConnection()).to.eventually.equal(pooledConnection);
+        })
+        .then(() => {
+          expect(connectStub).to.have.been.calledTwice;
+          expect(this.sequelize.options.databaseVersion).to.equal('9.6.0');
+        });
+    });
+  });
 });
