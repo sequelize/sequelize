@@ -124,8 +124,14 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    it('returns an empty string if the input results in an empty query', () => {
+    it('returns WHERE 1 = 1 if the input is an always true Op.notIn: [] query', () => {
       expectsql(queryGen.whereQuery({ firstName: { [Op.notIn]: [] } }), {
+        default: 'WHERE 1 = 1',
+      });
+    });
+
+    it('returns an empty string if the input results in an empty query', () => {
+      expectsql(queryGen.whereQuery({}), {
         default: '',
       });
     });
@@ -1533,10 +1539,33 @@ Caused by: "undefined" cannot be escaped`),
     });
 
     describeInSuite(Op.notIn, 'NOT IN', () => {
+      // an empty Op.notIn produces the always-true condition `1 = 1`,
+      // because an empty string would be silently dropped under Op.or and Op.not
       testSql(
         { intAttr1: { [Op.notIn]: [] } },
         {
-          default: '',
+          default: '1 = 1',
+        },
+      );
+
+      testSql(
+        { [Op.or]: [{ intAttr1: { [Op.notIn]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '1 = 1 OR [intAttr2] = 5',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { intAttr1: { [Op.notIn]: [] } } },
+        {
+          default: 'NOT (1 = 1)',
+        },
+      );
+
+      testSql(
+        { [Op.and]: [{ intAttr1: { [Op.notIn]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '1 = 1 AND [intAttr2] = 5',
         },
       );
     });
