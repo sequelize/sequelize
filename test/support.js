@@ -13,7 +13,7 @@ const fs = require('fs'),
   AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
 
 chai.use(require('./support/chai-datetime'));
-chai.use(require('chai-as-promised'));
+chai.use(require('chai-as-promised').default);
 chai.config.includeStack = true;
 chai.should();
 
