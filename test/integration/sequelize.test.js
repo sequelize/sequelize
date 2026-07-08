@@ -35,14 +35,14 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     if (dialect !== 'sqlite') {
       it.skip('should work with min connections', () => {
         const ConnectionManager = current.dialect.connectionManager,
-          connectionSpy = (ConnectionManager.connect = chai.spy(ConnectionManager.connect));
+          connectionSpy = (ConnectionManager.connect = sinon.spy(ConnectionManager.connect));
 
         Support.createSequelizeInstance({
           pool: {
             min: 2
           }
         });
-        expect(connectionSpy).to.have.been.called.twice;
+        expect(connectionSpy).to.have.been.calledTwice;
       });
     }
 

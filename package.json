@@ -94,7 +94,6 @@
     "chai": "4.5.0",
     "chai-as-promised": "7.1.2",
     "chai-datetime": "1.8.1",
-    "chai-spies": "1.1.0",
     "cheerio": "1.2.0",
     "cls-hooked": "4.2.2",
     "cross-env": "10.1.0",
