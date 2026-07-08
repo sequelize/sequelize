@@ -242,7 +242,10 @@ if (current.dialect.supports.constraints.addConstraint) {
           const options = { type: 'unique', fields: ['myColumn'] };
           const addConstraintQuerySpy = sinon.stub(sql, 'addConstraintQuery');
           sql.addConstraintQuery('myTable', options);
-          expect(sql.addConstraintQuery).to.have.been.calledWith('myTable', options);
+          expect(
+            sql.addConstraintQuery.calledWith('myTable', options),
+            'sql.addConstraintQuery should have been called with expected arguments'
+          ).to.be.true;
           addConstraintQuerySpy.restore();
         });
 

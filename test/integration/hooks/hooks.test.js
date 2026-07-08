@@ -295,8 +295,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSync(afterHook);
 
         return this.User.sync().then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.calledOnce).to.be.true;
         });
       });
 
@@ -308,8 +308,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSync(afterHook);
 
         return this.User.sync({ hooks: false }).then(() => {
-          expect(beforeHook).to.not.have.been.called;
-          expect(afterHook).to.not.have.been.called;
+          expect(beforeHook.called, 'beforeHook should not have been called').to.be.false;
+          expect(afterHook.called, 'afterHook should not have been called').to.be.false;
         });
       });
     });
@@ -326,8 +326,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSync(afterHook);
 
         return expect(this.User.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).not.to.have.been.called;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.called, 'afterHook should not have been called').to.be.false;
         });
       });
 
@@ -342,8 +342,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return expect(this.User.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.calledOnce).to.be.true;
         });
       });
     });
@@ -363,10 +363,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.sequelize.afterBulkSync(afterHook);
 
         return this.sequelize.sync().then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(modelBeforeHook).to.have.been.calledOnce;
-          expect(modelAfterHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(modelBeforeHook.calledOnce).to.be.true;
+          expect(modelAfterHook.calledOnce).to.be.true;
+          expect(afterHook.calledOnce).to.be.true;
         });
       });
 
@@ -382,10 +382,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.sequelize.afterBulkSync(afterHook);
 
         return this.sequelize.sync({ hooks: false }).then(() => {
-          expect(beforeHook).to.not.have.been.called;
-          expect(modelBeforeHook).to.not.have.been.called;
-          expect(modelAfterHook).to.not.have.been.called;
-          expect(afterHook).to.not.have.been.called;
+          expect(beforeHook.called, 'beforeHook should not have been called').to.be.false;
+          expect(modelBeforeHook.called, 'modelBeforeHook should not have been called').to.be.false;
+          expect(modelAfterHook.called, 'modelAfterHook should not have been called').to.be.false;
+          expect(afterHook.called, 'afterHook should not have been called').to.be.false;
         });
       });
 
@@ -405,8 +405,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.sequelize.afterBulkSync(afterHook);
 
         return expect(this.sequelize.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).not.to.have.been.called;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.called, 'afterHook should not have been called').to.be.false;
         });
       });
 
@@ -421,8 +421,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         });
 
         return expect(this.sequelize.sync()).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.calledOnce).to.be.true;
         });
       });
 
@@ -442,14 +442,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       return this.User.create({ username: 'makunouchi' })
         .then(() => {
-          expect(sasukeHook).to.have.been.calledOnce;
-          expect(narutoHook).to.have.been.calledOnce;
+          expect(sasukeHook.calledOnce).to.be.true;
+          expect(narutoHook.calledOnce).to.be.true;
           this.User.removeHook('beforeCreate', 'sasuke');
           return this.User.create({ username: 'sendo' });
         })
         .then(() => {
-          expect(sasukeHook).to.have.been.calledOnce;
-          expect(narutoHook).to.have.been.calledTwice;
+          expect(sasukeHook.calledOnce).to.be.true;
+          expect(narutoHook.calledTwice).to.be.true;
         });
     });
 
@@ -462,14 +462,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       return this.User.create({ username: 'makunouchi' })
         .then(() => {
-          expect(sasukeHook).to.have.been.calledOnce;
-          expect(narutoHook).to.have.been.calledOnce;
+          expect(sasukeHook.calledOnce).to.be.true;
+          expect(narutoHook.calledOnce).to.be.true;
           this.User.removeHook('beforeCreate', sasukeHook);
           return this.User.create({ username: 'sendo' });
         })
         .then(() => {
-          expect(sasukeHook).to.have.been.calledOnce;
-          expect(narutoHook).to.have.been.calledTwice;
+          expect(sasukeHook.calledOnce).to.be.true;
+          expect(narutoHook.calledTwice).to.be.true;
         });
     });
 
@@ -482,14 +482,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
       return this.User.create({ username: 'makunouchi' })
         .then((user) => {
-          expect(sasukeHook).to.have.been.calledOnce;
-          expect(narutoHook).to.have.been.calledOnce;
+          expect(sasukeHook.calledOnce).to.be.true;
+          expect(narutoHook.calledOnce).to.be.true;
           this.User.removeHook('beforeSave', sasukeHook);
           return user.updateAttributes({ username: 'sendo' });
         })
         .then(() => {
-          expect(sasukeHook).to.have.been.calledOnce;
-          expect(narutoHook).to.have.been.calledTwice;
+          expect(sasukeHook.calledOnce).to.be.true;
+          expect(narutoHook.calledTwice).to.be.true;
         });
     });
   });

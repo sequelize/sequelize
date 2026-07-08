@@ -2123,11 +2123,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       afterEach(() => {
-        expect(aggregateSpy).to.have.been.calledWith(
-          sinon.match.any,
-          sinon.match.any,
-          sinon.match.object.and(sinon.match.has('where', { username: 'user1' }))
-        );
+        expect(
+          aggregateSpy.calledWith(
+            sinon.match.any,
+            sinon.match.any,
+            sinon.match.object.and(sinon.match.has('where', { username: 'user1' }))
+          ),
+          'aggregateSpy should have been called with expected arguments'
+        ).to.be.true;
 
         aggregateSpy.restore();
       });
@@ -2136,11 +2139,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         options.limit = 5;
 
         return this.User.count(options).then(() => {
-          expect(aggregateSpy).to.have.been.calledWith(
-            sinon.match.any,
-            sinon.match.any,
-            sinon.match.object.and(sinon.match.has('limit', null))
-          );
+          expect(
+            aggregateSpy.calledWith(
+              sinon.match.any,
+              sinon.match.any,
+              sinon.match.object.and(sinon.match.has('limit', null))
+            ),
+            'aggregateSpy should have been called with expected arguments'
+          ).to.be.true;
         });
       });
 
@@ -2148,11 +2154,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         options.offset = 10;
 
         return this.User.count(options).then(() => {
-          expect(aggregateSpy).to.have.been.calledWith(
-            sinon.match.any,
-            sinon.match.any,
-            sinon.match.object.and(sinon.match.has('offset', null))
-          );
+          expect(
+            aggregateSpy.calledWith(
+              sinon.match.any,
+              sinon.match.any,
+              sinon.match.object.and(sinon.match.has('offset', null))
+            ),
+            'aggregateSpy should have been called with expected arguments'
+          ).to.be.true;
         });
       });
 
@@ -2160,11 +2169,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         options.order = 'username';
 
         return this.User.count(options).then(() => {
-          expect(aggregateSpy).to.have.been.calledWith(
-            sinon.match.any,
-            sinon.match.any,
-            sinon.match.object.and(sinon.match.has('order', null))
-          );
+          expect(
+            aggregateSpy.calledWith(
+              sinon.match.any,
+              sinon.match.any,
+              sinon.match.object.and(sinon.match.has('order', null))
+            ),
+            'aggregateSpy should have been called with expected arguments'
+          ).to.be.true;
         });
       });
     });

@@ -36,10 +36,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then((user) => {
           return user.updateAttributes({ username: 'Chong' }).then((user) => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).to.have.been.calledOnce;
-            expect(beforeSave).to.have.been.calledTwice;
-            expect(afterSave).to.have.been.calledTwice;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.calledOnce).to.be.true;
+            expect(beforeSave.calledTwice).to.be.true;
+            expect(afterSave.calledTwice).to.be.true;
             expect(user.username).to.equal('Chong');
           });
         });
@@ -63,10 +63,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then((user) => {
           return expect(user.updateAttributes({ username: 'Chong' })).to.be.rejected.then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(beforeSave).to.have.been.calledOnce;
-            expect(afterHook).not.to.have.been.called;
-            expect(afterSave).to.have.been.calledOnce;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(beforeSave.calledOnce).to.be.true;
+            expect(afterHook.called, 'afterHook should not have been called').to.be.false;
+            expect(afterSave.calledOnce).to.be.true;
           });
         });
       });
@@ -87,10 +87,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then((user) => {
           return expect(user.updateAttributes({ username: 'Chong' })).to.be.rejected.then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).to.have.been.calledOnce;
-            expect(beforeSave).to.have.been.calledTwice;
-            expect(afterSave).to.have.been.calledOnce;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.calledOnce).to.be.true;
+            expect(beforeSave.calledTwice).to.be.true;
+            expect(afterSave.calledOnce).to.be.true;
           });
         });
       });

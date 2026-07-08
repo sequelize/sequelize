@@ -38,7 +38,10 @@ describe('connection manager', () => {
       return expect(connectionManager._connect(config))
         .to.eventually.equal(connection)
         .then(() => {
-          expect(this.dialect.connectionManager.connect).to.have.been.calledWith(config);
+          expect(
+            this.dialect.connectionManager.connect.calledWith(config),
+            'this.dialect.connectionManager.connect should have been called with expected arguments'
+          ).to.be.true;
         });
     });
 
@@ -55,10 +58,13 @@ describe('connection manager', () => {
       const connectionManager = new ConnectionManager(this.dialect, this.sequelize);
 
       return connectionManager._connect({}).then(() => {
-        expect(this.dialect.connectionManager.connect).to.have.been.calledWith({
-          username,
-          password
-        });
+        expect(
+          this.dialect.connectionManager.connect.calledWith({
+            username,
+            password
+          }),
+          'this.dialect.connectionManager.connect should have been called with expected arguments'
+        ).to.be.true;
       });
     });
 
@@ -123,7 +129,7 @@ describe('connection manager', () => {
           return expect(cm.getConnection()).to.eventually.equal(pooledConnection);
         })
         .then(() => {
-          expect(connectStub).to.have.been.calledTwice;
+          expect(connectStub.calledTwice).to.be.true;
           expect(this.sequelize.options.databaseVersion).to.equal('9.6.0');
         });
     });

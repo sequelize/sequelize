@@ -37,8 +37,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       instanceValidator.validate();
 
-      expect(_validateAndRunHooks).to.have.been.calledOnce;
-      expect(_validate).to.not.have.been.called;
+      expect(_validateAndRunHooks.calledOnce).to.be.true;
+      expect(_validate.called, '_validate should not have been called').to.be.false;
     });
 
     it('runs the validation sequence but skips hooks if the hooks option is false', () => {
@@ -48,8 +48,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
       instanceValidator.validate();
 
-      expect(_validate).to.have.been.calledOnce;
-      expect(_validateAndRunHooks).to.not.have.been.called;
+      expect(_validate.calledOnce).to.be.true;
+      expect(_validateAndRunHooks.called, '_validateAndRunHooks should not have been called').to.be.false;
     });
 
     it('fulfills when validation is successful', () => {
@@ -94,8 +94,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       this.User.afterValidate(afterValidate);
 
       return expect(this.successfulInstanceValidator._validateAndRunHooks()).to.be.fulfilled.then(() => {
-        expect(beforeValidate).to.have.been.calledOnce;
-        expect(afterValidate).to.have.been.calledOnce;
+        expect(beforeValidate.calledOnce).to.be.true;
+        expect(afterValidate.calledOnce).to.be.true;
       });
     });
 
@@ -110,8 +110,8 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       this.User.afterValidate(afterValidate);
 
       return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then(() => {
-        expect(beforeValidate).to.have.been.calledOnce;
-        expect(afterValidate).to.not.have.been.called;
+        expect(beforeValidate.calledOnce).to.be.true;
+        expect(afterValidate.called, 'afterValidate should not have been called').to.be.false;
       });
     });
 
@@ -135,7 +135,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         this.User.validationFailed(validationFailedHook);
 
         return expect(failingInstanceValidator._validateAndRunHooks()).to.be.rejected.then(() => {
-          expect(validationFailedHook).to.have.been.calledOnce;
+          expect(validationFailedHook.calledOnce).to.be.true;
         });
       });
 

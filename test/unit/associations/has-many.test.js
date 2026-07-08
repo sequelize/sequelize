@@ -41,8 +41,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
     it('uses one update statement for addition', function () {
       return user.setTasks([task1, task2]).then(() => {
-        expect(this.findAll).to.have.been.calledOnce;
-        expect(this.update).to.have.been.calledOnce;
+        expect(this.findAll.calledOnce).to.be.true;
+        expect(this.update.calledOnce).to.be.true;
       });
     });
 
@@ -65,8 +65,8 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
           return user.setTasks(null);
         })
         .then(() => {
-          expect(this.findAll).to.have.been.calledTwice;
-          expect(this.update).to.have.been.calledOnce;
+          expect(this.findAll.calledTwice).to.be.true;
+          expect(this.update.calledOnce).to.be.true;
         });
     });
   });
@@ -142,7 +142,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
 
       where[foreignKey] = idA;
 
-      expect(findAll).to.have.been.calledOnce;
+      expect(findAll.calledOnce).to.be.true;
       expect(findAll.firstCall.args[0].where).to.deep.equal(where);
 
       return actual
@@ -176,7 +176,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       User.Tasks = User.hasMany(Task, { foreignKey });
       const actual = User.Tasks.get([User.build({ id: idA }), User.build({ id: idB }), User.build({ id: idC })]);
 
-      expect(findAll).to.have.been.calledOnce;
+      expect(findAll.calledOnce).to.be.true;
       expect(findAll.firstCall.args[0].where).to.have.property(foreignKey);
       expect(findAll.firstCall.args[0].where[foreignKey]).to.have.property(Op.in);
       expect(findAll.firstCall.args[0].where[foreignKey][Op.in]).to.deep.equal([idA, idB, idC]);

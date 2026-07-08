@@ -129,7 +129,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.validationFailed(validationFailedHook);
 
         return expect(this.User.create({ mood: 'happy' })).to.be.rejected.then(() => {
-          expect(validationFailedHook).to.have.been.calledOnce;
+          expect(validationFailedHook.calledOnce).to.be.true;
         });
       });
 

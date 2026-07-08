@@ -36,10 +36,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSave(afterSave);
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
-          expect(beforeSave).to.have.been.calledOnce;
-          expect(afterSave).to.have.been.calledOnce;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.calledOnce).to.be.true;
+          expect(beforeSave.calledOnce).to.be.true;
+          expect(afterSave.calledOnce).to.be.true;
         });
       });
     });
@@ -60,10 +60,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSave(afterSave);
 
         return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).not.to.have.been.called;
-          expect(beforeSave).not.to.have.been.called;
-          expect(afterSave).not.to.have.been.called;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.called, 'afterHook should not have been called').to.be.false;
+          expect(beforeSave.called, 'beforeSave should not have been called').to.be.false;
+          expect(afterSave.called, 'afterSave should not have been called').to.be.false;
         });
       });
 
@@ -82,10 +82,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.User.afterSave(afterSave);
 
         return expect(this.User.create({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
-          expect(beforeHook).to.have.been.calledOnce;
-          expect(afterHook).to.have.been.calledOnce;
-          expect(beforeSave).to.have.been.calledOnce;
-          expect(afterSave).not.to.have.been.called;
+          expect(beforeHook.calledOnce).to.be.true;
+          expect(afterHook.calledOnce).to.be.true;
+          expect(beforeSave.calledOnce).to.be.true;
+          expect(afterSave.called, 'afterSave should not have been called').to.be.false;
         });
       });
     });

@@ -56,8 +56,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return User.findAll().then((rows) => rows[0]);
       })
       .then((user) => {
-        expect(parse).to.have.been.called;
-        expect(stringify).to.have.been.called;
+        expect(parse.called, 'parse should have been called').to.be.true;
+        expect(stringify.called, 'stringify should have been called').to.be.true;
 
         expect(moment.isMoment(user.dateField)).to.be.ok;
 
@@ -97,8 +97,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
         return User.findAll().then((rows) => rows[0]);
       })
       .then(() => {
-        expect(parse).to.have.been.called;
-        expect(stringify).to.have.been.called;
+        expect(parse.called, 'parse should have been called').to.be.true;
+        expect(stringify.called, 'stringify should have been called').to.be.true;
 
         delete Type.constructor.parse;
         delete Type.constructor.prototype.stringify;

@@ -14,7 +14,6 @@ const fs = require('fs'),
 
 chai.use(require('./support/chai-datetime'));
 chai.use(require('chai-as-promised'));
-chai.use(require('sinon-chai'));
 chai.config.includeStack = true;
 chai.should();
 

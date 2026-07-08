@@ -58,7 +58,7 @@ if (current.dialect.supports.groupedLimit) {
               expect(users[0].get('tasks')[0].createdAt).to.be.ok;
               expect(users[0].get('tasks')[0].updatedAt).to.be.ok;
 
-              expect(sqlSpy).to.have.been.calledTwice;
+              expect(sqlSpy.calledTwice).to.be.true;
             });
         });
       });
@@ -93,7 +93,7 @@ if (current.dialect.supports.groupedLimit) {
             .then((users) => {
               expect(users[0].get('tasks')).to.be.ok;
               expect(users[0].get('tasks').length).to.equal(3);
-              expect(sqlSpy).to.have.been.calledTwice;
+              expect(sqlSpy.calledTwice).to.be.true;
             });
         });
       });
@@ -163,7 +163,7 @@ if (current.dialect.supports.groupedLimit) {
               expect(users[0].get('tasks').length).to.equal(2);
               expect(users[1].get('tasks')).to.be.ok;
               expect(users[1].get('tasks').length).to.equal(2);
-              expect(sqlSpy).to.have.been.calledTwice;
+              expect(sqlSpy.calledTwice).to.be.true;
             });
         });
       });
@@ -214,7 +214,7 @@ if (current.dialect.supports.groupedLimit) {
               expect(users[0].get('company').get('tasks').length).to.equal(3);
               expect(users[1].get('company').get('tasks')).to.be.ok;
               expect(users[1].get('company').get('tasks').length).to.equal(1);
-              expect(sqlSpy).to.have.been.calledTwice;
+              expect(sqlSpy.calledTwice).to.be.true;
             });
         });
       });
@@ -261,7 +261,7 @@ if (current.dialect.supports.groupedLimit) {
               });
             })
             .then((companies) => {
-              expect(sqlSpy).to.have.been.calledTwice;
+              expect(sqlSpy.calledTwice).to.be.true;
 
               expect(companies[0].users[0].tasks[0].project).to.be.ok;
             });
@@ -350,7 +350,7 @@ if (current.dialect.supports.groupedLimit) {
               expect(users[1].get('projects').length).to.equal(1);
               expect(users[1].get('projects')[0].get('tasks').length).to.equal(2);
 
-              expect(sqlSpy).to.have.been.calledThrice;
+              expect(sqlSpy.calledThrice).to.be.true;
             });
         });
       });

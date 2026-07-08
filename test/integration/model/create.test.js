@@ -486,7 +486,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               );
             })
             .then(() => {
-              expect(spy).to.have.been.called;
+              expect(spy.called, 'spy should have been called').to.be.true;
             });
         }
       );

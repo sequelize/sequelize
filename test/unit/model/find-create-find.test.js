@@ -31,7 +31,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       )
         .to.eventually.eql([result, false])
         .then(() => {
-          expect(findSpy).to.have.been.calledOnce;
+          expect(findSpy.calledOnce).to.be.true;
           expect(findSpy.getCall(0).args[0].where).to.equal(where);
         });
     });
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       )
         .to.eventually.eql([result, true])
         .then(() => {
-          expect(createSpy).to.have.been.calledWith(where);
+          expect(createSpy.calledWith(where), 'createSpy should have been called with expected arguments').to.be.true;
         });
     });
 
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       )
         .to.eventually.eql([result, false])
         .then(() => {
-          expect(findSpy).to.have.been.calledTwice;
+          expect(findSpy.calledTwice).to.be.true;
           expect(findSpy.getCall(1).args[0].where).to.equal(where);
         });
     });

@@ -136,10 +136,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.setTask(task).then(() => {
                   return project.destroy().then(() => {
-                    expect(beforeProject).to.have.been.calledOnce;
-                    expect(afterProject).to.have.been.calledOnce;
-                    expect(beforeTask).to.have.been.calledOnce;
-                    expect(afterTask).to.have.been.calledOnce;
+                    expect(beforeProject.calledOnce).to.be.true;
+                    expect(afterProject.calledOnce).to.be.true;
+                    expect(beforeTask.calledOnce).to.be.true;
+                    expect(afterTask.calledOnce).to.be.true;
                   });
                 });
               });
@@ -224,8 +224,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
             return self.Tasks.create({ title: 'New Task' }).then((task) => {
               return project.setTask(task).then(() => {
                 return project.updateAttributes({ id: 2 }).then(() => {
-                  expect(beforeHook).to.have.been.calledOnce;
-                  expect(afterHook).to.have.been.calledOnce;
+                  expect(beforeHook.calledOnce).to.be.true;
+                  expect(afterHook.calledOnce).to.be.true;
                 });
               });
             });
@@ -284,10 +284,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
-                    expect(beforeProject).to.have.been.called;
-                    expect(afterProject).to.have.been.called;
-                    expect(beforeTask).not.to.have.been.called;
-                    expect(afterTask).not.to.have.been.called;
+                    expect(beforeProject.called, 'beforeProject should have been called').to.be.true;
+                    expect(afterProject.called, 'afterProject should have been called').to.be.true;
+                    expect(beforeTask.called, 'beforeTask should not have been called').to.be.false;
+                    expect(afterTask.called, 'afterTask should not have been called').to.be.false;
                   });
                 });
               });
@@ -313,10 +313,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).catch((err) => {
                   expect(err).to.be.instanceOf(Error);
-                  expect(beforeProject).to.have.been.calledOnce;
-                  expect(afterProject).to.have.been.calledOnce;
-                  expect(beforeTask).to.have.been.calledOnce;
-                  expect(afterTask).not.to.have.been.called;
+                  expect(beforeProject.calledOnce).to.be.true;
+                  expect(afterProject.calledOnce).to.be.true;
+                  expect(beforeTask.calledOnce).to.be.true;
+                  expect(afterTask.called, 'afterTask should not have been called').to.be.false;
                 });
               });
             });
@@ -362,10 +362,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
-                    expect(beforeProject).to.have.been.calledOnce;
-                    expect(afterProject).to.have.been.calledOnce;
-                    expect(beforeTask).to.have.been.calledOnce;
-                    expect(afterTask).to.have.been.calledOnce;
+                    expect(beforeProject.calledOnce).to.be.true;
+                    expect(afterProject.calledOnce).to.be.true;
+                    expect(beforeTask.calledOnce).to.be.true;
+                    expect(afterTask.calledOnce).to.be.true;
                   });
                 });
               });
@@ -449,10 +449,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
-                    expect(beforeProject).to.have.been.called;
-                    expect(afterProject).to.have.been.called;
-                    expect(beforeTask).not.to.have.been.called;
-                    expect(afterTask).not.to.have.been.called;
+                    expect(beforeProject.called, 'beforeProject should have been called').to.be.true;
+                    expect(afterProject.called, 'afterProject should have been called').to.be.true;
+                    expect(beforeTask.called, 'beforeTask should not have been called').to.be.false;
+                    expect(afterTask.called, 'afterTask should not have been called').to.be.false;
                   });
                 });
               });
@@ -536,11 +536,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.destroy().then(() => {
-                    expect(beforeProject).to.have.been.calledOnce;
-                    expect(afterProject).to.have.been.calledOnce;
+                    expect(beforeProject.calledOnce).to.be.true;
+                    expect(afterProject.calledOnce).to.be.true;
                     // Since Sequelize does not cascade M:M, these should be false
-                    expect(beforeTask).not.to.have.been.called;
-                    expect(afterTask).not.to.have.been.called;
+                    expect(beforeTask.called, 'beforeTask should not have been called').to.be.false;
+                    expect(afterTask.called, 'afterTask should not have been called').to.be.false;
                   });
                 });
               });
@@ -623,10 +623,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               return self.Tasks.create({ title: 'New Task' }).then((task) => {
                 return project.addTask(task).then(() => {
                   return project.removeTask(task).then(() => {
-                    expect(beforeProject).to.have.been.calledOnce;
-                    expect(afterProject).to.have.been.calledOnce;
-                    expect(beforeTask).not.to.have.been.called;
-                    expect(afterTask).not.to.have.been.called;
+                    expect(beforeProject.calledOnce).to.be.true;
+                    expect(afterProject.calledOnce).to.be.true;
+                    expect(beforeTask.called, 'beforeTask should not have been called').to.be.false;
+                    expect(afterTask.called, 'afterTask should not have been called').to.be.false;
                   });
                 });
               });

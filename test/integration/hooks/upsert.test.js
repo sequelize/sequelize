@@ -33,8 +33,8 @@ if (Support.sequelize.dialect.supports.upserts) {
           this.User.afterUpsert(afterHook);
 
           return this.User.upsert({ username: 'Toni', mood: 'happy' }).then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).to.have.been.calledOnce;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.calledOnce).to.be.true;
           });
         });
       });
@@ -51,8 +51,8 @@ if (Support.sequelize.dialect.supports.upserts) {
           this.User.afterUpsert(afterHook);
 
           return expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).not.to.have.been.called;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.called, 'afterHook should not have been called').to.be.false;
           });
         });
 
@@ -67,8 +67,8 @@ if (Support.sequelize.dialect.supports.upserts) {
           });
 
           return expect(this.User.upsert({ username: 'Toni', mood: 'happy' })).to.be.rejected.then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).to.have.been.calledOnce;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.calledOnce).to.be.true;
           });
         });
       });

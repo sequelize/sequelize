@@ -1493,7 +1493,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             .then(() => user);
         })
         .then((user) => {
-          expect(spy).to.have.been.calledTwice;
+          expect(spy.calledTwice).to.be.true;
           spy.resetHistory();
           return Promise.all([
             user,
@@ -1555,7 +1555,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
             .then(() => project);
         })
         .then(() => {
-          expect(spy).to.have.been.calledOnce;
+          expect(spy.calledOnce).to.be.true;
         });
     });
 

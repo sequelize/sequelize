@@ -309,7 +309,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
             });
           })
           .then(() => {
-            expect(spy).to.have.been.calledOnce;
+            expect(spy.calledOnce).to.be.true;
           });
       });
     });
@@ -338,7 +338,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
           });
         })
         .then(() => {
-          expect(spy).to.have.been.calledOnce;
+          expect(spy.calledOnce).to.be.true;
         });
     });
 

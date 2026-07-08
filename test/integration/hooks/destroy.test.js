@@ -32,8 +32,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then((user) => {
           return user.destroy().then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).to.have.been.calledOnce;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.calledOnce).to.be.true;
           });
         });
       });
@@ -52,8 +52,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then((user) => {
           return expect(user.destroy()).to.be.rejected.then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).not.to.have.been.called;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.called, 'afterHook should not have been called').to.be.false;
           });
         });
       });
@@ -70,8 +70,8 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         return this.User.create({ username: 'Toni', mood: 'happy' }).then((user) => {
           return expect(user.destroy()).to.be.rejected.then(() => {
-            expect(beforeHook).to.have.been.calledOnce;
-            expect(afterHook).to.have.been.calledOnce;
+            expect(beforeHook.calledOnce).to.be.true;
+            expect(afterHook.calledOnce).to.be.true;
           });
         });
       });

@@ -139,7 +139,7 @@ describe('Connection Manager', () => {
     };
 
     return connectionManager.getConnection(queryOptions).then(() => {
-      chai.expect(connectStub).to.have.been.calledTwice; // Once to get DB version, and once to actually get the connection.
+      chai.expect(connectStub.calledTwice).to.be.true; // Once to get DB version, and once to actually get the connection.
       const calls = connectStub.getCalls();
       chai.expect(calls[1].args[0].host).to.eql('the-boss');
     });

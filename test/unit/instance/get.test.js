@@ -22,11 +22,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
     it('invokes getter if raw: false', function () {
       this.User.build().get('name');
 
-      expect(this.getSpy).to.have.been.called;
+      expect(this.getSpy.called, 'this.getSpy should have been called').to.be.true;
     });
 
     it('does not invoke getter if raw: true', function () {
-      expect(this.getSpy, { raw: true }).not.to.have.been.called;
+      expect(this.getSpy.called, 'this.getSpy should not have been called').to.be.false;
     });
   });
 });

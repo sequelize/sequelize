@@ -42,7 +42,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
             min: 2
           }
         });
-        expect(connectionSpy).to.have.been.calledTwice;
+        expect(connectionSpy.calledTwice).to.be.true;
       });
     }
 
@@ -1040,20 +1040,20 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       instance.custom;
       instance.override;
 
-      expect(defaultGetterMethod).to.have.been.calledOnce;
-      expect(customGetterMethod).to.have.been.calledOnce;
+      expect(defaultGetterMethod.calledOnce).to.be.true;
+      expect(customGetterMethod.calledOnce).to.be.true;
       expect(overrideGetterMethod.callCount).to.be.eql(0);
-      expect(customOverrideGetterMethod).to.have.been.calledOnce;
+      expect(customOverrideGetterMethod.calledOnce).to.be.true;
 
       // Call Setters
       instance.default = 'test';
       instance.custom = 'test';
       instance.override = 'test';
 
-      expect(defaultSetterMethod).to.have.been.calledOnce;
-      expect(customSetterMethod).to.have.been.calledOnce;
+      expect(defaultSetterMethod.calledOnce).to.be.true;
+      expect(customSetterMethod.calledOnce).to.be.true;
       expect(overrideSetterMethod.callCount).to.be.eql(0);
-      expect(customOverrideSetterMethod).to.have.been.calledOnce;
+      expect(customOverrideSetterMethod.calledOnce).to.be.true;
     });
   });
 

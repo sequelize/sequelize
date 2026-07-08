@@ -94,8 +94,8 @@ if (current.dialect.supports.transactions) {
               return this.sequelize.query('SELECT 1+1', { transaction, type: QueryTypes.SELECT });
             })
             .then(() => {
-              expect(hook).to.have.been.calledOnce;
-              expect(hook).to.have.been.calledWith(transaction);
+              expect(hook.calledOnce).to.be.true;
+              expect(hook.calledWith(transaction), 'hook should have been called with expected arguments').to.be.true;
             })
         ).to.eventually.be.fulfilled;
       });
@@ -108,7 +108,7 @@ if (current.dialect.supports.transactions) {
             return Promise.reject(new Error('Rollback'));
           })
         ).to.eventually.be.rejected.then(() => {
-          expect(hook).to.not.have.been.called;
+          expect(hook.called, 'hook should not have been called').to.be.false;
         });
       });
 
@@ -270,8 +270,8 @@ if (current.dialect.supports.transactions) {
             transaction = t;
             transaction.afterCommit(hook);
             return t.commit().then(() => {
-              expect(hook).to.have.been.calledOnce;
-              expect(hook).to.have.been.calledWith(t);
+              expect(hook.calledOnce).to.be.true;
+              expect(hook.calledWith(t), 'hook should have been called with expected arguments').to.be.true;
             });
           })
           .catch((err) => {
@@ -293,7 +293,7 @@ if (current.dialect.supports.transactions) {
         this.sequelize.transaction().then((t) => {
           t.afterCommit(hook);
           return t.rollback().then(() => {
-            expect(hook).to.not.have.been.called;
+            expect(hook.called, 'hook should not have been called').to.be.false;
           });
         })
       ).to.eventually.be.fulfilled;
@@ -591,7 +591,7 @@ if (current.dialect.supports.transactions) {
                         }).then(() => {
                           t2Spy();
                           return t2.commit().then(() => {
-                            expect(t2Spy).to.have.been.calledAfter(t1Spy); // Find should not succeed before t1 has comitted
+                            expect(t2Spy.calledAfter(t1Spy), 't2Spy should have been called after t1Spy').to.be.true; // Find should not succeed before t1 has comitted
                           });
                         }),
 
@@ -770,7 +770,7 @@ if (current.dialect.supports.transactions) {
                           .then(() => {
                             return delay(2000).then(() => {
                               t1Spy();
-                              expect(t1Spy).to.have.been.calledAfter(t2Spy);
+                              expect(t1Spy.calledAfter(t2Spy), 't1Spy should have been called after t2Spy').to.be.true;
                               return t1.commit();
                             });
                           })
@@ -831,8 +831,12 @@ if (current.dialect.supports.transactions) {
                             .then(() => {
                               t2UpdateSpy();
                               return t2.commit().then(() => {
-                                expect(t2FindSpy).to.have.been.calledBefore(t1Spy); // The find call should have returned
-                                expect(t2UpdateSpy).to.have.been.calledAfter(t1Spy); // But the update call should not happen before the first transaction has committed
+                                expect(t2FindSpy.calledBefore(t1Spy), 't2FindSpy should have been called before t1Spy')
+                                  .to.be.true; // The find call should have returned
+                                expect(
+                                  t2UpdateSpy.calledAfter(t1Spy),
+                                  't2UpdateSpy should have been called after t1Spy'
+                                ).to.be.true; // But the update call should not happen before the first transaction has committed
                               });
                             });
                         }),
