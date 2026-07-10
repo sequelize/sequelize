@@ -612,16 +612,6 @@ ${associationOwner._getAssociationDebugList()}`);
         });
       }
     } else {
-      // No explicit attributes were requested for this include, so every attribute is selected.
-      // Mirror the top-level default (see _findAll) so that the built instance's `_options.attributes`
-      // lists the virtual attributes too; otherwise `get()` skips their getters and they are dropped
-      // from `toJSON()` output for included models.
-      if (!options.raw) {
-        include.originalAttributes = include.model._injectDependentVirtualAttributes(
-          Array.from(include.model.modelDefinition.attributes.keys()),
-        );
-      }
-
       include = mapFinderOptions(include, include.model);
     }
 
@@ -684,6 +674,19 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     model._injectScope(include);
+
+    // When no explicit attributes were requested, mirror the top-level default (see _findAll) so the
+    // built instance's `_options.attributes` lists virtual attributes too — otherwise `get()` skips
+    // their getters and they are dropped from `toJSON()` output for included models. This must run
+    // after `_injectScope` (which may narrow `include.attributes` via a scope) and before the
+    // concrete-column default below, so a scoped include derives `originalAttributes` from the scoped
+    // list (not running getters whose dependencies the scope excluded) while an unscoped include falls
+    // back to the full attribute list, virtuals included.
+    if (include.originalAttributes === undefined && !options.raw) {
+      include.originalAttributes = include.model._injectDependentVirtualAttributes(
+        include.attributes ?? Array.from(include.model.modelDefinition.attributes.keys()),
+      );
+    }
 
     // This check should happen after injecting the scope, since the scope may contain a .attributes
     if (!include.attributes) {
