@@ -132,6 +132,41 @@ Instead of specifying a Model, either:
       expect(user.toJSON().avatar.url).to.equal('/img/a.png');
     });
 
+    it('does not run a scope-excluded VIRTUAL getter on an included model (#18059)', async function () {
+      const File = this.sequelize.define(
+        'File',
+        {
+          name: { type: DataTypes.STRING, allowNull: false },
+          path: { type: DataTypes.STRING, allowNull: false },
+          url: {
+            type: DataTypes.VIRTUAL(DataTypes.STRING, ['name', 'path']),
+            get() {
+              return `${this.path}/${this.name}`;
+            },
+          },
+        },
+        {
+          // The default scope narrows the selection to `name` only, so `path` (a dependency of the
+          // `url` virtual) is not loaded. The included instance must mirror a top-level scoped query
+          // and NOT expose `url`, rather than computing it from an unloaded `path`.
+          defaultScope: { attributes: ['id', 'name'] },
+        },
+      );
+      const User = this.sequelize.define('User', {});
+      User.belongsTo(File, { as: 'avatar', foreignKey: 'avatarFileId' });
+
+      await this.sequelize.sync({ force: true });
+
+      const file = await File.withoutScope().create({ name: 'a.png', path: '/img' });
+      await User.create({ avatarFileId: file.id });
+
+      const user = await User.findOne({ include: ['avatar'] });
+
+      // `path` was excluded by the scope, so the virtual `url` must not appear in the output.
+      expect(user.avatar.get('path')).to.be.undefined;
+      expect(user.toJSON().avatar).to.not.have.property('url');
+    });
+
     it('should support to use associations with Sequelize.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
