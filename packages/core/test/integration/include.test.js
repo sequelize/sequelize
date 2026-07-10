@@ -107,6 +107,31 @@ Instead of specifying a Model, either:
       expect(user).to.be.ok;
     });
 
+    it('resolves VIRTUAL attributes on an included model (#18059)', async function () {
+      const File = this.sequelize.define('File', {
+        name: { type: DataTypes.STRING, allowNull: false },
+        path: { type: DataTypes.STRING, allowNull: false },
+        url: {
+          type: DataTypes.VIRTUAL(DataTypes.STRING, ['name', 'path']),
+          get() {
+            return `${this.path}/${this.name}`;
+          },
+        },
+      });
+      const User = this.sequelize.define('User', {});
+      User.belongsTo(File, { as: 'avatar', foreignKey: 'avatarFileId' });
+
+      await this.sequelize.sync({ force: true });
+
+      const file = await File.create({ name: 'a.png', path: '/img' });
+      await User.create({ avatarFileId: file.id });
+
+      const user = await User.findOne({ include: ['avatar'] });
+
+      expect(user.avatar.get('url')).to.equal('/img/a.png');
+      expect(user.toJSON().avatar.url).to.equal('/img/a.png');
+    });
+
     it('should support to use associations with Sequelize.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
