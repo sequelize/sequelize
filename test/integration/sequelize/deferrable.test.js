@@ -1,7 +1,6 @@
 'use strict';
 
-const _ = require('lodash'),
-  chai = require('chai'),
+const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   Sequelize = require(__dirname + '/../../../index'),
@@ -18,7 +17,7 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         options = options || {};
 
         const taskTableName = options.taskTableName || 'tasks_' + config.rand();
-        const transactionOptions = _.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
+        const transactionOptions = Object.assign({}, { deferrable: Sequelize.Deferrable.SET_DEFERRED }, options);
         const userTableName = 'users_' + config.rand();
 
         const User = this.sequelize.define('User', { name: Sequelize.STRING }, { tableName: userTableName });

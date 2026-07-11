@@ -842,7 +842,7 @@ if (dialect === 'mysql') {
                 test.arguments[2] = test.arguments[2](this.sequelize);
               }
             }
-            QueryGenerator.options = _.assign(context.options, { timezone: '+00:00' });
+            QueryGenerator.options = Object.assign(context.options, { timezone: '+00:00' });
             QueryGenerator._dialect = this.sequelize.dialect;
             QueryGenerator.sequelize = this.sequelize;
             QueryGenerator.setOperatorsAliases(Operators.LegacyAliases);
