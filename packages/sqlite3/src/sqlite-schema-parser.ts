@@ -2,7 +2,7 @@ function isIdentifierCharacter(character: string | undefined): boolean {
   return character !== undefined && /[\w$]/.test(character);
 }
 
-function skipWhitespaceAndComments(sql: string, start: number): number {
+export function skipSqlWhitespaceAndComments(sql: string, start = 0): number {
   let index = start;
   while (index < sql.length) {
     if (/\s/.test(sql[index])) {
@@ -29,7 +29,7 @@ function skipWhitespaceAndComments(sql: string, start: number): number {
 }
 
 export function getSqlColumnName(definition: string): string | undefined {
-  const start = skipWhitespaceAndComments(definition, 0);
+  const start = skipSqlWhitespaceAndComments(definition, 0);
   const openingQuote = definition[start];
   const closingQuote = openingQuote === '[' ? ']' : openingQuote;
   if (
@@ -55,6 +55,95 @@ export function getSqlColumnName(definition: string): string | undefined {
   }
 
   return /^([^\s]+)/.exec(definition.slice(start))?.[1];
+}
+
+export function getSqlIdentifier(
+  sql: string,
+  start = 0,
+): { end: number; name: string; start: number } | undefined {
+  const identifierStart = skipSqlWhitespaceAndComments(sql, start);
+  const openingQuote = sql[identifierStart];
+  const closingQuote = openingQuote === '[' ? ']' : openingQuote;
+  if (
+    openingQuote === '`' ||
+    openingQuote === '"' ||
+    openingQuote === "'" ||
+    openingQuote === '['
+  ) {
+    let name = '';
+    for (let index = identifierStart + 1; index < sql.length; index++) {
+      const character = sql[index];
+      if (character !== closingQuote) {
+        name += character;
+      } else if (sql[index + 1] === closingQuote) {
+        name += closingQuote;
+        index++;
+      } else {
+        return { end: index + 1, name, start: identifierStart };
+      }
+    }
+
+    return undefined;
+  }
+
+  const match = /^[\w$]+/.exec(sql.slice(identifierStart));
+
+  return match
+    ? { end: identifierStart + match[0].length, name: match[0], start: identifierStart }
+    : undefined;
+}
+
+export function hasSqlKeyword(sql: string, keyword: string): boolean {
+  let index = 0;
+  while (index < sql.length) {
+    const character = sql[index];
+    if (character === '-' && sql[index + 1] === '-') {
+      const lineEnd = /[\r\n]/.exec(sql.slice(index + 2));
+      index = lineEnd ? index + 2 + lineEnd.index + 1 : sql.length;
+      continue;
+    }
+
+    if (character === '/' && sql[index + 1] === '*') {
+      const blockEnd = sql.indexOf('*/', index + 2);
+      index = blockEnd === -1 ? sql.length : blockEnd + 2;
+      continue;
+    }
+
+    if (character === "'" || character === '"' || character === '`' || character === '[') {
+      const closingQuote = character === '[' ? ']' : character;
+      index++;
+      while (index < sql.length) {
+        if (sql[index] !== closingQuote) {
+          index++;
+        } else if (sql[index + 1] === closingQuote) {
+          index += 2;
+        } else {
+          index++;
+          break;
+        }
+      }
+
+      continue;
+    }
+
+    if (isIdentifierCharacter(character)) {
+      let tokenEnd = index + 1;
+      while (isIdentifierCharacter(sql[tokenEnd])) {
+        tokenEnd++;
+      }
+
+      if (sql.slice(index, tokenEnd).toLowerCase() === keyword.toLowerCase()) {
+        return true;
+      }
+
+      index = tokenEnd;
+      continue;
+    }
+
+    index++;
+  }
+
+  return false;
 }
 
 export function replaceSqlIdentifier(sql: string, identifier: string, replacement: string): string {
@@ -339,7 +428,7 @@ export function findSqlTokenOpeningParenthesis(sql: string, token: string): numb
       continue;
     }
 
-    const openingParenthesis = skipWhitespaceAndComments(sql, index + token.length);
+    const openingParenthesis = skipSqlWhitespaceAndComments(sql, index + token.length);
     if (sql[openingParenthesis] === '(') {
       return openingParenthesis;
     }

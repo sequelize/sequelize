@@ -28,7 +28,11 @@ import type { SqliteColumnsDescription } from './query-interface.types.js';
 import {
   findSqlClosingParenthesis,
   findSqlOpeningParenthesis,
+  findSqlTokenOpeningParenthesis,
   getSqlColumnName,
+  getSqlIdentifier,
+  replaceSqlIdentifier,
+  skipSqlWhitespaceAndComments,
 } from './sqlite-schema-parser.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
@@ -42,9 +46,106 @@ export interface SqliteAutoincrementSequence {
 }
 
 function isTableConstraintDefinition(definition: string): boolean {
-  return /^(?:CONSTRAINT\b|PRIMARY\s+KEY\s*\(|UNIQUE\s*\(|CHECK\s*\(|FOREIGN\s+KEY\s*\()/i.test(
-    definition,
-  );
+  const start = skipSqlWhitespaceAndComments(definition);
+  const keyword = getSqlIdentifier(definition, start)?.name.toUpperCase();
+  if (keyword === 'CONSTRAINT') {
+    return true;
+  }
+
+  if (keyword === 'UNIQUE' || keyword === 'CHECK') {
+    return findSqlTokenOpeningParenthesis(definition, keyword) !== -1;
+  }
+
+  if (keyword !== 'PRIMARY' && keyword !== 'FOREIGN') {
+    return false;
+  }
+
+  return findSqlTokenOpeningParenthesis(definition, 'KEY') !== -1;
+}
+
+function replaceIdentifierInParentheses(
+  sql: string,
+  openingParenthesis: number,
+  identifier: string,
+  replacement: string,
+): string {
+  if (openingParenthesis === -1) {
+    return sql;
+  }
+
+  const closingParenthesis = findSqlClosingParenthesis(sql, openingParenthesis);
+  if (closingParenthesis === -1) {
+    throw new Error(`Could not parse SQL expression: ${sql}`);
+  }
+
+  const expression = sql.slice(openingParenthesis + 1, closingParenthesis);
+  const escapedIdentifier = identifier.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  if (
+    new RegExp(`\\b(?:AS|COLLATE)\\s+${escapedIdentifier}\\b`, 'i').test(expression) ||
+    new RegExp(`\\b${escapedIdentifier}\\s*\\(`, 'i').test(expression)
+  ) {
+    throw new Error(
+      `SQLite cannot safely rename column ${identifier} because its name is ambiguous with a SQL type, collation, or function in expression: ${expression}`,
+    );
+  }
+
+  return `${sql.slice(0, openingParenthesis + 1)}${replaceSqlIdentifier(expression, identifier, replacement)}${sql.slice(closingParenthesis)}`;
+}
+
+function renameColumnInCreateTableSql(
+  createTableSql: string,
+  oldColumnName: string,
+  newColumnName: string,
+  quoteIdentifier: (identifier: string) => string,
+): string {
+  const { closingParenthesis, definitions, openingParenthesis } =
+    splitColumnDefinitions(createTableSql);
+  const renamedDefinitions = definitions.map(definition => {
+    let renamedDefinition = definition;
+    if (!isTableConstraintDefinition(definition)) {
+      const columnIdentifier = getSqlIdentifier(definition);
+      if (columnIdentifier?.name.toLowerCase() === oldColumnName.toLowerCase()) {
+        renamedDefinition = `${definition.slice(0, columnIdentifier.start)}${quoteIdentifier(newColumnName)}${definition.slice(columnIdentifier.end)}`;
+      }
+
+      for (const token of ['AS', 'CHECK']) {
+        const expressionStart = findSqlTokenOpeningParenthesis(renamedDefinition, token);
+        renamedDefinition = replaceIdentifierInParentheses(
+          renamedDefinition,
+          expressionStart,
+          oldColumnName,
+          newColumnName,
+        );
+      }
+
+      return renamedDefinition;
+    }
+
+    const constraintStart = skipSqlWhitespaceAndComments(renamedDefinition);
+    const firstKeyword = getSqlIdentifier(renamedDefinition, constraintStart)?.name.toUpperCase();
+    let constraintType = firstKeyword;
+    if (firstKeyword === 'CONSTRAINT') {
+      const constraintKeyword = getSqlIdentifier(renamedDefinition, constraintStart);
+      const constraintName = constraintKeyword
+        ? getSqlIdentifier(renamedDefinition, constraintKeyword.end)
+        : undefined;
+      constraintType = constraintName
+        ? getSqlIdentifier(renamedDefinition, constraintName.end)?.name.toUpperCase()
+        : undefined;
+    }
+
+    const token =
+      constraintType === 'CHECK' ? 'CHECK' : constraintType === 'UNIQUE' ? 'UNIQUE' : 'KEY';
+
+    return replaceIdentifierInParentheses(
+      renamedDefinition,
+      findSqlTokenOpeningParenthesis(renamedDefinition, token),
+      oldColumnName,
+      newColumnName,
+    );
+  });
+
+  return `${createTableSql.slice(0, openingParenthesis + 1)}${renamedDefinitions.join(', ')}${createTableSql.slice(closingParenthesis)}`;
 }
 
 function replaceCreateTableName(createTableSql: string, replacement: string): string {
@@ -359,6 +460,17 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       .join(', ');
 
     let replacementTableSql = createTableSql;
+    if (replacementTableSql) {
+      for (const [newColumnName, oldColumnName] of renamedColumns) {
+        replacementTableSql = renameColumnInCreateTableSql(
+          replacementTableSql,
+          oldColumnName,
+          newColumnName,
+          identifier => this.quoteIdentifier(identifier),
+        );
+      }
+    }
+
     if (replacementTableSql && replacedColumnNames.length > 0) {
       const replacements = new Map<string, string | undefined>();
       for (const columnName of replacedColumnNames) {

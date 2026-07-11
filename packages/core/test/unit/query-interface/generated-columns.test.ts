@@ -105,5 +105,40 @@ describe('QueryInterface generated column validation', () => {
         }),
       ).to.be.rejectedWith(/PostgreSQL.*VIRTUAL generated columns.*ENUM.*user-defined/i);
     });
+
+    it('rejects VIRTUAL expressions that reference user-defined source types', async () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+      const queryRaw = sinon.stub(postgres18, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres18.queryInterface.createTable('generated_test', {
+          source_value: DataTypes.CITEXT,
+          value: {
+            type: DataTypes.TEXT,
+            generatedAs: sql.literal('"source_value"::text'),
+            generatedColumn: 'VIRTUAL',
+          },
+        }),
+      ).to.be.rejectedWith(
+        /Attribute "value".*VIRTUAL generated column.*attribute "source_value".*CITEXT user-defined/i,
+      );
+      expect(queryRaw).not.to.have.been.called;
+    });
+
+    it('rejects raw user-defined result types with modifiers', async () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+      const queryRaw = sinon.stub(postgres18, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres18.queryInterface.createTable('generated_test', {
+          value: {
+            type: 'public.GEOMETRY(POINT, 4326)',
+            generatedAs: sql.literal('ST_SetSRID(ST_MakePoint(1, 1), 4326)'),
+            generatedColumn: 'VIRTUAL',
+          },
+        }),
+      ).to.be.rejectedWith(/PostgreSQL.*VIRTUAL generated columns.*GEOMETRY.*user-defined/i);
+      expect(queryRaw).not.to.have.been.called;
+    });
   }
 });

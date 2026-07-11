@@ -143,12 +143,12 @@ function assertEagerLoadedThroughForeignKeysAreWritable(instances, includes) {
       }
     }
 
-    if (includedInstances.length === 0) {
-      continue;
-    }
-
     if (include.association instanceof BelongsToManyAssociation) {
       include.association.assertThroughForeignKeysAreWritable(include.association.accessors.create);
+    }
+
+    if (includedInstances.length === 0) {
+      continue;
     }
 
     assertEagerLoadedThroughForeignKeysAreWritable(includedInstances, include.include);
@@ -2432,7 +2432,7 @@ ${associationOwner._getAssociationDebugList()}`);
             options.updateOnDuplicate,
           );
           options.updateOnDuplicate = requestedUpdateAttributes.filter(
-            attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+            attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
           );
 
           if (options.updateOnDuplicate.length === 0) {
@@ -2571,7 +2571,7 @@ ${associationOwner._getAssociationDebugList()}`);
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
           const writableUpdateAttributes = options.updateOnDuplicate.filter(
-            attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+            attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
           );
           if (writableUpdateAttributes.length === 0) {
             throw new Error(
@@ -2613,17 +2613,42 @@ ${associationOwner._getAssociationDebugList()}`);
 
         let results;
         if (records.some(record => isEmpty(record))) {
-          results = [];
-          for (const [index, record] of records.entries()) {
-            const [insertedRecord] = await model.queryInterface.insert(
-              instances[index],
-              model.table,
-              record,
-              options,
+          if (options.connection && !options.transaction) {
+            throw new Error(
+              'bulkCreate cannot atomically insert empty rows when a connection is provided without a transaction. Pass a transaction for this operation.',
             );
-
-            results.push(insertedRecord?.dataValues ?? insertedRecord);
           }
+
+          const insertRecordsIndividually = async transaction => {
+            const insertOptions =
+              transaction === options.transaction
+                ? options
+                : {
+                    ...options,
+                    transaction,
+                    connection: transaction.getConnectionIfExists(),
+                  };
+            const individualResults = [];
+            for (const [index, record] of records.entries()) {
+              const [insertedRecord] = await model.queryInterface.insert(
+                instances[index],
+                model.table,
+                record,
+                insertOptions,
+              );
+
+              individualResults.push(insertedRecord?.dataValues ?? insertedRecord);
+            }
+
+            return individualResults;
+          };
+
+          results = options.transaction
+            ? await insertRecordsIndividually(options.transaction)
+            : await model.sequelize.transaction(
+                { logging: options.logging },
+                insertRecordsIndividually,
+              );
         } else {
           results = await model.queryInterface.bulkInsert(
             model.table,

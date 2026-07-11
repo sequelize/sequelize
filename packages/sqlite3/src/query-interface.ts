@@ -37,6 +37,8 @@ import {
   findSqlOpeningParenthesis,
   findSqlTokenOpeningParenthesis,
   getSqlColumnName,
+  getSqlIdentifier,
+  skipSqlWhitespaceAndComments,
 } from './sqlite-schema-parser.js';
 
 function splitColumnDefinitions(createTableSql: string): string[] {
@@ -123,12 +125,12 @@ function removeNamedTableConstraint(createTableSql: string, constraintName: stri
 
   const definitions = splitColumnDefinitions(createTableSql);
   const remainingDefinitions = definitions.filter(definition => {
-    const constraintPrefix = /^\s*CONSTRAINT\b/i.exec(definition);
-    if (!constraintPrefix) {
+    const constraintKeyword = getSqlIdentifier(definition);
+    if (constraintKeyword?.name.toUpperCase() !== 'CONSTRAINT') {
       return true;
     }
 
-    const definitionConstraintName = getSqlColumnName(definition.slice(constraintPrefix[0].length));
+    const definitionConstraintName = getSqlIdentifier(definition, constraintKeyword.end)?.name;
 
     return definitionConstraintName?.toLowerCase() !== constraintName.toLowerCase();
   });
@@ -138,6 +140,32 @@ function removeNamedTableConstraint(createTableSql: string, constraintName: stri
   }
 
   return `${createTableSql.slice(0, openingParenthesis + 1)}${remainingDefinitions.join(', ')}${createTableSql.slice(closingParenthesis)}`;
+}
+
+function parseSqlIdentifierList(sql: string, openingParenthesis = findSqlOpeningParenthesis(sql)) {
+  const closingParenthesis = findSqlClosingParenthesis(sql, openingParenthesis);
+  if (openingParenthesis === -1 || closingParenthesis === -1) {
+    return [];
+  }
+
+  const identifiers: string[] = [];
+  let index = openingParenthesis + 1;
+  while (index < closingParenthesis) {
+    const identifier = getSqlIdentifier(sql, index);
+    if (!identifier || identifier.start >= closingParenthesis) {
+      break;
+    }
+
+    identifiers.push(identifier.name);
+    index = skipSqlWhitespaceAndComments(sql, identifier.end);
+    if (sql[index] !== ',') {
+      break;
+    }
+
+    index++;
+  }
+
+  return identifiers;
 }
 
 function parseGeneratedExpressions(createTableSql: string): Map<string, string> {
@@ -294,24 +322,28 @@ export class SqliteQueryInterface<
         }
       }
 
-      // Sqlite requires the foreign keys added to the column definitions
-      // when describing a table as this is required in the replaceTableQuery
-      const foreignKeys = await this.showConstraints(tableName, {
+      // SQLite requires foreign keys to be added to the column definitions when describing a
+      // table, as this is required by replaceTableQuery. PRAGMA avoids losing standard quoted
+      // identifiers that the legacy CREATE TABLE constraint parser cannot represent faithfully.
+      const foreignKeys = await this.sequelize.queryRaw<{
+        from: string;
+        on_delete: string;
+        on_update: string;
+        table: string;
+        to: string;
+      }>(`PRAGMA foreign_key_list(${this.queryGenerator.quoteTable(tableName)})`, {
         ...options,
-        constraintType: 'FOREIGN KEY',
+        type: QueryTypes.SELECT,
       });
       for (const foreignKey of foreignKeys) {
-        for (const [index, columnName] of foreignKey.columnNames!.entries()) {
-          // Add constraints to column definition
-          Object.assign(data[columnName], {
-            references: {
-              table: foreignKey.referencedTableName,
-              key: foreignKey.referencedColumnNames!.at(index),
-            },
-            onUpdate: foreignKey.updateAction,
-            onDelete: foreignKey.deleteAction,
-          });
-        }
+        Object.assign(data[foreignKey.from], {
+          references: {
+            table: foreignKey.table,
+            key: foreignKey.to,
+          },
+          onUpdate: foreignKey.on_update,
+          onDelete: foreignKey.on_delete,
+        });
       }
 
       return data;
@@ -535,9 +567,10 @@ export class SqliteQueryInterface<
       const constraints = [];
       const sqlAttributes = attributeSQL.split(/,(?![^(]*\))/).map(attr => attr.trim());
       for (const attribute of sqlAttributes) {
-        if (attribute.startsWith('CONSTRAINT')) {
+        const firstKeyword = getSqlIdentifier(attribute)?.name.toUpperCase();
+        if (firstKeyword === 'CONSTRAINT') {
           constraints.push(attribute);
-        } else if (attribute.startsWith('PRIMARY KEY') || attribute.startsWith('FOREIGN KEY')) {
+        } else if (firstKeyword === 'PRIMARY' || firstKeyword === 'FOREIGN') {
           keys.push(attribute);
         } else {
           attributes.push(attribute);
@@ -599,53 +632,79 @@ export class SqliteQueryInterface<
       }
 
       for (const constraint of constraints) {
-        const [, constraintName, constraintType, definition] =
-          constraint.match(/CONSTRAINT (?:`|'|")(\S+)(?:`|'|") (\w+(?: \w+)?) (.+)/) || [];
-        if (/\bPRIMARY KEY\b/.test(constraint)) {
-          const columnsMatch = [...definition.matchAll(/`(\S+)`/g)];
+        const constraintKeyword = getSqlIdentifier(constraint)!;
+        const parsedConstraintName = getSqlIdentifier(constraint, constraintKeyword.end);
+        if (!parsedConstraintName) {
+          continue;
+        }
+
+        const typeStart = skipSqlWhitespaceAndComments(constraint, parsedConstraintName.end);
+        const typeSql = constraint.slice(typeStart);
+        const constraintType = /^PRIMARY\s+KEY\b/i.test(typeSql)
+          ? 'PRIMARY KEY'
+          : /^FOREIGN\s+KEY\b/i.test(typeSql)
+            ? 'FOREIGN KEY'
+            : /^UNIQUE\b/i.test(typeSql)
+              ? 'UNIQUE'
+              : /^CHECK\b/i.test(typeSql)
+                ? 'CHECK'
+                : undefined;
+        if (!constraintType) {
+          continue;
+        }
+
+        const definition = typeSql.slice(constraintType.length).trim();
+        if (constraintType === 'PRIMARY KEY') {
+          const columnNames = parseSqlIdentifierList(definition);
 
           data.push({
             constraintSchema: '',
-            constraintName,
+            constraintName: parsedConstraintName.name,
             constraintType: 'PRIMARY KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnsMatch.map(col => col[1]),
+            columnNames,
           });
-        } else if (/\bREFERENCES\b/.test(constraint)) {
+        } else if (constraintType === 'FOREIGN KEY') {
           const deleteAction = definition.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
           const updateAction = definition.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
-          const [, rawColumnNames, referencedTableName, rawReferencedColumnNames] =
-            definition.match(
-              /\(([^\s,]+(?:,\s?[^\s,]+)*)\) REFERENCES `(\S+)` \(([^\s,]+(?:,\s?[^\s,]+)*)\)/,
-            ) || [];
-          const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
-          const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
+          const columnNames = parseSqlIdentifierList(definition);
+          const referencesMatch = /\bREFERENCES\b/i.exec(definition);
+          const referencedTable = referencesMatch
+            ? getSqlIdentifier(definition, referencesMatch.index + referencesMatch[0].length)
+            : undefined;
+          const referencedColumnsOpening = referencedTable
+            ? findSqlOpeningParenthesis(definition.slice(referencedTable.end))
+            : -1;
+          const referencedColumnNames =
+            referencedTable && referencedColumnsOpening !== -1
+              ? parseSqlIdentifierList(definition, referencedColumnsOpening + referencedTable.end)
+              : [];
 
           data.push({
             constraintSchema: '',
-            constraintName,
+            constraintName: parsedConstraintName.name,
             constraintType: 'FOREIGN KEY',
             tableSchema: '',
             tableName: constraintTableName,
-            columnNames: columnsMatch.map(col => col[1]),
+            columnNames,
             referencedTableSchema: '',
-            referencedTableName: referencedTableName ?? '',
-            referencedColumnNames: referencedColumnNames.map(col => col[1]),
+            referencedTableName: referencedTable?.name ?? '',
+            referencedColumnNames,
             deleteAction: deleteAction?.at(1) ?? '',
             updateAction: updateAction?.at(1) ?? '',
           });
-        } else if (['CHECK', 'DEFAULT', 'UNIQUE'].includes(constraintType)) {
-          const columnsMatch = [...definition.matchAll(/`(\S+)`/g)];
-
+        } else {
           data.push({
             constraintSchema: '',
-            constraintName,
+            constraintName: parsedConstraintName.name,
             constraintType: constraintType as ConstraintType,
             tableSchema: '',
             tableName: constraintTableName,
-            ...(constraintType !== 'CHECK' && { columnNames: columnsMatch.map(col => col[1]) }),
-            ...(constraintType !== 'UNIQUE' && { definition }),
+            ...(constraintType !== 'CHECK' && {
+              columnNames: parseSqlIdentifierList(definition),
+            }),
+            ...(constraintType === 'CHECK' && { definition }),
           });
         }
       }

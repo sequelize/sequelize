@@ -9,7 +9,10 @@ import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
 import { QueryTypes } from '../enums';
-import { validateGeneratedColumnOptions } from '../utils/generated-columns';
+import {
+  validateGeneratedColumnExpressionReferences,
+  validateGeneratedColumnOptions,
+} from '../utils/generated-columns';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
@@ -82,7 +85,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
-    await this.#validateGeneratedColumnOptions(attributes);
+    await this.#validateGeneratedColumnOptions(attributes, true, model);
 
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
@@ -656,7 +659,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     return await this.sequelize.queryRaw(sql, options);
   }
 
-  async #validateGeneratedColumnOptions(attributes, loadDatabaseVersion = true) {
+  async #validateGeneratedColumnOptions(attributes, loadDatabaseVersion = true, model) {
     const attributeEntries = Object.entries(attributes);
 
     for (const [attributeName, attribute] of attributeEntries) {
@@ -666,6 +669,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
         `Attribute "${attributeName}"`,
       );
     }
+
+    validateGeneratedColumnExpressionReferences(
+      attributeEntries,
+      this.sequelize.dialect,
+      expression => this.queryGenerator.formatSqlExpression(expression, { model }),
+    );
 
     if (!loadDatabaseVersion || this.sequelize.getDatabaseVersionIfExist()) {
       return;

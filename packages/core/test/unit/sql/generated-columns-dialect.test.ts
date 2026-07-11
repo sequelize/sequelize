@@ -145,6 +145,42 @@ describe('generated columns dialect edge cases', () => {
         `FOREIGN KEY (${sequelize.queryGenerator.quoteIdentifier('computed')})`,
       );
     });
+
+    it('preserves backslash-escaped quotes in double-quoted regions', () => {
+      const definition = sequelize.queryGenerator.attributeToSQL(
+        generatedAttribute({
+          generatedAs: sql.literal('"value\\") PRIMARY KEY"'),
+        }),
+      );
+      const ddl = sequelize.queryGenerator.createTableQuery('generated_double_quote', {
+        computed: definition,
+      });
+
+      expect(ddl).to.include(
+        `${sequelize.queryGenerator.quoteIdentifier('computed')} ${definition}`,
+      );
+      expect(ddl.replace(definition, '')).not.to.include('PRIMARY KEY');
+    });
+  }
+
+  if (dialectName === 'mysql' || dialectName === 'mariadb' || dialectName === 'mssql') {
+    it('preserves doubled quotes in double-quoted SQL regions', () => {
+      const closeParentheses = dialectName === 'mssql' ? '))' : ')';
+      const definition = sequelize.queryGenerator.attributeToSQL(
+        generatedAttribute({
+          type: sequelize.normalizeDataType(DataTypes.STRING),
+          generatedAs: sql.literal(`"value""${closeParentheses} PRIMARY KEY"`),
+        }),
+      );
+      const ddl = sequelize.queryGenerator.createTableQuery('generated_double_quote', {
+        computed: definition,
+      });
+
+      expect(ddl).to.include(
+        `${sequelize.queryGenerator.quoteIdentifier('computed')} ${definition}`,
+      );
+      expect(ddl.replace(definition, '')).not.to.include('PRIMARY KEY');
+    });
   }
 
   if (dialectName === 'mariadb') {

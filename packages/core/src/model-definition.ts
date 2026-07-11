@@ -29,6 +29,7 @@ import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
 import {
   sqlFragmentReferencesIdentifier,
+  validateGeneratedColumnExpressionReferences,
   validateGeneratedColumnIndex,
   validateGeneratedColumnOptions,
 } from './utils/generated-columns.js';
@@ -735,6 +736,15 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         );
       }
     }
+
+    validateGeneratedColumnExpressionReferences(
+      this.attributes,
+      this.#sequelize.dialect,
+      expression =>
+        this.#sequelize.queryGenerator.formatSqlExpression(expression, {
+          model: this as unknown as ModelDefinition,
+        }),
+    );
 
     this.#refreshIndexes(attributeIndexes);
 

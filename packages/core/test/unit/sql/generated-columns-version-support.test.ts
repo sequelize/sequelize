@@ -112,6 +112,87 @@ describe('generated column version support', () => {
       }).not.to.throw();
     });
 
+    it('rejects VIRTUAL expressions that reference user-defined source types', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualCitextSource',
+          {
+            source: {
+              type: DataTypes.CITEXT,
+              columnName: 'source_value',
+            },
+            computed: {
+              type: DataTypes.TEXT,
+              generatedAs: sql.literal('"source_value"::text'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(
+        /Attribute "computed".*VIRTUAL generated column.*attribute "source".*CITEXT user-defined/i,
+      );
+    });
+
+    it('allows VIRTUAL expressions unrelated to user-defined source types', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'UnrelatedCitextSource',
+          {
+            source: DataTypes.TEXT,
+            metadata: DataTypes.CITEXT,
+            computed: {
+              type: DataTypes.TEXT,
+              generatedAs: sql.literal('upper("source")'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).not.to.throw();
+    });
+
+    it('allows STORED expressions that reference user-defined source types', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'StoredCitextSource',
+          {
+            source: DataTypes.CITEXT,
+            computed: {
+              type: DataTypes.TEXT,
+              generatedAs: sql.literal('"source"::text'),
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+      }).not.to.throw();
+    });
+
+    it('rejects schema-qualified raw user-defined result types with typmods and arrays', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualRawGeometryResult',
+          {
+            computed: {
+              type: '"public"."geometry"(POINT, 4326)[]',
+              generatedAs: sql.literal('ARRAY[ST_SetSRID(ST_MakePoint(1, 1), 4326)]'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(/PostgreSQL.*VIRTUAL generated columns.*GEOMETRY.*user-defined/i);
+    });
+
     it('re-evaluates generated column support when the database version becomes known', () => {
       const postgres = createSequelizeInstance();
       const supportBeforeConnection = postgres.dialect.supports.generatedColumns;
@@ -384,7 +465,11 @@ describe('generated column version support', () => {
       const authenticate = sinon.stub(freshSqlite, 'authenticate').callsFake(async () => {
         freshSqlite.setDatabaseVersion('3.24.0');
       });
-      const queryRaw = sinon.stub(freshSqlite, 'queryRaw').resolves({ before: {} } as any);
+      const queryRaw = sinon.stub(freshSqlite, 'queryRaw').callsFake(async query => {
+        return String(query).startsWith('PRAGMA foreign_key_list')
+          ? ([] as any)
+          : ({ before: {} } as any);
+      });
       sinon.stub(freshSqlite.queryInterface, 'showIndex').resolves([]);
       sinon.stub(freshSqlite.queryInterface, 'showConstraints').resolves([]);
 

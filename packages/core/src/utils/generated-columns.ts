@@ -23,6 +23,8 @@ interface GeneratedColumnOptions {
   references?: unknown;
   type?: unknown;
   unique?: unknown;
+  columnName?: unknown;
+  field?: unknown;
 }
 
 /**
@@ -161,6 +163,73 @@ export function validateGeneratedColumnOptions(
 
     if (attribute.index) {
       validateGeneratedColumnIndex(attribute, dialect, attributeDescription);
+    }
+  }
+}
+
+/**
+ * Validates PostgreSQL VIRTUAL generated expressions against user-defined source column types.
+ *
+ * PostgreSQL 18 does not allow user-defined types anywhere in a VIRTUAL generation expression,
+ * including through a referenced source column whose value is cast to a built-in result type.
+ *
+ * @param attributes All attributes that will be part of the table.
+ * @param dialect The dialect the attributes will be used with.
+ * @param formatExpression Formats a generated expression using the caller's model context.
+ * @internal
+ */
+export function validateGeneratedColumnExpressionReferences(
+  attributes: Iterable<readonly [string, GeneratedColumnOptions]>,
+  dialect: AbstractDialect,
+  formatExpression: (expression: BaseSqlExpression) => string,
+): void {
+  if (dialect.name !== 'postgres') {
+    return;
+  }
+
+  const attributeEntries = [...attributes];
+  const userDefinedSourceColumns: Array<{
+    attributeName: string;
+    columnName: string;
+    typeId: string;
+  }> = [];
+
+  for (const [attributeName, attribute] of attributeEntries) {
+    const typeId = findPostgresUserDefinedTypeId(attribute.type);
+    if (!typeId) {
+      continue;
+    }
+
+    const columnName =
+      typeof attribute.columnName === 'string'
+        ? attribute.columnName
+        : typeof attribute.field === 'string'
+          ? attribute.field
+          : attributeName;
+    userDefinedSourceColumns.push({ attributeName, columnName, typeId });
+  }
+
+  if (userDefinedSourceColumns.length === 0) {
+    return;
+  }
+
+  for (const [attributeName, attribute] of attributeEntries) {
+    if (
+      attribute.generatedColumn !== 'VIRTUAL' ||
+      !(attribute.generatedAs instanceof BaseSqlExpression)
+    ) {
+      continue;
+    }
+
+    const expressionSql = formatExpression(attribute.generatedAs);
+    for (const source of userDefinedSourceColumns) {
+      if (!sqlFragmentReferencesIdentifier(expressionSql, [source.columnName], dialect)) {
+        continue;
+      }
+
+      throw new Error(
+        `Attribute "${attributeName}": PostgreSQL VIRTUAL generated column expressions cannot reference attribute "${source.attributeName}" because it uses the ${source.typeId} user-defined data type.`,
+      );
     }
   }
 }
@@ -389,6 +458,7 @@ export function findTopLevelSqlKeyword(
   const normalizedKeyword = keyword.toUpperCase();
   let parenthesesDepth = 0;
   let quotedIdentifierEnd: string | undefined;
+  let quotedRegionIsBackslashEscapable = false;
   let inString = false;
   let stringIsBackslashEscapable = false;
   let dollarQuoteTag: string | undefined;
@@ -400,11 +470,15 @@ export function findTopLevelSqlKeyword(
     const char = sql[index];
 
     if (quotedIdentifierEnd !== undefined) {
-      if (char === quotedIdentifierEnd) {
+      if (
+        char === quotedIdentifierEnd &&
+        (!quotedRegionIsBackslashEscapable || !isBackslashEscaped(sql, index - 1))
+      ) {
         if (sql[index + 1] === quotedIdentifierEnd) {
           index++;
         } else {
           quotedIdentifierEnd = undefined;
+          quotedRegionIsBackslashEscapable = false;
         }
       }
 
@@ -464,6 +538,12 @@ export function findTopLevelSqlKeyword(
 
     if (char === dialect.TICK_CHAR_LEFT) {
       quotedIdentifierEnd = dialect.TICK_CHAR_RIGHT;
+      continue;
+    }
+
+    if (char === '"' && supportsAlternativeDoubleQuotedRegions(dialect)) {
+      quotedIdentifierEnd = '"';
+      quotedRegionIsBackslashEscapable = dialect.canBackslashEscape();
       continue;
     }
 
@@ -611,7 +691,7 @@ function isTokenBoundary(char: string | undefined): boolean {
 
 function findPostgresUserDefinedTypeId(type: unknown): string | undefined {
   if (typeof type === 'string') {
-    const normalizedType = type.trim().toUpperCase().replace(/\[\]$/, '');
+    const normalizedType = extractRawDataTypeName(type);
 
     return POSTGRES_USER_DEFINED_TYPE_IDS.has(normalizedType) ? normalizedType : undefined;
   }
@@ -631,6 +711,48 @@ function findPostgresUserDefinedTypeId(type: unknown): string | undefined {
   }
 
   return undefined;
+}
+
+function extractRawDataTypeName(type: string): string {
+  let typeWithoutArrays = type.trim();
+  while (/\[\s*\]\s*$/.test(typeWithoutArrays)) {
+    typeWithoutArrays = typeWithoutArrays.replace(/\[\s*\]\s*$/, '').trimEnd();
+  }
+
+  let inQuotedIdentifier = false;
+  let lastQualifierIndex = -1;
+  let typeModifierIndex = typeWithoutArrays.length;
+
+  for (let index = 0; index < typeWithoutArrays.length; index++) {
+    const char = typeWithoutArrays[index];
+    if (char === '"') {
+      if (inQuotedIdentifier && typeWithoutArrays[index + 1] === '"') {
+        index++;
+        continue;
+      }
+
+      inQuotedIdentifier = !inQuotedIdentifier;
+      continue;
+    }
+
+    if (inQuotedIdentifier) {
+      continue;
+    }
+
+    if (char === '.') {
+      lastQualifierIndex = index;
+    } else if (char === '(') {
+      typeModifierIndex = index;
+      break;
+    }
+  }
+
+  let typeName = typeWithoutArrays.slice(lastQualifierIndex + 1, typeModifierIndex).trim();
+  if (typeName.startsWith('"') && typeName.endsWith('"')) {
+    typeName = typeName.slice(1, -1).replaceAll('""', '"');
+  }
+
+  return typeName.toUpperCase();
 }
 
 function getLineCommentStartLength(sql: string, index: number, dialect: AbstractDialect): number {
@@ -657,6 +779,10 @@ function getLineCommentStartLength(sql: string, index: number, dialect: Abstract
   const codePoint = followingCharacter.codePointAt(0)!;
 
   return codePoint <= 0x20 || codePoint === 0x7f ? 2 : 0;
+}
+
+function supportsAlternativeDoubleQuotedRegions(dialect: AbstractDialect): boolean {
+  return dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'mssql';
 }
 
 function isBackslashEscaped(value: string, index: number): boolean {
