@@ -2365,13 +2365,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const joinColumn = association.sourceKeyField || attrSource || identSource;
 
         if (isRootParent) {
-          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+          sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
         } else {
           const aliasBase = `${dottedTableSource}.${joinColumn}`;
 
           aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
 
-          const projection = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+          const projection = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
 
           if (!attributes.subQuery.includes(projection)) {
             attributes.subQuery.push(projection);
@@ -2520,7 +2520,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             [Op.and]: [
               new Literal(
                 [
-                  `${this.quoteIdentifier(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
+                  `${this.quoteIdentifier(topParent.model.name)}.${this.quoteIdentifier(topAssociation.sourceKeyField || topParent.model.primaryKeyField)}`,
                   `${this.quoteIdentifier(topInclude.through.model.name)}.${this.quoteIdentifier(topAssociation.identifierField)}`,
                 ].join(' = '),
               ),
