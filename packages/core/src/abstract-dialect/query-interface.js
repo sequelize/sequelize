@@ -140,6 +140,32 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     attribute = this.sequelize.normalizeAttribute(attribute);
     await this.#validateGeneratedColumnOptions({ [key]: attribute });
 
+    const { ifNotExists, ...rawQueryOptions } = options;
+    if (
+      this.sequelize.dialect.name === 'postgres' &&
+      attribute.generatedColumn === 'VIRTUAL' &&
+      this.sequelize.dialect.supports.generatedColumns.virtual
+    ) {
+      const existingAttributes = await this.describeTable(table, rawQueryOptions);
+      const validationAttributes = mapValues(
+        existingAttributes,
+        (existingAttribute, columnName) => ({
+          ...existingAttribute,
+          columnName,
+          type:
+            Array.isArray(existingAttribute.special) && existingAttribute.special.length > 0
+              ? 'ENUM'
+              : existingAttribute.type,
+        }),
+      );
+      validationAttributes[key] = attribute;
+      validateGeneratedColumnExpressionReferences(
+        Object.entries(validationAttributes),
+        this.sequelize.dialect,
+        expression => this.queryGenerator.formatSqlExpression(expression),
+      );
+    }
+
     if (
       attribute.type instanceof AbstractDataType &&
       // we don't give a context if it already has one, because it could come from a Model.
@@ -152,7 +178,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       });
     }
 
-    const { ifNotExists, ...rawQueryOptions } = options;
     const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
 
     return await this.sequelize.queryRaw(

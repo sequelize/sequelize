@@ -8,6 +8,8 @@ import type { SqliteQueryGenerator } from './query-generator.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 import {
   findSqlOpeningParenthesis,
+  hasAmbiguousSqlIdentifierUsage,
+  hasSqlIdentifierIncludingLegacyQuotes,
   hasSqlKeyword,
   replaceSqlIdentifier,
 } from './sqlite-schema-parser.js';
@@ -36,11 +38,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
 
     let renamedSql = sql.slice(openingParenthesis);
     for (const [newColumnName, oldColumnName] of renamedColumns) {
-      const escapedColumnName = oldColumnName.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      if (
-        new RegExp(`\\b(?:AS|COLLATE)\\s+${escapedColumnName}\\b`, 'i').test(renamedSql) ||
-        new RegExp(`\\b${escapedColumnName}\\s*\\(`, 'i').test(renamedSql)
-      ) {
+      if (hasAmbiguousSqlIdentifierUsage(renamedSql, oldColumnName)) {
         throw new Error(
           `SQLite cannot safely rename column ${this.#queryGenerator.quoteIdentifier(oldColumnName)} because an index uses the same name as a SQL type, collation, or function. Drop and recreate the index around the rename.`,
         );
@@ -53,7 +51,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
   }
 
   #sqlReferencesTable(sql: string, tableName: string): boolean {
-    return replaceSqlIdentifier(sql, tableName, '__sequelize_table__') !== sql;
+    return hasSqlIdentifierIncludingLegacyQuotes(sql, tableName);
   }
 
   async #getViewsForTableRebuild(
@@ -391,9 +389,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               }
 
               for (const [, oldColumnName] of renamedColumns) {
-                if (
-                  replaceSqlIdentifier(view.sql, oldColumnName, '__sequelize_column__') !== view.sql
-                ) {
+                if (hasSqlIdentifierIncludingLegacyQuotes(view.sql, oldColumnName)) {
                   throw new Error(
                     `SQLite cannot safely rename column ${this.#queryGenerator.quoteIdentifier(oldColumnName)} because view ${this.#queryGenerator.quoteIdentifier(view.name)} references it. Drop and recreate the view around the rename.`,
                   );
@@ -407,10 +403,7 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
             ];
             for (const trigger of triggerSql) {
               for (const [, oldColumnName] of renamedColumns) {
-                if (
-                  replaceSqlIdentifier(trigger.sql, oldColumnName, '__sequelize_column__') !==
-                  trigger.sql
-                ) {
+                if (hasSqlIdentifierIncludingLegacyQuotes(trigger.sql, oldColumnName)) {
                   throw new Error(
                     `SQLite cannot safely rename column ${this.#queryGenerator.quoteIdentifier(oldColumnName)} while a trigger references it. Drop and recreate the trigger around the rename.`,
                   );

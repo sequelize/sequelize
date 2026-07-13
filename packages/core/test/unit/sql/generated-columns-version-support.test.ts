@@ -156,6 +156,72 @@ describe('generated column version support', () => {
       }).not.to.throw();
     });
 
+    it('does not mistake PostgreSQL expression syntax for source column references', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualSyntaxCollisions',
+          {
+            textSource: { type: DataTypes.CITEXT, columnName: 'text' },
+            daysSource: { type: DataTypes.CITEXT, columnName: 'days' },
+            yearSource: { type: DataTypes.CITEXT, columnName: 'year' },
+            castValue: {
+              type: DataTypes.TEXT,
+              generatedAs: sql.literal('1::pg_catalog.text'),
+              generatedColumn: 'VIRTUAL',
+            },
+            argumentValue: {
+              type: DataTypes.DOUBLE,
+              generatedAs: sql.literal(
+                "extract(epoch from make_interval(days => 1)) + extract(year from date '2020-01-01')",
+              ),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).not.to.throw();
+    });
+
+    it('recognizes unquoted Unicode source column references', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualUnicodeSource',
+          {
+            source: { type: DataTypes.CITEXT, columnName: 'café' },
+            computed: {
+              type: DataTypes.TEXT,
+              generatedAs: sql.literal('café::text'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(/attribute "source".*CITEXT user-defined/i);
+    });
+
+    it('still recognizes a source reference after an earlier CAST type', () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+      expect(() => {
+        postgres18.define(
+          'VirtualSourceAfterCast',
+          {
+            text: DataTypes.CITEXT,
+            computed: {
+              type: DataTypes.INTEGER,
+              generatedAs: sql.literal('CAST(1 AS integer) + length(text)'),
+              generatedColumn: 'VIRTUAL',
+            },
+          },
+          { timestamps: false },
+        );
+      }).to.throw(/attribute "text".*CITEXT user-defined/i);
+    });
+
     it('allows STORED expressions that reference user-defined source types', () => {
       const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
 
@@ -192,6 +258,26 @@ describe('generated column version support', () => {
         );
       }).to.throw(/PostgreSQL.*VIRTUAL generated columns.*GEOMETRY.*user-defined/i);
     });
+
+    for (const type of ['CITEXT[3]', 'public.CITEXT [ 3 ]', 'CITEXT COLLATE "C"']) {
+      it(`rejects the raw user-defined result type ${type}`, () => {
+        const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+
+        expect(() => {
+          postgres18.define(
+            'VirtualRawCitextResult',
+            {
+              computed: {
+                type,
+                generatedAs: sql.literal("'value'"),
+                generatedColumn: 'VIRTUAL',
+              },
+            },
+            { timestamps: false },
+          );
+        }).to.throw(/PostgreSQL.*VIRTUAL generated columns.*CITEXT.*user-defined/i);
+      });
+    }
 
     it('re-evaluates generated column support when the database version becomes known', () => {
       const postgres = createSequelizeInstance();

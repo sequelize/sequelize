@@ -127,7 +127,11 @@ const nonCascadingOptions = [
  */
 const CONSTRUCTOR_SECRET = Symbol('model-constructor-secret');
 
-function assertEagerLoadedThroughForeignKeysAreWritable(instances, includes) {
+function assertEagerLoadedThroughForeignKeysAreWritable(
+  instances,
+  includes,
+  currentModelHooksHaveRun = true,
+) {
   if (!includes || includes.length === 0) {
     return;
   }
@@ -143,7 +147,10 @@ function assertEagerLoadedThroughForeignKeysAreWritable(instances, includes) {
       }
     }
 
-    if (include.association instanceof BelongsToManyAssociation) {
+    if (
+      include.association instanceof BelongsToManyAssociation &&
+      (includedInstances.length > 0 || !currentModelHooksHaveRun)
+    ) {
       include.association.assertThroughForeignKeysAreWritable(include.association.accessors.create);
     }
 
@@ -151,7 +158,7 @@ function assertEagerLoadedThroughForeignKeysAreWritable(instances, includes) {
       continue;
     }
 
-    assertEagerLoadedThroughForeignKeysAreWritable(includedInstances, include.include);
+    assertEagerLoadedThroughForeignKeysAreWritable(includedInstances, include.include, false);
   }
 }
 
@@ -2613,7 +2620,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
         let results;
         if (records.some(record => isEmpty(record))) {
-          if (options.connection && !options.transaction) {
+          if (records.length > 1 && options.connection && !options.transaction) {
             throw new Error(
               'bulkCreate cannot atomically insert empty rows when a connection is provided without a transaction. Pass a transaction for this operation.',
             );
@@ -2643,12 +2650,33 @@ ${associationOwner._getAssociationDebugList()}`);
             return individualResults;
           };
 
-          results = options.transaction
-            ? await insertRecordsIndividually(options.transaction)
-            : await model.sequelize.transaction(
-                { logging: options.logging },
+          if (records.length === 1 || options.transaction) {
+            results = await insertRecordsIndividually(options.transaction);
+          } else {
+            const instanceSnapshots = instances.map(instance => ({
+              changed: new Set(instance._changed),
+              dataValues: { ...instance.dataValues },
+              isNewRecord: instance.isNewRecord,
+              previousDataValues: { ...instance._previousDataValues },
+            }));
+
+            try {
+              results = await model.sequelize.transaction(
+                { logging: options.logging, transaction: null },
                 insertRecordsIndividually,
               );
+            } catch (error) {
+              for (const [index, instance] of instances.entries()) {
+                const snapshot = instanceSnapshots[index];
+                instance._changed = snapshot.changed;
+                instance.dataValues = snapshot.dataValues;
+                instance.isNewRecord = snapshot.isNewRecord;
+                instance._previousDataValues = snapshot.previousDataValues;
+              }
+
+              throw error;
+            }
+          }
         } else {
           results = await model.queryInterface.bulkInsert(
             model.table,

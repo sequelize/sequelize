@@ -236,6 +236,56 @@ export function replaceSqlIdentifier(sql: string, identifier: string, replacemen
   return result;
 }
 
+const AMBIGUOUS_SQL_KEYWORDS = new Set([
+  'and',
+  'between',
+  'case',
+  'current_date',
+  'current_time',
+  'current_timestamp',
+  'else',
+  'end',
+  'escape',
+  'false',
+  'glob',
+  'in',
+  'is',
+  'like',
+  'match',
+  'not',
+  'null',
+  'or',
+  'regexp',
+  'then',
+  'true',
+  'when',
+]);
+
+export function hasAmbiguousSqlIdentifierUsage(sql: string, identifier: string): boolean {
+  if (AMBIGUOUS_SQL_KEYWORDS.has(identifier.toLowerCase())) {
+    return replaceSqlIdentifier(sql, identifier, '__sequelize_column__') !== sql;
+  }
+
+  const escapedIdentifier = identifier.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const identifierPattern = `(?:\\b${escapedIdentifier}\\b|"${escapedIdentifier}"|\\x60${escapedIdentifier}\\x60|\\[${escapedIdentifier}\\]|'${escapedIdentifier}')`;
+  const withoutComments = sql.replaceAll(/\/\*[\s\S]*?\*\//g, ' ').replaceAll(/--[^\r\n]*/g, ' ');
+
+  return (
+    new RegExp(`\\b(?:AS|COLLATE)\\s+${identifierPattern}`, 'i').test(withoutComments) ||
+    new RegExp(`${identifierPattern}\\s*\\(`, 'i').test(withoutComments)
+  );
+}
+
+export function hasSqlIdentifierIncludingLegacyQuotes(sql: string, identifier: string): boolean {
+  if (replaceSqlIdentifier(sql, identifier, '__sequelize_identifier__') !== sql) {
+    return true;
+  }
+
+  const escapedIdentifier = identifier.replaceAll("'", "''");
+
+  return sql.toLowerCase().includes(`'${escapedIdentifier.toLowerCase()}'`);
+}
+
 export function findSqlClosingParenthesis(sql: string, openingParenthesis: number): number {
   let depth = 0;
   let closingQuote: string | undefined;

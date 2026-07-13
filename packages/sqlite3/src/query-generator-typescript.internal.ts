@@ -31,6 +31,7 @@ import {
   findSqlTokenOpeningParenthesis,
   getSqlColumnName,
   getSqlIdentifier,
+  hasAmbiguousSqlIdentifierUsage,
   replaceSqlIdentifier,
   skipSqlWhitespaceAndComments,
 } from './sqlite-schema-parser.js';
@@ -79,11 +80,7 @@ function replaceIdentifierInParentheses(
   }
 
   const expression = sql.slice(openingParenthesis + 1, closingParenthesis);
-  const escapedIdentifier = identifier.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  if (
-    new RegExp(`\\b(?:AS|COLLATE)\\s+${escapedIdentifier}\\b`, 'i').test(expression) ||
-    new RegExp(`\\b${escapedIdentifier}\\s*\\(`, 'i').test(expression)
-  ) {
+  if (hasAmbiguousSqlIdentifierUsage(expression, identifier)) {
     throw new Error(
       `SQLite cannot safely rename column ${identifier} because its name is ambiguous with a SQL type, collation, or function in expression: ${expression}`,
     );

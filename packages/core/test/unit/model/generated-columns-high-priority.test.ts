@@ -14,6 +14,8 @@ class TestTransaction {
   }
 }
 
+class TestConnection {}
+
 describe('Model generated column safeguards', () => {
   afterEach(() => {
     sinon.restore();
@@ -348,6 +350,18 @@ describe('Model generated column safeguards', () => {
         });
       }
 
+      it('allows a root belongsToMany include with no associated targets', async () => {
+        const { association, Source } = defineBelongsToMany('sourceId');
+        const insert = sinon
+          .stub(sequelize.queryInterface, 'insert')
+          .callsFake(async instance => [instance, 1]);
+
+        const instance = await Source.create({}, { include: [association] });
+
+        expect(insert).to.have.been.calledOnce;
+        expect(instance.isNewRecord).to.equal(false);
+      });
+
       it('rejects a nested declared belongsToMany include before inserting its outer parent', async () => {
         const { association, Source } = defineBelongsToMany('sourceId');
         const Outer = sequelize.define('GeneratedBelongsToManyOuter', {}, { timestamps: false });
@@ -537,6 +551,37 @@ describe('Model generated column safeguards', () => {
       expect(insert).not.to.have.been.called;
       expect(bulkInsert).not.to.have.been.called;
       expect(managedTransaction).not.to.have.been.called;
+    });
+
+    it('allows one empty row on a bare connection without a managed transaction', async () => {
+      const TestModel = sequelize.define(
+        'GeneratedOnlySingleBareConnectionBulkRecord',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: sequelize.dialect.name !== 'mariadb',
+            generatedAs: sql.literal('1'),
+            generatedColumn: supportedMode,
+          },
+        },
+        { noPrimaryKey: sequelize.dialect.name === 'mariadb', timestamps: false },
+      );
+      const connection = new TestConnection();
+      const insert = sinon
+        .stub(sequelize.queryInterface, 'insert')
+        .callsFake(async instance => [instance, 1]);
+      const managedTransaction = sinon.stub(sequelize, 'transaction');
+
+      const [instance] = await TestModel.bulkCreate([{}], {
+        connection: connection as never,
+        hooks: false,
+        validate: false,
+      } as never);
+
+      expect(insert).to.have.been.calledOnce;
+      expect(insert.firstCall.args[3]?.connection).to.equal(connection);
+      expect(managedTransaction).not.to.have.been.called;
+      expect(instance.isNewRecord).to.equal(false);
     });
 
     it('preserves bulk options and order when only some rows become empty', async () => {

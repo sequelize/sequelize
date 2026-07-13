@@ -1,7 +1,9 @@
 'use strict';
 
-const { DataTypes, QueryTypes, sql } = require('@sequelize/core');
+const { DataTypes, QueryTypes, Sequelize, sql } = require('@sequelize/core');
+const { SqliteDialect } = require('@sequelize/sqlite3');
 const { expect } = require('chai');
+const { rm } = require('node:fs/promises');
 const Support = require('../../support');
 
 if (Support.getTestDialect() === 'sqlite3') {
@@ -297,7 +299,7 @@ if (Support.getTestDialect() === 'sqlite3') {
         CREATE TABLE generated_columns_test (
           "integer" TEXT,
           value TEXT,
-          normalized INTEGER GENERATED ALWAYS AS (CAST(value AS INTEGER)) STORED
+          normalized INTEGER GENERATED ALWAYS AS (CAST(value AS /* type */ "INTEGER")) STORED
         )
       `);
 
@@ -315,14 +317,42 @@ if (Support.getTestDialect() === 'sqlite3') {
       const [[table]] = await this.sequelize.query(
         "SELECT sql FROM sqlite_master WHERE name = 'generated_columns_test'",
       );
-      expect(table.sql).to.include('CAST(value AS INTEGER)');
+      expect(table.sql).to.include('CAST(value AS /* type */ "INTEGER")');
+    });
+
+    it('rejects SQL keyword ambiguity in legacy rename expressions', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_test (
+          "null" INTEGER,
+          value INTEGER,
+          result GENERATED ALWAYS AS (COALESCE(value, NULL)) STORED
+        )
+      `);
+      await this.sequelize.query(
+        'INSERT INTO generated_columns_test ("null", value) VALUES (42, NULL)',
+      );
+
+      const databaseVersion = this.sequelize.getDatabaseVersionIfExist();
+      this.sequelize.setDatabaseVersion('3.24.0');
+      try {
+        await expect(queryInterface.renameColumn(tableName, 'null', 'label')).to.be.rejectedWith(
+          /ambiguous with a SQL type/i,
+        );
+      } finally {
+        this.sequelize.setDatabaseVersion(databaseVersion);
+      }
+
+      expect(await queryInterface.select(null, tableName, {})).to.deep.equal([
+        { null: 42, value: null, result: null },
+      ]);
     });
 
     it('rejects ambiguous dependent views before a legacy rename rebuild', async function () {
       const queryInterface = this.sequelize.queryInterface;
       await queryInterface.createTable(tableName, { value: DataTypes.INTEGER });
       await this.sequelize.query(
-        'CREATE VIEW generated_columns_view AS SELECT value FROM generated_columns_test',
+        "CREATE VIEW generated_columns_view AS SELECT value FROM 'generated_columns_test'",
       );
 
       const databaseVersion = this.sequelize.getDatabaseVersionIfExist();
@@ -337,6 +367,31 @@ if (Support.getTestDialect() === 'sqlite3') {
 
       expect(await queryInterface.describeTable(tableName)).to.have.property('value');
       expect(await queryInterface.select(null, 'generated_columns_view', {})).to.deep.equal([]);
+    });
+
+    it('rejects single-quoted trigger references before a legacy rename rebuild', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await queryInterface.createTable(tableName, { value: DataTypes.INTEGER });
+      await queryInterface.createTable('generated_columns_audit', { value: DataTypes.INTEGER });
+      await this.sequelize.query(`
+        CREATE TRIGGER generated_columns_trigger
+        AFTER UPDATE OF 'value' ON generated_columns_test
+        BEGIN
+          INSERT INTO generated_columns_audit (value) VALUES (NEW.'value');
+        END
+      `);
+
+      const databaseVersion = this.sequelize.getDatabaseVersionIfExist();
+      this.sequelize.setDatabaseVersion('3.24.0');
+      try {
+        await expect(queryInterface.renameColumn(tableName, 'value', 'renamed')).to.be.rejectedWith(
+          /cannot safely rename.*trigger/i,
+        );
+      } finally {
+        this.sequelize.setDatabaseVersion(databaseVersion);
+      }
+
+      expect(await queryInterface.describeTable(tableName)).to.have.property('value');
     });
 
     it('ignores AUTOINCREMENT tokens in string literals during rebuilds', async function () {
@@ -388,27 +443,80 @@ if (Support.getTestDialect() === 'sqlite3') {
       ]);
     });
 
+    it('preserves composite foreign keys without creating inline references', async function () {
+      const queryInterface = this.sequelize.queryInterface;
+      await this.sequelize.query('PRAGMA foreign_keys = ON');
+      await this.sequelize.query(
+        'CREATE TABLE generated_columns_test (a INTEGER, b INTEGER, UNIQUE (a, b))',
+      );
+      await this.sequelize.query(`
+        CREATE TABLE generated_columns_child (
+          x INTEGER,
+          y INTEGER,
+          doubled INTEGER GENERATED ALWAYS AS (x * 2) STORED,
+          FOREIGN KEY (x, y) REFERENCES generated_columns_test (a, b)
+        )
+      `);
+      await this.sequelize.query('INSERT INTO generated_columns_test VALUES (1, 2)');
+      await this.sequelize.query('INSERT INTO generated_columns_child (x, y) VALUES (1, 2)');
+
+      await queryInterface.changeColumn('generated_columns_child', 'x', DataTypes.TEXT);
+
+      await expect(
+        this.sequelize.query("INSERT INTO generated_columns_child (x, y) VALUES ('1', 999)"),
+      ).to.be.rejected;
+      expect(await queryInterface.select(null, 'generated_columns_child', {})).to.deep.equal([
+        { x: '1', y: 2, doubled: 2 },
+      ]);
+    });
+
     it('shows and removes commented constraint names containing spaces', async function () {
       const queryInterface = this.sequelize.queryInterface;
       await this.sequelize.query(`
         CREATE TABLE generated_columns_test (
+          id INTEGER,
           value INTEGER,
           doubled INTEGER GENERATED ALWAYS AS (value * 2) STORED,
-          /* leading constraint comment */ CONSTRAINT "unique value" UNIQUE (value)
+          /* leading constraint comment */ CONSTRAINT "unique value" UNIQUE (value),
+          CONSTRAINT "primary value" PRIMARY /* between keywords */ KEY (id),
+          UNIQUE (id, value),
+          CHECK (value > 0)
         )
       `);
 
-      const constraint = (await queryInterface.showConstraints(tableName)).find(
-        item => item.constraintName === 'unique value',
-      );
+      const constraints = await queryInterface.showConstraints(tableName);
+      const constraint = constraints.find(item => item.constraintName === 'unique value');
       expect(constraint).to.include({
         constraintName: 'unique value',
         constraintType: 'UNIQUE',
       });
       expect(constraint.columnNames).to.deep.equal(['value']);
+      expect(constraints).to.deep.include.members([
+        {
+          constraintSchema: '',
+          constraintName: 'primary value',
+          constraintType: 'PRIMARY KEY',
+          tableSchema: '',
+          tableName,
+          columnNames: ['id'],
+        },
+        {
+          constraintSchema: '',
+          constraintName: 'UNIQUE',
+          constraintType: 'UNIQUE',
+          tableSchema: '',
+          tableName,
+          columnNames: ['id', 'value'],
+        },
+      ]);
+      expect(constraints.some(item => item.constraintType === 'CHECK')).to.equal(true);
       await queryInterface.removeConstraint(tableName, 'unique value');
-      await this.sequelize.query('INSERT INTO generated_columns_test (value) VALUES (1), (1)');
-      expect(await queryInterface.select(null, tableName, {})).to.have.length(2);
+      await this.sequelize.query(
+        'INSERT INTO generated_columns_test (id, value) VALUES (1, 1), (2, 1)',
+      );
+      await queryInterface.removeConstraint(tableName, 'primary value');
+      await this.sequelize.query('INSERT INTO generated_columns_test (id, value) VALUES (1, 2)');
+      expect(await queryInterface.select(null, tableName, {})).to.have.length(3);
     });
 
     it('preserves exact main and TEMP AUTOINCREMENT high-water values', async function () {
@@ -1008,12 +1116,63 @@ if (Support.getTestDialect() === 'sqlite3') {
       );
       await GeneratedModel.sync({ force: true });
       await GeneratedModel.create({ source: 'duplicate' });
+      let bulkInstances;
+      let initialDataValues;
+      GeneratedModel.beforeBulkCreate(instances => {
+        bulkInstances = instances;
+        initialDataValues = { ...instances[0].dataValues };
+      });
 
       await expect(GeneratedModel.bulkCreate([{}, { source: 'duplicate' }], { fields: ['source'] }))
         .to.be.rejected;
 
       expect(await GeneratedModel.count()).to.equal(1);
       expect(await GeneratedModel.count({ where: { source: null } })).to.equal(0);
+      expect(bulkInstances[0].isNewRecord).to.equal(true);
+      expect(bulkInstances[0].dataValues).to.deep.equal(initialDataValues);
+    });
+
+    it('keeps transaction null independent from an ambient CLS transaction', async () => {
+      const storage = `/tmp/sequelize-generated-columns-transaction-null-${process.pid}.sqlite`;
+      const independentSequelize = new Sequelize({
+        dialect: SqliteDialect,
+        disableClsTransactions: false,
+        logging: false,
+        pool: { max: 2 },
+        storage,
+      });
+
+      try {
+        const GeneratedModel = independentSequelize.define(
+          'SqliteIndependentGeneratedColumn',
+          {
+            source: DataTypes.STRING,
+            computed: {
+              type: DataTypes.STRING,
+              generatedAs: sql.literal("coalesce(`source`, 'default')"),
+              generatedColumn: 'STORED',
+            },
+          },
+          { timestamps: false },
+        );
+        await GeneratedModel.sync({ force: true });
+
+        await expect(
+          independentSequelize.transaction(async () => {
+            await GeneratedModel.bulkCreate([{}, { source: 'outside' }], {
+              fields: ['source'],
+              transaction: null,
+            });
+
+            throw new Error('roll back ambient transaction');
+          }),
+        ).to.be.rejectedWith('roll back ambient transaction');
+
+        expect(await GeneratedModel.count()).to.equal(2);
+      } finally {
+        await independentSequelize.close();
+        await rm(storage, { force: true });
+      }
     });
   });
 }

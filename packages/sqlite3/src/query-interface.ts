@@ -327,15 +327,29 @@ export class SqliteQueryInterface<
       // identifiers that the legacy CREATE TABLE constraint parser cannot represent faithfully.
       const foreignKeys = await this.sequelize.queryRaw<{
         from: string;
+        id: number;
         on_delete: string;
         on_update: string;
+        seq: number;
         table: string;
         to: string;
       }>(`PRAGMA foreign_key_list(${this.queryGenerator.quoteTable(tableName)})`, {
         ...options,
         type: QueryTypes.SELECT,
       });
+      const foreignKeysById = new Map<number, typeof foreignKeys>();
       for (const foreignKey of foreignKeys) {
+        const group = foreignKeysById.get(foreignKey.id) ?? [];
+        group.push(foreignKey);
+        foreignKeysById.set(foreignKey.id, group);
+      }
+
+      for (const foreignKeyGroup of foreignKeysById.values()) {
+        if (foreignKeyGroup.length !== 1) {
+          continue;
+        }
+
+        const [foreignKey] = foreignKeyGroup;
         Object.assign(data[foreignKey.from], {
           references: {
             table: foreignKey.table,
@@ -572,6 +586,21 @@ export class SqliteQueryInterface<
           constraints.push(attribute);
         } else if (firstKeyword === 'PRIMARY' || firstKeyword === 'FOREIGN') {
           keys.push(attribute);
+        } else if (firstKeyword === 'UNIQUE' || firstKeyword === 'CHECK') {
+          const keyword = getSqlIdentifier(attribute)!;
+          data.push({
+            constraintSchema: '',
+            constraintName: firstKeyword,
+            constraintType: firstKeyword as ConstraintType,
+            tableSchema: '',
+            tableName: constraintTableName,
+            ...(firstKeyword === 'UNIQUE' && {
+              columnNames: parseSqlIdentifierList(attribute, findSqlOpeningParenthesis(attribute)),
+            }),
+            ...(firstKeyword === 'CHECK' && {
+              definition: attribute.slice(keyword.end).trim(),
+            }),
+          });
         } else {
           attributes.push(attribute);
         }
@@ -638,22 +667,31 @@ export class SqliteQueryInterface<
           continue;
         }
 
-        const typeStart = skipSqlWhitespaceAndComments(constraint, parsedConstraintName.end);
-        const typeSql = constraint.slice(typeStart);
-        const constraintType = /^PRIMARY\s+KEY\b/i.test(typeSql)
-          ? 'PRIMARY KEY'
-          : /^FOREIGN\s+KEY\b/i.test(typeSql)
-            ? 'FOREIGN KEY'
-            : /^UNIQUE\b/i.test(typeSql)
-              ? 'UNIQUE'
-              : /^CHECK\b/i.test(typeSql)
-                ? 'CHECK'
-                : undefined;
+        const firstTypeToken = getSqlIdentifier(constraint, parsedConstraintName.end);
+        const secondTypeToken = firstTypeToken
+          ? getSqlIdentifier(constraint, firstTypeToken.end)
+          : undefined;
+        const firstType = firstTypeToken?.name.toUpperCase();
+        const secondType = secondTypeToken?.name.toUpperCase();
+        const constraintType =
+          firstType === 'PRIMARY' && secondType === 'KEY'
+            ? 'PRIMARY KEY'
+            : firstType === 'FOREIGN' && secondType === 'KEY'
+              ? 'FOREIGN KEY'
+              : firstType === 'UNIQUE'
+                ? 'UNIQUE'
+                : firstType === 'CHECK'
+                  ? 'CHECK'
+                  : undefined;
         if (!constraintType) {
           continue;
         }
 
-        const definition = typeSql.slice(constraintType.length).trim();
+        const definitionStart =
+          constraintType === 'PRIMARY KEY' || constraintType === 'FOREIGN KEY'
+            ? secondTypeToken!.end
+            : firstTypeToken!.end;
+        const definition = constraint.slice(definitionStart).trim();
         if (constraintType === 'PRIMARY KEY') {
           const columnNames = parseSqlIdentifierList(definition);
 

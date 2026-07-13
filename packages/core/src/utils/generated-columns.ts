@@ -274,10 +274,11 @@ export function sqlFragmentReferencesIdentifier(
   const quotedIdentifiers = new Set(identifiers);
   const unquotedIdentifiers = new Set(
     [...quotedIdentifiers]
-      .filter(identifier => /^[a-z_][0-9a-z_$]*$/.test(identifier))
+      .filter(isUnquotedSqlIdentifier)
       .map(identifier => identifier.toLowerCase()),
   );
   let quotedIdentifier: string | undefined;
+  let quotedIdentifierStart = -1;
   let inString = false;
   let stringIsBackslashEscapable = false;
   let dollarQuoteTag: string | undefined;
@@ -300,11 +301,15 @@ export function sqlFragmentReferencesIdentifier(
         continue;
       }
 
-      if (quotedIdentifiers.has(quotedIdentifier) && isSqlIdentifierReference(sql, index + 1)) {
+      if (
+        quotedIdentifiers.has(quotedIdentifier) &&
+        isSqlIdentifierReference(sql, quotedIdentifierStart, index + 1, dialect)
+      ) {
         return true;
       }
 
       quotedIdentifier = undefined;
+      quotedIdentifierStart = -1;
       continue;
     }
 
@@ -361,6 +366,7 @@ export function sqlFragmentReferencesIdentifier(
 
     if (char === dialect.TICK_CHAR_LEFT) {
       quotedIdentifier = '';
+      quotedIdentifierStart = index;
       continue;
     }
 
@@ -412,15 +418,21 @@ export function sqlFragmentReferencesIdentifier(
       }
     }
 
-    if (/[a-z_]/i.test(char)) {
-      let tokenEnd = index + 1;
-      while (tokenEnd < sql.length && /[0-9a-z_$]/i.test(sql[tokenEnd])) {
-        tokenEnd++;
+    const identifierStart = getSqlIdentifierCharacter(sql, index);
+    if (identifierStart && isSqlIdentifierStart(identifierStart)) {
+      let tokenEnd = index + identifierStart.length;
+      while (tokenEnd < sql.length) {
+        const identifierPart = getSqlIdentifierCharacter(sql, tokenEnd);
+        if (!identifierPart || !isSqlIdentifierPart(identifierPart)) {
+          break;
+        }
+
+        tokenEnd += identifierPart.length;
       }
 
       if (
         unquotedIdentifiers.has(sql.slice(index, tokenEnd).toLowerCase()) &&
-        isSqlIdentifierReference(sql, tokenEnd)
+        isSqlIdentifierReference(sql, index, tokenEnd, dialect)
       ) {
         return true;
       }
@@ -432,12 +444,34 @@ export function sqlFragmentReferencesIdentifier(
   return false;
 }
 
-function isSqlIdentifierReference(sql: string, nextIndex: number): boolean {
+function isSqlIdentifierReference(
+  sql: string,
+  identifierStart: number,
+  nextIndex: number,
+  dialect: AbstractDialect,
+): boolean {
   while (nextIndex < sql.length && /\s/.test(sql[nextIndex])) {
     nextIndex++;
   }
 
-  return sql[nextIndex] !== '(' && sql[nextIndex] !== '.';
+  if (sql[nextIndex] === '(' || sql[nextIndex] === '.') {
+    return false;
+  }
+
+  if (dialect.name !== 'postgres') {
+    return true;
+  }
+
+  if (
+    sql.startsWith('=>', nextIndex) ||
+    sql.startsWith(':=', nextIndex) ||
+    sql[nextIndex] === "'" ||
+    matchesSqlKeywordAt(sql, nextIndex, 'FROM')
+  ) {
+    return false;
+  }
+
+  return !isPostgresCastTypeIdentifier(sql, identifierStart, dialect);
 }
 
 /**
@@ -544,6 +578,11 @@ export function findTopLevelSqlKeyword(
     if (char === '"' && supportsAlternativeDoubleQuotedRegions(dialect)) {
       quotedIdentifierEnd = '"';
       quotedRegionIsBackslashEscapable = dialect.canBackslashEscape();
+      continue;
+    }
+
+    if (char === '[' && dialect.name === 'sqlite3') {
+      quotedIdentifierEnd = ']';
       continue;
     }
 
@@ -686,7 +725,7 @@ export function splitSqlAtLastTopLevelKeyword(
 }
 
 function isTokenBoundary(char: string | undefined): boolean {
-  return char === undefined || !/[0-9a-z_$]/i.test(char);
+  return char === undefined || !isSqlIdentifierPart(char);
 }
 
 function findPostgresUserDefinedTypeId(type: unknown): string | undefined {
@@ -715,8 +754,8 @@ function findPostgresUserDefinedTypeId(type: unknown): string | undefined {
 
 function extractRawDataTypeName(type: string): string {
   let typeWithoutArrays = type.trim();
-  while (/\[\s*\]\s*$/.test(typeWithoutArrays)) {
-    typeWithoutArrays = typeWithoutArrays.replace(/\[\s*\]\s*$/, '').trimEnd();
+  while (/\[\s*\d*\s*\]\s*$/.test(typeWithoutArrays)) {
+    typeWithoutArrays = typeWithoutArrays.replace(/\[\s*\d*\s*\]\s*$/, '').trimEnd();
   }
 
   let inQuotedIdentifier = false;
@@ -741,9 +780,24 @@ function extractRawDataTypeName(type: string): string {
 
     if (char === '.') {
       lastQualifierIndex = index;
-    } else if (char === '(') {
+    } else if (char === '(' || char === '[') {
       typeModifierIndex = index;
       break;
+    } else if (/\s/.test(char)) {
+      let nextIndex = index + 1;
+      while (nextIndex < typeWithoutArrays.length && /\s/.test(typeWithoutArrays[nextIndex])) {
+        nextIndex++;
+      }
+
+      let previousIndex = index - 1;
+      while (previousIndex >= 0 && /\s/.test(typeWithoutArrays[previousIndex])) {
+        previousIndex--;
+      }
+
+      if (typeWithoutArrays[nextIndex] !== '.' && typeWithoutArrays[previousIndex] !== '.') {
+        typeModifierIndex = index;
+        break;
+      }
     }
   }
 
@@ -782,7 +836,144 @@ function getLineCommentStartLength(sql: string, index: number, dialect: Abstract
 }
 
 function supportsAlternativeDoubleQuotedRegions(dialect: AbstractDialect): boolean {
-  return dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'mssql';
+  return (
+    dialect.name === 'mysql' ||
+    dialect.name === 'mariadb' ||
+    dialect.name === 'mssql' ||
+    dialect.name === 'sqlite3'
+  );
+}
+
+function getSqlIdentifierCharacter(value: string, index: number): string | undefined {
+  const codePoint = value.codePointAt(index);
+
+  return codePoint === undefined ? undefined : String.fromCodePoint(codePoint);
+}
+
+function isSqlIdentifierStart(char: string): boolean {
+  return char === '_' || /\p{L}/u.test(char);
+}
+
+function isSqlIdentifierPart(char: string): boolean {
+  return char === '_' || char === '$' || /[\p{L}\p{N}\p{M}]/u.test(char);
+}
+
+function isUnquotedSqlIdentifier(identifier: string): boolean {
+  let isFirst = true;
+
+  for (const char of identifier) {
+    if (isFirst ? !isSqlIdentifierStart(char) : !isSqlIdentifierPart(char)) {
+      return false;
+    }
+
+    isFirst = false;
+  }
+
+  return !isFirst;
+}
+
+function matchesSqlKeywordAt(sql: string, index: number, keyword: string): boolean {
+  return (
+    sql.slice(index, index + keyword.length).toUpperCase() === keyword &&
+    isTokenBoundary(sql[index + keyword.length])
+  );
+}
+
+function isPostgresCastTypeIdentifier(
+  sql: string,
+  identifierStart: number,
+  dialect: AbstractDialect,
+): boolean {
+  let index = identifierStart - 1;
+
+  while (index >= 0) {
+    while (index >= 0 && /\s/.test(sql[index])) {
+      index--;
+    }
+
+    if (sql[index] === ':' && sql[index - 1] === ':') {
+      return true;
+    }
+
+    if (sql[index] === '.') {
+      index--;
+      while (index >= 0 && /\s/.test(sql[index])) {
+        index--;
+      }
+
+      const qualifierStart = findPreviousQualifierStart(sql, index, dialect);
+      if (qualifierStart === undefined) {
+        return false;
+      }
+
+      index = qualifierStart;
+      continue;
+    }
+
+    const tokenEnd = index + 1;
+    while (index >= 0 && isSqlIdentifierPart(sql[index])) {
+      index--;
+    }
+
+    if (tokenEnd === index + 1) {
+      return false;
+    }
+
+    const previousToken = sql.slice(index + 1, tokenEnd);
+    if (previousToken.toUpperCase() === 'AS') {
+      return true;
+    }
+
+    if (!POSTGRES_MULTIWORD_TYPE_PREFIXES.has(previousToken.toUpperCase())) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+const POSTGRES_MULTIWORD_TYPE_PREFIXES = new Set([
+  'BIT',
+  'CHAR',
+  'CHARACTER',
+  'DOUBLE',
+  'NATIONAL',
+  'TIME',
+  'TIMESTAMP',
+  'WITH',
+  'WITHOUT',
+]);
+
+function findPreviousQualifierStart(
+  sql: string,
+  qualifierEnd: number,
+  dialect: AbstractDialect,
+): number | undefined {
+  let index = qualifierEnd;
+  if (sql[index] !== dialect.TICK_CHAR_RIGHT) {
+    while (index >= 0 && isSqlIdentifierPart(sql[index])) {
+      index--;
+    }
+
+    return index === qualifierEnd ? undefined : index;
+  }
+
+  index--;
+  while (index >= 0) {
+    if (sql[index] !== dialect.TICK_CHAR_LEFT) {
+      index--;
+      continue;
+    }
+
+    if (sql[index - 1] === dialect.TICK_CHAR_LEFT) {
+      index -= 2;
+      continue;
+    }
+
+    return index - 1;
+  }
+
+  return undefined;
 }
 
 function isBackslashEscaped(value: string, index: number): boolean {

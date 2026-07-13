@@ -183,6 +183,29 @@ describe('generated columns dialect edge cases', () => {
     });
   }
 
+  if (dialectName === 'sqlite3') {
+    for (const expression of ['"value) PRIMARY KEY"', '[value) PRIMARY KEY]']) {
+      it(`preserves SQLite quoted regions in generated expressions: ${expression}`, () => {
+        const attributes = sequelize.queryGenerator.attributesToSQL(
+          {
+            computed: generatedAttribute({ generatedAs: sql.literal(expression) }),
+          },
+          { context: 'createTable' },
+        );
+        const definition = attributes.computed;
+        const ddl = sequelize.queryGenerator.createTableQuery(
+          'generated_quoted_region',
+          attributes,
+        );
+
+        expect(ddl).to.include(
+          `${sequelize.queryGenerator.quoteIdentifier('computed')} ${definition}`,
+        );
+        expect(ddl.replace(definition, '')).not.to.include('PRIMARY KEY');
+      });
+    }
+  }
+
   if (dialectName === 'mariadb') {
     it('rejects unsupported nullability and primary keys', () => {
       expect(() =>

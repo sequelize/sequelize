@@ -140,5 +140,40 @@ describe('QueryInterface generated column validation', () => {
       ).to.be.rejectedWith(/PostgreSQL.*VIRTUAL generated columns.*GEOMETRY.*user-defined/i);
       expect(queryRaw).not.to.have.been.called;
     });
+
+    it('rejects addColumn expressions that reference existing user-defined columns', async () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+      const describeTable = sinon.stub(postgres18.queryInterface, 'describeTable').resolves({
+        source_value: { type: 'CITEXT' },
+      } as never);
+      const queryRaw = sinon.stub(postgres18, 'queryRaw').resolves([] as never);
+
+      await expect(
+        postgres18.queryInterface.addColumn('generated_test', 'computed', {
+          type: DataTypes.TEXT,
+          generatedAs: sql.literal('source_value::text'),
+          generatedColumn: 'VIRTUAL',
+        }),
+      ).to.be.rejectedWith(/attribute "source_value".*CITEXT user-defined/i);
+      expect(describeTable).to.have.been.calledOnce;
+      expect(queryRaw).not.to.have.been.called;
+    });
+
+    it('allows addColumn expressions that only reference built-in columns', async () => {
+      const postgres18 = createSequelizeInstance({ databaseVersion: '18.0.0' });
+      sinon.stub(postgres18.queryInterface, 'describeTable').resolves({
+        source_value: { type: 'TEXT' },
+        metadata: { type: 'CITEXT' },
+      } as never);
+      const queryRaw = sinon.stub(postgres18, 'queryRaw').resolves([] as never);
+
+      await postgres18.queryInterface.addColumn('generated_test', 'computed', {
+        type: DataTypes.TEXT,
+        generatedAs: sql.literal('upper(source_value)'),
+        generatedColumn: 'VIRTUAL',
+      });
+
+      expect(queryRaw).to.have.been.calledOnce;
+    });
   }
 });
