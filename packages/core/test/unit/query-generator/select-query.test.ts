@@ -2029,6 +2029,120 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         `,
       });
     });
+
+    // Regression for https://github.com/sequelize/sequelize/pull/18247#issuecomment-4953718852
+    // A belongsToMany nested inside a required hasMany, with minified aliases and a global
+    // schema, must not schema-qualify the JOIN aliases (and must not collide during
+    // minification). Uses its own models so the alias numbering is independent of test order.
+    it('does not schema-qualify aliases in a belongsToMany nested under a required hasMany with minified aliases', () => {
+      const nestedSequelize = createSequelizeInstance({ schema: 'mySchema' });
+
+      interface NFoo extends Model<InferAttributes<NFoo>, InferCreationAttributes<NFoo>> {
+        id: CreationOptional<number>;
+      }
+      const Foo = nestedSequelize.define<NFoo>(
+        'SippieFoo',
+        { id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true } },
+        { timestamps: false },
+      );
+
+      interface NBar extends Model<InferAttributes<NBar>, InferCreationAttributes<NBar>> {
+        id: CreationOptional<number>;
+      }
+      const Bar = nestedSequelize.define<NBar>(
+        'SippieBar',
+        { id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true } },
+        { timestamps: false },
+      );
+
+      interface NYeet extends Model<InferAttributes<NYeet>, InferCreationAttributes<NYeet>> {
+        id: CreationOptional<number>;
+      }
+      const Yeet = nestedSequelize.define<NYeet>(
+        'SippieYeet',
+        { id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true } },
+        { timestamps: false },
+      );
+
+      // foo.hasMany(bar); bar.belongsToMany(yeet)
+      Foo.hasMany(Bar, { as: 'bars' });
+      Bar.belongsToMany(Yeet, { through: 'BarYeets', as: 'yeets' });
+
+      const sql = nestedSequelize.queryGenerator.selectQuery(
+        Foo.table,
+        {
+          model: Foo,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: Foo,
+            include: [
+              {
+                association: Foo.associations.bars,
+                attributes: ['id'],
+                required: true,
+                include: [{ association: Bar.associations.yeets, attributes: ['id'] }],
+              },
+            ],
+          }).include,
+          minifyAliases: true,
+        },
+        Foo,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [SippieFoo].[id],
+            [bars].[id] AS [_0],
+            [bars->yeets].[id] AS [_1],
+            [bars->yeets->BarYeets].[createdAt] AS [_2],
+            [bars->yeets->BarYeets].[updatedAt] AS [_3],
+            [bars->yeets->BarYeets].[sippieYeetId] AS [_4],
+            [bars->yeets->BarYeets].[sippieBarId] AS [_5]
+          FROM [mySchema].[SippieFoos] AS [SippieFoo]
+          INNER JOIN [mySchema].[SippieBars] AS [bars] ON [SippieFoo].[id] = [bars].[sippieFooId]
+          LEFT OUTER JOIN (
+            [mySchema].[BarYeets] AS [bars->yeets->BarYeets]
+            INNER JOIN [mySchema].[SippieYeets] AS [bars->yeets] ON [bars->yeets].[id] = [bars->yeets->BarYeets].[sippieYeetId]
+          )
+            ON [bars].[id] = [bars->yeets->BarYeets].[sippieBarId];
+        `,
+        sqlite3: `
+          SELECT
+            \`SippieFoo\`.\`id\`,
+            \`bars\`.\`id\` AS \`_0\`,
+            \`bars->yeets\`.\`id\` AS \`_1\`,
+            \`bars->yeets->BarYeets\`.\`createdAt\` AS \`_2\`,
+            \`bars->yeets->BarYeets\`.\`updatedAt\` AS \`_3\`,
+            \`bars->yeets->BarYeets\`.\`sippieYeetId\` AS \`_4\`,
+            \`bars->yeets->BarYeets\`.\`sippieBarId\` AS \`_5\`
+          FROM \`mySchema.SippieFoos\` AS \`SippieFoo\`
+          INNER JOIN \`mySchema.SippieBars\` AS \`bars\` ON \`SippieFoo\`.\`id\` = \`bars\`.\`sippieFooId\`
+          LEFT OUTER JOIN (
+            \`mySchema.BarYeets\` AS \`bars->yeets->BarYeets\`
+            INNER JOIN \`mySchema.SippieYeets\` AS \`bars->yeets\` ON \`bars->yeets\`.\`id\` = \`bars->yeets->BarYeets\`.\`sippieYeetId\`
+          )
+            ON \`bars\`.\`id\` = \`bars->yeets->BarYeets\`.\`sippieBarId\`;
+        `,
+        oracle: `
+          SELECT
+            "SippieFoo"."id",
+            "bars"."id" AS "_0",
+            "bars->yeets"."id" AS "_1",
+            "bars->yeets->BarYeets"."createdAt" AS "_2",
+            "bars->yeets->BarYeets"."updatedAt" AS "_3",
+            "bars->yeets->BarYeets"."sippieYeetId" AS "_4",
+            "bars->yeets->BarYeets"."sippieBarId" AS "_5"
+          FROM "mySchema"."SippieFoos" "SippieFoo"
+          INNER JOIN "mySchema"."SippieBars" "bars" ON "SippieFoo"."id" = "bars"."sippieFooId"
+          LEFT OUTER JOIN (
+            "mySchema"."BarYeets" "bars->yeets->BarYeets"
+            INNER JOIN "mySchema"."SippieYeets" "bars->yeets" ON "bars->yeets"."id" = "bars->yeets->BarYeets"."sippieYeetId"
+          )
+            ON "bars"."id" = "bars->yeets->BarYeets"."sippieBarId";
+        `,
+      });
+    });
   });
 
   describe('previously supported values', () => {
