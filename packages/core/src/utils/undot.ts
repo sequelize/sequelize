@@ -257,7 +257,7 @@ export function transformRowWithPrecompiled(
   pre: PrecompiledTransform,
   out?: Record<string, unknown>,
 ): Record<string, unknown> {
-  const target = out ?? pojo();
+  const target = out ?? pojo<Record<string, unknown>>();
   const { compiled } = pre;
   // eslint-disable-next-line unicorn/no-for-loop -- disabled for performance
   for (let i = 0; i < compiled.length; i++) {
