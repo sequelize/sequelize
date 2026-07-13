@@ -44,12 +44,34 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         name: DataTypes.STRING,
       });
 
+      this.CompanyCar = this.sequelize.define(
+        'CompanyCar',
+        {
+          carId: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          externalId: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+          },
+        },
+        {
+          tableName: 'companyCar',
+        },
+      );
+
       this.User.Tasks = this.User.hasMany(this.Task);
       this.User.Company = this.User.belongsTo(this.Company);
       this.Company.Employees = this.Company.hasMany(this.User);
       this.Company.Owner = this.Company.belongsTo(this.User, {
         as: 'Owner',
         foreignKey: 'ownerId',
+      });
+      this.User.CompanyCar = this.User.belongsTo(this.CompanyCar, {
+        as: 'CompanyCar',
+        foreignKey: { keys: ['carId', 'externalId'] },
       });
     });
 
