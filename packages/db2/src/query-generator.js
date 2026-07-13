@@ -15,6 +15,7 @@ import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/uti
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { pojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import forEach from 'lodash/forEach';
@@ -366,7 +367,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const values = [];
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
+      bind = pojo();
       bindParam = createBindParamGenerator(bind);
     }
 

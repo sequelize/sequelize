@@ -909,6 +909,22 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     throw new Error(`getUuidV4FunctionCall has not been implemented in ${this.dialect.name}.`);
   }
 
+  getUuidV7FunctionCall(): string {
+    if (!this.dialect.supports.uuidV7Generation) {
+      throw new Error(`UUID V7 generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getUuidV7FunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
+  getRandomFloatFunctionCall(): string {
+    if (!this.dialect.supports.randomFloatGeneration) {
+      throw new Error(`Random float generation is not supported by ${this.dialect.name} dialect.`);
+    }
+
+    throw new Error(`getRandomFloatFunctionCall has not been implemented in ${this.dialect.name}.`);
+  }
+
   getToggleForeignKeyChecksQuery(_enable: boolean): string {
     throw new Error(`${this.dialect.name} does not support toggling foreign key checks`);
   }

@@ -36,10 +36,10 @@ import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from
  *
  * In the API reference below, add the name of the association to the method, e.g. for `User.belongsTo(Project)` the getter will be `user.getProject()`.
  *
- * @typeParam S The model on which {@link Model.belongsTo} has been called, on which the association methods, as well as the foreign key attribute, will be added.
- * @typeParam T The model passed to {@link Model.belongsTo}.
- * @typeParam SourceKey The name of the Foreign Key attribute on the Source model.
- * @typeParam TargetKey The name of the attribute that the foreign key in the source model will reference, typically the Primary Key.
+ * @template S The model on which {@link Model.belongsTo} has been called, on which the association methods, as well as the foreign key attribute, will be added.
+ * @template T The model passed to {@link Model.belongsTo}.
+ * @template SourceKey The name of the Foreign Key attribute on the Source model.
+ * @template TargetKey The name of the attribute that the foreign key in the source model will reference, typically the Primary Key.
  */
 // Note: this class is named BelongsToAssociation instead of BelongsTo to prevent naming conflicts with the BelongsTo decorator
 export class BelongsToAssociation<
@@ -534,7 +534,7 @@ export interface BelongsToSetAssociationMixinOptions<T extends Model>
  *
  * @see Model.belongsTo
  *
- * @typeParam TargetKeyType The type of the attribute that the foreign key references.
+ * @template TargetKeyType The type of the attribute that the foreign key references.
  */
 export type BelongsToSetAssociationMixin<T extends Model, TargetKeyType> = (
   newAssociation?: T | TargetKeyType,

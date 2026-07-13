@@ -20,7 +20,7 @@ import { makeBufferFromTypedArray } from '../utils/buffer.js';
 import { isValidTimeZone } from '../utils/dayjs.js';
 import { doNotUseRealDataType } from '../utils/deprecations.js';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
-import { validator as Validator } from '../utils/validator-extras';
+import { Validator } from '../utils/validator-extras';
 import {
   attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
@@ -1966,7 +1966,7 @@ export class RANGE<
 }
 
 export interface UuidOptions {
-  version: 1 | 4 | 'all';
+  version: 1 | 4 | 7 | 'all';
 }
 
 /**
@@ -2000,6 +2000,17 @@ export class UUID extends AbstractDataType<string> {
     this.options = {
       version: options?.version ?? 'all',
     };
+  }
+
+  get V7() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 7,
+    });
+  }
+
+  static get V7() {
+    return new this({ version: 7 });
   }
 
   get V4() {

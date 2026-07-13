@@ -30,7 +30,6 @@ import type {
   Poolable,
   Transactionable,
 } from './model';
-import type { SUPPORTED_DIALECTS } from './sequelize-typescript.js';
 import { SequelizeTypeScript } from './sequelize-typescript.js';
 
 export type RetryOptions = RetryAsPromisedOptions;
@@ -93,8 +92,6 @@ export interface NormalizedReplicationOptions<Dialect extends AbstractDialect> {
   read: ReadonlyArray<ConnectionOptions<Dialect>>;
   write: ConnectionOptions<Dialect>;
 }
-
-export type DialectName = (typeof SUPPORTED_DIALECTS)[number];
 
 export interface LegacyDialectOptions {
   [key: string]: any;

@@ -1,7 +1,7 @@
-import type { AbstractDialect, BoundQuery, DialectName, Options } from '@sequelize/core';
+import type { AbstractDialect, BoundQuery, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
-import { isNotString } from '@sequelize/utils';
+import { isNotString, pojo } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
 import chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
@@ -19,6 +19,17 @@ import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
 
 export { getSqliteDatabasePath } from './config/config';
 
+export type DialectName =
+  | 'mysql'
+  | 'postgres'
+  | 'sqlite3'
+  | 'mariadb'
+  | 'mssql'
+  | 'db2'
+  | 'snowflake'
+  | 'ibmi'
+  | 'oracle';
+
 const expect = chai.expect;
 
 const packagesDir = path.resolve(__dirname, '..', '..');
@@ -34,17 +45,14 @@ chai.use(sinonChai);
  * that is also checks whether the message is present in the error cause.
  */
 chai.Assertion.addMethod('throwWithCause', function throwWithCause(errorConstructor, errorMessage) {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(withInlineCause(this._obj)).to.throw(errorConstructor, errorMessage);
 });
 
 chai.Assertion.addMethod('beNullish', function nullish() {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(this._obj).to.not.exist;
 });
 
 chai.Assertion.addMethod('notBeNullish', function nullish() {
-  // eslint-disable-next-line @typescript-eslint/no-invalid-this -- this is how chai works
   expect(this._obj).to.exist;
 });
 
@@ -146,7 +154,7 @@ export function createSequelizeInstance<Dialect extends AbstractDialect = Abstra
     return new Sequelize(sequelizePostgresOptions) as unknown as Sequelize<Dialect>;
   }
 
-  return new Sequelize<Dialect>(sequelizeOptions as Options<Dialect>);
+  return new Sequelize<Dialect>(sequelizeOptions as unknown as Options<Dialect>);
 }
 
 export function getSupportedDialects() {
@@ -208,8 +216,8 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
 export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
-  const expectations: PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>> =
-    Object.create(null);
+  const expectations =
+    pojo<PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>>>();
 
   for (const [key, value] of Object.entries(assertions)) {
     const acceptedDialects = key.split(' ') as Array<DialectName | 'default'>;
@@ -237,7 +245,7 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
     result = error;
   }
 
-  const expectation = expectations[sequelize.dialect.name] ?? expectations.default;
+  const expectation = expectations[sequelize.dialect.name as DialectName] ?? expectations.default;
   if (expectation === undefined) {
     throw new Error(
       `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
@@ -257,7 +265,7 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
       `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
     );
 
-    const isDefault = expectations[sequelize.dialect.name] === undefined;
+    const isDefault = expectations[sequelize.dialect.name as DialectName] === undefined;
     assertMatchesExpectation(result, expectation, isDefault);
   }
 }
@@ -354,16 +362,22 @@ export function toHaveProperties<Obj extends Record<string, unknown>>(
 
 type MaybeLazy<T> = T | (() => T);
 
+/**
+ * Notice: For default expectations, [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+ *
+ * @param query The SQL that was generated
+ * @param assertions The SQL to compare against
+ */
+export function expectsql(
+  query: MaybeLazy<string | Error>,
+  assertions: PartialRecord<ExpectationKey, string | Error>,
+): void;
 export function expectsql(
   query: MaybeLazy<BoundQuery | Error>,
   assertions: {
     query: PartialRecord<ExpectationKey, string | Error>;
     bind: PartialRecord<ExpectationKey, unknown>;
   },
-): void;
-export function expectsql(
-  query: MaybeLazy<string | Error>,
-  assertions: PartialRecord<ExpectationKey, string | Error>,
 ): void;
 export function expectsql(
   query: MaybeLazy<string | Error | BoundQuery>,
@@ -376,7 +390,7 @@ export function expectsql(
 ): void {
   const rawExpectationMap: PartialRecord<ExpectationKey, string | Error> =
     'query' in assertions ? assertions.query : assertions;
-  const expectations: PartialRecord<'default' | DialectName, string | Error> = Object.create(null);
+  const expectations = pojo<PartialRecord<'default' | DialectName, string | Error>>();
 
   /**
    * The list of expectations that are run against more than one dialect, which enables the transformation of
@@ -408,7 +422,8 @@ export function expectsql(
   }
 
   const dialect = sequelize.dialect;
-  const usedExpectationName = dialect.name in expectations ? dialect.name : 'default';
+  const usedExpectationName =
+    dialect.name in expectations ? (dialect.name as DialectName) : 'default';
 
   let expectation = expectations[usedExpectationName];
   if (expectation == null) {
@@ -458,7 +473,9 @@ export function expectsql(
 
   if ('bind' in assertions) {
     const bind =
-      assertions.bind[sequelize.dialect.name] || assertions.bind.default || assertions.bind;
+      assertions.bind[sequelize.dialect.name as DialectName] ||
+      assertions.bind.default ||
+      assertions.bind;
     // @ts-expect-error -- too difficult to type, but this is safe
     expect(query.bind).to.deep.equal(bind);
   }
@@ -511,7 +528,6 @@ export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize)
 if (typeof before !== 'undefined') {
   before(function onBefore() {
     // legacy, remove once all tests have been migrated to not use "this" anymore
-    // eslint-disable-next-line @typescript-eslint/no-invalid-this
     Object.defineProperty(this, 'sequelize', {
       value: sequelize,
       writable: false,
@@ -623,6 +639,12 @@ const ignoredDeprecations: readonly string[] = [
   'SEQUELIZE0021',
   'SEQUELIZE0022',
 ];
+
+const ignoredDeprecationMessages: readonly RegExp[] = [
+  // TODO: remove once Sequelize serializes shared postgres client queries without relying on pg's deprecated internal queue.
+  /^Calling client\.query\(\) when the client is already executing a query is deprecated and will be removed in pg@9\.0\./,
+];
+
 let allowedDeprecations: readonly string[] = ignoredDeprecations;
 export function allowDeprecationsInSuite(codes: readonly string[]) {
   before(() => {
@@ -636,7 +658,11 @@ export function allowDeprecationsInSuite(codes: readonly string[]) {
 
 // TODO: the DeprecationWarning is only thrown once. We should figure out a way to reset that or move all tests that use deprecated tests to one suite per deprecation.
 process.on('warning', (warning: NodeJS.ErrnoException) => {
-  if (warning.name === 'DeprecationWarning' && !allowedDeprecations.includes(warning.code!)) {
+  if (
+    warning.name === 'DeprecationWarning' &&
+    !allowedDeprecations.includes(warning.code!) &&
+    !ignoredDeprecationMessages.some(pattern => pattern.test(warning.message))
+  ) {
     throw warning;
   }
 });

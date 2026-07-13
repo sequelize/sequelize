@@ -76,6 +76,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     upserts: true,
     bulkDefault: true,
     topLevelOrderByRequired: true,
+    select: { dummyTable: 'DUAL' },
   });
 
   readonly connectionManager: OracleConnectionManager;

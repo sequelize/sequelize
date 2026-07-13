@@ -1,28 +1,22 @@
-import { AbstractQueryInterface, Sequelize } from '@sequelize/core';
+import { UmzugContext } from '@sequelize/cli';
 
-export async function up(
-  queryInterface: AbstractQueryInterface,
-  sequelize: Sequelize,
-): Promise<void> {
+export async function up({ sequelize }: UmzugContext): Promise<void> {
   /**
    * Add seed commands here.
    *
    * Example:
-   * await queryInterface.bulkInsert('People', [{
+   * await sequelize.queryInterface.bulkInsert('People', [{
    *   name: 'John Doe',
    *   isBetaMember: false
    * }], {});
    */
 }
 
-export async function down(
-  queryInterface: AbstractQueryInterface,
-  sequelize: Sequelize,
-): Promise<void> {
+export async function down({ sequelize }: UmzugContext): Promise<void> {
   /**
    * Add commands to revert seed here.
    *
    * Example:
-   * await queryInterface.bulkDelete('People', null, {});
+   * await sequelize.queryInterface.bulkDelete('People', null, {});
    */
 }

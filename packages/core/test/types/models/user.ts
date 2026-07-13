@@ -10,6 +10,7 @@ import type {
   ModelStatic,
 } from '@sequelize/core';
 import { DataTypes, Model, Op } from '@sequelize/core';
+import type { WritableDeep } from 'type-fest';
 import { sequelize } from '../connection';
 import { UserGroup } from './user-group';
 import { UserPost } from './user-post';
@@ -97,7 +98,11 @@ User.afterFind((users, options) => {
 });
 
 // TODO: VSCode shows the typing being correctly narrowed but doesn't do it correctly
-User.addHook('beforeFind', 'test', (options: FindOptions<InferAttributes<User>>) => {});
+User.addHook(
+  'beforeFind',
+  'test',
+  (options: WritableDeep<FindOptions<InferAttributes<User>>>) => {},
+);
 
 User.addHook('afterDestroy', async (instance, options) => {
   // `options` from `afterDestroy` should be passable to `sequelize.transaction`

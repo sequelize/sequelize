@@ -1,19 +1,19 @@
 /** @type {import('@sequelize/cli').MigrationFunction} */
-export async function up(queryInterface, sequelize) {
+export async function up({ sequelize }) {
   /**
    * Add altering commands here.
    *
    * Example:
-   * await queryInterface.createTable('users', { id: Sequelize.INTEGER });
+   * await sequelize.queryInterface.createTable('users', { id: DataTypes.INTEGER });
    */
 }
 
 /** @type {import('@sequelize/cli').MigrationFunction} */
-export async function down(queryInterface, sequelize) {
+export async function down({ sequelize }) {
   /**
    * Add reverting commands here.
    *
    * Example:
-   * await queryInterface.dropTable('users');
+   * await sequelize.queryInterface.dropTable('users');
    */
 }
