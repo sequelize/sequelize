@@ -142,6 +142,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
       let attrSql = '';
 
+      // Split off the trailing `; COMMENT ON COLUMN` statement (built the same way in
+      // attributesToSQL above) so the column-type rewrites below operate on the type only.
+      // It is re-appended after this column's ALTER statements; drop its leading `;` (the
+      // preceding statement already ends in one) and terminate it with its own `;`.
+      let columnComment = '';
+      const commentIndex = definition.indexOf('; COMMENT ON COLUMN');
+      if (commentIndex !== -1) {
+        columnComment = `${definition.slice(commentIndex + 1)};`;
+        definition = definition.slice(0, commentIndex).trimEnd();
+      }
+
       if (definition.includes('NOT NULL')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
 
@@ -186,7 +197,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
 
-      sql.push(attrSql);
+      sql.push(attrSql + columnComment);
     }
 
     return sql.join('');
