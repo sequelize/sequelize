@@ -2030,10 +2030,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       });
     });
 
-    // Regression for https://github.com/sequelize/sequelize/pull/18247#issuecomment-4953718852
-    // A belongsToMany nested inside a required hasMany, with minified aliases and a global
-    // schema, must not schema-qualify the JOIN aliases (and must not collide during
-    // minification). Uses its own models so the alias numbering is independent of test order.
     it('does not schema-qualify aliases in a belongsToMany nested under a required hasMany with minified aliases', () => {
       const nestedSequelize = createSequelizeInstance({ schema: 'mySchema' });
 
@@ -2064,7 +2060,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         { timestamps: false },
       );
 
-      // foo.hasMany(bar); bar.belongsToMany(yeet)
       Foo.hasMany(Bar, { as: 'bars' });
       Bar.belongsToMany(Yeet, { through: 'BarYeets', as: 'yeets' });
 
