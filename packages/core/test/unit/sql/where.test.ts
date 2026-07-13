@@ -1539,8 +1539,6 @@ Caused by: "undefined" cannot be escaped`),
     });
 
     describeInSuite(Op.notIn, 'NOT IN', () => {
-      // an empty Op.notIn produces the always-true condition `1 = 1`,
-      // because an empty string would be silently dropped under Op.or and Op.not
       testSql(
         { intAttr1: { [Op.notIn]: [] } },
         {
