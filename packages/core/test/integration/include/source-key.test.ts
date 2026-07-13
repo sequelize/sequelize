@@ -1,0 +1,81 @@
+import type { FindOptions, Includeable, Model, ModelStatic } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import { beforeEach2, sequelize } from '../support';
+
+type QueryOptions = Pick<FindOptions, 'minifyAliases' | 'subQuery'>;
+
+async function findUserIds(
+  User: ModelStatic<Model>,
+  include: Includeable[],
+  options: QueryOptions = {},
+): Promise<unknown[]> {
+  const users = await User.findAll({
+    attributes: ['id'],
+    include,
+    limit: 10,
+    order: [['id', 'ASC']],
+    ...options,
+  });
+
+  return users.map(user => user.get('id'));
+}
+
+describe('Include', () => {
+  const vars = beforeEach2(async () => {
+    const User = sequelize.define(
+      'User',
+      { uuid: { type: DataTypes.STRING, unique: true } },
+      { timestamps: false },
+    );
+    const Tag = sequelize.define('Tag', {}, { timestamps: false });
+    const tags = User.belongsToMany(Tag, {
+      through: 'UserTags',
+      sourceKey: 'uuid',
+    });
+
+    await sequelize.sync({ force: true });
+
+    const user = await User.create({ uuid: 'user-1' });
+    const tag = await Tag.create();
+    await tags.add(user, tag);
+
+    const include: Includeable[] = [
+      {
+        association: tags,
+        attributes: [],
+        through: { attributes: [] },
+        required: true,
+      },
+    ];
+
+    return { User, include, expectedIds: [user.get('id')] };
+  });
+
+  it('uses the sourceKey with subQuery false', async () => {
+    const ids = await findUserIds(vars.User, vars.include, { subQuery: false });
+
+    expect(ids).to.deep.equal(vars.expectedIds);
+  });
+
+  it('keeps the sourceKey available with subQuery true', async () => {
+    const ids = await findUserIds(vars.User, vars.include, { subQuery: true });
+
+    expect(ids).to.deep.equal(vars.expectedIds);
+  });
+
+  it('keeps the sourceKey available when the subquery is selected automatically', async () => {
+    const ids = await findUserIds(vars.User, vars.include);
+
+    expect(ids).to.deep.equal(vars.expectedIds);
+  });
+
+  it('keeps the sourceKey available when aliases are minified', async () => {
+    const ids = await findUserIds(vars.User, vars.include, {
+      subQuery: true,
+      minifyAliases: true,
+    });
+
+    expect(ids).to.deep.equal(vars.expectedIds);
+  });
+});
