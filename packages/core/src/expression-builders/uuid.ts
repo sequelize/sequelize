@@ -1,5 +1,4 @@
 import * as crypto from 'node:crypto';
-import semver from 'semver';
 import { v1 as generateUuidV1, v4 as generateUuidV4, v7 as generateUuidV7Fallback } from 'uuid';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 import { DialectAwareFn } from './dialect-aware-fn.js';
