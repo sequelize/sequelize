@@ -25,10 +25,20 @@ describe('Include', () => {
   const vars = beforeEach2(async () => {
     const User = sequelize.define(
       'User',
-      { uuid: { type: DataTypes.STRING, unique: true } },
+      {
+        uuid: {
+          type: DataTypes.STRING,
+          unique: true,
+          columnName: 'user_uuid',
+        },
+      },
       { timestamps: false },
     );
     const Tag = sequelize.define('Tag', {}, { timestamps: false });
+    const parent = User.belongsTo(User, {
+      as: 'parent',
+      foreignKey: 'parentId',
+    });
     const tags = User.belongsToMany(Tag, {
       through: 'UserTags',
       sourceKey: 'uuid',
@@ -37,7 +47,9 @@ describe('Include', () => {
     await sequelize.sync({ force: true });
 
     const user = await User.create({ uuid: 'user-1' });
+    const child = await User.create({ uuid: 'user-2' });
     const tag = await Tag.create();
+    await parent.set(child, user);
     await tags.add(user, tag);
 
     const include: Includeable[] = [
@@ -49,7 +61,30 @@ describe('Include', () => {
       },
     ];
 
-    return { User, include, expectedIds: [user.get('id')] };
+    const nestedInclude: Includeable[] = [
+      {
+        association: parent,
+        attributes: [],
+        required: true,
+        subQuery: false,
+        include: [
+          {
+            association: tags,
+            attributes: [],
+            through: { attributes: [] },
+            required: true,
+          },
+        ],
+      },
+    ];
+
+    return {
+      User,
+      include,
+      nestedInclude,
+      expectedIds: [user.get('id')],
+      expectedNestedIds: [child.get('id')],
+    };
   });
 
   it('uses the sourceKey with subQuery false', async () => {
@@ -77,5 +112,11 @@ describe('Include', () => {
     });
 
     expect(ids).to.deep.equal(vars.expectedIds);
+  });
+
+  it('uses the sourceKey column for a nested self-association', async () => {
+    const ids = await findUserIds(vars.User, vars.nestedInclude, { subQuery: true });
+
+    expect(ids).to.deep.equal(vars.expectedNestedIds);
   });
 });

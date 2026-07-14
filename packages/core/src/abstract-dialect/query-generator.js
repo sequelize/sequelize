@@ -2247,7 +2247,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
     const isRootParent =
-      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
+      !include.parent.association && include.parent.model.name === topLevelInfo.names.model.name;
     const isMinified = topLevelInfo.options.minifyAliases;
 
     const through = include.through;
@@ -2318,12 +2318,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       attrSource = association.sourceKeyField;
     }
 
-    if (
-      topLevelInfo.subQuery &&
-      !include.subQuery &&
-      !include.parent.subQuery &&
-      include.parent.model !== topLevelInfo.options.mainModel
-    ) {
+    if (topLevelInfo.subQuery && !include.subQuery && !include.parent.subQuery && !isRootParent) {
       attrSource = association.sourceKeyField;
     }
 
