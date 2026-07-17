@@ -172,9 +172,7 @@ if (dialect.startsWith('postgres')) {
           expectation: `ALTER TABLE "myTable" ALTER COLUMN "col_1" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_1" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_1" AS ENUM(''value 1'', ''value 2''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_1" TYPE "public"."enum_myTable_col_1" USING ("col_1"::"public"."enum_myTable_col_1");ALTER TABLE "myTable" ALTER COLUMN "col_2" SET NOT NULL;ALTER TABLE "myTable" ALTER COLUMN "col_2" DROP DEFAULT;DO 'BEGIN CREATE TYPE "public"."enum_myTable_col_2" AS ENUM(''value 3'', ''value 4''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "myTable" ALTER COLUMN "col_2" TYPE "public"."enum_myTable_col_2" USING ("col_2"::"public"."enum_myTable_col_2");`,
         },
         {
-          // The USING clause must stay attached to the ALTER COLUMN ... TYPE statement
-          // and must not leak into the separate COMMENT ON COLUMN statement, which does
-          // not support USING (see https://github.com/sequelize/sequelize/issues/17894).
+          // #17894: USING must stay on ALTER COLUMN ... TYPE, not on COMMENT ON COLUMN
           arguments: [
             'myTable',
             {
