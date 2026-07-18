@@ -128,7 +128,14 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
         // but named timezone are not directly supported in mysql, so get its offset first
         let tzOffset = this.sequelize.options.timezone;
         tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
-        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
+        try {
+          await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
+        } catch (error) {
+          // The pool never receives a connection whose setup failed, so it must
+          // be closed here or its socket would be leaked.
+          connection.destroy();
+          throw error;
+        }
       }
 
       return connection;
