@@ -106,7 +106,7 @@
     "pg-hstore": "2.3.4",
     "pg-native": "3.8.0",
     "pg-types": "2.2.0",
-    "sinon": "22.0.0",
+    "sinon": "22.1.0",
     "sqlite3": "6.0.1",
     "tedious": "3.0.1",
     "uuid-validate": "0.0.3"
