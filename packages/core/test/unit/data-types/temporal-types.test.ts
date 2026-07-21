@@ -88,6 +88,16 @@ describe('DataTypes.DATE', () => {
       });
     }
   });
+
+  describe('escape', () => {
+    if (dialect.name === 'oracle') {
+      it('serializes inline dates as TO_TIMESTAMP_TZ expressions', () => {
+        expect(type.escape(new Date('2025-03-21T00:00:00.000Z'))).to.equal(
+          "TO_TIMESTAMP_TZ('2025-03-21 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')",
+        );
+      });
+    }
+  });
 });
 
 describe('DataTypes.DATEONLY', () => {
@@ -108,6 +118,14 @@ describe('DataTypes.DATEONLY', () => {
     }
   });
 
+  describe('toBindableValue', () => {
+    if (dialect.name === 'oracle') {
+      it('formats falsy numeric dates as bind values', () => {
+        expect(type.toBindableValue(0)).to.equal('1970/01/01');
+      });
+    }
+  });
+
   describe('sanitize', () => {
     it('sanitizes a Date object or string to a string', () => {
       expect(type.sanitize(now)).to.equal(nowDateOnly);
@@ -123,6 +141,14 @@ describe('DataTypes.DATEONLY', () => {
       it('sanitizes string Infinity/-Infinity to their numeric counterpart', () => {
         expect(type.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
         expect(type.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
+      });
+    }
+  });
+
+  describe('escape', () => {
+    if (dialect.name === 'oracle') {
+      it('serializes inline dates as TO_DATE expressions', () => {
+        expect(type.escape('2025-03-21')).to.equal("TO_DATE('2025/03/21', 'YYYY/MM/DD')");
       });
     }
   });
