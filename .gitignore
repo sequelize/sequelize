@@ -18,6 +18,7 @@ node_modules
 /packages/*/types
 /packages/core/test/sqlite-databases
 /.nx
+/.worktrees
 
 lib
 
