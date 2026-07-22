@@ -1,4 +1,5 @@
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import { expect } from 'chai';
 import { createSequelizeInstance, expectsql } from '../../support';
 
 const sequelize = createSequelizeInstance();
@@ -18,6 +19,22 @@ describe('QueryGenerator#showConstraintsQuery', () => {
       'mariadb mysql': `SELECT c.CONSTRAINT_SCHEMA AS constraintSchema, c.CONSTRAINT_NAME AS constraintName, c.CONSTRAINT_TYPE AS constraintType, c.TABLE_SCHEMA AS tableSchema, c.TABLE_NAME AS tableName, kcu.COLUMN_NAME AS columnNames, kcu.REFERENCED_TABLE_SCHEMA AS referencedTableSchema, kcu.REFERENCED_TABLE_NAME AS referencedTableName, kcu.REFERENCED_COLUMN_NAME AS referencedColumnNames, r.DELETE_RULE AS deleteAction, r.UPDATE_RULE AS updateAction, ch.CHECK_CLAUSE AS definition FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS c LEFT JOIN INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS r ON c.CONSTRAINT_CATALOG = r.CONSTRAINT_CATALOG AND c.CONSTRAINT_SCHEMA = r.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = r.CONSTRAINT_NAME AND c.TABLE_NAME = r.TABLE_NAME LEFT JOIN INFORMATION_SCHEMA.KEY_COLUMN_USAGE kcu ON c.CONSTRAINT_CATALOG = kcu.CONSTRAINT_CATALOG AND c.CONSTRAINT_SCHEMA = kcu.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = kcu.CONSTRAINT_NAME AND c.TABLE_NAME = kcu.TABLE_NAME LEFT JOIN INFORMATION_SCHEMA.CHECK_CONSTRAINTS ch ON c.CONSTRAINT_CATALOG = ch.CONSTRAINT_CATALOG AND c.CONSTRAINT_SCHEMA = ch.CONSTRAINT_SCHEMA AND c.CONSTRAINT_NAME = ch.CONSTRAINT_NAME WHERE c.TABLE_NAME = 'myTable' AND c.TABLE_SCHEMA = 'sequelize_test' ORDER BY c.CONSTRAINT_NAME, kcu.ORDINAL_POSITION`,
       oracle: `SELECT C.CONSTRAINT_NAME "constraintName", CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType", C.TABLE_NAME "tableName", A.OWNER "tableSchema", C.OWNER "constraintSchema", C.COLUMN_NAME "columnNames", A.SEARCH_CONDITION "definition" FROM ALL_CONS_COLUMNS C INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME AND C.OWNER = A.OWNER WHERE C.TABLE_NAME ='myTable' AND C.OWNER ='${dialect.getDefaultSchema()}' ORDER BY C.CONSTRAINT_NAME, C.POSITION`,
     });
+  });
+
+  it('preserves Unicode catalog filter literals in MSSQL', () => {
+    if (dialect.name !== 'mssql') {
+      return;
+    }
+
+    const sql = queryGenerator.showConstraintsQuery(
+      { tableName: 'tábla', schema: 'mySchema' },
+      { columnName: 'cölumn', constraintName: 'contrainte_é' },
+    );
+
+    expect(sql).to.include(`s.name = N'mySchema'`);
+    expect(sql).to.include(`t.name = N'tábla'`);
+    expect(sql).to.include(`c.columnNames = N'cölumn'`);
+    expect(sql).to.include(`c.constraintName = N'contrainte_é'`);
   });
 
   it('produces a show constraints query for a table with a constraint name specified', () => {

@@ -32,6 +32,19 @@ describe('QueryGenerator#listTablesQuery', () => {
     });
   });
 
+  it('preserves Unicode schema literals in MSSQL', () => {
+    if (sequelize.dialect.name !== 'mssql') {
+      return;
+    }
+
+    expectsql(() => queryGenerator.listTablesQuery({ schema: 'mySchema' }), {
+      mssql: `SELECT t.name AS [tableName], s.name AS [schema] FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U' AND s.name = N'mySchema' ORDER BY s.name, t.name`,
+    });
+    expectsql(() => queryGenerator.listTablesQuery({ schema: 'schéma' }), {
+      mssql: `SELECT t.name AS [tableName], s.name AS [schema] FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U' AND s.name = N'schéma' ORDER BY s.name, t.name`,
+    });
+  });
+
   it('produces a query that lists all tables with the default schema', () => {
     expectsql(
       () => queryGenerator.listTablesQuery({ schema: sequelize.dialect.getDefaultSchema() }),

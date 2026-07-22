@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -35,6 +36,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
         WHERE i.table_name = 'myTable' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
     });
+  });
+
+  it('preserves Unicode OBJECT_ID literals in MSSQL', () => {
+    if (dialect.name !== 'mssql') {
+      return;
+    }
+
+    expect(queryGenerator.showIndexesQuery('myTable')).to.include(`OBJECT_ID(N'dbo.myTable')`);
+    expect(queryGenerator.showIndexesQuery({ tableName: 'tábla', schema: 'schéma' })).to.include(
+      `OBJECT_ID(N'schéma.tábla')`,
+    );
   });
 
   it('produces a SHOW INDEX query from a model', () => {

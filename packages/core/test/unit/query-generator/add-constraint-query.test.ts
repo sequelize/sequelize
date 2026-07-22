@@ -75,6 +75,25 @@ describe('QueryGenerator#addConstraintQuery', () => {
       );
     });
 
+    it('preserves Unicode CHECK literals in MSSQL', () => {
+      if (dialect.name !== 'mssql') {
+        return;
+      }
+
+      expectsql(
+        () =>
+          queryGenerator.addConstraintQuery('myTable', {
+            name: 'check',
+            type: 'CHECK',
+            fields: ['role'],
+            where: { role: ['plain', 'café'] },
+          }),
+        {
+          mssql: `ALTER TABLE [myTable] ADD CONSTRAINT [check] CHECK ([role] IN (N'plain', N'café'))`,
+        },
+      );
+    });
+
     it('generates a query that adds a check constraint', () => {
       expectsql(
         () =>

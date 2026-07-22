@@ -24,4 +24,14 @@ describe('QueryGenerator#listDatabasesQuery', () => {
       snowflake: `SELECT DATABASE_NAME as "name", * FROM SNOWFLAKE.INFORMATION_SCHEMA.DATABASES WHERE "name" NOT IN ('SNOWFLAKE', 'SNOWFLAKE$GDS') AND UPPER("name") NOT IN (UPPER('sample_db'))`,
     });
   });
+
+  it('preserves Unicode database filter literals in MSSQL', () => {
+    if (dialectName !== 'mssql') {
+      return;
+    }
+
+    expectsql(() => queryGenerator.listDatabasesQuery({ skip: ['données'] }), {
+      mssql: `SELECT [name] FROM sys.databases WHERE [name] NOT IN (N'master', N'model', N'msdb', N'tempdb', N'données')`,
+    });
+  });
 });

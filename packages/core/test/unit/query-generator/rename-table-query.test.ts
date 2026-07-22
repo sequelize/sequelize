@@ -23,6 +23,19 @@ describe('QueryGenerator#renameTableQuery', () => {
     });
   });
 
+  it('preserves Unicode rename metadata literals in MSSQL', () => {
+    if (dialect.name !== 'mssql') {
+      return;
+    }
+
+    expectsql(() => queryGenerator.renameTableQuery('oldTable', 'newTable'), {
+      mssql: `EXEC sp_rename '[oldTable]', N'newTable'`,
+    });
+    expectsql(() => queryGenerator.renameTableQuery('oldTable', 'nöuveau'), {
+      mssql: `EXEC sp_rename '[oldTable]', N'nöuveau'`,
+    });
+  });
+
   it('produces a query that renames the table from a model', () => {
     const OldModel = sequelize.define('oldModel', {});
     const NewModel = sequelize.define('newModel', {});

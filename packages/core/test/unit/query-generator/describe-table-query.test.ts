@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -80,6 +81,16 @@ describe('QueryGenerator#describeTableQuery', () => {
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = '${dialect.getDefaultSchema()}') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
     });
+  });
+
+  it('preserves Unicode table metadata literals in MSSQL', () => {
+    if (dialect.name !== 'mssql') {
+      return;
+    }
+
+    expect(
+      queryGenerator.describeTableQuery({ tableName: 'tábla', schema: 'mySchema' }),
+    ).to.include(`WHERE t.TABLE_NAME = N'tábla' AND t.TABLE_SCHEMA = N'mySchema'`);
   });
 
   it('produces a query to describe a table from a model', () => {

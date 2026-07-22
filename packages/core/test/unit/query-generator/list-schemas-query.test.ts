@@ -34,4 +34,14 @@ describe('QueryGenerator#listSchemasQuery', () => {
       oracle: `SELECT USERNAME AS "schema" FROM ALL_USERS WHERE COMMON = ('NO') AND USERNAME != user`,
     });
   });
+
+  it('preserves Unicode schema filter literals in MSSQL', () => {
+    if (dialectName !== 'mssql') {
+      return;
+    }
+
+    expectsql(() => queryGenerator.listSchemasQuery({ skip: ['schéma'] }), {
+      mssql: `SELECT [name] AS [schema] FROM sys.schemas WHERE [name] NOT IN (N'dbo', N'guest', N'db_accessadmin', N'db_backupoperator', N'db_datareader', N'db_datawriter', N'db_ddladmin', N'db_denydatareader', N'db_denydatawriter', N'db_owner', N'db_securityadmin', N'INFORMATION_SCHEMA', N'sys', N'schéma')`,
+    });
+  });
 });
