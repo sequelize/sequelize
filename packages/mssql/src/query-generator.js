@@ -116,7 +116,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const quotedTableName = this.quoteTable(tableName);
 
     return joinSQLFragments([
-      `IF OBJECT_ID(${this.escape(quotedTableName)}, 'U') IS NULL`,
+      `IF OBJECT_ID(${this.dialect.escapeString(quotedTableName)}, 'U') IS NULL`,
       `CREATE TABLE ${quotedTableName} (${attributesClauseParts.join(', ')})`,
       ';',
       commentStr,
@@ -168,7 +168,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const tableName = tableDetails.tableName;
     const tableSchema = tableDetails.schema;
 
-    return ` EXEC sp_addextendedproperty @name = N'MS_Description', @value = ${this.escape(comment)}, @level0type = N'Schema', @level0name = ${this.escape(tableSchema)}, @level1type = N'Table', @level1name = ${this.quoteIdentifier(tableName)}, @level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
+    return ` EXEC sp_addextendedproperty @name = N'MS_Description', @value = ${this.dialect.escapeString(comment)}, @level0type = N'Schema', @level0name = ${this.dialect.escapeString(tableSchema)}, @level1type = N'Table', @level1name = ${this.quoteIdentifier(tableName)}, @level2type = N'Column', @level2name = ${this.quoteIdentifier(column)};`;
   }
 
   changeColumnQuery(tableName, attributes) {
@@ -477,9 +477,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
-        .map(value => {
-          return this.escape(value, options);
-        })
+        .map(value => this.dialect.escapeString(value))
         .join(', ')}))`;
 
       return template;
@@ -506,7 +504,12 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       attribute.type._binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
+      const escapedDefaultValue =
+        typeof attribute.defaultValue === 'string'
+          ? this.dialect.escapeString(attribute.defaultValue)
+          : this.escape(attribute.defaultValue, { ...options, type: attribute.type });
+
+      template += ` DEFAULT ${escapedDefaultValue}`;
     }
 
     if (

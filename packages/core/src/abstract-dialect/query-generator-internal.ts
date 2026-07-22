@@ -98,7 +98,10 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
         const constraintName = this.queryGenerator.quoteIdentifier(
           options.name || `${table.tableName}_${fieldsSqlString}_ck`,
         );
-        constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${this.queryGenerator.whereItemsQuery(options.where)})`;
+        constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${this.queryGenerator.whereItemsQuery(
+          options.where,
+          { useDialectDefaultStringEscape: true },
+        )})`;
         break;
       }
 
@@ -130,7 +133,13 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
         const constraintName = this.queryGenerator.quoteIdentifier(
           options.name || `${table.tableName}_${fieldsSqlString}_df`,
         );
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.queryGenerator.escape(options.defaultValue, options)}) FOR ${quotedFields[0]}`;
+        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.queryGenerator.escape(
+          options.defaultValue,
+          {
+            ...options,
+            useDialectDefaultStringEscape: true,
+          },
+        )}) FOR ${quotedFields[0]}`;
         break;
       }
 

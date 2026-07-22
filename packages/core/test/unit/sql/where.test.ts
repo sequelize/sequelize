@@ -120,7 +120,7 @@ describe(getTestDialectTeaser('SQL'), () => {
     it('prefixes its output with WHERE when it is not empty', () => {
       expectsql(queryGen.whereQuery({ firstName: 'abc' }), {
         default: `WHERE [firstName] = 'abc'`,
-        mssql: `WHERE [firstName] = N'abc'`,
+        mssql: `WHERE [firstName] = 'abc'`,
       });
     });
 
@@ -403,7 +403,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: '1' },
         {
           default: `[stringAttr] = '1'`,
-          mssql: `[stringAttr] = N'1'`,
+          mssql: `[stringAttr] = '1'`,
         },
       );
 
@@ -414,7 +414,7 @@ Caused by: "undefined" cannot be escaped`),
         {
           default: "[stringAttr] = 'here is a null char: \\0'",
           snowflake: '"stringAttr" = \'here is a null char: \0\'',
-          mssql: "[stringAttr] = N'here is a null char: \0'",
+          mssql: "[stringAttr] = 'here is a null char: \0'",
           db2: '"stringAttr" = \'here is a null char: \0\'',
           ibmi: '"stringAttr" = \'here is a null char: \0\'',
           sqlite3: "`stringAttr` = 'here is a null char: \0'",
@@ -478,7 +478,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: '1' },
         {
           default: `[stringAttr] = '1'`,
-          mssql: `[stringAttr] = N'1'`,
+          mssql: `[stringAttr] = '1'`,
         },
       );
 
@@ -493,7 +493,15 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: ['1', '2'] },
         {
           default: `[stringAttr] IN ('1', '2')`,
-          mssql: `[stringAttr] IN (N'1', N'2')`,
+          mssql: `[stringAttr] IN ('1', '2')`,
+        },
+      );
+
+      testSql(
+        { stringAttr: { [Op.in]: ['ascii', 'café'] } },
+        {
+          default: "[stringAttr] IN ('ascii', 'café')",
+          mssql: "[stringAttr] IN ('ascii', N'café')",
         },
       );
 
@@ -556,7 +564,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: "[stringAttr] = 'a project' AND ([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10)",
-          mssql: "[stringAttr] = N'a project' AND ([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10)",
+          mssql: "[stringAttr] = 'a project' AND ([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10)",
         },
       );
 
@@ -638,7 +646,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: cast('abc', 'string') },
         {
           default: `[stringAttr] = CAST('abc' AS STRING)`,
-          mssql: `[stringAttr] = CAST(N'abc' AS STRING)`,
+          mssql: `[stringAttr] = CAST('abc' AS STRING)`,
         },
       );
 
@@ -1087,7 +1095,7 @@ Caused by: "undefined" cannot be escaped`),
         { [Op.not]: where(col('intAttr1'), Op.eq, '5') },
         {
           default: `NOT ([intAttr1] = '5')`,
-          mssql: `NOT ([intAttr1] = N'5')`,
+          mssql: `NOT ([intAttr1] = '5')`,
         },
       );
 
@@ -1141,7 +1149,7 @@ Caused by: "undefined" cannot be escaped`),
             { stringAttr: { [operator]: 'abc' } },
             {
               default: `[stringAttr] ${sqlOperator} 'abc'`,
-              mssql: `[stringAttr] ${sqlOperator} N'abc'`,
+              mssql: `[stringAttr] ${sqlOperator} 'abc'`,
             },
           );
         }
@@ -1592,7 +1600,7 @@ Caused by: "undefined" cannot be escaped`),
           { stringAttr: { [operator]: '%id' } },
           {
             default: `[stringAttr] ${sqlOperator} '%id'`,
-            mssql: `[stringAttr] ${sqlOperator} N'%id'`,
+            mssql: `[stringAttr] ${sqlOperator} '%id'`,
           },
         );
 
@@ -1601,7 +1609,7 @@ Caused by: "undefined" cannot be escaped`),
           { 'intAttr1::text': { [operator]: '%id' } },
           {
             default: `CAST([intAttr1] AS TEXT) ${sqlOperator} '%id'`,
-            mssql: `CAST([intAttr1] AS TEXT) ${sqlOperator} N'%id'`,
+            mssql: `CAST([intAttr1] AS TEXT) ${sqlOperator} '%id'`,
           },
         );
 
@@ -1928,7 +1936,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: `[stringAttr] LIKE 'swagger%'`,
-          mssql: `[stringAttr] LIKE N'swagger%'`,
+          mssql: `[stringAttr] LIKE 'swagger%'`,
         },
       );
 
@@ -1942,7 +1950,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[stringAttr] LIKE 'sql''injection%'`,
           mysql: `\`stringAttr\` LIKE 'sql\\'injection%'`,
           mariadb: `\`stringAttr\` LIKE 'sql\\'injection%'`,
-          mssql: `[stringAttr] LIKE N'sql''injection%'`,
+          mssql: `[stringAttr] LIKE 'sql''injection%'`,
         },
       );
 
@@ -1955,7 +1963,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: String.raw`[stringAttr] LIKE 'sql\%injection%' ESCAPE '\'`,
-          mssql: String.raw`[stringAttr] LIKE N'sql\%injection%' ESCAPE '\'`,
+          mssql: String.raw`[stringAttr] LIKE 'sql\%injection%' ESCAPE '\'`,
         },
       );
 
@@ -2051,7 +2059,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: `[stringAttr] LIKE '%swagger'`,
-          mssql: `[stringAttr] LIKE N'%swagger'`,
+          mssql: `[stringAttr] LIKE '%swagger'`,
         },
       );
 
@@ -2065,7 +2073,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[stringAttr] LIKE '%sql''injection'`,
           mysql: `\`stringAttr\` LIKE '%sql\\'injection'`,
           mariadb: `\`stringAttr\` LIKE '%sql\\'injection'`,
-          mssql: `[stringAttr] LIKE N'%sql''injection'`,
+          mssql: `[stringAttr] LIKE '%sql''injection'`,
         },
       );
 
@@ -2078,7 +2086,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: String.raw`[stringAttr] LIKE '%sql\%injection' ESCAPE '\'`,
-          mssql: String.raw`[stringAttr] LIKE N'%sql\%injection' ESCAPE '\'`,
+          mssql: String.raw`[stringAttr] LIKE '%sql\%injection' ESCAPE '\'`,
         },
       );
 
@@ -2180,7 +2188,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: `[stringAttr] LIKE '%swagger%'`,
-          mssql: `[stringAttr] LIKE N'%swagger%'`,
+          mssql: `[stringAttr] LIKE '%swagger%'`,
         },
       );
 
@@ -2194,7 +2202,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[stringAttr] LIKE '%sql''injection%'`,
           mysql: `\`stringAttr\` LIKE '%sql\\'injection%'`,
           mariadb: `\`stringAttr\` LIKE '%sql\\'injection%'`,
-          mssql: `[stringAttr] LIKE N'%sql''injection%'`,
+          mssql: `[stringAttr] LIKE '%sql''injection%'`,
         },
       );
 
@@ -2207,7 +2215,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: String.raw`[stringAttr] LIKE '%sql\%injection%' ESCAPE '\'`,
-          mssql: String.raw`[stringAttr] LIKE N'%sql\%injection%' ESCAPE '\'`,
+          mssql: String.raw`[stringAttr] LIKE '%sql\%injection%' ESCAPE '\'`,
         },
       );
 
@@ -2302,7 +2310,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: `[stringAttr] NOT LIKE 'swagger%'`,
-          mssql: `[stringAttr] NOT LIKE N'swagger%'`,
+          mssql: `[stringAttr] NOT LIKE 'swagger%'`,
         },
       );
 
@@ -2316,7 +2324,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[stringAttr] NOT LIKE 'sql''injection%'`,
           mysql: `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
           mariadb: `\`stringAttr\` NOT LIKE 'sql\\'injection%'`,
-          mssql: `[stringAttr] NOT LIKE N'sql''injection%'`,
+          mssql: `[stringAttr] NOT LIKE 'sql''injection%'`,
         },
       );
 
@@ -2329,7 +2337,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: String.raw`[stringAttr] NOT LIKE 'sql\%injection%' ESCAPE '\'`,
-          mssql: String.raw`[stringAttr] NOT LIKE N'sql\%injection%' ESCAPE '\'`,
+          mssql: String.raw`[stringAttr] NOT LIKE 'sql\%injection%' ESCAPE '\'`,
         },
       );
 
@@ -2424,7 +2432,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: `[stringAttr] NOT LIKE '%swagger'`,
-          mssql: `[stringAttr] NOT LIKE N'%swagger'`,
+          mssql: `[stringAttr] NOT LIKE '%swagger'`,
         },
       );
 
@@ -2438,7 +2446,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[stringAttr] NOT LIKE '%sql''injection'`,
           mysql: `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
           mariadb: `\`stringAttr\` NOT LIKE '%sql\\'injection'`,
-          mssql: `[stringAttr] NOT LIKE N'%sql''injection'`,
+          mssql: `[stringAttr] NOT LIKE '%sql''injection'`,
         },
       );
 
@@ -2451,7 +2459,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: String.raw`[stringAttr] NOT LIKE '%sql\%injection' ESCAPE '\'`,
-          mssql: String.raw`[stringAttr] NOT LIKE N'%sql\%injection' ESCAPE '\'`,
+          mssql: String.raw`[stringAttr] NOT LIKE '%sql\%injection' ESCAPE '\'`,
         },
       );
 
@@ -2546,7 +2554,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: `[stringAttr] NOT LIKE '%swagger%'`,
-          mssql: `[stringAttr] NOT LIKE N'%swagger%'`,
+          mssql: `[stringAttr] NOT LIKE '%swagger%'`,
         },
       );
 
@@ -2560,7 +2568,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[stringAttr] NOT LIKE '%sql''injection%'`,
           mysql: `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
           mariadb: `\`stringAttr\` NOT LIKE '%sql\\'injection%'`,
-          mssql: `[stringAttr] NOT LIKE N'%sql''injection%'`,
+          mssql: `[stringAttr] NOT LIKE '%sql''injection%'`,
         },
       );
 
@@ -2573,7 +2581,7 @@ Caused by: "undefined" cannot be escaped`),
         },
         {
           default: String.raw`[stringAttr] NOT LIKE '%sql\%injection%' ESCAPE '\'`,
-          mssql: String.raw`[stringAttr] NOT LIKE N'%sql\%injection%' ESCAPE '\'`,
+          mssql: String.raw`[stringAttr] NOT LIKE '%sql\%injection%' ESCAPE '\'`,
         },
       );
 
@@ -3660,7 +3668,7 @@ Caused by: "undefined" cannot be escaped`),
       },
       {
         default: "([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10) AND [stringAttr] = 'a project'",
-        mssql: "([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10) AND [stringAttr] = N'a project'",
+        mssql: "([intAttr1] IN (1, 2, 3) OR [intAttr1] > 10) AND [stringAttr] = 'a project'",
       },
     );
 
@@ -3711,7 +3719,7 @@ Caused by: "undefined" cannot be escaped`),
         { [Op.and]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] },
         {
           default: `([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = ''`,
-          mssql: `([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = N''`,
+          mssql: `([intAttr1] = 1 AND [intAttr2] = 2) AND [stringAttr] = ''`,
         },
       );
 
@@ -3758,7 +3766,7 @@ Caused by: "undefined" cannot be escaped`),
         { [Op.or]: [{ intAttr1: 1, intAttr2: 2 }, { stringAttr: '' }] },
         {
           default: `([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = ''`,
-          mssql: `([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = N''`,
+          mssql: `([intAttr1] = 1 AND [intAttr2] = 2) OR [stringAttr] = ''`,
         },
       );
 
@@ -3933,7 +3941,7 @@ Caused by: "undefined" cannot be escaped`),
         // comparing the output of `where` to `where`
         testSql(where(where(col('col'), Op.eq, '1'), Op.eq, where(col('col'), Op.eq, '2')), {
           default: `([col] = '1') = ([col] = '2')`,
-          mssql: `([col] = N'1') = ([col] = N'2')`,
+          mssql: `([col] = '1') = ([col] = '2')`,
         });
 
         testSql(where(1, Op.eq, 2), {
@@ -3946,12 +3954,12 @@ Caused by: "undefined" cannot be escaped`),
 
         testSql(where('string', Op.eq, col('col')), {
           default: `'string' = [col]`,
-          mssql: `N'string' = [col]`,
+          mssql: `'string' = [col]`,
         });
 
         testSql(where('a', Op.eq, 'b'), {
           default: `'a' = 'b'`,
-          mssql: `N'a' = N'b'`,
+          mssql: `'a' = 'b'`,
         });
 
         it('does not allow string operators', () => {
@@ -4000,7 +4008,7 @@ Caused by: "undefined" cannot be escaped`),
 
         testSql(where(literal(`'hours'`), Op.eq, 'hours'), {
           default: `'hours' = 'hours'`,
-          mssql: `'hours' = N'hours'`,
+          mssql: `'hours' = 'hours'`,
         });
 
         testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
@@ -4025,12 +4033,12 @@ Caused by: "undefined" cannot be escaped`),
 
         testSql(where(col('name'), { [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } }), {
           default: `[name] = '123' AND NOT ([name] = '456')`,
-          mssql: `[name] = N'123' AND NOT ([name] = N'456')`,
+          mssql: `[name] = '123' AND NOT ([name] = '456')`,
         });
 
         testSql(where(col('name'), or({ [Op.eq]: '123', [Op.not]: { [Op.eq]: '456' } })), {
           default: `[name] = '123' OR NOT ([name] = '456')`,
-          mssql: `[name] = N'123' OR NOT ([name] = N'456')`,
+          mssql: `[name] = '123' OR NOT ([name] = '456')`,
         });
 
         testSql(

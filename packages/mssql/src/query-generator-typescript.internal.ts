@@ -60,9 +60,9 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return joinSQLFragments([
-      `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ${this.escape(database)})`,
+      `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ${this.dialect.escapeString(database)})`,
       `CREATE DATABASE ${this.quoteIdentifier(database)}`,
-      options?.collate ? `COLLATE ${this.escape(options.collate)}` : '',
+      options?.collate ? `COLLATE ${this.dialect.escapeString(options.collate)}` : '',
     ]);
   }
 
@@ -74,7 +74,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'SELECT [name] FROM sys.databases',
-      `WHERE [name] NOT IN (${databasesToSkip.map(database => this.escape(database)).join(', ')})`,
+      `WHERE [name] NOT IN (${databasesToSkip.map(database => this.dialect.escapeString(database)).join(', ')})`,
     ]);
   }
 
@@ -87,7 +87,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     return joinSQLFragments([
       'SELECT [name] AS [schema] FROM sys.schemas',
-      `WHERE [name] NOT IN (${schemasToSkip.map(schema => this.escape(schema)).join(', ')})`,
+      `WHERE [name] NOT IN (${schemasToSkip.map(schema => this.dialect.escapeString(schema)).join(', ')})`,
     ]);
   }
 
@@ -123,8 +123,8 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT JOIN sys.extended_properties prop ON prop.major_id = sc.object_id',
       'AND prop.minor_id = sc.column_id',
       `AND prop.name = 'MS_Description'`,
-      `WHERE t.TABLE_NAME = ${this.escape(table.tableName)}`,
-      `AND t.TABLE_SCHEMA = ${this.escape(table.schema)}`,
+      `WHERE t.TABLE_NAME = ${this.dialect.escapeString(table.tableName)}`,
+      `AND t.TABLE_SCHEMA = ${this.dialect.escapeString(table.schema)}`,
     ]);
   }
 
@@ -133,10 +133,10 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'SELECT t.name AS [tableName], s.name AS [schema]',
       `FROM sys.tables t INNER JOIN sys.schemas s ON t.schema_id = s.schema_id WHERE t.type = 'U'`,
       options?.schema
-        ? `AND s.name = ${this.escape(options.schema)}`
+        ? `AND s.name = ${this.dialect.escapeString(options.schema)}`
         : `AND s.name NOT IN (${this.#internals
             .getTechnicalSchemaNames()
-            .map(schema => this.escape(schema))
+            .map(schema => this.dialect.escapeString(schema))
             .join(', ')})`,
       'ORDER BY s.name, t.name',
     ]);
@@ -166,7 +166,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       return `ALTER SCHEMA ${this.quoteIdentifier(afterTable.schema)} TRANSFER ${this.quoteTable(beforeTableName)}`;
     }
 
-    return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.escape(afterTable.tableName)}`;
+    return `EXEC sp_rename '${this.quoteTable(beforeTableName)}', ${this.dialect.escapeString(afterTable.tableName)}`;
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
@@ -234,13 +234,15 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       `, null AS [definition], rcol.column_id FROM sys.foreign_keys k INNER JOIN sys.foreign_key_columns c ON k.[object_id] = c.constraint_object_id`,
       `INNER JOIN sys.columns fcol ON c.parent_column_id = fcol.column_id AND c.parent_object_id = fcol.object_id INNER JOIN sys.columns rcol ON c.referenced_column_id = rcol.column_id AND c.referenced_object_id = rcol.object_id`,
       `) c ON t.object_id = c.constraintTableId`,
-      `WHERE s.name = ${this.escape(table.schema)} AND t.name = ${this.escape(table.tableName)}`,
-      options?.columnName ? `AND c.columnNames = ${this.escape(options.columnName)}` : '',
+      `WHERE s.name = ${this.dialect.escapeString(table.schema)} AND t.name = ${this.dialect.escapeString(table.tableName)}`,
+      options?.columnName
+        ? `AND c.columnNames = ${this.dialect.escapeString(options.columnName)}`
+        : '',
       options?.constraintName
-        ? `AND c.constraintName = ${this.escape(options.constraintName)}`
+        ? `AND c.constraintName = ${this.dialect.escapeString(options.constraintName)}`
         : '',
       options?.constraintType
-        ? `AND c.constraintType = ${this.escape(this.#getConstraintType(options.constraintType))}`
+        ? `AND c.constraintType = ${this.dialect.escapeString(this.#getConstraintType(options.constraintType))}`
         : '',
       `ORDER BY c.constraintName, c.column_id`,
     ]);
@@ -263,7 +265,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM sys.indexes I',
       'INNER JOIN sys.index_columns IC ON IC.index_id = I.index_id AND IC.object_id = I.object_id',
       'INNER JOIN sys.columns C ON IC.object_id = C.object_id AND IC.column_id = C.column_id',
-      `WHERE I.[object_id] = OBJECT_ID(${this.escape(objectId)}) ORDER BY I.[name];`,
+      `WHERE I.[object_id] = OBJECT_ID(${this.dialect.escapeString(objectId)}) ORDER BY I.[name];`,
     ]);
   }
 
@@ -322,7 +324,7 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       );
     }
 
-    return `JSON_VALUE(${sqlExpression}, ${this.escape(buildJsonPath(path))})`;
+    return `JSON_VALUE(${sqlExpression}, ${this.dialect.escapeString(buildJsonPath(path))})`;
   }
 
   formatUnquoteJson(arg: Expression, options?: EscapeOptions) {

@@ -486,7 +486,7 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE json_col->>'name'`,
-      mssql: `SELECT * FROM users WHERE json_col->>N'name'`,
+      mssql: `SELECT * FROM users WHERE json_col->>'name'`,
     });
   });
 
@@ -759,7 +759,7 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT * FROM users WHERE json_col->>'name'`,
-      mssql: `SELECT * FROM users WHERE json_col->>N'name'`,
+      mssql: `SELECT * FROM users WHERE json_col->>'name'`,
     });
   });
 
@@ -1019,8 +1019,8 @@ SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
       mssql: `
         INSERT INTO users (username, email, created_at, updated_at)
         VALUES
-          (N'john', N'john@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10'),
-          (N'michael', N'michael@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10');`,
+          ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10'),
+          ('michael', 'michael@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10');`,
     });
   });
 });

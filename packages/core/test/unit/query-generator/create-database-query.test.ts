@@ -18,6 +18,16 @@ describe('QueryGenerator#createDatabaseQuery', () => {
     });
   });
 
+  it('preserves Unicode database metadata literals in MSSQL', () => {
+    if (dialectName !== 'mssql') {
+      return;
+    }
+
+    expectsql(() => queryGenerator.createDatabaseQuery('données'), {
+      mssql: `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = N'données' ) CREATE DATABASE [données]`,
+    });
+  });
+
   it('supports the collate option', () => {
     expectsql(() => queryGenerator.createDatabaseQuery('myDatabase', { collate: 'en_US.UTF-8' }), {
       default: notSupportedError,

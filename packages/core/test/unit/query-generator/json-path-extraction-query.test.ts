@@ -105,6 +105,24 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
       );
     });
 
+    it('preserves Unicode JSON path literals in MSSQL', () => {
+      if (dialectName !== 'mssql') {
+        return;
+      }
+
+      expectPerDialect(
+        () =>
+          queryGenerator.jsonPathExtractionQuery(
+            queryGenerator.quoteIdentifier('profile'),
+            ['café'],
+            true,
+          ),
+        {
+          mssql: `JSON_VALUE([profile], N'$."café"')`,
+        },
+      );
+    });
+
     it('creates a json extract+unquote operation (array)', () => {
       expectPerDialect(
         () =>

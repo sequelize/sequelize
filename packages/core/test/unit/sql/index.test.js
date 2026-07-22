@@ -186,7 +186,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: "CREATE INDEX `table_type` ON `table` (`type`) WHERE `type` = 'public'",
             db2: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
             postgres: 'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'public\'',
-            mssql: "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N'public'",
+            mssql: "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = 'public'",
           },
         );
 
@@ -207,7 +207,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             postgres:
               'CREATE INDEX "table_type" ON "table" ("type") WHERE "type" = \'group\' OR "type" = \'private\'',
             mssql:
-              "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = N'group' OR [type] = N'private'",
+              "CREATE INDEX [table_type] ON [table] ([type]) WHERE [type] = 'group' OR [type] = 'private'",
           },
         );
 

@@ -55,6 +55,16 @@ describe('QueryGenerator#tableExistsQuery', () => {
     });
   });
 
+  it('preserves Unicode table and schema metadata literals in MSSQL', () => {
+    if (dialect.name !== 'mssql') {
+      return;
+    }
+
+    expectsql(() => queryGenerator.tableExistsQuery({ tableName: 'tábla', schema: 'schéma' }), {
+      mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'tábla' AND TABLE_SCHEMA = N'schéma'`,
+    });
+  });
+
   it('produces a table exists query for a table and default schema', () => {
     expectsql(
       () =>

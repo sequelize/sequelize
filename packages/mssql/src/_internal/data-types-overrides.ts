@@ -3,6 +3,7 @@ import { BaseError } from '@sequelize/core';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import maxBy from 'lodash/maxBy';
 import NodeUtil from 'node:util';
+import { escapeUserStringLiteral } from './string-encoding';
 
 function removeUnsupportedIntegerOptions(
   dataType: BaseTypes.BaseIntegerDataType,
@@ -44,12 +45,24 @@ export class BLOB extends BaseTypes.BLOB {
 }
 
 export class STRING extends BaseTypes.STRING {
+  escape(value: string | Buffer): string {
+    if (Buffer.isBuffer(value)) {
+      return this._getDialect().escapeBuffer(value);
+    }
+
+    return escapeUserStringLiteral(value);
+  }
+
   toSql() {
     return `NVARCHAR(${this.options.length ?? 255})`;
   }
 }
 
 export class TEXT extends BaseTypes.TEXT {
+  escape(value: string): string {
+    return escapeUserStringLiteral(value);
+  }
+
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
 

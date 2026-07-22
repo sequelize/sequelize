@@ -60,12 +60,12 @@ describe('QueryInterface#upsert', () => {
       mssql: `
       MERGE INTO [Users] WITH(HOLDLOCK)
         AS [Users_target]
-      USING (VALUES(N':name')) AS [Users_source]([firstName])
+      USING (VALUES(':name')) AS [Users_source]([firstName])
       ON [Users_target].[id] = [Users_source].[id]
       WHEN MATCHED THEN
-        UPDATE SET [Users_target].[firstName] = N':name'
+        UPDATE SET [Users_target].[firstName] = ':name'
       WHEN NOT MATCHED THEN
-        INSERT ([firstName]) VALUES(N':name') OUTPUT $action, INSERTED.*;
+        INSERT ([firstName]) VALUES(':name') OUTPUT $action, INSERTED.*;
     `,
       db2: `
       MERGE INTO "Users"
@@ -144,10 +144,10 @@ describe('QueryInterface#upsert', () => {
         'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($firstName,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
       MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
-      USING (VALUES($firstName, N'Doe')) AS [Users_source]([firstName], [lastName])
+      USING (VALUES($firstName, 'Doe')) AS [Users_source]([firstName], [lastName])
       ON [Users_target].[id] = [Users_source].[id]
       WHEN NOT MATCHED THEN
-        INSERT ([firstName], [lastName]) VALUES($firstName, N'Doe')
+        INSERT ([firstName], [lastName]) VALUES($firstName, 'Doe')
       OUTPUT $action, INSERTED.*;
     `,
       db2: `
@@ -203,10 +203,10 @@ describe('QueryInterface#upsert', () => {
         'INSERT INTO `Users` (`firstName`,`lastName`) VALUES ($1,$sequelize_1) ON DUPLICATE KEY UPDATE `id`=`id`;',
       mssql: `
       MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
-      USING (VALUES($1, N'Doe')) AS [Users_source]([firstName], [lastName])
+      USING (VALUES($1, 'Doe')) AS [Users_source]([firstName], [lastName])
       ON [Users_target].[id] = [Users_source].[id]
       WHEN NOT MATCHED THEN
-        INSERT ([firstName], [lastName]) VALUES($1, N'Doe')
+        INSERT ([firstName], [lastName]) VALUES($1, 'Doe')
       OUTPUT $action, INSERTED.*;
     `,
       db2: `
@@ -258,9 +258,9 @@ describe('QueryInterface#upsert', () => {
         'INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,`counter` + 1) ON CONFLICT ("id") DO UPDATE SET "counter"=EXCLUDED."counter";',
       mssql: `
         MERGE INTO [Users] WITH(HOLDLOCK) AS [Users_target]
-        USING (VALUES(N'Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])
+        USING (VALUES('Jonh', \`counter\` + 1)) AS [Users_source]([firstName], [counter])
         ON [Users_target].[id] = [Users_source].[id] WHEN MATCHED THEN UPDATE SET [Users_target].[counter] = \`counter\` + 1
-        WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES(N'Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
+        WHEN NOT MATCHED THEN INSERT ([firstName], [counter]) VALUES('Jonh', \`counter\` + 1) OUTPUT $action, INSERTED.*;
         `,
       sqlite3:
         'INSERT INTO `Users` (`firstName`,`counter`) VALUES ($sequelize_1,`counter` + 1) ON CONFLICT (`id`) DO UPDATE SET `counter`=EXCLUDED.`counter`;',

@@ -222,7 +222,7 @@ describe('QueryGenerator#selectQuery', () => {
 
       expectsql(sql, {
         default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT ''';DELETE FROM user';`,
-        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY;`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT ''';DELETE FROM user' ROWS ONLY;`,
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" FETCH NEXT ''';DELETE FROM user' ROWS ONLY;`,
         'mariadb mysql':
           "SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT '\\';DELETE FROM user';",
@@ -247,7 +247,7 @@ describe('QueryGenerator#selectQuery', () => {
 
       expectsql(sql, {
         default: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] LIMIT 10 OFFSET ''';DELETE FROM user';`,
-        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
+        mssql: `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
         'db2 ibmi': `SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" OFFSET ''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY;`,
         'mariadb mysql':
           "SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 10 OFFSET '\\';DELETE FROM user';",
@@ -330,7 +330,7 @@ describe('QueryGenerator#selectQuery', () => {
     expectsql(sql, {
       default: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
       'mysql mariadb': `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo\\';DROP TABLE mySchema.myTable;';`,
-      mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = N'foo'';DROP TABLE mySchema.myTable;';`,
+      mssql: `SELECT [id] FROM [Users] AS [User] WHERE [User].[username] = 'foo'';DROP TABLE mySchema.myTable;';`,
       oracle: `SELECT "id" FROM "Users" "User" WHERE "User"."username" = 'foo'';DROP TABLE mySchema.myTable;';`,
     });
   });
@@ -411,14 +411,14 @@ describe('QueryGenerator#selectQuery', () => {
           OFFSET 'repl4';
         `,
         mssql: `
-          SELECT uppercase(N'id') AS [id], N'id2'
+          SELECT uppercase('id') AS [id], 'id2'
           FROM [Users] AS [User]
-          WHERE [User].[username] = N'repl1' OR [User].[username] = (uppercase(CAST(N'repl1' AS STRING)) = N'repl1')
-          GROUP BY N'the group'
-          HAVING [User].[username] = N'repl1'
-          ORDER BY N'repl2'
-          OFFSET N'repl4' ROWS
-          FETCH NEXT N'repl3' ROWS ONLY;
+          WHERE [User].[username] = 'repl1' OR [User].[username] = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
+          GROUP BY 'the group'
+          HAVING [User].[username] = 'repl1'
+          ORDER BY 'repl2'
+          OFFSET 'repl4' ROWS
+          FETCH NEXT 'repl3' ROWS ONLY;
         `,
         'db2 ibmi': `
           SELECT uppercase('id') AS "id", 'id2'
@@ -522,13 +522,13 @@ describe('QueryGenerator#selectQuery', () => {
           SELECT
             [User].[id],
             [projects].[id] AS [projects.id],
-            N'repl1',
-            N'repl1' AS [projects.id2],
+            'repl1',
+            'repl1' AS [projects.id2],
             [projects->owner].[id] AS [projects.owner.id],
-            N'repl2'
+            'repl2'
           FROM [Users] AS [User]
           INNER JOIN [Projects] AS [projects]
-            ON N'on' AND N'where'
+            ON 'on' AND 'where'
           LEFT OUTER JOIN [Users] AS [projects->owner]
             ON [projects].[ownerId] = [projects->owner].[id];
         `,
@@ -616,7 +616,7 @@ describe('QueryGenerator#selectQuery', () => {
             [ProjectContributors] AS [contributors->ProjectContributor]
             INNER JOIN [Users] AS [contributors]
             ON [contributors].[id] = [contributors->ProjectContributor].[userId]
-            AND N'where'
+            AND 'where'
           )
           ON [Project].[id] = [contributors->ProjectContributor].[projectId];
         `,
@@ -706,22 +706,22 @@ describe('QueryGenerator#selectQuery', () => {
           SELECT
             [User].*,
             [projects].[id] AS [projects.id],
-            N'repl1',
-            N'repl1' AS [projects.id2],
+            'repl1',
+            'repl1' AS [projects.id2],
             [projects->owner].[id] AS [projects.owner.id],
-            N'repl2'
+            'repl2'
           FROM (
             SELECT [User].[id]
             FROM [Users] AS [User]
-            ORDER BY N'order'
-            OFFSET N'offset' ROWS
-            FETCH NEXT N'limit' ROWS ONLY
+            ORDER BY 'order'
+            OFFSET 'offset' ROWS
+            FETCH NEXT 'limit' ROWS ONLY
           ) AS [User]
           INNER JOIN [Projects] AS [projects]
-            ON N'on' AND N'where'
+            ON 'on' AND 'where'
           LEFT OUTER JOIN [Users] AS [projects->owner]
             ON [projects].[ownerId] = [projects->owner].[id]
-          ORDER BY N'order';
+          ORDER BY 'order';
         `,
         db2: `
           SELECT
@@ -854,7 +854,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
             [.*],
             [*],
             count(*) AS [literal_count],
-            count(N'*') AS [fn_count_str],
+            count('*') AS [fn_count_str],
             count(*) AS [fn_count_col],
             count(*) AS [fn_count_lit],
             [a].[b] AS [col_a_b],

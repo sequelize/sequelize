@@ -132,6 +132,13 @@ export interface EscapeOptions extends FormatWhereOptions {
 
 export interface FormatWhereOptions extends Partial<BindParamOptions>, ParameterOptions {
   /**
+   * Uses the dialect's default string literal representation for internal SQL and DDL values.
+   *
+   * @private
+   */
+  readonly useDialectDefaultStringEscape?: boolean | undefined;
+
+  /**
    * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
    */
   readonly model?: ModelStatic | ModelDefinition | null | undefined;
@@ -846,6 +853,10 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       throw new TypeError('"undefined" cannot be escaped');
     }
 
+    if (options.useDialectDefaultStringEscape && typeof value === 'string') {
+      return this.dialect.escapeString(value);
+    }
+
     let { type } = options;
     if (type != null) {
       type = this.sequelize.normalizeDataType(type);
@@ -936,7 +947,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   tableExistsQuery(tableName: TableOrModel): string {
     const table = this.extractTableDetails(tableName);
 
-    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.escape(table.tableName)} AND TABLE_SCHEMA = ${this.escape(table.schema)}`;
+    return `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = ${this.dialect.escapeString(table.tableName)} AND TABLE_SCHEMA = ${this.dialect.escapeString(table.schema)}`;
   }
 
   bulkDeleteQuery(tableOrModel: TableOrModel, options: BulkDeleteQueryOptions): string {

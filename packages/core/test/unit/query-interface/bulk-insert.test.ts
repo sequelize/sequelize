@@ -39,7 +39,7 @@ describe('QueryInterface#bulkInsert', () => {
         /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){999}\('\w+'\)\)$/,
       ),
       mssql: toMatchRegex(
-        /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);$/,
+        /^INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\('\w+'\),){999}\('\w+'\);$/,
       ),
       // oracle uses `executeMany()` provided by node-oracledb driver and passes the value with binds
       oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
@@ -65,7 +65,7 @@ describe('QueryInterface#bulkInsert', () => {
         /^SELECT \* FROM FINAL TABLE \(INSERT INTO "Users" \("firstName"\) VALUES (?:\('\w+'\),){1999}\('\w+'\)\)$/,
       ),
       mssql: toMatchRegex(
-        /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\(N'\w+'\),){999}\(N'\w+'\);){2}$/,
+        /^(?:INSERT INTO \[Users\] \(\[firstName\]\) VALUES (?:\('\w+'\),){999}\('\w+'\);){2}$/,
       ),
       oracle: toMatchRegex(/^INSERT INTO "Users" \("firstName"\) VALUES \(:\d+\)$/),
     });
@@ -98,7 +98,7 @@ describe('QueryInterface#bulkInsert', () => {
       'mysql mariadb sqlite3': toMatchSql(
         "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
       ),
-      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
+      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (':injection');`),
       // TODO: db2 should use the same system as ibmi
       ibmi: toMatchSql(
         `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,

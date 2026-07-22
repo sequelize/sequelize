@@ -37,7 +37,7 @@ describe('QueryInterface#bulkDelete', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       default: `DELETE FROM [Users] WHERE [firstName] = ':id'`,
-      mssql: `DELETE FROM [Users] WHERE [firstName] = N':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      mssql: `DELETE FROM [Users] WHERE [firstName] = ':id'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
     });
 
     expect(firstCall.args[1]?.bind).to.be.undefined;

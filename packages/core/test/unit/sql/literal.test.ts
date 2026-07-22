@@ -127,7 +127,7 @@ describe('cast', () => {
         ),
       {
         default: `SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))`,
-        mssql: `SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))`,
+        mssql: `SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))`,
       },
     );
   });
@@ -140,7 +140,7 @@ describe('fn', () => {
 
     expectsql(out, {
       default: `upper('$user')`,
-      mssql: `upper(N'$user')`,
+      mssql: `upper('$user')`,
     });
   });
 
@@ -158,7 +158,7 @@ describe('fn', () => {
 
     expectsql(out, {
       postgres: `concat('user', 1, true, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
-      mssql: `concat(N'user', 1, 1, N'2011-03-27 10:01:55.000 +00:00', lower(N'user'))`,
+      mssql: `concat('user', 1, 1, N'2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       sqlite3: `concat('user', 1, 1, '2011-03-27 10:01:55.000 +00:00', lower('user'))`,
       ibmi: `concat('user', 1, 1, '2011-03-27 10:01:55.000', lower('user'))`,
       oracle: `concat('user', 1, 1, TO_TIMESTAMP_TZ('2011-03-27 10:01:55.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'), lower('user'))`,
@@ -204,7 +204,7 @@ describe('sql.join', () => {
       ),
       {
         default: `SELECT a FROM users WHERE id IN ('id1', 'id2', 'id3') FROM users`,
-        mssql: `SELECT a FROM users WHERE id IN (N'id1', N'id2', N'id3') FROM users`,
+        mssql: `SELECT a FROM users WHERE id IN ('id1', 'id2', 'id3') FROM users`,
       },
     );
   });
