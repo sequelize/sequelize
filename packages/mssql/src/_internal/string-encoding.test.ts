@@ -1,9 +1,5 @@
 import { expect } from 'chai';
-import {
-  canBindAsVarChar,
-  escapeUserStringLiteral,
-  isVarcharSafeString,
-} from './string-encoding';
+import { canBindAsVarChar, escapeUserStringLiteral, isVarcharSafeString } from './string-encoding';
 
 describe('MSSQL string encoding', () => {
   describe('isVarcharSafeString', () => {
@@ -16,9 +12,9 @@ describe('MSSQL string encoding', () => {
       '\0',
       '\t',
       '\n',
-      '\x1f',
-      '\x7f',
-      'x'.repeat(8_001),
+      '\u001F',
+      '\u007F',
+      'x'.repeat(8001),
     ];
 
     for (const value of safeValues) {
@@ -29,14 +25,14 @@ describe('MSSQL string encoding', () => {
 
     const unicodeValues = [
       '\u0080',
-      '\u00a0',
+      '\u00A0',
       'café',
       'e\u0301',
       'مرحبا',
       '中文',
       '😀',
-      '\ud800',
-      '\udc00',
+      '\uD800',
+      '\uDC00',
       'ASCII then é',
     ];
 
@@ -54,14 +50,14 @@ describe('MSSQL string encoding', () => {
       expect(escapeUserStringLiteral("''")).to.equal("''''''");
       expect(escapeUserStringLiteral('a\\b')).to.equal("'a\\b'");
       expect(escapeUserStringLiteral('\0')).to.equal("'\0'");
-      expect(escapeUserStringLiteral('\x7f')).to.equal("'\x7f'");
+      expect(escapeUserStringLiteral('\u007F')).to.equal("'\u007F'");
       expect(escapeUserStringLiteral('')).to.equal("''");
     });
 
     it('uses a national literal for any non-ASCII code unit', () => {
       expect(escapeUserStringLiteral('café')).to.equal("N'café'");
       expect(escapeUserStringLiteral('😀')).to.equal("N'😀'");
-      expect(escapeUserStringLiteral('\ud800')).to.equal("N'\ud800'");
+      expect(escapeUserStringLiteral('\uD800')).to.equal("N'\uD800'");
     });
   });
 

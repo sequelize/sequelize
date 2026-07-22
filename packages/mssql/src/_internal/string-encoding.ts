@@ -4,6 +4,7 @@ export interface DatabaseCollationLike {
 
 export function isVarcharSafeString(value: string): boolean {
   for (let index = 0; index < value.length; index++) {
+    // eslint-disable-next-line unicorn/prefer-code-point -- classifier intentionally checks UTF-16 code units
     if (value.charCodeAt(index) > 0x7f) {
       return false;
     }
