@@ -189,20 +189,27 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
   });
 
   it('round-trips control characters and long ASCII binds', async () => {
-    for (const value of [
+    const values = [
       'a\0b',
       'a\tb',
       'a\nb',
-      'x'.repeat(8_000),
-      'x'.repeat(8_001),
-      'é'.repeat(4_000),
-      'é'.repeat(4_001),
-    ]) {
-      const rows = await sequelize.query<{ value: string }>(`SELECT $value AS [value]`, {
-        bind: { value },
-        type: QueryTypes.SELECT,
-      });
+      'x'.repeat(8000),
+      'x'.repeat(8001),
+      'é'.repeat(4000),
+      'é'.repeat(4001),
+    ];
+    const results = await Promise.all(
+      values.map(async value => {
+        const rows = await sequelize.query<{ value: string }>(`SELECT $value AS [value]`, {
+          bind: { value },
+          type: QueryTypes.SELECT,
+        });
 
+        return { rows, value };
+      }),
+    );
+
+    for (const { rows, value } of results) {
       expect(rows[0].value).to.equal(value);
     }
   });
@@ -227,13 +234,10 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
         type: QueryTypes.SELECT,
       },
     );
-    const positionalRows = await sequelize.query<{ value: string }>(
-      `SELECT $1 + $2 AS [value]`,
-      {
-        bind: ['plain', 'café'],
-        type: QueryTypes.SELECT,
-      },
-    );
+    const positionalRows = await sequelize.query<{ value: string }>(`SELECT $1 + $2 AS [value]`, {
+      bind: ['plain', 'café'],
+      type: QueryTypes.SELECT,
+    });
 
     expect(mixedRows[0]).to.deep.equal({
       asciiType: 'varchar',
@@ -244,15 +248,22 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
   });
 
   it('converts ASCII and Unicode binds into declared NVARCHAR procedure parameters', async () => {
-    for (const value of ['plain', 'café 😀']) {
-      const rows = await sequelize.query<{ value: string }>(
-        `EXEC [dbo].[sp_mssql_varchar_string_escaping] @input = $value`,
-        {
-          bind: { value },
-          type: QueryTypes.SELECT,
-        },
-      );
+    const values = ['plain', 'café 😀'];
+    const results = await Promise.all(
+      values.map(async value => {
+        const rows = await sequelize.query<{ value: string }>(
+          `EXEC [dbo].[sp_mssql_varchar_string_escaping] @input = $value`,
+          {
+            bind: { value },
+            type: QueryTypes.SELECT,
+          },
+        );
 
+        return { rows, value };
+      }),
+    );
+
+    for (const { rows, value } of results) {
       expect(rows[0].value).to.equal(value);
     }
   });

@@ -89,9 +89,9 @@ if (dialect === 'mssql') {
         expect(query.getSQLTypeFromJsType(123n, tedious.TYPES, CP1252).type).to.equal(
           tedious.TYPES.Int,
         );
-        expect(
-          query.getSQLTypeFromJsType(Buffer.from('abc'), tedious.TYPES, CP1252).type,
-        ).to.equal(tedious.TYPES.VarBinary);
+        expect(query.getSQLTypeFromJsType(Buffer.from('abc'), tedious.TYPES, CP1252).type).to.equal(
+          tedious.TYPES.VarBinary,
+        );
       });
 
       describe('string Request parameters', () => {
@@ -110,15 +110,15 @@ if (dialect === 'mssql') {
         });
 
         it('preserves empty, control, and NUL bytes with a mapped code page', () => {
-          for (const value of ['', '\0', '\t', '\n', '\x7f']) {
+          for (const value of ['', '\0', '\t', '\n', '\u007F']) {
             const { paramType } = addAndValidateStringParameter(value, CP1252);
             expect(paramType.type).to.equal(tedious.TYPES.VarChar);
           }
         });
 
         it('infers varchar(8000) and varchar(max) at the Tedious boundary', () => {
-          const atLimit = addAndValidateStringParameter('x'.repeat(8_000), CP1252);
-          const overLimit = addAndValidateStringParameter('x'.repeat(8_001), CP1252);
+          const atLimit = addAndValidateStringParameter('x'.repeat(8000), CP1252);
+          const overLimit = addAndValidateStringParameter('x'.repeat(8001), CP1252);
 
           expect(atLimit.request.makeParamsParameter(atLimit.request.parameters)).to.equal(
             '@value varchar(8000)',
