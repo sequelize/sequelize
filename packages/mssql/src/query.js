@@ -14,6 +14,7 @@ import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
 import { Request, TYPES } from 'tedious';
+import { canBindAsVarChar, isVarcharSafeString } from './_internal/string-encoding.js';
 import { ASYNC_QUEUE } from './_internal/symbols.js';
 
 const debug = logger.debugContext('sql:mssql');
@@ -39,7 +40,7 @@ export class MsSqlQuery extends AbstractQuery {
     return 'id';
   }
 
-  getSQLTypeFromJsType(value, TYPES) {
+  getSQLTypeFromJsType(value, TYPES, databaseCollation) {
     const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
     if (typeof value === 'number') {
       if (Number.isInteger(value)) {
@@ -58,10 +59,16 @@ export class MsSqlQuery extends AbstractQuery {
         paramType.type = TYPES.VarChar;
         paramType.value = value.toString();
       } else {
-        return this.getSQLTypeFromJsType(Number(value), TYPES);
+        return this.getSQLTypeFromJsType(Number(value), TYPES, databaseCollation);
       }
     } else if (typeof value === 'boolean') {
       paramType.type = TYPES.Bit;
+    } else if (
+      typeof value === 'string' &&
+      isVarcharSafeString(value) &&
+      canBindAsVarChar(databaseCollation)
+    ) {
+      paramType.type = TYPES.VarChar;
     }
 
     if (Buffer.isBuffer(value)) {
@@ -73,6 +80,7 @@ export class MsSqlQuery extends AbstractQuery {
 
   async _run(connection, sql, parameters) {
     this.sql = sql;
+    const databaseCollation = connection.databaseCollation;
 
     const complete = this._logQuery(sql, debug, parameters);
 
@@ -86,7 +94,7 @@ export class MsSqlQuery extends AbstractQuery {
         if (Array.isArray(parameters)) {
           // eslint-disable-next-line unicorn/no-for-loop
           for (let i = 0; i < parameters.length; i++) {
-            const paramType = this.getSQLTypeFromJsType(parameters[i], TYPES);
+            const paramType = this.getSQLTypeFromJsType(parameters[i], TYPES, databaseCollation);
             request.addParameter(
               String(i + 1),
               paramType.type,
@@ -96,7 +104,7 @@ export class MsSqlQuery extends AbstractQuery {
           }
         } else {
           forOwn(parameters, (parameter, parameterName) => {
-            const paramType = this.getSQLTypeFromJsType(parameter, TYPES);
+            const paramType = this.getSQLTypeFromJsType(parameter, TYPES, databaseCollation);
             request.addParameter(
               parameterName,
               paramType.type,

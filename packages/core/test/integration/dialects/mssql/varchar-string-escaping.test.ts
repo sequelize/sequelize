@@ -21,6 +21,10 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
   }
 
   beforeAll2(async () => {
+    await sequelize.query(`
+      IF OBJECT_ID(N'[dbo].[sp_mssql_varchar_string_escaping]', 'P') IS NOT NULL
+        DROP PROCEDURE [dbo].[sp_mssql_varchar_string_escaping];
+    `);
     await sequelize.query(
       `IF OBJECT_ID(N'[dbo].[${TABLE}]', 'U') IS NOT NULL DROP TABLE [dbo].[${TABLE}]`,
     );
@@ -36,6 +40,12 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
       VALUES
         ('seek-me', N'seek-me', N'seek-me'),
         ('café', N'café', N'café');
+    `);
+    await sequelize.query(`
+      CREATE PROCEDURE [dbo].[sp_mssql_varchar_string_escaping]
+        @input NVARCHAR(100)
+      AS
+        SELECT @input AS [value];
     `);
 
     StringRow.init(
@@ -55,6 +65,10 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
   });
 
   after(async () => {
+    await sequelize.query(`
+      IF OBJECT_ID(N'[dbo].[sp_mssql_varchar_string_escaping]', 'P') IS NOT NULL
+        DROP PROCEDURE [dbo].[sp_mssql_varchar_string_escaping];
+    `);
     await sequelize.query(
       `IF OBJECT_ID(N'[dbo].[${TABLE}]', 'U') IS NOT NULL DROP TABLE [dbo].[${TABLE}]`,
     );
@@ -117,6 +131,130 @@ describe('[MSSQL Specific] VARCHAR-safe string escaping', () => {
 
     expect(asciiRows).to.have.length(1);
     expect(mixedRows).to.have.length(2);
+  });
+
+  it('binds ASCII as VARCHAR and non-ASCII as NVARCHAR', async () => {
+    const asciiRows = await sequelize.query<{ baseType: string }>(
+      `SELECT SQL_VARIANT_PROPERTY($value, 'BaseType') AS [baseType]`,
+      {
+        bind: { value: 'ascii' },
+        type: QueryTypes.SELECT,
+      },
+    );
+    const unicodeRows = await sequelize.query<{ baseType: string }>(
+      `SELECT SQL_VARIANT_PROPERTY($value, 'BaseType') AS [baseType]`,
+      {
+        bind: { value: 'café' },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    expect(asciiRows[0].baseType.toLowerCase()).to.equal('varchar');
+    expect(unicodeRows[0].baseType.toLowerCase()).to.equal('nvarchar');
+  });
+
+  it('allows an ASCII bind predicate to use the VARCHAR index', async () => {
+    const rows = await sequelize.query<{ id: number }>(
+      `SELECT [id] FROM [dbo].[${TABLE}] WITH (INDEX([${INDEX}]), FORCESEEK)
+       WHERE [varchar_value] = $value`,
+      {
+        bind: { value: 'seek-me' },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    expect(rows).to.have.length(1);
+  });
+
+  it('handles ASCII-only and mixed bind IN lists per value', async () => {
+    const asciiRows = await sequelize.query<{ id: number }>(
+      `SELECT [id] FROM [dbo].[${TABLE}]
+       WHERE [varchar_value] IN ($first, $second)`,
+      {
+        bind: { first: 'seek-me', second: 'missing' },
+        type: QueryTypes.SELECT,
+      },
+    );
+    const mixedRows = await sequelize.query<{ id: number }>(
+      `SELECT [id] FROM [dbo].[${TABLE}]
+       WHERE [varchar_value] IN ($first, $second)`,
+      {
+        bind: { first: 'seek-me', second: 'café' },
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    expect(asciiRows).to.have.length(1);
+    expect(mixedRows).to.have.length(2);
+  });
+
+  it('round-trips control characters and long ASCII binds', async () => {
+    for (const value of [
+      'a\0b',
+      'a\tb',
+      'a\nb',
+      'x'.repeat(8_000),
+      'x'.repeat(8_001),
+      'é'.repeat(4_000),
+      'é'.repeat(4_001),
+    ]) {
+      const rows = await sequelize.query<{ value: string }>(`SELECT $value AS [value]`, {
+        bind: { value },
+        type: QueryTypes.SELECT,
+      });
+
+      expect(rows[0].value).to.equal(value);
+    }
+  });
+
+  it('classifies mixed, repeated, and positional binds independently', async () => {
+    const mixedRows = await sequelize.query<{
+      asciiType: string;
+      unicodeType: string;
+    }>(
+      `SELECT
+         SQL_VARIANT_PROPERTY($ascii, 'BaseType') AS [asciiType],
+         SQL_VARIANT_PROPERTY($unicode, 'BaseType') AS [unicodeType]`,
+      {
+        bind: { ascii: 'plain', unicode: 'café' },
+        type: QueryTypes.SELECT,
+      },
+    );
+    const repeatedRows = await sequelize.query<{ value: string }>(
+      `SELECT $value + $value AS [value]`,
+      {
+        bind: { value: 'plain' },
+        type: QueryTypes.SELECT,
+      },
+    );
+    const positionalRows = await sequelize.query<{ value: string }>(
+      `SELECT $1 + $2 AS [value]`,
+      {
+        bind: ['plain', 'café'],
+        type: QueryTypes.SELECT,
+      },
+    );
+
+    expect(mixedRows[0]).to.deep.equal({
+      asciiType: 'varchar',
+      unicodeType: 'nvarchar',
+    });
+    expect(repeatedRows[0].value).to.equal('plainplain');
+    expect(positionalRows[0].value).to.equal('plaincafé');
+  });
+
+  it('converts ASCII and Unicode binds into declared NVARCHAR procedure parameters', async () => {
+    for (const value of ['plain', 'café 😀']) {
+      const rows = await sequelize.query<{ value: string }>(
+        `EXEC [dbo].[sp_mssql_varchar_string_escaping] @input = $value`,
+        {
+          bind: { value },
+          type: QueryTypes.SELECT,
+        },
+      );
+
+      expect(rows[0].value).to.equal(value);
+    }
   });
 
   it('round-trips ASCII and Unicode through NVARCHAR-mapped attributes', async () => {
