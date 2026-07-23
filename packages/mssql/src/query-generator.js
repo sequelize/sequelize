@@ -504,12 +504,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       attribute.type._binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
-      const escapedDefaultValue =
-        typeof attribute.defaultValue === 'string'
-          ? this.dialect.escapeString(attribute.defaultValue)
-          : this.escape(attribute.defaultValue, { ...options, type: attribute.type });
-
-      template += ` DEFAULT ${escapedDefaultValue}`;
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, {
+        ...options,
+        type: attribute.type,
+        useDialectDefaultStringEscape: true,
+      })}`;
     }
 
     if (

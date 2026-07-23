@@ -65,8 +65,8 @@ export class MsSqlQuery extends AbstractQuery {
       paramType.type = TYPES.Bit;
     } else if (
       typeof value === 'string' &&
-      isVarcharSafeString(value) &&
-      canBindAsVarChar(databaseCollation)
+      canBindAsVarChar(databaseCollation) &&
+      isVarcharSafeString(value)
     ) {
       paramType.type = TYPES.VarChar;
     }
