@@ -1,5 +1,12 @@
+import { Op } from '@sequelize/core';
 import { expect } from 'chai';
-import { canBindAsVarChar, escapeUserStringLiteral, isVarcharSafeString } from './string-encoding';
+import {
+  canBindAsVarChar,
+  escapeUserStringLiteral,
+  isVarcharSafeString,
+  quoteMsSqlStringLiteral,
+  withDialectStringLiterals,
+} from './string-encoding';
 
 describe('MSSQL string encoding', () => {
   describe('isVarcharSafeString', () => {
@@ -43,6 +50,15 @@ describe('MSSQL string encoding', () => {
     }
   });
 
+  describe('quoteMsSqlStringLiteral', () => {
+    it('shares apostrophe escaping for national and non-national forms', () => {
+      expect(quoteMsSqlStringLiteral("it's", false)).to.equal("'it''s'");
+      expect(quoteMsSqlStringLiteral("it's", true)).to.equal("N'it''s'");
+      expect(quoteMsSqlStringLiteral('plain', true)).to.equal("N'plain'");
+      expect(quoteMsSqlStringLiteral('plain', false)).to.equal("'plain'");
+    });
+  });
+
   describe('escapeUserStringLiteral', () => {
     it('uses a non-national literal for ASCII', () => {
       expect(escapeUserStringLiteral('plain')).to.equal("'plain'");
@@ -58,6 +74,31 @@ describe('MSSQL string encoding', () => {
       expect(escapeUserStringLiteral('café')).to.equal("N'café'");
       expect(escapeUserStringLiteral('😀')).to.equal("N'😀'");
       expect(escapeUserStringLiteral('\uD800')).to.equal("N'\uD800'");
+    });
+  });
+
+  describe('withDialectStringLiterals', () => {
+    const dialect = {
+      escapeString(value: string) {
+        return quoteMsSqlStringLiteral(value, true);
+      },
+    };
+
+    it('rewrites leaf strings without mutating the input', () => {
+      const input = { role: ['admin', 'user'], age: { gte: 10 } };
+      const output = withDialectStringLiterals(input, dialect as any) as any;
+
+      expect(input.role[0]).to.equal('admin');
+      expect(output.role[0].val[0]).to.equal("N'admin'");
+      expect(output.role[1].val[0]).to.equal("N'user'");
+      expect(output.age.gte).to.equal(10);
+    });
+
+    it('preserves Op.col identifier targets', () => {
+      const input = { authorId: { [Op.col]: 'users.id' } };
+      const output = withDialectStringLiterals(input, dialect as any) as any;
+
+      expect(output.authorId[Op.col]).to.equal('users.id');
     });
   });
 

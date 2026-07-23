@@ -19,6 +19,7 @@ import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
+import { escapeMsSqlDefaultValue } from './_internal/string-encoding.js';
 import { MsSqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 /* istanbul ignore next */
@@ -504,11 +505,13 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       attribute.type._binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, {
-        ...options,
-        type: attribute.type,
-        useDialectDefaultStringEscape: true,
-      })}`;
+      if (typeof attribute.defaultValue === 'string') {
+        this.sequelize.validateValue(attribute.defaultValue, attribute.type);
+      }
+
+      template += ` DEFAULT ${escapeMsSqlDefaultValue(attribute.defaultValue, this.dialect, value =>
+        this.escape(value, { ...options, type: attribute.type }),
+      )}`;
     }
 
     if (

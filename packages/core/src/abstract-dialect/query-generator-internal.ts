@@ -17,6 +17,7 @@ import type { AbstractDialect } from './dialect.js';
 import type { EscapeOptions } from './query-generator-typescript.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { GetConstraintSnippetQueryOptions, TableOrModel } from './query-generator.types.js';
+import type { WhereOptions } from './where-sql-builder-types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 
 export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = AbstractDialect> {
@@ -98,10 +99,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
         const constraintName = this.queryGenerator.quoteIdentifier(
           options.name || `${table.tableName}_${fieldsSqlString}_ck`,
         );
-        constraintSnippet = `CONSTRAINT ${constraintName} CHECK (${this.queryGenerator.whereItemsQuery(
-          options.where,
-          { useDialectDefaultStringEscape: true },
-        )})`;
+        constraintSnippet = this.formatCheckConstraintSnippet(constraintName, options.where);
         break;
       }
 
@@ -133,13 +131,12 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
         const constraintName = this.queryGenerator.quoteIdentifier(
           options.name || `${table.tableName}_${fieldsSqlString}_df`,
         );
-        constraintSnippet = `CONSTRAINT ${constraintName} DEFAULT (${this.queryGenerator.escape(
+        constraintSnippet = this.formatDefaultConstraintSnippet(
+          constraintName,
           options.defaultValue,
-          {
-            ...options,
-            useDialectDefaultStringEscape: true,
-          },
-        )}) FOR ${quotedFields[0]}`;
+          quotedFields[0],
+          options,
+        );
         break;
       }
 
@@ -215,6 +212,38 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
     }
 
     return constraintSnippet;
+  }
+
+  /**
+   * Formats a CHECK constraint body. Dialects may override this when constraint
+   * literals must bypass DataType escape overrides (e.g. MSSQL Unicode DDL).
+   *
+   * @param constraintName The already-quoted constraint name.
+   * @param where The check predicate.
+   */
+  protected formatCheckConstraintSnippet(
+    constraintName: string,
+    where: WhereOptions | undefined,
+  ): string {
+    return `CONSTRAINT ${constraintName} CHECK (${this.queryGenerator.whereItemsQuery(where)})`;
+  }
+
+  /**
+   * Formats a DEFAULT constraint body. Dialects may override this when default
+   * string literals must bypass DataType escape overrides (e.g. MSSQL Unicode DDL).
+   *
+   * @param constraintName The already-quoted constraint name.
+   * @param defaultValue The default value to embed.
+   * @param quotedField The already-quoted column name.
+   * @param options Constraint options passed through to `escape` for non-strings.
+   */
+  protected formatDefaultConstraintSnippet(
+    constraintName: string,
+    defaultValue: unknown,
+    quotedField: string,
+    options: GetConstraintSnippetQueryOptions,
+  ): string {
+    return `CONSTRAINT ${constraintName} DEFAULT (${this.queryGenerator.escape(defaultValue, options)}) FOR ${quotedField}`;
   }
 
   getDeferrableConstraintSnippet(deferrable: Deferrable) {

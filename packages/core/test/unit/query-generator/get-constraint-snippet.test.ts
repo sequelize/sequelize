@@ -99,6 +99,25 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       );
     });
 
+    it('preserves Op.col identifiers in MSSQL CHECK constraints', () => {
+      if (dialect.name !== 'mssql') {
+        return;
+      }
+
+      expectsql(
+        () =>
+          internals.getConstraintSnippet('myTable', {
+            name: 'check',
+            type: 'CHECK',
+            fields: ['authorId'],
+            where: { authorId: { [Op.col]: 'users.id' } },
+          }),
+        {
+          mssql: 'CONSTRAINT [check] CHECK ([authorId] = [users].[id])',
+        },
+      );
+    });
+
     it('generates a constraint snippet for a check constraint', () => {
       expectsql(
         () =>

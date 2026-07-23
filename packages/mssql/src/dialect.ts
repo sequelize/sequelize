@@ -11,6 +11,7 @@ import {
 } from './_internal/connection-options.js';
 import { registerMsSqlDbDataTypeParsers } from './_internal/data-types-db.js';
 import * as DataTypes from './_internal/data-types-overrides.js';
+import { quoteMsSqlStringLiteral } from './_internal/string-encoding.js';
 import type { MsSqlConnectionOptions, TediousModule } from './connection-manager.js';
 import { MsSqlConnectionManager } from './connection-manager.js';
 import { MsSqlQueryGenerator } from './query-generator.js';
@@ -144,11 +145,7 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
   }
 
   escapeString(value: string): string {
-    // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
-    // http://stackoverflow.com/q/603572/130598
-    value = value.replaceAll("'", "''");
-
-    return `N'${value}'`;
+    return quoteMsSqlStringLiteral(value, true);
   }
 
   getDefaultSchema(): string {

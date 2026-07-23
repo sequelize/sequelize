@@ -132,13 +132,6 @@ export interface EscapeOptions extends FormatWhereOptions {
 
 export interface FormatWhereOptions extends Partial<BindParamOptions>, ParameterOptions {
   /**
-   * Uses the dialect's default string literal representation for internal SQL and DDL values.
-   *
-   * @private
-   */
-  readonly useDialectDefaultStringEscape?: boolean | undefined;
-
-  /**
    * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
    */
   readonly model?: ModelStatic | ModelDefinition | null | undefined;
@@ -851,10 +844,6 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
 
     if (value === undefined) {
       throw new TypeError('"undefined" cannot be escaped');
-    }
-
-    if (options.useDialectDefaultStringEscape && typeof value === 'string') {
-      return this.dialect.escapeString(value);
     }
 
     let { type } = options;
