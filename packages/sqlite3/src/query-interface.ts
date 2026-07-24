@@ -33,7 +33,27 @@ function escapeRegExp(value: string): string {
   return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/**
+ * Removes SQL comments and single-quoted string literals from a `CREATE TABLE` statement,
+ * so that literal text (e.g. a `CHECK` constraint or `DEFAULT` comparing against the string
+ * `'AUTOINCREMENT'`) can't be mistaken for the `AUTOINCREMENT` keyword itself.
+ *
+ * This must be done in a single scan rather than as separate comment/string passes: if string
+ * literals were stripped last, a literal that happens to contain `--` or `/*` (e.g.
+ * `DEFAULT 'a--b'`) would be misread as starting a comment by an earlier pass, which can
+ * swallow the rest of a single-line `CREATE TABLE` statement, including a later column's
+ * genuine `AUTOINCREMENT` keyword.
+ *
+ * @param sql The raw `CREATE TABLE` statement, as read from `sqlite_master`.
+ */
+function stripSqlStringLiteralsAndComments(sql: string): string {
+  return sql.replaceAll(/\/\*[\s\S]*?\*\/|--[^\n]*|'(?:[^']|'')*'/g, match => {
+    return match.startsWith(`'`) ? `''` : ' ';
+  });
+}
+
 function columnDefinitionHasAutoIncrement(createTableSql: string, columnName: string): boolean {
+  const sanitizedCreateTableSql = stripSqlStringLiteralsAndComments(createTableSql);
   const escapedColumnName = escapeRegExp(columnName);
   const escapedDoubleQuotedColumnName = escapeRegExp(columnName.replaceAll('"', '""'));
   const escapedBacktickQuotedColumnName = escapeRegExp(columnName.replaceAll('`', '``'));
@@ -46,7 +66,7 @@ function columnDefinitionHasAutoIncrement(createTableSql: string, columnName: st
   ].join('|');
 
   return new RegExp(`(?:^|[(,])\\s*(?:${columnIdentifier})\\s+[^,]*\\bAUTOINCREMENT\\b`, 'i').test(
-    createTableSql,
+    sanitizedCreateTableSql,
   );
 }
 
