@@ -25,7 +25,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       const result = await this.queryInterface.describeTable('TableWithPK');
 
-      if (['mssql', 'mysql', 'mariadb'].includes(dialect)) {
+      if (['mssql', 'mysql', 'mariadb', 'sqlite3'].includes(dialect)) {
         expect(result.table_id.autoIncrement).to.be.true;
       } else if (dialect === 'postgres') {
         expect(result.table_id.defaultValue).to.equal(
