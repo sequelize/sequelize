@@ -190,18 +190,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     it('rejects JSON primitive values when isJSON is true with default options', async () => {
       const instance = JsonUser.build({ data: '123' });
-      await expect(instance.validate()).to.be.rejectedWith(
-        SequelizeValidationError,
-        /isJSON/,
-      );
+      await expect(instance.validate()).to.be.rejectedWith(SequelizeValidationError, /isJSON/);
     });
 
     it('rejects an invalid JSON string when isJSON is true', async () => {
       const instance = JsonUser.build({ data: 'not-json' });
-      await expect(instance.validate()).to.be.rejectedWith(
-        SequelizeValidationError,
-        /isJSON/,
-      );
+      await expect(instance.validate()).to.be.rejectedWith(SequelizeValidationError, /isJSON/);
     });
 
     it('does not throw a TypeError when isJSON is set to true (regression for validator.js v13+)', async () => {
