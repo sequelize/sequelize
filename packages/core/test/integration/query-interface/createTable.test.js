@@ -34,6 +34,29 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
+    if (dialect === 'sqlite3') {
+      it('does not mistake a CHECK constraint literal for the AUTOINCREMENT keyword', async function () {
+        await this.sequelize.query(
+          `CREATE TABLE "TableWithCheckLiteral" ("id" INTEGER PRIMARY KEY, "note" TEXT CHECK ("note" != 'AUTOINCREMENT'))`,
+        );
+
+        const result = await this.queryInterface.describeTable('TableWithCheckLiteral');
+
+        expect(result.id.autoIncrement).to.be.false;
+        expect(result.note.autoIncrement).to.be.false;
+      });
+
+      it('does not lose a later column autoIncrement when an earlier column default contains `--`', async function () {
+        await this.sequelize.query(
+          `CREATE TABLE "TableWithDashesInDefault" ("note" TEXT DEFAULT 'a--b', "id" INTEGER PRIMARY KEY AUTOINCREMENT)`,
+        );
+
+        const result = await this.queryInterface.describeTable('TableWithDashesInDefault');
+
+        expect(result.id.autoIncrement).to.be.true;
+      });
+    }
+
     // SQLITE does not respect the index name when the index is created through CREATE TABLE
     // As such, Sequelize's createTable does not add the constraint in the Sequelize Dialect.
     // Instead, `sequelize.sync` calls CREATE INDEX after the table has been created,
