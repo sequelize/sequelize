@@ -26,7 +26,7 @@ This file provides guidance to AI coding agents working with this repository.
 - Run `yarn install --immutable` from the repository root, then `yarn build`.
 - A working native addon toolchain is required because install builds packages such as `sqlite3`, `ibm_db`, `odbc`, and `oracledb`.
 - On macOS, runtime tests that import `@sequelize/db2-ibmi` require a system `unixODBC` installation that provides `libodbc.2.dylib`.
-- If Nx caching behaves unexpectedly, run `yarn dlx nx reset`.
+- If Nx caching behaves unexpectedly, run `yarn nx reset`.
 
 ## Test
 
