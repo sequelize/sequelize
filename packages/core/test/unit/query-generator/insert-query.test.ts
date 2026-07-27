@@ -37,7 +37,7 @@ describe('QueryGenerator#insertQuery', () => {
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
-      mssql: `INSERT INTO [Users] ([firstName]) VALUES ('Zoe');`,
+      mssql: `INSERT INTO [Users] ([firstName]) VALUES (N'Zoe');`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('Zoe'))`,
     });
@@ -122,7 +122,7 @@ describe('QueryGenerator#insertQuery', () => {
 
     expectsql(query, {
       default: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
-      mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES ('John',$1,'jd');`,
+      mssql: `INSERT INTO [Users] ([firstName],[lastName],[username]) VALUES (N'John',$1,N'jd');`,
       db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'));`,
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
     });

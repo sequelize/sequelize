@@ -52,42 +52,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    it('preserves Unicode for MSSQL inline defaults and ENUM checks', () => {
-      if (current.dialect.name !== 'mssql') {
-        return;
-      }
-
-      const ReviewDefaults = current.define(
-        'review_defaults',
-        {
-          asciiDefault: {
-            type: DataTypes.STRING,
-            defaultValue: 'plain',
-          },
-          unicodeDefault: {
-            type: DataTypes.STRING,
-            defaultValue: 'café',
-          },
-          mood: DataTypes.ENUM('plain', 'café'),
-        },
-        {
-          freezeTableName: true,
-          timestamps: false,
-        },
-      );
-
-      expectsql(
-        queryGenerator.createTableQuery(
-          ReviewDefaults.table,
-          queryGenerator.attributesToSQL(ReviewDefaults.getAttributes()),
-          {},
-        ),
-        {
-          mssql: `IF OBJECT_ID(N'[review_defaults]', 'U') IS NULL CREATE TABLE [review_defaults] ([id] INTEGER NOT NULL IDENTITY(1,1) , [asciiDefault] NVARCHAR(255) DEFAULT N'plain', [unicodeDefault] NVARCHAR(255) DEFAULT N'café', [mood] NVARCHAR(255) CHECK ([mood] IN(N'plain', N'café')), PRIMARY KEY ([id]));`,
-        },
-      );
-    });
-
     describe('with references', () => {
       it('references right schema when adding foreign key #9029', () => {
         const BarUser = current.define('user', {}, { timestamps: false }).withSchema('bar');

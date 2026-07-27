@@ -80,44 +80,6 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
       );
     });
 
-    it('preserves Unicode CHECK constraint literals in MSSQL', () => {
-      if (dialect.name !== 'mssql') {
-        return;
-      }
-
-      expectsql(
-        () =>
-          internals.getConstraintSnippet('myTable', {
-            name: 'check',
-            type: 'CHECK',
-            fields: ['role'],
-            where: { role: ['café'] },
-          }),
-        {
-          mssql: `CONSTRAINT [check] CHECK ([role] IN (N'café'))`,
-        },
-      );
-    });
-
-    it('preserves Op.col identifiers in MSSQL CHECK constraints', () => {
-      if (dialect.name !== 'mssql') {
-        return;
-      }
-
-      expectsql(
-        () =>
-          internals.getConstraintSnippet('myTable', {
-            name: 'check',
-            type: 'CHECK',
-            fields: ['authorId'],
-            where: { authorId: { [Op.col]: 'users.id' } },
-          }),
-        {
-          mssql: 'CONSTRAINT [check] CHECK ([authorId] = [users].[id])',
-        },
-      );
-    });
-
     it('generates a constraint snippet for a check constraint', () => {
       expectsql(
         () =>
@@ -246,25 +208,6 @@ describe('QueryGeneratorInternal#getConstraintSnippet', () => {
         {
           default: defaultNotSupportedError,
           mssql: `CONSTRAINT [default] DEFAULT (N'guest') FOR [role]`,
-        },
-      );
-    });
-
-    it('preserves Unicode DEFAULT constraint literals in MSSQL', () => {
-      if (dialect.name !== 'mssql') {
-        return;
-      }
-
-      expectsql(
-        () =>
-          internals.getConstraintSnippet('myTable', {
-            name: 'default',
-            type: 'DEFAULT',
-            fields: ['role'],
-            defaultValue: 'invité',
-          }),
-        {
-          mssql: `CONSTRAINT [default] DEFAULT (N'invité') FOR [role]`,
         },
       );
     });

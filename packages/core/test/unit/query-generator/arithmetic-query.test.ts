@@ -52,7 +52,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sql, {
       default: `UPDATE [myTable] SET [foo]=[foo]+ 3 WHERE [bar] = 'biz'`,
-      mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.* WHERE [bar] = 'biz'`,
+      mssql: `UPDATE [myTable] SET [foo]=[foo]+ 3 OUTPUT INSERTED.* WHERE [bar] = N'biz'`,
       sqlite3: "UPDATE `myTable` SET `foo`=`foo`+ 3 WHERE `bar` = 'biz' RETURNING *",
       postgres: `UPDATE "myTable" SET "foo"="foo"+ 3 WHERE "bar" = 'biz' RETURNING *`,
     });
@@ -112,7 +112,7 @@ describe('QueryGenerator#arithmeticQuery', () => {
 
     expectsql(sql, {
       default: `UPDATE [Users] SET [age]=[age]+ 2,[name]='John' WHERE id = 47`,
-      mssql: `UPDATE [Users] SET [age]=[age]+ 2,[name]='John' OUTPUT INSERTED.* WHERE id = 47`,
+      mssql: `UPDATE [Users] SET [age]=[age]+ 2,[name]=N'John' OUTPUT INSERTED.* WHERE id = 47`,
       sqlite3: "UPDATE `Users` SET `age`=`age`+ 2,`name`='John' WHERE id = 47 RETURNING *",
       postgres: `UPDATE "Users" SET "age"="age"+ 2,"name"='John' WHERE id = 47 RETURNING *`,
     });

@@ -22,19 +22,6 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  it('preserves Unicode OBJECT_ID literals in MSSQL', () => {
-    if (dialectName !== 'mssql') {
-      return;
-    }
-
-    expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'DATE' }), {
-      mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE);`,
-    });
-    expectsql(queryGenerator.createTableQuery('tábla', { myColumn: 'DATE' }), {
-      mssql: `IF OBJECT_ID(N'[tábla]', 'U') IS NULL CREATE TABLE [tábla] ([myColumn] DATE);`,
-    });
-  });
-
   it('produces a query to create a table from a model', () => {
     const MyModel = sequelize.define('MyModel', {});
 

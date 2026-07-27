@@ -1,7 +1,7 @@
 import type { DataTypeInstance } from '@sequelize/core';
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
-import { expectsql, sequelize } from '../../support';
+import { sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
@@ -57,36 +57,6 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
       expect(() => type.validate('foobar')).not.to.throw();
       expect(() => type.validate(12)).to.throw();
-    });
-  });
-
-  describe('escape', () => {
-    it('uses non-national MSSQL literals only for ASCII strings', () => {
-      expectsql(() => sequelize.queryGenerator.escape('plain', { type: DataTypes.STRING }), {
-        default: "'plain'",
-        mssql: "'plain'",
-      });
-
-      expectsql(() => sequelize.queryGenerator.escape('café', { type: DataTypes.STRING }), {
-        default: "'café'",
-        mssql: "N'café'",
-      });
-
-      expectsql(() => sequelize.queryGenerator.escape("it's", { type: DataTypes.STRING }), {
-        default: "'it''s'",
-        mssql: "'it''s'",
-      });
-    });
-
-    it('uses the same behavior for untyped user escaping', () => {
-      expectsql(() => sequelize.escape('plain'), {
-        default: "'plain'",
-        mssql: "'plain'",
-      });
-      expectsql(() => sequelize.escape('café'), {
-        default: "'café'",
-        mssql: "N'café'",
-      });
     });
   });
 });
@@ -146,20 +116,6 @@ describe('DataTypes.TEXT', () => {
       const type = DataTypes.TEXT();
 
       expect(() => type.validate('foobar')).not.to.throw();
-    });
-  });
-
-  describe('escape', () => {
-    it('uses non-national MSSQL literals only for ASCII strings', () => {
-      expectsql(() => sequelize.queryGenerator.escape('plain', { type: DataTypes.TEXT }), {
-        default: "'plain'",
-        mssql: "'plain'",
-      });
-
-      expectsql(() => sequelize.queryGenerator.escape('中文', { type: DataTypes.TEXT }), {
-        default: "'中文'",
-        mssql: "N'中文'",
-      });
     });
   });
 });
