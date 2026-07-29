@@ -165,7 +165,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn global add node-gyp --ignore-engines
       - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add pg-native --ignore-engines
+      # pg-native 3.8.0 uses `??`, which Node 10 cannot parse - requiring it throws a SyntaxError
+      # before any test runs. Pin the last release Node 10 can load; newer Node versions keep
+      # testing against the current one.
+      - run: yarn add pg-native@${{ matrix.node-version == 10 && '3.7.0' || 'latest' }} --ignore-engines
         if: matrix.native
       - name: Unit Tests
         run: yarn test-unit
