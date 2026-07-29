@@ -52,22 +52,20 @@ if (dialect === 'db2') {
           expectation: { id: 'INTEGER COMMENT Test' },
         },
         {
-          title: 'Moves column level comments to a separate statement when changing a column',
+          title: 'Omits column level comments when changing a column',
           arguments: [
             { id: { type: 'INTEGER', comment: "Te'st" } },
             { context: 'changeColumn', table: 'myTable' },
           ],
-          expectation: {
-            id: ['DATA TYPE INTEGER', `COMMENT ON COLUMN "myTable"."id" IS 'Te''st'`],
-          },
+          expectation: { id: 'DATA TYPE INTEGER' },
         },
         {
-          title: 'Moves column level comments to a separate statement when adding a column',
+          title: 'Omits column level comments when adding a column',
           arguments: [
             { id: { type: 'INTEGER', comment: "Te'st" } },
             { context: 'addColumn', table: 'myTable' },
           ],
-          expectation: { id: `INTEGER; COMMENT ON COLUMN "myTable"."id" IS 'Te''st'` },
+          expectation: { id: 'INTEGER' },
         },
         {
           arguments: [{ id: { type: 'INTEGER', unique: true } }],
@@ -564,8 +562,10 @@ if (dialect === 'db2') {
     });
 
     describe('column comments', () => {
-      // Db2 rejects an inline COMMENT clause in ALTER TABLE, the comment has to be applied by a
-      // separate COMMENT ON COLUMN statement.
+      // Db2 has no inline COMMENT clause in ALTER TABLE, and its driver only executes the first
+      // statement it is given, so a column comment cannot travel with the ALTER TABLE at all. It is
+      // generated on its own by commentOnColumnQuery() and run as a follow-up query by
+      // Db2QueryInterface.
       // Contains a single quote, to ensure the comment cannot break out of the string literal.
       const injectedComment = `Te'st'; DROP TABLE "Users"; --`;
 
@@ -574,44 +574,45 @@ if (dialect === 'db2') {
         queryGenerator = createSequelizeInstance().dialect.queryGenerator;
       });
 
-      it('emits a separate COMMENT ON COLUMN statement in addColumnQuery', () => {
-        expect(
-          queryGenerator.addColumnQuery('myTable', 'age', { type: 'INTEGER', comment: 'Test' }),
-        ).to.equal(
-          `ALTER TABLE "myTable" ADD "age" INTEGER; COMMENT ON COLUMN "myTable"."age" IS 'Test';`,
+      it('generates a standalone COMMENT ON COLUMN statement', () => {
+        expect(queryGenerator.commentOnColumnQuery('myTable', 'age', 'Test')).to.equal(
+          `COMMENT ON COLUMN "myTable"."age" IS 'Test';`,
         );
       });
 
-      it('escapes the comment in addColumnQuery', () => {
+      it('escapes the comment in commentOnColumnQuery', () => {
+        expect(queryGenerator.commentOnColumnQuery('myTable', 'age', injectedComment)).to.equal(
+          `COMMENT ON COLUMN "myTable"."age" IS 'Te''st''; DROP TABLE "Users"; --';`,
+        );
+      });
+
+      it('quotes the identifiers in commentOnColumnQuery', () => {
+        expect(
+          queryGenerator.commentOnColumnQuery(
+            { tableName: 'myTable', schema: 'mySchema' },
+            'a"ge',
+            'Test',
+          ),
+        ).to.equal(`COMMENT ON COLUMN "mySchema"."myTable"."a""ge" IS 'Test';`);
+      });
+
+      it('keeps the comment out of addColumnQuery', () => {
         expect(
           queryGenerator.addColumnQuery('myTable', 'age', {
             type: 'INTEGER',
             comment: injectedComment,
           }),
-        ).to.equal(
-          `ALTER TABLE "myTable" ADD "age" INTEGER; COMMENT ON COLUMN "myTable"."age" IS 'Te''st''; DROP TABLE "Users"; --';`,
-        );
+        ).to.equal(`ALTER TABLE "myTable" ADD "age" INTEGER;`);
       });
 
-      it('emits a separate COMMENT ON COLUMN statement in changeColumnQuery', () => {
-        const attributes = queryGenerator.attributesToSQL(
-          { age: { type: 'INTEGER', comment: 'Test' } },
-          { context: 'changeColumn', table: 'myTable' },
-        );
-
-        expect(queryGenerator.changeColumnQuery('myTable', attributes)).to.equal(
-          `ALTER TABLE "myTable" ALTER COLUMN "age" SET DATA TYPE INTEGER; COMMENT ON COLUMN "myTable"."age" IS 'Test';`,
-        );
-      });
-
-      it('escapes the comment in changeColumnQuery', () => {
+      it('keeps the comment out of changeColumnQuery', () => {
         const attributes = queryGenerator.attributesToSQL(
           { age: { type: 'INTEGER', comment: injectedComment } },
           { context: 'changeColumn', table: 'myTable' },
         );
 
         expect(queryGenerator.changeColumnQuery('myTable', attributes)).to.equal(
-          `ALTER TABLE "myTable" ALTER COLUMN "age" SET DATA TYPE INTEGER; COMMENT ON COLUMN "myTable"."age" IS 'Te''st''; DROP TABLE "Users"; --';`,
+          `ALTER TABLE "myTable" ALTER COLUMN "age" SET DATA TYPE INTEGER;`,
         );
       });
 
@@ -622,7 +623,7 @@ if (dialect === 'db2') {
         );
 
         expect(queryGenerator.changeColumnQuery('myTable', attributes)).to.equal(
-          `ALTER TABLE "myTable" ALTER COLUMN "age" SET DATA TYPE INTEGER ALTER COLUMN "age" DROP NOT NULL; COMMENT ON COLUMN "myTable"."age" IS 'Test';`,
+          `ALTER TABLE "myTable" ALTER COLUMN "age" SET DATA TYPE INTEGER ALTER COLUMN "age" DROP NOT NULL;`,
         );
       });
 
