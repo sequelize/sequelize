@@ -38,6 +38,23 @@ describe('Sequelize', () => {
     });
   });
 
+  describe('setSessionVariables', () => {
+    afterEach(() => sinon.restore());
+
+    if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+      return;
+    }
+
+    it('escapes an injection value in the generated assignment', async () => {
+      const query = sinon.stub(sequelize, 'query').resolves([[], 0]);
+      const value = `", @is_admin := 1, @leak := (SELECT password FROM users LIMIT 1), @z := "`;
+
+      await sequelize.setSessionVariables({ café: value }, { connection: {} });
+
+      expect(query).to.have.been.calledWith(`SET @café := '${value}'`);
+    });
+  });
+
   describe('close', () => {
     it('clears the pool & closes Sequelize', async () => {
       const options = {

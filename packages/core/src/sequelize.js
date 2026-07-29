@@ -63,7 +63,7 @@ import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
 import { Validator } from './utils/validator-extras';
 
-const MYSQL_MARIADB_USER_VARIABLE_NAME = /^[a-zA-Z0-9_$.]{1,64}$/;
+const MYSQL_MARIADB_USER_VARIABLE_NAME = /^[a-zA-Z0-9_$.\u0080-\uFFFF]{1,64}$/;
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -436,7 +436,7 @@ Use Sequelize#query if you wish to use replacements.`);
     const query = `SET ${map(variables, (value, key) => {
       if (!MYSQL_MARIADB_USER_VARIABLE_NAME.test(key)) {
         throw new TypeError(
-          `Invalid session variable name "${key}". Use 1-64 letters, numbers, "_", "$", or ".".`,
+          `Invalid session variable name "${key}". Use a 1-64 character unquoted user-variable name.`,
         );
       }
 
