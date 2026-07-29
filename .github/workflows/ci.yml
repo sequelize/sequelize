@@ -313,16 +313,24 @@ jobs:
         test-mysql-mariadb,
       ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
+    # Requires manual approval before anything is published. This also narrows npm trusted
+    # publishing, which authorises a repository and workflow file but cannot be restricted
+    # to a branch on its own.
+    environment: release
     permissions:
       contents: write # to create the git tag and the GitHub release
       issues: write # to comment on released issues
       pull-requests: write # to comment on released pull requests
       id-token: write # to enable use of OIDC for npm trusted publishing
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v5
+        with:
+          # semantic-release needs the full history and all tags to determine the last release.
+          fetch-depth: 0
+          # semantic-release builds its own authenticated push URL from GITHUB_TOKEN, so the
+          # release does not need checkout's credentials left behind in .git/config.
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
           node-version: 18.x
       - run: yarn global add node-gyp --ignore-engines
@@ -332,10 +340,14 @@ jobs:
       # install and build on 18 above, then switch to 24 just to run the release itself.
       # semantic-release is intentionally not a devDependency: an older copy in node_modules
       # would shadow the bundled @semantic-release/npm and fall back to token auth.
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 24.x
+      # GITHUB_TOKEN is scoped to this step so the write-capable release credentials are not
+      # exposed to the install steps above, where a compromised package script could read them.
       - run: npx --yes semantic-release@25
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
         with:
