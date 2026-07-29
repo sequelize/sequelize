@@ -182,17 +182,25 @@ export class MariaDbQuery extends AbstractQuery {
       return;
     }
 
+    // `rows.meta` is lost as soon as we map over the rows below, so read it up-front.
     const meta = rows.meta;
+    const tableName = this.model.table.tableName;
+
     for (const field of Object.keys(this.model.fieldRawAttributesMap)) {
       const modelField = this.model.fieldRawAttributesMap[field];
       if (modelField.type instanceof DataTypes.JSON) {
-        const metaEntry = meta?.find(column => {
-          return (
-            column.name() === modelField.fieldName ||
-            column.name() === modelField.field ||
-            column.orgName() === modelField.field
+        // `name()` is the alias the column has in the result set, which is what the row is keyed by,
+        // so it is the only unambiguous match. `orgName()` is the name the column has in its table,
+        // and is only used as a fallback: under an `include`, a joined table can expose a column
+        // with the same original name as one of this model's attributes, so it must be qualified
+        // by the table the column originates from.
+        const metaEntry =
+          meta?.find(
+            column => column.name() === modelField.fieldName || column.name() === modelField.field,
+          ) ??
+          meta?.find(
+            column => column.orgName() === modelField.field && column.orgTable() === tableName,
           );
-        });
 
         // Value is returned as String, not JSON
         rows = rows.map(row => {
@@ -201,7 +209,7 @@ export class MariaDbQuery extends AbstractQuery {
           if (
             row[modelField.fieldName] &&
             typeof row[modelField.fieldName] === 'string' &&
-            metaEntry?._dataTypeFormat?.toString() !== 'json'
+            !metaEntry?.isDataTypeFormatJson()
           ) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
