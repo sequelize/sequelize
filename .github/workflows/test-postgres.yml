@@ -11,6 +11,13 @@ jobs:
   test-postgres:
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
+
+    name: test-postgres (node ${{ matrix.node-version }})
+
     services:
       postgres:
         image: postgis/postgis:17-3.5
@@ -27,11 +34,11 @@ jobs:
           --health-retries=5
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
 
       - name: Install Postgres extensions
         env:
