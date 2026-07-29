@@ -447,17 +447,6 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
 });
 
 describe('injectReplacements (named replacements)', () => {
-  it('escapes values that resemble date expressions', () => {
-    const value = "TO_DATE(CASE WHEN :name = $1 THEN ? ELSE '2024/01/02' END,'YYYY/MM/DD')";
-    const sql = injectReplacements('SELECT :value', dialect, { value });
-
-    expectsql(sql, {
-      default: `SELECT 'TO_DATE(CASE WHEN :name = $1 THEN ? ELSE ''2024/01/02'' END,''YYYY/MM/DD'')'`,
-      'mariadb mysql': `SELECT 'TO_DATE(CASE WHEN :name = $1 THEN ? ELSE \\'2024/01/02\\' END,\\'YYYY/MM/DD\\')'`,
-      mssql: `SELECT N'TO_DATE(CASE WHEN :name = $1 THEN ? ELSE ''2024/01/02'' END,''YYYY/MM/DD'')'`,
-    });
-  });
-
   it('parses named replacements', () => {
     const sql = injectReplacements(
       `SELECT ${dialect.TICK_CHAR_LEFT}:id${dialect.TICK_CHAR_RIGHT} FROM users WHERE id = ':id' OR id = :id OR id = ''':id'''`,
@@ -469,6 +458,53 @@ describe('injectReplacements (named replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT [:id] FROM users WHERE id = ':id' OR id = 1 OR id = ''':id'''`,
+    });
+  });
+
+  // Replacement *values* must always be escaped as plain string literals, never re-interpreted as
+  // SQL. These guards cover values shaped like placeholders and like SQL function calls.
+  it('escapes replacement values that look like a named replacement', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = :id`, dialect, {
+      id: ':id',
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = ':id'`,
+      mssql: `SELECT * FROM users WHERE id = N':id'`,
+    });
+  });
+
+  it('escapes replacement values that look like a positional bind parameter', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = :id`, dialect, {
+      id: '$1',
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '$1'`,
+      mssql: `SELECT * FROM users WHERE id = N'$1'`,
+    });
+  });
+
+  it('escapes replacement values that look like a positional replacement', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE id = :id`, dialect, {
+      id: '?',
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = '?'`,
+      mssql: `SELECT * FROM users WHERE id = N'?'`,
+    });
+  });
+
+  it('escapes replacement values that look like a SQL date expression', () => {
+    const sql = injectReplacements(`SELECT * FROM users WHERE createdAt = :date`, dialect, {
+      date: `TO_DATE('2024/01/01','YYYY/MM/DD')`,
+    });
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE createdAt = 'TO_DATE(''2024/01/01'',''YYYY/MM/DD'')'`,
+      'mariadb mysql': `SELECT * FROM users WHERE createdAt = 'TO_DATE(\\'2024/01/01\\',\\'YYYY/MM/DD\\')'`,
+      mssql: `SELECT * FROM users WHERE createdAt = N'TO_DATE(''2024/01/01'',''YYYY/MM/DD'')'`,
     });
   });
 
@@ -765,6 +801,20 @@ describe('injectReplacements (positional replacements)', () => {
 
     expectsql(sql, {
       default: `SELECT [?] FROM users WHERE id = '?' OR id = 1 OR id = '''?''' OR id2 = 2`,
+    });
+  });
+
+  it('escapes replacement values that look like placeholders or SQL expressions', () => {
+    const sql = injectReplacements(
+      `SELECT * FROM users WHERE a = ? AND b = ? AND c = ? AND d = ?`,
+      dialect,
+      ['?', '$1', ':id', `TO_DATE('2024/01/01','YYYY/MM/DD')`],
+    );
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE a = '?' AND b = '$1' AND c = ':id' AND d = 'TO_DATE(''2024/01/01'',''YYYY/MM/DD'')'`,
+      'mariadb mysql': `SELECT * FROM users WHERE a = '?' AND b = '$1' AND c = ':id' AND d = 'TO_DATE(\\'2024/01/01\\',\\'YYYY/MM/DD\\')'`,
+      mssql: `SELECT * FROM users WHERE a = N'?' AND b = N'$1' AND c = N':id' AND d = N'TO_DATE(''2024/01/01'',''YYYY/MM/DD'')'`,
     });
   });
 

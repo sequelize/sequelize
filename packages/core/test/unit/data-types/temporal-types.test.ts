@@ -1,6 +1,6 @@
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
-import { sequelize } from '../../support';
+import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
@@ -41,6 +41,42 @@ describe('DataTypes.DATE', () => {
   });
 
   const type = DataTypes.DATE().toDialectDataType(dialect);
+
+  // `escape` is the "inline value" code path, used whenever a value is embedded directly in the
+  // SQL string instead of being sent as a bind parameter (e.g. `where` clauses in `findAll`).
+  // It is a completely different code path from `getBindParamSql` / `toBindableValue`.
+  describe('escape (inline value)', () => {
+    it('escapes a Date object', () => {
+      expectsql(type.escape(new Date('2022-01-01T12:13:14.123Z')), {
+        default: `'2022-01-01 12:13:14.123 +00:00'`,
+        'mariadb mysql': `'2022-01-01 12:13:14'`,
+        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
+        oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+      });
+    });
+
+    it('escapes a date string', () => {
+      expectsql(type.escape('2022-01-01T12:13:14.123Z'), {
+        default: `'2022-01-01 12:13:14.123 +00:00'`,
+        'mariadb mysql': `'2022-01-01 12:13:14'`,
+        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
+        oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+      });
+    });
+
+    it('escapes the unix epoch', () => {
+      expectsql(type.escape(0), {
+        default: `'1970-01-01 00:00:00.000 +00:00'`,
+        'mariadb mysql': `'1970-01-01 00:00:00'`,
+        'db2 ibmi snowflake': `'1970-01-01 00:00:00.000'`,
+        mssql: `N'1970-01-01 00:00:00.000 +00:00'`,
+        oracle: `TO_TIMESTAMP_TZ('1970-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+      });
+    });
+  });
+
   describe('validate', () => {
     it('should throw an error if `value` is invalid', () => {
       expect(() => {
@@ -88,16 +124,6 @@ describe('DataTypes.DATE', () => {
       });
     }
   });
-
-  describe('escape', () => {
-    if (dialect.name === 'oracle') {
-      it('serializes inline dates as TO_TIMESTAMP_TZ expressions', () => {
-        expect(type.escape(new Date('2025-03-21T00:00:00.000Z'))).to.equal(
-          "TO_TIMESTAMP_TZ('2025-03-21 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')",
-        );
-      });
-    }
-  });
 });
 
 describe('DataTypes.DATEONLY', () => {
@@ -109,6 +135,35 @@ describe('DataTypes.DATEONLY', () => {
   });
 
   const type = DataTypes.DATEONLY().toDialectDataType(dialect);
+
+  // See the comment on DataTypes.DATE#escape above: this is the inline (non-bind) code path,
+  // which had no test coverage on any dialect prior to this suite.
+  describe('escape (inline value)', () => {
+    it('escapes a date-only string', () => {
+      expectsql(type.escape('2022-01-01'), {
+        default: `'2022-01-01'`,
+        mssql: `N'2022-01-01'`,
+        oracle: `TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+      });
+    });
+
+    it('escapes a Date object', () => {
+      expectsql(type.escape(new Date('2022-01-01T12:13:14.123Z')), {
+        default: `'2022-01-01'`,
+        mssql: `N'2022-01-01'`,
+        oracle: `TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+      });
+    });
+
+    it('escapes the unix epoch', () => {
+      expectsql(type.escape(0), {
+        default: `'1970-01-01'`,
+        mssql: `N'1970-01-01'`,
+        oracle: `TO_DATE('1970/01/01', 'YYYY/MM/DD')`,
+      });
+    });
+  });
+
   describe('validate', () => {
     if (dialect.supports.dataTypes.DATEONLY.infinity) {
       it('DATEONLY should stringify Infinity/-Infinity to infinity/-infinity', () => {
@@ -133,15 +188,6 @@ describe('DataTypes.DATEONLY', () => {
       it('sanitizes string Infinity/-Infinity to their numeric counterpart', () => {
         expect(type.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
         expect(type.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
-      });
-    }
-  });
-
-  describe('escape', () => {
-    if (dialect.name === 'oracle') {
-      it('serializes inline dates as TO_DATE expressions', () => {
-        expect(type.escape('2025-03-21')).to.equal("TO_DATE('2025/03/21', 'YYYY/MM/DD')");
-        expect(type.escape(0)).to.equal("TO_DATE('1970/01/01', 'YYYY/MM/DD')");
       });
     }
   });
