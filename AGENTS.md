@@ -24,6 +24,7 @@ This file provides guidance to AI coding agents working with this repository.
 - Do not assume newer Node versions work just because package metadata allows `>=24`; install pulls in native connector packages and untested runtimes can fail before the repo code builds.
 - Use Yarn commands for dependency and workspace tasks; this repo is configured for Yarn 4 workspaces and patches.
 - Run `yarn install --immutable` from the repository root, then `yarn build`.
+- Rebuild affected packages before testing generated exports and after every source change or revision switch.
 - A working native addon toolchain is required because install builds packages such as `sqlite3`, `ibm_db`, `odbc`, and `oracledb`.
 - On macOS, runtime tests that import `@sequelize/db2-ibmi` require a system `unixODBC` installation that provides `libodbc.2.dylib`.
 - If Nx caching behaves unexpectedly, run `yarn nx reset`.
@@ -55,11 +56,12 @@ This file provides guidance to AI coding agents working with this repository.
 
 - Read `THREAT_MODEL.md` before triaging or escalating any suspected vulnerability.
 - Do not treat unusual behavior as a security issue unless you can identify a concrete attacker-controlled input, a reachable code path, and a plausible impact.
-- Separate disposition from severity. Use the threat model's categories (`Library responsibility`, `Shared responsibility`, `Defense in depth`, `Out of scope`) independently from impact level.
+- Separate disposition from severity. Use the dispositions defined in `THREAT_MODEL.md` verbatim and independently from impact level.
 - Before reporting a finding, check whether it is already covered by an existing issue, advisory, or documented behavior.
 - For every finding, identify the attacker-controlled input, the source-to-sink path, the violated invariant or threat scenario, and the maximum realistic impact.
-- A finding is ready to submit only after it has a PoC that satisfies the `Security PoC standards` below.
+- Treat a suspected finding as sufficiently evidenced only when it has a PoC that satisfies the `Security PoC standards` below.
 - Prefer invalidating weak findings over preserving speculative ones.
+- Suspected vulnerabilities and all associated PoCs, regression tests, and technical details must remain private. Follow the reporting and disclosure rules in `SECURITY.md`.
 
 ## Security PoC standards
 
@@ -67,6 +69,6 @@ This file provides guidance to AI coding agents working with this repository.
 - Assert the secure behavior, not the vulnerable implementation detail. The test must fail on vulnerable code and pass unchanged after the fix.
 - Start from a reachable public API or another trust-boundary endpoint available to the relevant actor. Internal-only helper tests do not prove exploitability.
 - Exercise the reported root cause directly with realistic attacker-controlled input and trusted application configuration. Do not substitute a different trigger or tweak inputs only to make the test fail.
-- Keep PoCs short, self-contained, and readable. They must not require extra files outside the repository checkout, host-specific setup, or unrelated explanatory commentary.
+- Keep PoCs short, self-contained, and readable. They may use repository-documented test services, including Docker-backed database services, but must not depend on machine-local files or manual machine-specific configuration beyond documented project prerequisites.
 - Use the narrowest command that runs the PoC and report that exact command with the real output showing the failing assertion or concrete blocker.
 - If no valid reachable PoC can exercise the claimed root cause, report the concrete reason instead of writing a substitute test. Leave finding disposition to the operator reviewing the result.
