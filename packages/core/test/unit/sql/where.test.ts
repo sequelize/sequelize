@@ -22,11 +22,6 @@ const { literal, col, where, fn, cast, attribute } = sql;
 
 const queryGen = sequelize.dialect.queryGenerator;
 
-/**
- * An empty Op.or / Op.not cannot be compiled to SQL, as both of the possible meanings
- * ("match no rows" and "no condition") are surprising. Only the leading part of each message is
- * asserted here, as expectsql matches the expected error message as a substring.
- */
 const emptyOrError =
   new Error(`Invalid Query: an empty Op.or is ambiguous and cannot be compiled to SQL.
 An empty disjunction matches no rows, but omitting the condition would match every row.
@@ -1008,8 +1003,6 @@ Caused by: "undefined" cannot be escaped`),
     });
 
     describe('Op.not', () => {
-      // an empty Op.not is ambiguous: it means "match no rows", but generating no condition
-      // for it would match every row instead. Refuse rather than pick one silently.
       testSql(
         { [Op.not]: {} },
         {
@@ -1035,8 +1028,6 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
-      // the contents of an Op.not are joined with Op.and semantics, so an empty Op.and nested in
-      // an Op.not is caught by the Op.not check and not by the Op.or one.
       testSql(
         { [Op.not]: { [Op.and]: [] } },
         {
@@ -3697,8 +3688,6 @@ Caused by: "undefined" cannot be escaped`),
         expect(util.inspect(and('a', 'b'))).to.deep.equal(util.inspect({ [Op.and]: ['a', 'b'] }));
       });
 
-      // unlike an empty Op.or, an empty Op.and is *not* ambiguous: an empty conjunction is
-      // vacuously true, which is exactly what "no condition" means. Keep this asymmetry.
       testSql(and([]), {
         default: '',
       });
@@ -3773,9 +3762,6 @@ Caused by: "undefined" cannot be escaped`),
         expect(util.inspect(or('a', 'b'))).to.deep.equal(util.inspect({ [Op.or]: ['a', 'b'] }));
       });
 
-      // an empty Op.or is ambiguous: an empty disjunction is vacuously false ("match no rows"),
-      // but generating no condition for it would match every row instead. Refuse rather than
-      // pick one silently. See the Op.and block above for why that operator is different.
       testSql(or([]), {
         default: emptyOrError,
       });
@@ -3788,14 +3774,10 @@ Caused by: "undefined" cannot be escaped`),
 
       testSql({ [Op.or]: {} }, { default: emptyOrError });
 
-      // nested, so it is not only the top-level call that is guarded
       testSql({ [Op.or]: [{ [Op.or]: [] }] }, { default: emptyOrError });
 
-      // this is the dangerous one: without the guard the Op.or silently disappears and the
-      // remaining condition is the only filter left.
       testSql({ [Op.and]: [{ intAttr1: 1 }, { [Op.or]: [] }] }, { default: emptyOrError });
 
-      // on an attribute
       testSql({ intAttr1: { [Op.or]: [] } }, { default: emptyOrError });
 
       testSql({ intAttr1: { [Op.or]: {} } }, { default: emptyOrError });
