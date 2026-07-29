@@ -60,10 +60,18 @@ export class ConstraintChecking {
     throw new Error('constraints getter implementation missing');
   }
 
+  /**
+   * Will trigger an additional query at the beginning of a
+   * transaction which sets the constraints to deferred.
+   */
   static get DEFERRED() {
     return ConstraintCheckingDeferred;
   }
 
+  /**
+   * Will trigger an additional query at the beginning of a
+   * transaction which sets the constraints to immediately.
+   */
   static get IMMEDIATE() {
     return ConstraintCheckingImmediate;
   }
@@ -73,10 +81,7 @@ class DEFERRED extends ConstraintChecking {
   readonly #constraints: readonly string[];
 
   /**
-   * Will trigger an additional query at the beginning of a
-   * transaction which sets the constraints to deferred.
-   *
-   * @param constraints
+   * @param constraints An array of constraint names. Will defer all constraints by default.
    */
   constructor(constraints: readonly string[] = EMPTY_ARRAY) {
     super();
@@ -96,10 +101,7 @@ class IMMEDIATE extends ConstraintChecking {
   readonly #constraints: readonly string[];
 
   /**
-   * Will trigger an additional query at the beginning of a
-   * transaction which sets the constraints to immediately.
-   *
-   * @param constraints
+   * @param constraints An array of constraint names. Will defer all constraints by default.
    */
   constructor(constraints: readonly string[] = EMPTY_ARRAY) {
     super();
