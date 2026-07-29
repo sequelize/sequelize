@@ -29,6 +29,11 @@ const { HasMany } = require('./associations/has-many');
 const { withSqliteForeignKeysOff } = require('./dialects/sqlite/sqlite-utils');
 const { injectReplacements } = require('./utils/sql');
 
+// MySQL 8's unquoted user-variable grammar: identifier characters plus `.`, including
+// U+0080-U+FFFF. The high range is written with explicit escapes on purpose: a literal U+0080 is
+// invisible in most editors and makes the class read as though it began at `.`.
+const MYSQL_MARIADB_USER_VARIABLE_NAME = /^[a-zA-Z0-9_$.\u0080-\uFFFF]{1,64}$/;
+
 /**
  * This is the main class, the entry point to sequelize.
  */
@@ -689,7 +694,17 @@ class Sequelize {
     // Generate SQL Query
     const query =
       `SET ${
-        _.map(variables, (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`).join(', ')}`;
+        _.map(variables, (v, k) => {
+          if (!MYSQL_MARIADB_USER_VARIABLE_NAME.test(k)) {
+            throw new TypeError(`Invalid session variable name "${k}". Use a 1-64 character unquoted user-variable name.`);
+          }
+
+          if (v instanceof Utils.SequelizeMethod) {
+            throw new TypeError('sequelize.set does not accept SQL expressions as variable values');
+          }
+
+          return `@${k} := ${this.escape(v)}`;
+        }).join(', ')}`;
 
     return await this.query(query, options);
   }

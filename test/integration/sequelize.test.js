@@ -330,6 +330,42 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
         expect(data.foos).to.be.equal('bars');
         await this.t.commit();
       });
+
+      it('stores a value containing quotes and backslashes verbatim', async function() {
+        const t = await this.sequelize.transaction();
+        this.t = t;
+        const value = 'apostrophe \', quote ", backslash \\';
+
+        await this.sequelize.set({ foo: value }, { transaction: t });
+
+        const data = await this.sequelize.query('SELECT @foo as `foo`', { plain: true, transaction: this.t });
+        expect(data.foo).to.be.equal(value);
+        await this.t.commit();
+      });
+
+      it('does not let a value add further assignments', async function() {
+        const t = await this.sequelize.transaction();
+        this.t = t;
+
+        await this.sequelize.set({
+          foo: '", @injected := 1, @z := "'
+        }, { transaction: t });
+
+        const data = await this.sequelize.query('SELECT @foo as `foo`, @injected as `injected`', { plain: true, transaction: this.t });
+        expect(data.foo).to.be.equal('", @injected := 1, @z := "');
+        expect(data.injected).to.be.equal(null);
+        await this.t.commit();
+      });
+
+      it('rejects a name that is not a plain user-variable name', async function() {
+        const t = await this.sequelize.transaction();
+        this.t = t;
+
+        await expect(this.sequelize.set({ 'x := (SELECT 1);-- ': 'bar' }, { transaction: t }))
+          .to.be.rejectedWith(TypeError, 'Invalid session variable name');
+
+        await this.t.commit();
+      });
     });
   }
 
