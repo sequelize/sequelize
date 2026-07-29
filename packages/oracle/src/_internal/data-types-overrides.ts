@@ -385,14 +385,10 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 export class DATEONLY extends BaseTypes.DATEONLY {
   escape(value: AcceptedDate): string {
     const dialect = this._getDialect();
-    const date = this.toBindableValue(value);
+    const date = this.toBindableValue(value).replaceAll('-', '/');
     const format = dialect.escapeString('YYYY/MM/DD');
 
     return `TO_DATE(${dialect.escapeString(date)}, ${format})`;
-  }
-
-  toBindableValue(date: AcceptedDate) {
-    return super.toBindableValue(date).replaceAll('-', '/');
   }
 
   parseDatabaseValue(value: any) {

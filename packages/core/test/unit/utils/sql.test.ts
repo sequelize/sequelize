@@ -447,6 +447,17 @@ SELECT * FROM users WHERE id = '\\\\\\' $id' OR id = $id`),
 });
 
 describe('injectReplacements (named replacements)', () => {
+  it('escapes values that resemble date expressions', () => {
+    const value = "TO_DATE(CASE WHEN :name = $1 THEN ? ELSE '2024/01/02' END,'YYYY/MM/DD')";
+    const sql = injectReplacements('SELECT :value', dialect, { value });
+
+    expectsql(sql, {
+      default: `SELECT 'TO_DATE(CASE WHEN :name = $1 THEN ? ELSE ''2024/01/02'' END,''YYYY/MM/DD'')'`,
+      'mariadb mysql': `SELECT 'TO_DATE(CASE WHEN :name = $1 THEN ? ELSE \\'2024/01/02\\' END,\\'YYYY/MM/DD\\')'`,
+      mssql: `SELECT N'TO_DATE(CASE WHEN :name = $1 THEN ? ELSE ''2024/01/02'' END,''YYYY/MM/DD'')'`,
+    });
+  });
+
   it('parses named replacements', () => {
     const sql = injectReplacements(
       `SELECT ${dialect.TICK_CHAR_LEFT}:id${dialect.TICK_CHAR_RIGHT} FROM users WHERE id = ':id' OR id = :id OR id = ''':id'''`,
@@ -734,6 +745,17 @@ SELECT * FROM users WHERE id = '\\\\\\' :id' OR id = :id`),
 });
 
 describe('injectReplacements (positional replacements)', () => {
+  it('escapes values that resemble date expressions', () => {
+    const value = "TO_TIMESTAMP_TZ(?,'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')";
+    const sql = injectReplacements('SELECT ?', dialect, [value]);
+
+    expectsql(sql, {
+      default: `SELECT 'TO_TIMESTAMP_TZ(?,''YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'')'`,
+      'mariadb mysql': `SELECT 'TO_TIMESTAMP_TZ(?,\\'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM\\')'`,
+      mssql: `SELECT N'TO_TIMESTAMP_TZ(?,''YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'')'`,
+    });
+  });
+
   it('parses positional replacements', () => {
     const sql = injectReplacements(
       `SELECT ${dialect.TICK_CHAR_LEFT}?${dialect.TICK_CHAR_RIGHT} FROM users WHERE id = '?' OR id = ? OR id = '''?''' OR id2 = ?`,

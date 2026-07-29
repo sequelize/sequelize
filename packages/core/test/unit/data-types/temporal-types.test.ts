@@ -118,14 +118,6 @@ describe('DataTypes.DATEONLY', () => {
     }
   });
 
-  describe('toBindableValue', () => {
-    if (dialect.name === 'oracle') {
-      it('formats falsy numeric dates as bind values', () => {
-        expect(type.toBindableValue(0)).to.equal('1970/01/01');
-      });
-    }
-  });
-
   describe('sanitize', () => {
     it('sanitizes a Date object or string to a string', () => {
       expect(type.sanitize(now)).to.equal(nowDateOnly);
@@ -149,6 +141,7 @@ describe('DataTypes.DATEONLY', () => {
     if (dialect.name === 'oracle') {
       it('serializes inline dates as TO_DATE expressions', () => {
         expect(type.escape('2025-03-21')).to.equal("TO_DATE('2025/03/21', 'YYYY/MM/DD')");
+        expect(type.escape(0)).to.equal("TO_DATE('1970/01/01', 'YYYY/MM/DD')");
       });
     }
   });

@@ -58,6 +58,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare stringAttr: string;
   declare binaryAttr: Buffer;
   declare dateAttr: Date;
+  declare dateOnlyAttr: string;
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
 
@@ -93,6 +94,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         stringAttr: DataTypes.STRING,
         binaryAttr: DataTypes.BLOB,
         dateAttr: DataTypes.DATE(3),
+        dateOnlyAttr: DataTypes.DATEONLY,
         booleanAttr: DataTypes.BOOLEAN,
         ...(dialectSupportsBigInt() && { bigIntAttr: DataTypes.BIGINT }),
 
@@ -432,6 +434,15 @@ Caused by: "undefined" cannot be escaped`),
           mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
           'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
           oracle: `"dateAttr" = TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+        },
+      );
+
+      testSql(
+        { dateOnlyAttr: '2025-03-21' },
+        {
+          default: `[dateOnlyAttr] = '2025-03-21'`,
+          mssql: `[dateOnlyAttr] = N'2025-03-21'`,
+          oracle: `"dateOnlyAttr" = TO_DATE('2025/03/21', 'YYYY/MM/DD')`,
         },
       );
 
