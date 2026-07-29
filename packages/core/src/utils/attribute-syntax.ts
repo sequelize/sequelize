@@ -9,7 +9,8 @@ import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js'
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
 
-const ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE = 1000;
+// Defensive upper bound; not derived from workload measurements.
+export const ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE = 1000;
 
 type MemoizedParser<T> = ((key: string) => T) & {
   cache: Map<string, T>;

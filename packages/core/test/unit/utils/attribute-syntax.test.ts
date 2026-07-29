@@ -1,22 +1,16 @@
 import { AssociationPath, Attribute, sql } from '@sequelize/core';
 import { Unquote } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/dialect-aware-fn.js';
 import {
+  ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE,
   parseAttributeSyntax,
   parseNestedJsonKeySyntax,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
 import { expect } from 'chai';
 
-const ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE = 1000;
-
-function clearParserCaches(): void {
-  parseAttributeSyntax.cache.clear();
-  parseNestedJsonKeySyntax.cache.clear();
-}
-
-beforeEach(clearParserCaches);
-afterEach(clearParserCaches);
-
 describe('parseAttributeSyntax', () => {
+  beforeEach(() => parseAttributeSyntax.cache.clear());
+  afterEach(() => parseAttributeSyntax.cache.clear());
+
   it('parses simple attributes', () => {
     expect(parseAttributeSyntax('foo')).to.deep.eq(new Attribute('foo'));
   });
@@ -135,6 +129,9 @@ textAttr:json.property
 });
 
 describe('parseNestedJsonKeySyntax', () => {
+  beforeEach(() => parseNestedJsonKeySyntax.cache.clear());
+  afterEach(() => parseNestedJsonKeySyntax.cache.clear());
+
   it('parses JSON paths', () => {
     expect(parseNestedJsonKeySyntax('foo.bar')).to.deep.eq({
       pathSegments: ['foo', 'bar'],
