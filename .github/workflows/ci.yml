@@ -310,9 +310,13 @@ jobs:
         test-mysql-mariadb,
       ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
+    permissions:
+      contents: write # to create the git tag and the GitHub release
+      issues: write # to comment on released issues
+      pull-requests: write # to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm trusted publishing
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v3
@@ -320,7 +324,15 @@ jobs:
           node-version: 18.x
       - run: yarn global add node-gyp --ignore-engines
       - run: yarn install --frozen-lockfile --ignore-engines
-      - run: npx semantic-release
+      # npm trusted publishing needs semantic-release >= 25 (@semantic-release/npm >= 13.1),
+      # which requires Node >= 22.14. The v6 dependency tree only installs on Node 18, so we
+      # install and build on 18 above, then switch to 24 just to run the release itself.
+      # semantic-release is intentionally not a devDependency: an older copy in node_modules
+      # would shadow the bundled @semantic-release/npm and fall back to token auth.
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 24.x
+      - run: npx --yes semantic-release@25
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
         with:
