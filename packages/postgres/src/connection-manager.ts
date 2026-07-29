@@ -112,16 +112,12 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       port: 5432,
       ...config,
       types: {
+        // `format` is a union here, but `getTypeParser` only has per-format overloads,
+        // so it has to be narrowed before it can be forwarded.
         getTypeParser: (oid, format) => {
-          if (format === 'binary') {
-            return this.getTypeParser(oid, format);
-          }
-
-          if (format === 'text') {
-            return this.getTypeParser(oid, format);
-          }
-
-          return this.getTypeParser(oid);
+          return format === 'binary'
+            ? this.getTypeParser(oid, format)
+            : this.getTypeParser(oid, 'text');
         },
       },
     };
@@ -382,28 +378,19 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       return null;
     }
 
-    const textFormat = format === 'text' ? format : undefined;
-
     const typeData = this.#oidMap.get(oid);
 
     if (!typeData) {
       return null;
     }
 
+    // Only the text format reaches this point, so the sub-type parsers are text parsers too.
     if (typeData.type === 'range-array') {
-      return this.#buildArrayParser(
-        textFormat === 'text'
-          ? this.getTypeParser(typeData.rangeOid!, textFormat)
-          : this.getTypeParser(typeData.rangeOid!),
-      );
+      return this.#buildArrayParser(this.getTypeParser(typeData.rangeOid!, 'text'));
     }
 
     if (typeData.type === 'array') {
-      return this.#buildArrayParser(
-        textFormat === 'text'
-          ? this.getTypeParser(typeData.baseOid!, textFormat)
-          : this.getTypeParser(typeData.baseOid!),
-      );
+      return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, 'text'));
     }
 
     const parser = this.dialect.getParserForDatabaseDataType(typeData.typeName);
