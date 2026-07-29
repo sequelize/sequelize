@@ -985,6 +985,23 @@ export function joinWithLogicalOperator(
   sqlArray = sqlArray.filter(val => Boolean(val));
 
   if (sqlArray.length === 0) {
+    // An empty conjunction is vacuously true, so it correctly compiles to "no condition".
+    // An empty disjunction is vacuously *false*, which is the opposite - and silently emitting
+    // "no condition" for it turns a restrictive filter into no filter at all. Rather than pick
+    // either meaning silently, refuse: both plausible readings are surprising, and an empty
+    // Op.or is almost always an unintended consequence of building a filter from an empty list.
+    //
+    // NOTE: the asymmetry with Op.and below is deliberate. Do not "fix" it for consistency.
+    if (operator === Op.or) {
+      throw new Error(
+        `Invalid Query: an empty Op.or is ambiguous and cannot be compiled to SQL.
+An empty disjunction matches no rows, but omitting the condition would match every row.
+If you want to match no rows, use sql\`1 = 0\` (or literal('1 = 0')).
+If you want no condition at all, omit the Op.or entirely.
+This most often happens when building Op.or from a list that turned out to be empty - check that list before building the where clause.`,
+      );
+    }
+
     return '';
   }
 
@@ -1004,8 +1021,20 @@ export function joinWithLogicalOperator(
 }
 
 function wrapWithNot(sql: string): string {
+  // Op.not over nothing is ambiguous for the same reason an empty Op.or is: negating a
+  // vacuously-true empty conjunction yields "match no rows", but the SQL we would generate is
+  // empty, i.e. "match every row".
+  //
+  // NOTE: this cannot be caught by the Op.or guard in joinWithLogicalOperator. The contents of an
+  // Op.not are joined with Op.and semantics, so an empty Op.not reaches this function as '' rather
+  // than throwing on the way in.
   if (!sql) {
-    return '';
+    throw new Error(
+      `Invalid Query: an empty Op.not is ambiguous and cannot be compiled to SQL.
+Negating an empty condition matches no rows, but omitting it would match every row.
+If you want to match no rows, use sql\`1 = 0\` (or literal('1 = 0')).
+If you want no condition at all, omit the Op.not entirely.`,
+    );
   }
 
   return `NOT (${sql})`;
