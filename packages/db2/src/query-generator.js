@@ -176,6 +176,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       key: this.quoteIdentifier(key),
       definition: this.attributeToSQL(dataType, {
         context: 'addColumn',
+        table,
+        key,
       }),
     });
 
@@ -192,6 +194,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const query = 'ALTER TABLE <%= tableName %> <%= query %>;';
     const attrString = [];
     const constraintString = [];
+    const commentString = [];
 
     for (const attributeName in attributes) {
       const attrValue = attributes[attributeName];
@@ -201,7 +204,13 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
 
       for (const definition of defs) {
-        if (/REFERENCES/.test(definition)) {
+        // Db2 does not accept an inline COMMENT clause in ALTER TABLE. attributeToSQL produces a
+        // standalone COMMENT ON COLUMN statement instead, which is appended after the ALTER TABLE.
+        // This must be checked first: the comment text itself may contain any of the keywords the
+        // other branches look for.
+        if (startsWith(definition, 'COMMENT ON COLUMN ')) {
+          commentString.push(definition);
+        } else if (/REFERENCES/.test(definition)) {
           constraintString.push(
             template(
               '<%= fkName %> FOREIGN KEY (<%= attrName %>) <%= definition %>',
@@ -246,13 +255,24 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       finalQuery += `ADD CONSTRAINT ${constraintString.join(' ADD CONSTRAINT ')}`;
     }
 
-    return template(
-      query,
-      this._templateSettings,
-    )({
-      tableName: this.quoteTable(tableName),
-      query: finalQuery,
-    });
+    const statements = [];
+    if (finalQuery.length > 0) {
+      statements.push(
+        template(
+          query,
+          this._templateSettings,
+        )({
+          tableName: this.quoteTable(tableName),
+          query: finalQuery,
+        }),
+      );
+    }
+
+    for (const comment of commentString) {
+      statements.push(`${comment};`);
+    }
+
+    return statements.join(' ');
   }
 
   renameColumnQuery(tableName, attrBefore, attributes) {
@@ -641,9 +661,19 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     if (attribute.comment && typeof attribute.comment === 'string') {
       if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
-        // These contexts do not post-process the comment, so it has to be escaped here or it
-        // would end up in the generated SQL verbatim.
-        template += ` COMMENT ${this.escape(attribute.comment)}`;
+        // Db2 does not accept an inline COMMENT clause in ALTER TABLE, the comment has to be set
+        // by a separate COMMENT ON COLUMN statement.
+        const commentSql = `COMMENT ON COLUMN ${this.quoteTable(options.table)}.${this.quoteIdentifier(
+          // this is the same name addColumnQuery/changeColumnQuery use for the column itself
+          attribute.field ?? options.key,
+        )} IS ${this.escape(attribute.comment)}`;
+
+        if (options.context === 'changeColumn') {
+          // changeColumnQuery splits these back out of the ALTER TABLE statement.
+          template = Array.isArray(template) ? [...template, commentSql] : [template, commentSql];
+        } else {
+          template += `; ${commentSql}`;
+        }
       } else {
         // for createTableQuery, which does its own parsing & escaping of this fragment
         // TODO: centralize creation of comment statements here
@@ -680,7 +710,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         attribute.field = key;
       }
 
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
     }
 
     return result;
