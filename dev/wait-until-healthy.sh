@@ -23,7 +23,12 @@ while [ -z "$failure" ]; do
     break
   fi
 
-  health=$(docker inspect -f '{{ if .State.Health }}{{ .State.Health.Status }}{{ else }}none{{ end }}' "$container")
+  # the container can still go away between the two inspections
+  if ! health=$(docker inspect -f '{{ if .State.Health }}{{ .State.Health.Status }}{{ else }}none{{ end }}' "$container" 2>/dev/null); then
+    >&2 echo "No such container: $container"
+    exit 1
+  fi
+
   if [ "$health" == "none" ]; then
     >&2 echo "Container $container has no healthcheck to wait for"
     exit 1
