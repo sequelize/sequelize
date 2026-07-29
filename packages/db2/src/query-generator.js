@@ -640,7 +640,15 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      template += ` COMMENT ${attribute.comment}`;
+      if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
+        // These contexts do not post-process the comment, so it has to be escaped here or it
+        // would end up in the generated SQL verbatim.
+        template += ` COMMENT ${this.escape(attribute.comment)}`;
+      } else {
+        // for createTableQuery, which does its own parsing & escaping of this fragment
+        // TODO: centralize creation of comment statements here
+        template += ` COMMENT ${attribute.comment}`;
+      }
     }
 
     return template;

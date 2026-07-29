@@ -52,6 +52,11 @@ if (dialect === 'db2') {
           expectation: { id: 'INTEGER COMMENT Test' },
         },
         {
+          title: 'Escapes column level comments when changing a column',
+          arguments: [{ id: { type: 'INTEGER', comment: "Te'st" } }, { context: 'changeColumn' }],
+          expectation: { id: "DATA TYPE INTEGER COMMENT 'Te''st'" },
+        },
+        {
           arguments: [{ id: { type: 'INTEGER', unique: true } }],
           expectation: { id: 'INTEGER UNIQUE' },
         },
