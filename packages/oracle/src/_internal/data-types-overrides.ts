@@ -385,13 +385,10 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 
 export class DATEONLY extends BaseTypes.DATEONLY {
   toBindableValue(date: AcceptedDate) {
-    if (date) {
-      const format = 'YYYY/MM/DD';
+    const format = 'YYYY/MM/DD';
+    const formattedDate = super.toBindableValue(date).replaceAll('-', '/');
 
-      return this.escape(`TO_DATE('${date}','${format}')`);
-    }
-
-    return this.escape(date);
+    return `TO_DATE('${formattedDate}','${format}')`;
   }
 
   parseDatabaseValue(value: any) {
