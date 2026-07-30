@@ -52,7 +52,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape(new Date('2022-01-01T12:13:14.123Z')), {
         default: `'2022-01-01 12:13:14.123 +00:00'`,
         'mariadb mysql': `'2022-01-01 12:13:14'`,
-        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        'db2 ibmi snowflake hana': `'2022-01-01 12:13:14.123'`,
         mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -62,7 +62,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape('2022-01-01T12:13:14.123Z'), {
         default: `'2022-01-01 12:13:14.123 +00:00'`,
         'mariadb mysql': `'2022-01-01 12:13:14'`,
-        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        'db2 ibmi snowflake hana': `'2022-01-01 12:13:14.123'`,
         mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -72,7 +72,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape(0), {
         default: `'1970-01-01 00:00:00.000 +00:00'`,
         'mariadb mysql': `'1970-01-01 00:00:00'`,
-        'db2 ibmi snowflake': `'1970-01-01 00:00:00.000'`,
+        'db2 ibmi snowflake hana': `'1970-01-01 00:00:00.000'`,
         mssql: `N'1970-01-01 00:00:00.000 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('1970-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
