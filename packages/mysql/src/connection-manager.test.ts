@@ -8,6 +8,7 @@ type QueryCallback = (error: Error | null) => void;
 
 class FakeMySqlConnection extends EventEmitter {
   destroyCallCount = 0;
+  endCallCount = 0;
   queries: string[] = [];
 
   constructor(private readonly queryError: Error | null) {
@@ -28,6 +29,13 @@ class FakeMySqlConnection extends EventEmitter {
 
   destroy(): void {
     this.destroyCallCount++;
+  }
+
+  end(callback?: (error?: Error | null) => void): void {
+    this.endCallCount++;
+    process.nextTick(() => {
+      callback?.();
+    });
   }
 }
 
@@ -79,6 +87,7 @@ describe('MySqlConnectionManager#connect', () => {
     expect(connection).to.equal(fakeConnection);
     expect(fakeConnection.queries).to.deep.equal([`SET time_zone = '+05:30'`]);
     expect(fakeConnection.destroyCallCount).to.equal(0);
+    expect(fakeConnection.endCallCount).to.equal(0);
   });
 
   // https://github.com/sequelize/sequelize/issues/18266
@@ -104,5 +113,6 @@ describe('MySqlConnectionManager#connect', () => {
     const [fakeConnection] = getConnections();
     expect(fakeConnection.queries).to.deep.equal([`SET time_zone = '+05:30'`]);
     expect(fakeConnection.destroyCallCount).to.equal(1);
+    expect(fakeConnection.endCallCount).to.equal(0);
   });
 });
