@@ -606,10 +606,6 @@ Connection options can be used at the root of the option bag, in the "replicatio
       omitNull: false,
       // TODO [>7]: remove this option
       quoteIdentifiers: true,
-      retry: {
-        max: 5,
-        match: ['SQLITE_BUSY: database is locked'],
-      },
       transactionType: TransactionType.DEFERRED,
       isolationLevel: undefined,
       noTypeValidation: false,
@@ -621,6 +617,15 @@ Connection options can be used at the root of the option bag, in the "replicatio
       defaultTimestampPrecision: 6,
       nullJsonStringification: 'json',
       ...persistedSequelizeOptions,
+      // `retry` is merged onto the default rather than replacing it, so overriding only
+      // part of it (e.g. just the backoff options) keeps the default `match`. A shallow
+      // replace would drop `match`, which in retry-as-promised means "retry on every
+      // error", including permanent ones like a UniqueConstraintError. See #18259.
+      retry: {
+        max: 5,
+        match: ['SQLITE_BUSY: database is locked'],
+        ...persistedSequelizeOptions.retry,
+      },
       replication: normalizeReplicationConfig(
         this.dialect,
         connectionOptions as RawConnectionOptions<Dialect>,

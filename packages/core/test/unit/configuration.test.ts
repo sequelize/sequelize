@@ -167,4 +167,52 @@ describe('Sequelize constructor', () => {
       expect(replication.read).to.deep.eq([]);
     });
   });
+
+  describe('retry option', () => {
+    const defaultMatch = ['SQLITE_BUSY: database is locked'];
+
+    it('uses the default retry policy when no retry option is supplied', () => {
+      const localSequelize = createSequelizeInstance();
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 5,
+        match: defaultMatch,
+      });
+    });
+
+    it('keeps the default match when only backoff options are overridden', () => {
+      const localSequelize = createSequelizeInstance({
+        retry: { max: 5, backoffBase: 1000, backoffExponent: 1.5 },
+      });
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 5,
+        match: defaultMatch,
+        backoffBase: 1000,
+        backoffExponent: 1.5,
+      });
+    });
+
+    it('lets an explicit match override the default', () => {
+      const localSequelize = createSequelizeInstance({
+        retry: { max: 3, match: ['ER_LOCK_DEADLOCK'] },
+      });
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 3,
+        match: ['ER_LOCK_DEADLOCK'],
+      });
+    });
+
+    it('preserves an explicit empty match (opt-in to retrying all errors)', () => {
+      const localSequelize = createSequelizeInstance({
+        retry: { max: 5, match: [] },
+      });
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 5,
+        match: [],
+      });
+    });
+  });
 });
