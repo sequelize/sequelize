@@ -1,7 +1,6 @@
 import { pojo } from '@sequelize/utils';
 import type { SyntaxNode } from 'bnf-parser';
 import { BNF, Compile, ParseError } from 'bnf-parser';
-import memoize from 'lodash/memoize.js';
 import type { Class } from 'type-fest';
 import { AssociationPath } from '../expression-builders/association-path.js';
 import { Attribute } from '../expression-builders/attribute.js';
@@ -9,6 +8,13 @@ import { Cast } from '../expression-builders/cast.js';
 import type { DialectAwareFn } from '../expression-builders/dialect-aware-fn.js';
 import { Unquote } from '../expression-builders/dialect-aware-fn.js';
 import { JsonPath } from '../expression-builders/json-path.js';
+
+// Defensive upper bound; not derived from workload measurements.
+export const ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE = 1000;
+
+type MemoizedParser<T> = ((key: string) => T) & {
+  cache: Map<string, T>;
+};
 
 /**
  * Parses the attribute syntax (the syntax of keys in WHERE POJOs) into its "BaseExpression" representation.
@@ -24,14 +30,46 @@ import { JsonPath } from '../expression-builders/json-path.js';
  *
  * @param attribute The syntax to parse
  */
-export const parseAttributeSyntax = memoize(parseAttributeSyntaxInternal);
+export const parseAttributeSyntax = memoizeWithBoundedCache(parseAttributeSyntaxInternal);
 
 /**
  * Parses the syntax supported by nested JSON properties.
  * This is a subset of {@link parseAttributeSyntax}, which does not parse associations, and returns raw data
  * instead of a BaseExpression.
  */
-export const parseNestedJsonKeySyntax = memoize(parseJsonPropertyKeyInternal);
+export const parseNestedJsonKeySyntax = memoizeWithBoundedCache(parseJsonPropertyKeyInternal);
+
+function memoizeWithBoundedCache<T>(fn: (key: string) => T): MemoizedParser<T> {
+  const cache = new Map<string, T>();
+
+  const memoized = (key: string): T => {
+    if (cache.has(key)) {
+      const result = cache.get(key)!;
+
+      // Reinsert cache hits so untouched entries are evicted first.
+      cache.delete(key);
+      cache.set(key, result);
+
+      return result;
+    }
+
+    const result = fn(key);
+
+    if (cache.size >= ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE) {
+      const oldestKey = cache.keys().next().value;
+
+      if (oldestKey !== undefined) {
+        cache.delete(oldestKey);
+      }
+    }
+
+    cache.set(key, result);
+
+    return result;
+  };
+
+  return Object.assign(memoized, { cache });
+}
 
 /**
  * List of supported attribute modifiers.
