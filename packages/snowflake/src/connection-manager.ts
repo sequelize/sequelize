@@ -92,18 +92,28 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
           );
         }
 
-        await new Promise<void>((resolve, reject) => {
-          connection.execute({
-            sqlText: `ALTER SESSION SET timezone = '${tzOffset}'`,
-            complete(err) {
-              if (err) {
-                return void reject(err);
-              }
+        try {
+          await new Promise<void>((resolve, reject) => {
+            connection.execute({
+              sqlText: `ALTER SESSION SET timezone = '${tzOffset}'`,
+              complete(err) {
+                if (err) {
+                  return void reject(err);
+                }
 
-              resolve();
-            },
+                resolve();
+              },
+            });
           });
-        });
+        } catch (error) {
+          // The session is already established here. Best-effort cleanup avoids leaking a
+          // connection when timezone setup fails after a successful login.
+          await new Promise<void>(resolve => {
+            connection.destroy(() => resolve());
+          });
+
+          throw error;
+        }
       }
 
       return connection;

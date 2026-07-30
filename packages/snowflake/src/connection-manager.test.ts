@@ -1,0 +1,113 @@
+import { Sequelize } from '@sequelize/core';
+import { SnowflakeDialect } from '@sequelize/snowflake';
+import { expect } from 'chai';
+
+describe('SnowflakeConnectionManager#connect', () => {
+  let originalWarn = console.warn;
+
+  class FakeSnowflakeConnection {
+    static lastInstance: FakeSnowflakeConnection | null = null;
+    static executeImpl:
+      | ((
+          this: FakeSnowflakeConnection,
+          options: { sqlText: string; complete: (err?: Error) => void },
+        ) => void)
+      | null = null;
+
+    readonly connectionConfig: unknown;
+    readonly executeCalls: string[] = [];
+    destroyCalls = 0;
+
+    constructor(connectionConfig: unknown) {
+      this.connectionConfig = connectionConfig;
+      FakeSnowflakeConnection.lastInstance = this;
+    }
+
+    connect(callback: (err?: Error | null) => void) {
+      callback(null);
+    }
+
+    execute(options: { sqlText: string; complete: (err?: Error) => void }) {
+      this.executeCalls.push(options.sqlText);
+
+      if (FakeSnowflakeConnection.executeImpl) {
+        FakeSnowflakeConnection.executeImpl.call(this, options);
+
+        return;
+      }
+
+      options.complete();
+    }
+
+    destroy(callback: () => void) {
+      this.destroyCalls += 1;
+      callback();
+    }
+
+    isUp() {
+      return true;
+    }
+
+    getId() {
+      return 'fake-connection-id';
+    }
+  }
+
+  function createSequelize() {
+    const fakeSnowflakeSdk = {
+      createConnection(connectionConfig: unknown) {
+        return new FakeSnowflakeConnection(connectionConfig);
+      },
+    } as any;
+
+    return new Sequelize({
+      dialect: SnowflakeDialect,
+      snowflakeSdkModule: fakeSnowflakeSdk,
+      timezone: 'America/Los_Angeles',
+      keepDefaultTimezone: false,
+    });
+  }
+
+  beforeEach(() => {
+    originalWarn = console.warn;
+    console.warn = () => {};
+    FakeSnowflakeConnection.lastInstance = null;
+    FakeSnowflakeConnection.executeImpl = null;
+  });
+
+  afterEach(() => {
+    console.warn = originalWarn;
+  });
+
+  it('runs timezone setup after connecting', async () => {
+    const sequelize = createSequelize();
+
+    const connection = await sequelize.dialect.connectionManager.connect({} as any);
+
+    expect(connection).to.equal(FakeSnowflakeConnection.lastInstance);
+    expect(FakeSnowflakeConnection.lastInstance?.executeCalls).to.deep.equal([
+      "ALTER SESSION SET timezone = 'America/Los_Angeles'",
+    ]);
+    expect(FakeSnowflakeConnection.lastInstance?.destroyCalls).to.equal(0);
+  });
+
+  it('best-effort destroys the connection when timezone setup fails', async () => {
+    const sequelize = createSequelize();
+    FakeSnowflakeConnection.executeImpl = options => {
+      options.complete(new Error('timezone setup failed'));
+    };
+
+    try {
+      await sequelize.dialect.connectionManager.connect({} as any);
+      throw new Error('Expected connect() to fail');
+    } catch (error) {
+      expect(error).to.be.instanceOf(Error);
+      expect((error as Error).message).to.equal('timezone setup failed');
+    }
+
+    expect(FakeSnowflakeConnection.lastInstance?.executeCalls).to.deep.equal([
+      "ALTER SESSION SET timezone = 'America/Los_Angeles'",
+    ]);
+    expect(FakeSnowflakeConnection.lastInstance?.destroyCalls).to.equal(1);
+  });
+});
