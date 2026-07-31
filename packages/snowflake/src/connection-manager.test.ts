@@ -1,6 +1,7 @@
 import { Sequelize } from '@sequelize/core';
 import { SnowflakeDialect } from '@sequelize/snowflake';
 import { expect } from 'chai';
+import sinon from 'sinon';
 
 describe('SnowflakeConnectionManager#connect', () => {
   let originalWarn = console.warn;
@@ -13,6 +14,9 @@ describe('SnowflakeConnectionManager#connect', () => {
   class FakeSnowflakeConnection {
     static lastInstance: FakeSnowflakeConnection | null = null;
     static executeImpl: ((this: FakeSnowflakeConnection, options: ExecuteOptions) => void) | null =
+      null;
+
+    static destroyImpl: ((this: FakeSnowflakeConnection, callback: () => void) => void) | null =
       null;
 
     readonly connectionConfig: unknown;
@@ -42,6 +46,13 @@ describe('SnowflakeConnectionManager#connect', () => {
 
     destroy(callback: () => void) {
       this.destroyCalls += 1;
+
+      if (FakeSnowflakeConnection.destroyImpl) {
+        FakeSnowflakeConnection.destroyImpl.call(this, callback);
+
+        return;
+      }
+
       callback();
     }
 
@@ -75,6 +86,7 @@ describe('SnowflakeConnectionManager#connect', () => {
 
     FakeSnowflakeConnection.lastInstance = null;
     FakeSnowflakeConnection.executeImpl = null;
+    FakeSnowflakeConnection.destroyImpl = null;
   });
 
   afterEach(() => {
@@ -137,5 +149,29 @@ describe('SnowflakeConnectionManager#connect', () => {
 
     expect(FakeSnowflakeConnection.lastInstance?.executeCalls).to.deep.equal([]);
     expect(FakeSnowflakeConnection.lastInstance?.destroyCalls).to.equal(1);
+  });
+
+  it('does not hang if setup cleanup destroy callback never fires', async () => {
+    const clock = sinon.useFakeTimers();
+    const sequelize = createSequelize();
+    const setupError = new Error('timezone setup failed');
+
+    FakeSnowflakeConnection.executeImpl = options => {
+      options.complete(setupError);
+    };
+
+    FakeSnowflakeConnection.destroyImpl = () => {};
+
+    try {
+      const connectPromise = sequelize.dialect.connectionManager
+        .connect({} as any)
+        .catch(error => error);
+      await clock.tickAsync(5000);
+
+      expect(await connectPromise).to.equal(setupError);
+      expect(FakeSnowflakeConnection.lastInstance?.destroyCalls).to.equal(1);
+    } finally {
+      clock.restore();
+    }
   });
 });

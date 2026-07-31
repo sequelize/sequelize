@@ -17,6 +17,7 @@ import type { SnowflakeDialect } from './dialect.js';
 export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
+const CONNECTION_CLEANUP_TIMEOUT_MS = 5000;
 
 export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
 
@@ -132,10 +133,21 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
       // The session is already established here. Best-effort cleanup avoids leaking a
       // connection when timezone setup fails after a successful login.
       await new Promise<void>(resolve => {
+        let settled = false;
+        const finish = () => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timeout);
+            resolve();
+          }
+        };
+
+        const timeout = setTimeout(finish, CONNECTION_CLEANUP_TIMEOUT_MS);
+
         try {
-          connection.destroy(() => resolve());
+          connection.destroy(finish);
         } catch {
-          resolve();
+          finish();
         }
       });
 
