@@ -5,14 +5,15 @@ import { expect } from 'chai';
 describe('SnowflakeConnectionManager#connect', () => {
   let originalWarn = console.warn;
 
+  interface ExecuteOptions {
+    sqlText: string;
+    complete(err?: Error): void;
+  }
+
   class FakeSnowflakeConnection {
     static lastInstance: FakeSnowflakeConnection | null = null;
-    static executeImpl:
-      | ((
-          this: FakeSnowflakeConnection,
-          options: { sqlText: string; complete: (err?: Error) => void },
-        ) => void)
-      | null = null;
+    static executeImpl: ((this: FakeSnowflakeConnection, options: ExecuteOptions) => void) | null =
+      null;
 
     readonly connectionConfig: unknown;
     readonly executeCalls: string[] = [];
@@ -27,7 +28,7 @@ describe('SnowflakeConnectionManager#connect', () => {
       callback(null);
     }
 
-    execute(options: { sqlText: string; complete: (err?: Error) => void }) {
+    execute(options: ExecuteOptions) {
       this.executeCalls.push(options.sqlText);
 
       if (FakeSnowflakeConnection.executeImpl) {
@@ -71,6 +72,7 @@ describe('SnowflakeConnectionManager#connect', () => {
   beforeEach(() => {
     originalWarn = console.warn;
     console.warn = () => {};
+
     FakeSnowflakeConnection.lastInstance = null;
     FakeSnowflakeConnection.executeImpl = null;
   });
@@ -108,6 +110,32 @@ describe('SnowflakeConnectionManager#connect', () => {
     expect(FakeSnowflakeConnection.lastInstance?.executeCalls).to.deep.equal([
       "ALTER SESSION SET timezone = 'America/Los_Angeles'",
     ]);
+    expect(FakeSnowflakeConnection.lastInstance?.destroyCalls).to.equal(1);
+  });
+
+  it('best-effort destroys the connection when timezone validation fails', async () => {
+    const sequelize = new Sequelize({
+      dialect: SnowflakeDialect,
+      snowflakeSdkModule: {
+        createConnection(connectionConfig: unknown) {
+          return new FakeSnowflakeConnection(connectionConfig);
+        },
+      } as any,
+      timezone: '+05:30',
+      keepDefaultTimezone: false,
+    });
+
+    try {
+      await sequelize.dialect.connectionManager.connect({} as any);
+      throw new Error('Expected connect() to fail');
+    } catch (error) {
+      expect(error).to.be.instanceOf(Error);
+      expect((error as Error).message).to.equal(
+        'Snowflake only supports named timezones for the sequelize "timezone" option.',
+      );
+    }
+
+    expect(FakeSnowflakeConnection.lastInstance?.executeCalls).to.deep.equal([]);
     expect(FakeSnowflakeConnection.lastInstance?.destroyCalls).to.equal(1);
   });
 });

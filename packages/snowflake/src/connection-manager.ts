@@ -59,12 +59,14 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    * @private
    */
   async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
+    let connection: SnowflakeConnection;
+
     try {
       const snowflakeConfig: SnowflakeSdk.ConnectionOptions = removeUndefined({
         schema: this.sequelize.options.schema,
         ...config,
       });
-      const connection: SnowflakeConnection = this.#lib.createConnection(snowflakeConfig);
+      connection = this.#lib.createConnection(snowflakeConfig);
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {
@@ -75,48 +77,6 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
           resolve();
         });
       });
-
-      debug('connection acquired');
-
-      if (!this.sequelize.options.keepDefaultTimezone) {
-        // TODO: remove default timezone.
-        // default value is '+00:00', put a quick workaround for it.
-        const tzOffset =
-          this.sequelize.options.timezone === '+00:00'
-            ? 'Etc/UTC'
-            : this.sequelize.options.timezone;
-        const isNamedTzOffset = tzOffset.includes('/');
-        if (!isNamedTzOffset) {
-          throw new Error(
-            'Snowflake only supports named timezones for the sequelize "timezone" option.',
-          );
-        }
-
-        try {
-          await new Promise<void>((resolve, reject) => {
-            connection.execute({
-              sqlText: `ALTER SESSION SET timezone = '${tzOffset}'`,
-              complete(err) {
-                if (err) {
-                  return void reject(err);
-                }
-
-                resolve();
-              },
-            });
-          });
-        } catch (error) {
-          // The session is already established here. Best-effort cleanup avoids leaking a
-          // connection when timezone setup fails after a successful login.
-          await new Promise<void>(resolve => {
-            connection.destroy(() => resolve());
-          });
-
-          throw error;
-        }
-      }
-
-      return connection;
     } catch (error) {
       if (!isErrorWithStringCode(error)) {
         throw error;
@@ -137,6 +97,52 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
+
+    debug('connection acquired');
+
+    try {
+      if (!this.sequelize.options.keepDefaultTimezone) {
+        // TODO: remove default timezone.
+        // default value is '+00:00', put a quick workaround for it.
+        const tzOffset =
+          this.sequelize.options.timezone === '+00:00'
+            ? 'Etc/UTC'
+            : this.sequelize.options.timezone;
+        const isNamedTzOffset = tzOffset.includes('/');
+        if (!isNamedTzOffset) {
+          throw new Error(
+            'Snowflake only supports named timezones for the sequelize "timezone" option.',
+          );
+        }
+
+        await new Promise<void>((resolve, reject) => {
+          connection.execute({
+            sqlText: `ALTER SESSION SET timezone = '${tzOffset}'`,
+            complete(err) {
+              if (err) {
+                return void reject(err);
+              }
+
+              resolve();
+            },
+          });
+        });
+      }
+    } catch (error) {
+      // The session is already established here. Best-effort cleanup avoids leaking a
+      // connection when timezone setup fails after a successful login.
+      await new Promise<void>(resolve => {
+        try {
+          connection.destroy(() => resolve());
+        } catch {
+          resolve();
+        }
+      });
+
+      throw error;
+    }
+
+    return connection;
   }
 
   async disconnect(connection: SnowflakeConnection): Promise<void> {
