@@ -2587,7 +2587,7 @@ declare namespace sequelize {
     /**
      * Transaction to run query under
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
 
     /**
      * A hash of attributes to describe your search. See above for examples.
@@ -2607,7 +2607,7 @@ declare namespace sequelize {
     /**
      * Transaction to run query under
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
   }
 
   /**
@@ -2627,7 +2627,7 @@ declare namespace sequelize {
     /**
      * Transaction to run the query in
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
   }
 
   /**
@@ -2915,7 +2915,7 @@ declare namespace sequelize {
     /**
      * Transaction to run query under
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
 
     /**
      * An optional parameter to specify the schema search_path (Postgres only)
@@ -3513,7 +3513,7 @@ declare namespace sequelize {
     /**
      * Transaction to run query under
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
   }
 
   /**
@@ -3555,7 +3555,7 @@ declare namespace sequelize {
     /**
      * Transaction to run query under
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
 
     /**
      * If true, the updatedAt timestamp will not be updated.
@@ -3584,9 +3584,10 @@ declare namespace sequelize {
     distinct?: boolean | undefined;
 
     /**
-     * The transaction that the query should be executed under
+     * The transaction that the query should be executed under. Defaults to the ambient CLS transaction, if
+     * CLS is enabled and one is active. Pass `null` to run outside of it.
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
 
     /**
      * When `true`, the first returned value of `aggregateFunction` is cast to `dataType` and returned.
@@ -3620,7 +3621,7 @@ declare namespace sequelize {
     /**
      * Transaction to run query under
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
   }
 
   /**
@@ -4126,7 +4127,7 @@ declare namespace sequelize {
     /**
      * An optional transaction to perform this query in
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
   }
 
   interface AddUniqueConstraintOptions {
@@ -6422,6 +6423,10 @@ declare namespace sequelize {
      * ```
      * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
      *
+     * With CLS enabled, calling this inside an existing transaction nests the new transaction as a SAVEPOINT
+     * of the ambient one, unless `options.transaction` is given explicitly. Pass `transaction: null` to start
+     * an independent transaction on its own connection.
+     *
      * @param options Transaction Options
      * @param autoCallback Callback for the transaction
      */
@@ -6706,9 +6711,12 @@ declare namespace sequelize {
     logging?: Function | undefined;
 
     /**
-     * Specify the parent transaction so that this transaction is nested or a save point within the parent
+     * Specify the parent transaction so that this transaction is nested or a save point within the parent.
+     *
+     * Defaults to the ambient CLS transaction, if CLS is enabled and one is active. Pass `null` to start an
+     * independent transaction on its own connection instead of nesting.
      */
-    transaction?: Transaction | undefined;
+    transaction?: Transaction | null | undefined;
 
     /**
      * Sets the constraints to be deferred or immediately checked.

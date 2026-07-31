@@ -141,6 +141,81 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    describe('nested transactions', () => {
+      it('nests a transaction with no explicit parent as a savepoint', function () {
+        return this.sequelize.transaction((outer) => {
+          return this.sequelize.transaction((inner) => {
+            expect(inner.parent).to.equal(outer);
+            expect(inner.id).to.equal(outer.id);
+            expect(inner.connection).to.equal(outer.connection);
+            return Promise.resolve();
+          });
+        });
+      });
+
+      it('nests as a savepoint when `transaction` is explicitly undefined', function () {
+        return this.sequelize.transaction((outer) => {
+          return this.sequelize.transaction({ transaction: undefined }, (inner) => {
+            expect(inner.parent).to.equal(outer);
+            return Promise.resolve();
+          });
+        });
+      });
+
+      it('starts an independent transaction when `transaction` is null', function () {
+        return this.sequelize.transaction((outer) => {
+          return this.sequelize.transaction({ transaction: null }, (inner) => {
+            expect(inner.parent).not.to.be.ok;
+            expect(inner.id).not.to.equal(outer.id);
+            expect(inner.connection).not.to.equal(outer.connection);
+            return Promise.resolve();
+          });
+        });
+      });
+
+      it('leaves the outer transaction usable after a constraint violation inside the savepoint', function () {
+        const Person = this.sequelize.define('person', {
+          name: { type: Sequelize.STRING, unique: true }
+        });
+
+        return Person.sync({ force: true }).then(() => {
+          return this.sequelize.transaction(() => {
+            return Person.create({ name: 'bob' })
+              .then(() => {
+                return expect(
+                  this.sequelize.transaction(() => {
+                    return Person.create({ name: 'bob' });
+                  })
+                ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+              })
+              .then(() => {
+                // Would fail with `25P02: current transaction is aborted` on postgres if the failed
+                // INSERT had run in the outer transaction rather than a savepoint.
+                return expect(Person.findAll()).to.eventually.have.length(1);
+              });
+          });
+        });
+      });
+
+      it('rolls back only the savepoint and leaves the outer transaction usable', function () {
+        return this.sequelize.transaction(() => {
+          return this.User.create({ name: 'bob' })
+            .then(() => {
+              return expect(
+                this.sequelize.transaction(() => {
+                  return this.User.create({ name: 'alice' }).then(() => {
+                    throw new Error('rollback the savepoint');
+                  });
+                })
+              ).to.be.rejectedWith('rollback the savepoint');
+            })
+            .then(() => {
+              return expect(this.User.findAll()).to.eventually.have.length(1);
+            });
+        });
+      });
+    });
+
     describe('sequelize.query integration', () => {
       it('automagically uses the transaction in all calls', function () {
         const self = this;
