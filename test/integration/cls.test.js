@@ -216,6 +216,81 @@ if (current.dialect.supports.transactions) {
       });
     });
 
+    describe('nested transaction savepoint release', () => {
+      it('releases the savepoint when a nested transaction commits', function () {
+        const sql = [];
+
+        return this.sequelize
+          .transaction(async () => {
+            await this.sequelize.transaction({ logging: (s) => sql.push(s) }, async () => {
+              await this.User.create({ name: 'bob' });
+            });
+          })
+          .then(() => {
+            expect(sql.join('\n')).to.match(/RELEASE SAVEPOINT/);
+          });
+      });
+
+      it('leaves no savepoint to roll back to after the nested transaction commits', function () {
+        return this.sequelize.transaction(async (outer) => {
+          let savepointName;
+
+          await this.sequelize.transaction(async (inner) => {
+            savepointName = inner.name;
+          });
+
+          // The savepoint is released, so rolling back to it is an error rather than a silent no-op.
+          await expect(
+            this.sequelize.query(
+              'ROLLBACK TO SAVEPOINT ' + this.sequelize.getQueryInterface().quoteIdentifier(savepointName, true),
+              { transaction: outer }
+            )
+          ).to.be.rejected;
+        });
+      });
+
+      it('rolls a savepoint back to itself after it has opened a deeper savepoint', function () {
+        // Regression: the savepoint name used to be assigned onto the PARENT transaction, so opening a
+        // deeper savepoint renamed the middle one and its rollback targeted the deeper savepoint —
+        // silently keeping writes the rollback was supposed to discard.
+        return this.sequelize.transaction(async () => {
+          await this.User.create({ name: 'outer' });
+
+          await expect(
+            this.sequelize.transaction(async () => {
+              await this.User.create({ name: 'middle' });
+
+              await this.sequelize.transaction(async () => {
+                await this.User.create({ name: 'deep' });
+              });
+
+              throw new Error('rollback the middle savepoint');
+            })
+          ).to.be.rejectedWith('rollback the middle savepoint');
+
+          const users = await this.User.findAll();
+          expect(users.map((user) => user.name)).to.deep.equal(['outer']);
+        });
+      });
+
+      it('releases one savepoint per sequential nested transaction', function () {
+        const sql = [];
+        const logging = (s) => sql.push(s);
+
+        return this.sequelize.transaction(async () => {
+          for (const name of ['first', 'second', 'third']) {
+            await this.sequelize.transaction({ logging }, async () => {
+              await this.User.create({ name });
+            });
+          }
+
+          // One release per commit, so the subtransaction stack does not grow with the loop.
+          expect(sql.filter((statement) => /RELEASE SAVEPOINT/.test(statement))).to.have.length(3);
+          await expect(this.User.findAll()).to.eventually.have.length(3);
+        });
+      });
+    });
+
     describe('nested transaction afterCommit hooks', () => {
       it('defers a savepoint hook to the root transaction instead of running it at savepoint commit', function () {
         const fired = [];

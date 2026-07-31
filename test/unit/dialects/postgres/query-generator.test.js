@@ -1310,6 +1310,24 @@ if (dialect.match(/^postgres/)) {
         }
       ],
 
+      commitTransactionQuery: [
+        {
+          arguments: [{}],
+          expectation: 'COMMIT;',
+          context: { options: { quoteIdentifiers: false } }
+        },
+        {
+          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+          expectation: 'RELEASE SAVEPOINT "transaction-uid";',
+          context: { options: { quoteIdentifiers: false } }
+        },
+        {
+          arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+          expectation: 'RELEASE SAVEPOINT "transaction-uid";',
+          context: { options: { quoteIdentifiers: true } }
+        }
+      ],
+
       rollbackTransactionQuery: [
         {
           arguments: [{}],

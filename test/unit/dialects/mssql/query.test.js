@@ -19,6 +19,9 @@ if (dialect === 'mssql') {
       beforeEach(() => {
         sandbox = sinon.createSandbox();
         const options = {
+          // The savepoint name travels in its own option rather than on the transaction, so starting a
+          // savepoint cannot rename its parent. It is undefined for a root transaction.
+          savepointName: 'transactionName',
           transaction: { name: 'transactionName' },
           isolationLevel: 'REPEATABLE_READ',
           logging: false
