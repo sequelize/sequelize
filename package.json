@@ -1,6 +1,6 @@
 {
   "name": "sequelize",
-  "version": "400.47.3",
+  "version": "400.48.0",
   "description": "Multi dialect ORM for Node.JS",
   "keywords": [
     "mssql",
