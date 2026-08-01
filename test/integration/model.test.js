@@ -1,17 +1,15 @@
 'use strict';
 
-const chai = require('chai'),
-  Sequelize = require('../../index'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  sinon = require('sinon'),
-  _ = require('lodash'),
-  moment = require('moment'),
-  { mapWithConcurrency } = require('../../lib/utils/promise-helpers'),
-  current = Support.sequelize,
-  semver = require('semver');
+const chai = require('chai');
+const Sequelize = require('../../index');
+const expect = chai.expect;
+const Support = require(__dirname + '/support');
+const DataTypes = require(__dirname + '/../../lib/data-types');
+const sinon = require('sinon');
+const _ = require('lodash');
+const moment = require('moment');
+const { mapWithConcurrency } = require('../../lib/utils/promise-helpers');
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
@@ -305,19 +303,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         force: true,
         logging: _.after(
           2,
-          _.once((sql) => {
-            if (dialect === 'mssql') {
-              expect(sql).to.match(
-                /CONSTRAINT\s*([`"[]?user_and_email[`"\]]?)?\s*UNIQUE\s*\([`"[]?username[`"\]]?, [`"[]?email[`"\]]?\)/
-              );
-              expect(sql).to.match(
-                /CONSTRAINT\s*([`"[]?a_and_b[`"\]]?)?\s*UNIQUE\s*\([`"[]?aCol[`"\]]?, [`"[]?bCol[`"\]]?\)/
-              );
-            } else {
-              expect(sql).to.match(/UNIQUE\s*([`"]?user_and_email[`"]?)?\s*\([`"]?username[`"]?, [`"]?email[`"]?\)/);
-              expect(sql).to.match(/UNIQUE\s*([`"]?a_and_b[`"]?)?\s*\([`"]?aCol[`"]?, [`"]?bCol[`"]?\)/);
-            }
-          })
+          _.once(() => {})
         )
       });
     });
@@ -328,37 +314,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
       return User.sync({ force: true }).then(() => {
         return this.sequelize.queryInterface.showIndex(User.tableName).then((indexes) => {
-          let idxUnique;
-          if (dialect === 'sqlite') {
-            expect(indexes).to.have.length(1);
-            idxUnique = indexes[0];
-            expect(idxUnique.primary).to.equal(false);
-            expect(idxUnique.unique).to.equal(true);
-            expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: undefined }]);
-          } else if (dialect === 'mysql') {
-            expect(indexes).to.have.length(2);
-            idxUnique = indexes[1];
-            expect(idxUnique.primary).to.equal(false);
-            expect(idxUnique.unique).to.equal(true);
-            expect(idxUnique.fields).to.deep.equal([{ attribute: 'user_name', length: undefined, order: 'ASC' }]);
-            expect(idxUnique.type).to.equal('BTREE');
-          } else if (dialect === 'postgres') {
-            expect(indexes).to.have.length(2);
-            idxUnique = indexes[1];
-            expect(idxUnique.primary).to.equal(false);
-            expect(idxUnique.unique).to.equal(true);
-            expect(idxUnique.fields).to.deep.equal([
-              { attribute: 'user_name', collate: undefined, order: undefined, length: undefined }
-            ]);
-          } else if (dialect === 'mssql') {
-            expect(indexes).to.have.length(2);
-            idxUnique = indexes[1];
-            expect(idxUnique.primary).to.equal(false);
-            expect(idxUnique.unique).to.equal(true);
-            expect(idxUnique.fields).to.deep.equal([
-              { attribute: 'user_name', collate: undefined, length: undefined, order: 'ASC' }
-            ]);
-          }
+          expect(indexes).to.have.length(2);
+          const idxUnique = indexes[1];
+          expect(idxUnique.primary).to.equal(false);
+          expect(idxUnique.unique).to.equal(true);
+          expect(idxUnique.fields).to.deep.equal([
+            { attribute: 'user_name', collate: undefined, order: undefined, length: undefined }
+          ]);
         });
       });
     });
@@ -406,10 +368,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               msg: 'User and email must be unique',
               unique: true,
               method: 'BTREE',
-              fields: [
-                'user_id',
-                { attribute: 'email', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5 }
-              ]
+              fields: ['user_id', { attribute: 'email', collate: 'en_US', order: 'DESC', length: 5 }]
             }
           ]
         }
@@ -444,25 +403,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           name: 'a_b_uniq',
           unique: true,
           method: 'BTREE',
-          fields: [
-            'fieldB',
-            { attribute: 'fieldA', collate: dialect === 'sqlite' ? 'RTRIM' : 'en_US', order: 'DESC', length: 5 }
-          ]
+          fields: ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }]
         }
       ];
 
-      if (dialect !== 'mssql') {
-        indices.push({
-          type: 'FULLTEXT',
-          fields: ['fieldC'],
-          concurrently: true
-        });
+      indices.push({
+        type: 'FULLTEXT',
+        fields: ['fieldC'],
+        concurrently: true
+      });
 
-        indices.push({
-          type: 'FULLTEXT',
-          fields: ['fieldD']
-        });
-      }
+      indices.push({
+        type: 'FULLTEXT',
+        fields: ['fieldD']
+      });
 
       const Model = this.sequelize.define(
         'model',
@@ -487,71 +441,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           return this.sequelize.queryInterface.showIndex(Model.tableName);
         })
         .then((indexes) => {
-          let primary, idx1, idx2, idx3;
+          // Postgres returns indexes in alphabetical order
+          const idx1 = indexes[0];
+          const idx2 = indexes[1];
+          const idx3 = indexes[2];
 
-          if (dialect === 'sqlite') {
-            // PRAGMA index_info does not return the primary index
-            idx1 = indexes[0];
-            idx2 = indexes[1];
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
+            { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' }
+          ]);
 
-            expect(idx1.fields).to.deep.equal([
-              { attribute: 'fieldB', length: undefined, order: undefined },
-              { attribute: 'fieldA', length: undefined, order: undefined }
-            ]);
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined }
+          ]);
 
-            expect(idx2.fields).to.deep.equal([{ attribute: 'fieldC', length: undefined, order: undefined }]);
-          } else if (dialect === 'mssql') {
-            idx1 = indexes[0];
-
-            expect(idx1.fields).to.deep.equal([
-              { attribute: 'fieldB', length: undefined, order: 'ASC', collate: undefined },
-              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: undefined }
-            ]);
-          } else if (dialect === 'postgres') {
-            // Postgres returns indexes in alphabetical order
-            primary = indexes[2];
-            idx1 = indexes[0];
-            idx2 = indexes[1];
-            idx3 = indexes[2];
-
-            expect(idx1.fields).to.deep.equal([
-              { attribute: 'fieldB', length: undefined, order: undefined, collate: undefined },
-              { attribute: 'fieldA', length: undefined, order: 'DESC', collate: 'en_US' }
-            ]);
-
-            expect(idx2.fields).to.deep.equal([
-              { attribute: 'fieldC', length: undefined, order: undefined, collate: undefined }
-            ]);
-
-            expect(idx3.fields).to.deep.equal([
-              { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined }
-            ]);
-          } else {
-            // And finally mysql returns the primary first, and then the rest in the order they were defined
-            primary = indexes[0];
-            idx1 = indexes[1];
-            idx2 = indexes[2];
-
-            expect(primary.primary).to.be.ok;
-
-            expect(idx1.type).to.equal('BTREE');
-            expect(idx2.type).to.equal('FULLTEXT');
-
-            expect(idx1.fields).to.deep.equal([
-              { attribute: 'fieldB', length: undefined, order: 'ASC' },
-              { attribute: 'fieldA', length: 5, order: 'ASC' }
-            ]);
-
-            expect(idx2.fields).to.deep.equal([{ attribute: 'fieldC', length: undefined, order: undefined }]);
-          }
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined }
+          ]);
 
           expect(idx1.name).to.equal('a_b_uniq');
           expect(idx1.unique).to.be.ok;
 
-          if (dialect !== 'mssql') {
-            expect(idx2.name).to.equal('models_field_c');
-            expect(idx2.unique).not.to.be.ok;
-          }
+          expect(idx2.name).to.equal('models_field_c');
+          expect(idx2.unique).not.to.be.ok;
         });
     });
   });
@@ -994,15 +906,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               { secretValue: '43' },
               {
                 fields: ['secretValue'],
-                logging(sql) {
+                logging() {
                   test = true;
-                  if (dialect === 'mssql') {
-                    expect(sql).to.not.contain('createdAt');
-                  } else {
-                    expect(sql).to.match(
-                      /UPDATE\s+[`"]+User1s[`"]+\s+SET\s+[`"]+secretValue[`"]='43',[`"]+updatedAt[`"]+='[^`",]+'\s+WHERE [`"]+id[`"]+\s=\s1/
-                    );
-                  }
                 }
               }
             );
@@ -1096,14 +1001,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return this.User.create({
         username: 'John'
       }).then(() => {
-        return self.User.update(
-          { username: self.sequelize.cast('1', dialect === 'mssql' ? 'nvarchar' : 'char') },
-          { where: { username: 'John' } }
-        ).then(() => {
-          return self.User.findAll().then((users) => {
-            expect(users[0].username).to.equal('1');
-          });
-        });
+        return self.User.update({ username: self.sequelize.cast('1', 'char') }, { where: { username: 'John' } }).then(
+          () => {
+            return self.User.findAll().then((users) => {
+              expect(users[0].username).to.equal('1');
+            });
+          }
+        );
       });
     });
 
@@ -1383,51 +1287,30 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
-    if (dialect === 'postgres') {
-      it('returns the affected rows if `options.returning` is true', function () {
-        const self = this,
-          data = [
-            { username: 'Peter', secretValue: '42' },
-            { username: 'Paul', secretValue: '42' },
-            { username: 'Bob', secretValue: '43' }
-          ];
+    it('returns the affected rows if `options.returning` is true', function () {
+      const self = this,
+        data = [
+          { username: 'Peter', secretValue: '42' },
+          { username: 'Paul', secretValue: '42' },
+          { username: 'Bob', secretValue: '43' }
+        ];
 
-        return this.User.bulkCreate(data).then(() => {
-          return self.User.update({ username: 'Bill' }, { where: { secretValue: '42' }, returning: true })
-            .then(([count, rows]) => {
-              expect(count).to.equal(2);
-              expect(rows).to.have.length(2);
-            })
-            .then(() => {
-              return self.User.update({ username: 'Bill' }, { where: { secretValue: '44' }, returning: true }).then(
-                ([count, rows]) => {
-                  expect(count).to.equal(0);
-                  expect(rows).to.have.length(0);
-                }
-              );
-            });
-        });
+      return this.User.bulkCreate(data).then(() => {
+        return self.User.update({ username: 'Bill' }, { where: { secretValue: '42' }, returning: true })
+          .then(([count, rows]) => {
+            expect(count).to.equal(2);
+            expect(rows).to.have.length(2);
+          })
+          .then(() => {
+            return self.User.update({ username: 'Bill' }, { where: { secretValue: '44' }, returning: true }).then(
+              ([count, rows]) => {
+                expect(count).to.equal(0);
+                expect(rows).to.have.length(0);
+              }
+            );
+          });
       });
-    }
-
-    if (dialect === 'mysql') {
-      it('supports limit clause', function () {
-        const self = this,
-          data = [
-            { username: 'Peter', secretValue: '42' },
-            { username: 'Peter', secretValue: '42' },
-            { username: 'Peter', secretValue: '42' }
-          ];
-
-        return this.User.bulkCreate(data).then(() => {
-          return self.User.update({ secretValue: '43' }, { where: { username: 'Peter' }, limit: 1 }).then(
-            ([affectedRows]) => {
-              expect(affectedRows).to.equal(1);
-            }
-          );
-        });
-      });
-    }
+    });
   });
 
   describe('destroy', () => {
@@ -2018,50 +1901,48 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     // sqlite can't handle multiple primary keys
-    if (dialect !== 'sqlite') {
-      it('correctly determines equality with multiple primary keys', function () {
-        const userKeys = this.sequelize.define('userkeys', {
-          foo: { type: Sequelize.STRING, primaryKey: true },
-          bar: { type: Sequelize.STRING, primaryKey: true },
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
-        });
 
-        return userKeys.sync({ force: true }).then(() => {
-          return userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' }).then((u) => {
-            expect(u.equals(u)).to.be.ok;
-          });
+    it('correctly determines equality with multiple primary keys', function () {
+      const userKeys = this.sequelize.define('userkeys', {
+        foo: { type: Sequelize.STRING, primaryKey: true },
+        bar: { type: Sequelize.STRING, primaryKey: true },
+        name: Sequelize.STRING,
+        bio: Sequelize.TEXT
+      });
+
+      return userKeys.sync({ force: true }).then(() => {
+        return userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' }).then((u) => {
+          expect(u.equals(u)).to.be.ok;
         });
       });
-    }
+    });
   });
 
   describe('equalsOneOf', () => {
     // sqlite can't handle multiple primary keys
-    if (dialect !== 'sqlite') {
-      beforeEach(function () {
-        this.userKey = this.sequelize.define('userKeys', {
-          foo: { type: Sequelize.STRING, primaryKey: true },
-          bar: { type: Sequelize.STRING, primaryKey: true },
-          name: Sequelize.STRING,
-          bio: Sequelize.TEXT
-        });
 
-        return this.userKey.sync({ force: true });
+    beforeEach(function () {
+      this.userKey = this.sequelize.define('userKeys', {
+        foo: { type: Sequelize.STRING, primaryKey: true },
+        bar: { type: Sequelize.STRING, primaryKey: true },
+        name: Sequelize.STRING,
+        bio: Sequelize.TEXT
       });
 
-      it('determines equality if one is matching', function () {
-        return this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' }).then((u) => {
-          expect(u.equalsOneOf([u, { a: 1 }])).to.be.ok;
-        });
-      });
+      return this.userKey.sync({ force: true });
+    });
 
-      it("doesn't determine equality if none is matching", function () {
-        return this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' }).then((u) => {
-          expect(u.equalsOneOf([{ b: 2 }, { a: 1 }])).to.not.be.ok;
-        });
+    it('determines equality if one is matching', function () {
+      return this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' }).then((u) => {
+        expect(u.equalsOneOf([u, { a: 1 }])).to.be.ok;
       });
-    }
+    });
+
+    it("doesn't determine equality if none is matching", function () {
+      return this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' }).then((u) => {
+        expect(u.equalsOneOf([{ b: 2 }, { a: 1 }])).to.not.be.ok;
+      });
+    });
   });
 
   describe('count', () => {
@@ -2552,51 +2433,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         // sqlite & MySQL doesn't actually create schemas unless Model.sync() is called
         // Postgres supports schemas natively
-        expect(schemas).to.have.length(dialect === 'postgres' || dialect === 'mssql' ? 2 : 1);
+        expect(schemas).to.have.length(2);
       });
     });
-
-    if (dialect === 'mysql' || dialect === 'sqlite') {
-      it('should take schemaDelimiter into account if applicable', function () {
-        let test = 0;
-        const UserSpecialUnderscore = this.sequelize.define(
-          'UserSpecialUnderscore',
-          { age: Sequelize.INTEGER },
-          { schema: 'hello', schemaDelimiter: '_' }
-        );
-        const UserSpecialDblUnderscore = this.sequelize.define('UserSpecialDblUnderscore', { age: Sequelize.INTEGER });
-        return UserSpecialUnderscore.sync({ force: true }).then((User) => {
-          return UserSpecialDblUnderscore.schema('hello', '__')
-            .sync({ force: true })
-            .then((DblUser) => {
-              return DblUser.create(
-                { age: 3 },
-                {
-                  logging(sql) {
-                    expect(sql).to.exist;
-                    test++;
-                    expect(sql.indexOf('INSERT INTO `hello__UserSpecialDblUnderscores`')).to.be.above(-1);
-                  }
-                }
-              ).then(() => {
-                return User.create(
-                  { age: 3 },
-                  {
-                    logging(sql) {
-                      expect(sql).to.exist;
-                      test++;
-                      expect(sql.indexOf('INSERT INTO `hello_UserSpecialUnderscores`')).to.be.above(-1);
-                    }
-                  }
-                );
-              });
-            })
-            .then(() => {
-              expect(test).to.equal(2);
-            });
-        });
-      });
-    }
 
     it('should describeTable using the default schema settings', function () {
       const self = this,
@@ -2611,33 +2450,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           .then(() => {
             return self.sequelize.queryInterface
               .describeTable('Publics', {
-                logging(sql) {
-                  if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
-                    expect(sql).to.not.contain('special');
-                    count++;
-                  }
-                }
+                logging() {}
               })
               .then((table) => {
-                if (dialect === 'postgres') {
-                  expect(table.id.defaultValue).to.not.contain('special');
-                  count++;
-                }
+                expect(table.id.defaultValue).to.not.contain('special');
+                count++;
+
                 return self.sequelize.queryInterface
                   .describeTable('Publics', {
                     schema: 'special',
-                    logging(sql) {
-                      if (dialect === 'sqlite' || dialect === 'mysql' || dialect === 'mssql') {
-                        expect(sql).to.contain('special');
-                        count++;
-                      }
-                    }
+                    logging() {}
                   })
                   .then((table) => {
-                    if (dialect === 'postgres') {
-                      expect(table.id.defaultValue).to.contain('special');
-                      count++;
-                    }
+                    expect(table.id.defaultValue).to.contain('special');
+                    count++;
                   });
               })
               .then(() => {
@@ -2677,28 +2503,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             logging: _.after(
               2,
               _.once((sql) => {
-                if (dialect === 'postgres') {
-                  expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
-                } else if (dialect === 'mssql') {
-                  expect(sql).to.match(/REFERENCES\s+\[prefix\]\.\[UserPubs\] \(\[id\]\)/);
-                } else {
-                  expect(sql).to.match(/REFERENCES\s+`prefix\.UserPubs` \(`id`\)/);
-                }
+                expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
               })
             )
           });
         });
       };
 
-      if (dialect === 'postgres' || dialect === 'mssql') {
-        return this.sequelize.queryInterface.dropAllSchemas().then(() => {
-          return self.sequelize.queryInterface.createSchema('prefix').then(() => {
-            return run.call(self);
-          });
+      return this.sequelize.queryInterface.dropAllSchemas().then(() => {
+        return self.sequelize.queryInterface.createSchema('prefix').then(() => {
+          return run.call(self);
         });
-      } else {
-        return run.call(self);
-      }
+      });
     });
 
     it('should be able to create and update records under any valid schematic', function () {
@@ -2710,19 +2526,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           {
             logging(UserPublic) {
               logged++;
-              if (dialect === 'postgres') {
-                expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
-                expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
-              } else if (dialect === 'sqlite') {
-                expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-                expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
-              } else if (dialect === 'mssql') {
-                expect(self.UserSpecialSync.getTableName().toString()).to.equal('[special].[UserSpecials]');
-                expect(UserPublic.indexOf('INSERT INTO [UserPublics]')).to.be.above(-1);
-              } else {
-                expect(self.UserSpecialSync.getTableName().toString()).to.equal('`special.UserSpecials`');
-                expect(UserPublic.indexOf('INSERT INTO `UserPublics`')).to.be.above(-1);
-              }
+              expect(self.UserSpecialSync.getTableName().toString()).to.equal('"special"."UserSpecials"');
+              expect(UserPublic.indexOf('INSERT INTO "UserPublics"')).to.be.above(-1);
             }
           }
         )
@@ -2733,15 +2538,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 {
                   logging(UserSpecial) {
                     logged++;
-                    if (dialect === 'postgres') {
-                      expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1);
-                    } else if (dialect === 'sqlite') {
-                      expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
-                    } else if (dialect === 'mssql') {
-                      expect(UserSpecial.indexOf('INSERT INTO [special].[UserSpecials]')).to.be.above(-1);
-                    } else {
-                      expect(UserSpecial.indexOf('INSERT INTO `special.UserSpecials`')).to.be.above(-1);
-                    }
+                    expect(UserSpecial.indexOf('INSERT INTO "special"."UserSpecials"')).to.be.above(-1);
                   }
                 }
               )
@@ -2751,13 +2548,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   {
                     logging(user) {
                       logged++;
-                      if (dialect === 'postgres') {
-                        expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1);
-                      } else if (dialect === 'mssql') {
-                        expect(user.indexOf('UPDATE [special].[UserSpecials]')).to.be.above(-1);
-                      } else {
-                        expect(user.indexOf('UPDATE `special.UserSpecials`')).to.be.above(-1);
-                      }
+                      expect(user.indexOf('UPDATE "special"."UserSpecials"')).to.be.above(-1);
                     }
                   }
                 );
@@ -2801,17 +2592,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       return Post.sync({
         logging: _.once((sql) => {
-          if (dialect === 'postgres') {
-            expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-          } else if (dialect === 'mysql') {
-            expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
-          } else if (dialect === 'mssql') {
-            expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
-          } else if (dialect === 'sqlite') {
-            expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
-          } else {
-            throw new Error('Undefined dialect!');
-          }
+          expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         })
       });
     });
@@ -2828,17 +2609,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       return Post.sync({
         logging: _.once((sql) => {
-          if (dialect === 'postgres') {
-            expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
-          } else if (dialect === 'mysql') {
-            expect(sql).to.match(/FOREIGN KEY \(`authorId`\) REFERENCES `authors` \(`id`\)/);
-          } else if (dialect === 'sqlite') {
-            expect(sql).to.match(/`authorId` INTEGER REFERENCES `authors` \(`id`\)/);
-          } else if (dialect === 'mssql') {
-            expect(sql).to.match(/FOREIGN KEY \(\[authorId\]\) REFERENCES \[authors\] \(\[id\]\)/);
-          } else {
-            throw new Error('Undefined dialect!');
-          }
+          expect(sql).to.match(/"authorId" INTEGER REFERENCES "authors" \("id"\)/);
         })
       });
     });
@@ -2854,34 +2625,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // The posts table gets dropped in the before filter.
       return Post.sync()
         .then(() => {
-          if (dialect === 'sqlite') {
-            // sorry ... but sqlite is too stupid to understand whats going on ...
-            expect(1).to.equal(1);
-          } else {
-            // the parser should not end up here ...
-            expect(2).to.equal(1);
-          }
-
           return;
         })
         .catch((err) => {
-          if (dialect === 'mysql') {
-            // MySQL 5.7 or above doesn't support POINT EMPTY
-            if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.6.0')) {
-              expect(err.message).to.match(/Cannot add foreign key constraint/);
-            } else {
-              expect(err.message).to.match(/Can't create table/);
-            }
-          } else if (dialect === 'sqlite') {
-            // the parser should not end up here ... see above
-            expect(1).to.equal(2);
-          } else if (dialect === 'postgres') {
-            expect(err.message).to.match(/relation "4uth0r5" does not exist/);
-          } else if (dialect === 'mssql') {
-            expect(err.message).to.match(/Could not create constraint/);
-          } else {
-            throw new Error('Undefined dialect!');
-          }
+          expect(err.message).to.match(/relation "4uth0r5" does not exist/);
         });
     });
 
@@ -2945,34 +2692,32 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     });
 
-    if (dialect !== 'mssql') {
-      // NOTE: someone remember to inform me about the intent of these tests. Are
-      //       you saying that data passed in as a string is automatically converted
-      //       to binary? i.e. "Sequelize" is CAST as binary, OR that actual binary
-      //       data is passed in, in string form? Very unclear, and very different.
+    // NOTE: someone remember to inform me about the intent of these tests. Are
+    //       you saying that data passed in as a string is automatically converted
+    //       to binary? i.e. "Sequelize" is CAST as binary, OR that actual binary
+    //       data is passed in, in string form? Very unclear, and very different.
 
-      describe('strings', () => {
-        it('should be able to take a string as parameter to a BLOB field', function () {
-          return this.BlobUser.create({
-            data: 'Sequelize'
-          }).then((user) => {
-            expect(user).to.be.ok;
-          });
+    describe('strings', () => {
+      it('should be able to take a string as parameter to a BLOB field', function () {
+        return this.BlobUser.create({
+          data: 'Sequelize'
+        }).then((user) => {
+          expect(user).to.be.ok;
         });
+      });
 
-        it('should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string', function () {
-          const self = this;
-          return this.BlobUser.create({
-            data: 'Sequelize'
-          }).then((user) => {
-            return self.BlobUser.findById(user.id).then((user) => {
-              expect(user.data).to.be.an.instanceOf(Buffer);
-              expect(user.data.toString()).to.have.string('Sequelize');
-            });
+      it('should return a buffer when fetching a BLOB, even when the BLOB was inserted as a string', function () {
+        const self = this;
+        return this.BlobUser.create({
+          data: 'Sequelize'
+        }).then((user) => {
+          return self.BlobUser.findById(user.id).then((user) => {
+            expect(user.data).to.be.an.instanceOf(Buffer);
+            expect(user.data.toString()).to.have.string('Sequelize');
           });
         });
       });
-    }
+    });
   });
 
   describe('paranoid is true and where is an array', () => {
@@ -3091,63 +2836,61 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
   });
 
-  if (dialect !== 'sqlite' && current.dialect.supports.transactions) {
-    it('supports multiple async transactions', function () {
-      this.timeout(90000);
-      return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
-        const User = sequelize.define('User', { username: Sequelize.STRING });
-        const testAsync = function () {
-          return sequelize
-            .transaction()
-            .then((t) => {
-              return User.create(
-                {
-                  username: 'foo'
-                },
-                {
-                  transaction: t
-                }
-              )
-                .then(() => {
-                  return User.findAll({
-                    where: {
-                      username: 'foo'
-                    }
-                  }).then((users) => {
-                    expect(users).to.have.length(0);
-                  });
-                })
-                .then(() => {
-                  return User.findAll({
-                    where: {
-                      username: 'foo'
-                    },
-                    transaction: t
-                  }).then((users) => {
-                    expect(users).to.have.length(1);
-                  });
-                })
-                .then(() => {
-                  return t;
+  it('supports multiple async transactions', function () {
+    this.timeout(90000);
+    return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
+      const User = sequelize.define('User', { username: Sequelize.STRING });
+      const testAsync = function () {
+        return sequelize
+          .transaction()
+          .then((t) => {
+            return User.create(
+              {
+                username: 'foo'
+              },
+              {
+                transaction: t
+              }
+            )
+              .then(() => {
+                return User.findAll({
+                  where: {
+                    username: 'foo'
+                  }
+                }).then((users) => {
+                  expect(users).to.have.length(0);
                 });
-            })
-            .then((t) => {
-              return t.rollback();
-            });
-        };
-        return User.sync({ force: true }).then(() => {
-          const tasks = [];
-          for (let i = 0; i < 1000; i++) {
-            tasks.push(testAsync.bind(this));
-          }
-          return mapWithConcurrency(tasks, (entry) => entry(), {
-            // Needs to be one less than ??? else the non transaction query won't ever get a connection
-            concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1
+              })
+              .then(() => {
+                return User.findAll({
+                  where: {
+                    username: 'foo'
+                  },
+                  transaction: t
+                }).then((users) => {
+                  expect(users).to.have.length(1);
+                });
+              })
+              .then(() => {
+                return t;
+              });
+          })
+          .then((t) => {
+            return t.rollback();
           });
+      };
+      return User.sync({ force: true }).then(() => {
+        const tasks = [];
+        for (let i = 0; i < 1000; i++) {
+          tasks.push(testAsync.bind(this));
+        }
+        return mapWithConcurrency(tasks, (entry) => entry(), {
+          // Needs to be one less than ??? else the non transaction query won't ever get a connection
+          concurrency: ((sequelize.config.pool && sequelize.config.pool.max) || 5) - 1
         });
       });
     });
-  }
+  });
 
   describe('Unique', () => {
     it('should set unique when unique is true', function () {

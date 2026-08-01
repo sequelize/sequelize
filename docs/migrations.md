@@ -7,6 +7,7 @@ You will need [Sequelize CLI][0]. The CLI ships support for migrations and proje
 ## The CLI
 
 ### Installing CLI
+
 Let's start with installing CLI, you can find instructions [here][0]. Most preferred way is installing locally like this
 
 ```bash
@@ -14,6 +15,7 @@ $ npm install --save sequelize-cli
 ```
 
 ### Bootstrapping
+
 To create an empty project you will need to execute `init` command
 
 ```bash
@@ -28,6 +30,7 @@ This will create following folders
 - `seeders`, contains all seed files
 
 #### Configuration
+
 Before continuing further we will need to tell CLI how to connect to database. To do that let's open default config file `config/config.json`. It looks something like this
 
 ```json
@@ -61,6 +64,7 @@ Now edit this file and set correct database credentials and dialect.
 **Note:** _If your database doesn't exists yet, you can just call `db:create` command. With proper access it will create that database for you._
 
 ### Creating first Model (and Migration)
+
 Once you have properly configured CLI config file you are ready to create your first migration. It's as simple as executing a simple command.
 
 We will use `model:generate` command. This command requires two options
@@ -82,6 +86,7 @@ This will do following
 **Note:** _Sequelize will only use Model files, it's the table representation. On the other hand, the migration file is a change in that model or more specifically that table, used by CLI. Treat migrations like a commit or a log for some change in database._
 
 ### Running Migrations
+
 Until this step, we haven't inserted anything into the database. We have just created required model and migration files for our first model `User`. Now to actually create that table in database you need to run `db:migrate` command.
 
 ```bash
@@ -95,6 +100,7 @@ This command will execute these steps:
 - Creates a table called `Users` with all columns as specified in its migration file.
 
 ### Undoing Migrations
+
 Now our table has been created and saved in database. With migration you can revert to old state by just running a command.
 
 You can use `db:migrate:undo`, this command will revert most recent migration.
@@ -110,6 +116,7 @@ $ node_modules/.bin/sequelize db:migrate:undo:all --to XXXXXXXXXXXXXX-create-pos
 ```
 
 ### Creating First Seed
+
 Suppose we want to insert some data into a few tables by default. If we follow up on previous example we can consider creating a demo user for `User` table.
 
 To manage all data migrations you can use seeders. Seed files are some change in data that can be used to populate database table with sample data or test data.
@@ -129,21 +136,27 @@ Now we should edit this file to insert demo user to `User` table.
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    return queryInterface.bulkInsert('Users', [{
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'demo@demo.com'
-      }], {});
+    return queryInterface.bulkInsert(
+      'Users',
+      [
+        {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'demo@demo.com'
+        }
+      ],
+      {}
+    );
   },
 
   down: (queryInterface, Sequelize) => {
     return queryInterface.bulkDelete('Users', null, {});
   }
 };
-
 ```
 
 ### Running Seeds
+
 In last step you have create a seed file. It's still not committed to database. To do that we need to run a simple command.
 
 ```bash
@@ -155,6 +168,7 @@ This will execute that seed file and you will have a demo user inserted into `Us
 **Note:** _Seeders execution is not stored anywhere unlike migrations, which use the `SequelizeMeta` table. If you wish to override this please read `Storage` section_
 
 ### Undoing Seeds
+
 Seeders can be undone if they are using any storage. There are two commands available for that:
 
 If you wish to undo most recent seed
@@ -172,6 +186,7 @@ node_modules/.bin/sequelize db:seed:undo:all
 ## Advance Topics
 
 ### Migration Skeleton
+
 The following skeleton shows a typical migration file.
 
 ```js
@@ -179,11 +194,10 @@ module.exports = {
   up: (queryInterface, Sequelize) => {
     // logic for transforming into the new state
   },
- 
   down: (queryInterface, Sequelize) => {
     // logic for reverting the changes
   }
-}
+};
 ```
 
 The passed `queryInterface` object can be used to modify the database. The `Sequelize` object stores the available data types such as `STRING` or `INTEGER`. Function `up` or `down` should return a `Promise`. Let's look at an example:
@@ -192,21 +206,22 @@ The passed `queryInterface` object can be used to modify the database. The `Sequ
 module.exports = {
   up: (queryInterface, Sequelize) => {
     return queryInterface.createTable('Person', {
-        name: Sequelize.STRING,
-        isBetaMember: {
-          type: Sequelize.BOOLEAN,
-          defaultValue: false,
-          allowNull: false
-        }
-      });
+      name: Sequelize.STRING,
+      isBetaMember: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false,
+        allowNull: false
+      }
+    });
   },
   down: (queryInterface, Sequelize) => {
     return queryInterface.dropTable('Person');
   }
-}
+};
 ```
 
 ### The `.sequelizerc` File
+
 This is a special configuration file. It lets you specify various options that you would usually pass as arguments to CLI. Some scenarios where you can use it.
 
 - You want to override default path to `migrations`, `models`, `seeders` or `config` folder.
@@ -226,11 +241,11 @@ Now let's work with an example config.
 const path = require('path');
 
 module.exports = {
-  'config': path.resolve('config', 'database.json'),
+  config: path.resolve('config', 'database.json'),
   'models-path': path.resolve('db', 'models'),
   'seeders-path': path.resolve('db', 'seeders'),
   'migrations-path': path.resolve('db', 'migrations')
-}
+};
 ```
 
 With this config you are telling CLI to
@@ -241,6 +256,7 @@ With this config you are telling CLI to
 - Use `db/migrations` as migrations folder
 
 ### Dynamic Configuration
+
 Configuration file is by default a JSON file called `config.json`. But sometimes you want to execute some code or access environment variables which is not possible in JSON files.
 
 Sequelize CLI can read from both `JSON` and `JS` files. This can be setup with `.sequelizerc` file. Let see how
@@ -251,8 +267,8 @@ First you need to create a `.sequelizerc` file in root folder of your project. T
 const path = require('path');
 
 module.exports = {
-  'config': path.resolve('config', 'config.js')
-}
+  config: path.resolve('config', 'config.js')
+};
 ```
 
 Now Sequelize CLI will load `config/config.js` for getting configuration options. Since this is a JS file you can have any code executed and export final dynamic configuration file.
@@ -293,6 +309,7 @@ module.exports = {
 ```
 
 ### Using Environment Variables
+
 With CLI you can directly access the environment variables inside the `config/config.js`. You can use `.sequelizerc` to tell CLI to use `config/config.js` for configuration. This is explained in last section.
 
 Then you can just expose file with proper environment variables.
@@ -323,23 +340,25 @@ module.exports = {
 ```
 
 ### Specifying Dialect Options
+
 Sometime you want to specify a dialectOption, if it's a general config you can just add it in `config/config.json`. Sometime you want to execute some code to get dialectOptions, you should use dynamic config file for those cases.
 
 ```json
 {
-    "production": {
-        "dialect":"mysql",
-        "dialectOptions": {
-            "bigNumberStrings": true
-        }
+  "production": {
+    "dialect": "mysql",
+    "dialectOptions": {
+      "bigNumberStrings": true
     }
+  }
 }
 ```
 
 ### Production Usages
+
 Some tips around using CLI and migration setup in production environment.
 
-1) Use environment variables for config settings. This is better achieved with dynamic configuration. A sample production safe configuration may look like.
+1. Use environment variables for config settings. This is better achieved with dynamic configuration. A sample production safe configuration may look like.
 
 ```js
 const fs = require('fs');
@@ -377,14 +396,15 @@ module.exports = {
 Our goal is to use environment variables for various database secrets and not accidentally check them in to source control.
 
 ### Storage
+
 There are three types of storage that you can use: `sequelize`, `json`, and `none`.
 
 - `sequelize` : stores migrations and seeds in a table on the sequelize database
 - `json` : stores migrations and seeds on a json file
 - `none` : does not store any migration/seed
 
-
 #### Migration Storage
+
 By default the CLI will create a table in your database called `SequelizeMeta` containing an entry
 for each executed migration. To change this behavior, there are three options you can add to the
 configuration file. Using `migrationStorage`, you can choose the type of storage to be used for
@@ -418,6 +438,7 @@ database, using `sequelize`, but want to use a different table, you can change t
 aware of the implications of having no record of what migrations did or didn't run._
 
 #### Seed Storage
+
 By default the CLI will not save any seed that is executed. If you choose to change this behavior (!),
 you can use `seederStorage` in the configuration file to change the storage type. If you choose `json`,
 you can specify the path of the file using `seederStoragePath` or the CLI will write to the file
@@ -443,6 +464,7 @@ specify the table name using `seederStorageTableName`, or it will default to `Se
 ```
 
 ### Configuration Connection String
+
 As an alternative to the `--config` option with configuration files defining your database, you can
 use the `--url` option to pass in a connection string. For example:
 
@@ -451,27 +473,28 @@ $ node_modules/.bin/sequelize db:migrate --url 'mysql://root:password@mysql_host
 ```
 
 ### Connecting over SSL
+
 Ensure ssl is specified in both `dialectOptions` and in the base config.
 
 ```json
 {
-    "production": {
-        "dialect":"postgres",
-        "ssl": true,
-        "dialectOptions": {
-            "ssl": true
-        }
+  "production": {
+    "dialect": "postgres",
+    "ssl": true,
+    "dialectOptions": {
+      "ssl": true
     }
+  }
 }
 ```
 
 ### Programmatic use
+
 Sequelize has a [sister library][1] for programmatically handling execution and logging of migration tasks.
 
 ## Query Interface
 
 Using `queryInterface` object described before you can change database schema. To see full list of public methods it supports check [QueryInterface API][2]
-
 
 [0]: https://github.com/sequelize/cli
 [1]: https://github.com/sequelize/umzug

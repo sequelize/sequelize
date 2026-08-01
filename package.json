@@ -98,13 +98,13 @@
   "engines": {
     "node": ">=20.20.0"
   },
+  "volta": {
+    "node": "24.18.1",
+    "pnpm": "10.34.5"
+  },
   "packageManager": "pnpm@10.34.5",
   "options": {
     "env_cmd": "./test/config/.docker.env",
     "mocha": "--globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec"
-  },
-  "volta": {
-    "node": "24.18.1",
-    "pnpm": "10.34.5"
   }
 }

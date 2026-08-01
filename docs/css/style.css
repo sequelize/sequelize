@@ -23,7 +23,8 @@
   padding: 10px;
 }
 
-#docs-search-input, .docs-search-container {
+#docs-search-input,
+.docs-search-container {
   height: 40px;
   width: 300px;
 }
@@ -73,13 +74,13 @@ blockquote p {
   margin-bottom: 0;
 }
 
-h3#static-variable-DataTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3) {
+h3#static-variable-DataTypes ~ div[data-ice='properties'] table.params tr td:nth-child(3) {
   display: none;
 }
 
-h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(2),
-h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(3),
-h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nth-child(4) {
+h3#static-variable-QueryTypes ~ div[data-ice='properties'] table.params tr td:nth-child(2),
+h3#static-variable-QueryTypes ~ div[data-ice='properties'] table.params tr td:nth-child(3),
+h3#static-variable-QueryTypes ~ div[data-ice='properties'] table.params tr td:nth-child(4) {
   display: none;
 }
 
@@ -88,12 +89,12 @@ h3#static-variable-QueryTypes ~ div[data-ice="properties"] table.params tr td:nt
   display: none !important;
 }
 
-a[href="source.html"],
-a[href^="file/lib/"] {
+a[href='source.html'],
+a[href^='file/lib/'] {
   display: none;
 }
 
-.manual-color:after  {
+.manual-color:after {
   content: '' !important;
 }
 

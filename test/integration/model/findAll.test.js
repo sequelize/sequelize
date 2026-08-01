@@ -7,7 +7,6 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  dialect = Support.getTestDialect(),
   config = require(__dirname + '/../../config/config'),
   _ = require('lodash'),
   moment = require('moment'),
@@ -130,37 +129,35 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
       });
 
-      if (dialect === 'postgres') {
-        it('should be able to find a row using ilike', function () {
-          return this.User.findAll({
-            where: {
-              username: {
-                ilike: '%2'
-              }
+      it('should be able to find a row using ilike', function () {
+        return this.User.findAll({
+          where: {
+            username: {
+              ilike: '%2'
             }
-          }).then((users) => {
-            expect(users).to.be.an.instanceof(Array);
-            expect(users).to.have.length(1);
-            expect(users[0].username).to.equal('boo2');
-            expect(users[0].intVal).to.equal(10);
-          });
+          }
+        }).then((users) => {
+          expect(users).to.be.an.instanceof(Array);
+          expect(users).to.have.length(1);
+          expect(users[0].username).to.equal('boo2');
+          expect(users[0].intVal).to.equal(10);
         });
+      });
 
-        it('should be able to find a row using not ilike', function () {
-          return this.User.findAll({
-            where: {
-              username: {
-                notilike: '%2'
-              }
+      it('should be able to find a row using not ilike', function () {
+        return this.User.findAll({
+          where: {
+            username: {
+              notilike: '%2'
             }
-          }).then((users) => {
-            expect(users).to.be.an.instanceof(Array);
-            expect(users).to.have.length(1);
-            expect(users[0].username).to.equal('boo');
-            expect(users[0].intVal).to.equal(5);
-          });
+          }
+        }).then((users) => {
+          expect(users).to.be.an.instanceof(Array);
+          expect(users).to.have.length(1);
+          expect(users[0].username).to.equal('boo');
+          expect(users[0].intVal).to.equal(5);
         });
-      }
+      });
 
       it('should be able to find a row between a certain date using the between shortcut', function () {
         return this.User.findAll({

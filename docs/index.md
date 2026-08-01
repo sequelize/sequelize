@@ -17,7 +17,7 @@ Sequelize is a promise-based ORM for Node.js v4 and up. It supports the dialects
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
+  dialect: 'mysql' | 'sqlite' | 'postgres' | 'mssql',
 
   pool: {
     max: 5,
@@ -38,12 +38,15 @@ const User = sequelize.define('user', {
   birthday: Sequelize.DATE
 });
 
-sequelize.sync()
-  .then(() => User.create({
-    username: 'janedoe',
-    birthday: new Date(1980, 6, 20)
-  }))
-  .then(jane => {
+sequelize
+  .sync()
+  .then(() =>
+    User.create({
+      username: 'janedoe',
+      birthday: new Date(1980, 6, 20)
+    })
+  )
+  .then((jane) => {
     console.log(jane.toJSON());
   });
 ```

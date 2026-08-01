@@ -8,10 +8,6 @@ const sinon = require('sinon');
 const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Pooling'), function () {
-  if (dialect === 'sqlite') {
-    return;
-  }
-
   beforeEach(() => {
     this.sinon = sinon.createSandbox();
   });

@@ -5,8 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../support'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
-  current = Support.sequelize,
-  dialect = Support.getTestDialect();
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('Model.associations', () => {
@@ -165,9 +164,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         .then(() => {
           return this.sequelize.dropSchema('admin').then(() => {
             return this.sequelize.showAllSchemas().then((schemas) => {
-              if (dialect === 'postgres' || dialect === 'mssql') {
-                expect(schemas).to.be.empty;
-              }
+              expect(schemas).to.be.empty;
             });
           });
         });

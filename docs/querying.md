@@ -9,6 +9,7 @@ Model.findAll({
   attributes: ['foo', 'bar']
 });
 ```
+
 ```sql
 SELECT foo, bar ...
 ```
@@ -20,6 +21,7 @@ Model.findAll({
   attributes: ['foo', ['bar', 'baz']]
 });
 ```
+
 ```sql
 SELECT foo, bar AS baz ...
 ```
@@ -31,6 +33,7 @@ Model.findAll({
   attributes: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']]
 });
 ```
+
 ```sql
 SELECT COUNT(hats) AS no_hats ...
 ```
@@ -50,6 +53,7 @@ Model.findAll({
   attributes: { include: [[sequelize.fn('COUNT', sequelize.col('hats')), 'no_hats']] }
 });
 ```
+
 ```sql
 SELECT id, foo, bar, baz, quz, COUNT(hats) AS no_hats ...
 ```
@@ -61,10 +65,10 @@ Model.findAll({
   attributes: { exclude: ['baz'] }
 });
 ```
+
 ```sql
 SELECT id, foo, bar, quz ...
 ```
-
 
 ## Where
 
@@ -75,6 +79,7 @@ Whether you are querying with findAll/find or doing bulk updates/destroys you ca
 It's also possible to generate complex AND/OR conditions by nesting sets of `or` and `and` `Operators`.
 
 ### Basics
+
 ```js
 const Op = Sequelize.Op;
 
@@ -95,7 +100,7 @@ Post.findAll({
 
 Post.findAll({
   where: {
-    [Op.or]: [{authorId: 12}, {authorId: 13}]
+    [Op.or]: [{ authorId: 12 }, { authorId: 13 }]
   }
 });
 // SELECT * FROM post WHERE authorId = 12 OR authorId = 13;
@@ -116,15 +121,18 @@ Post.destroy({
 });
 // DELETE FROM post WHERE status = 'inactive';
 
-Post.update({
-  updatedAt: null,
-}, {
-  where: {
-    deletedAt: {
-      [Op.ne]: null
+Post.update(
+  {
+    updatedAt: null
+  },
+  {
+    where: {
+      deletedAt: {
+        [Op.ne]: null
+      }
     }
   }
-});
+);
 // UPDATE post SET updatedAt = null WHERE deletedAt NOT NULL;
 
 Post.findAll({
@@ -136,6 +144,7 @@ Post.findAll({
 ### Operators
 
 Sequelize exposes symbol operators that can be used for to create more complex comparisons -
+
 ```js
 const Op = Sequelize.Op
 
@@ -193,6 +202,7 @@ as well.
 ```
 
 #### Combinations
+
 ```js
 const Op = Sequelize.Op;
 
@@ -232,7 +242,9 @@ const Op = Sequelize.Op;
 ```
 
 #### Operators Aliases
+
 Sequelize allows setting specific strings as aliases for operators -
+
 ```js
 const Op = Sequelize.Op;
 const operatorsAliases = {
@@ -244,8 +256,8 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases })
 $gt: 6 // same as using Op.gt (> 6)
 ```
 
-
 #### Operators security
+
 Using Sequelize without any aliases improves security.
 Some frameworks automatically parse user input into js objects and if you fail to sanitize your input it might be possible to inject an Object with string operators to Sequelize.
 
@@ -316,7 +328,7 @@ const connection = new Sequelize(db, user, pass, { operatorsAliases });
 
 ### JSON
 
-The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only. 
+The JSON data type is supported by the PostgreSQL, SQLite and MySQL dialects only.
 
 #### PostgreSQL
 
@@ -324,28 +336,28 @@ The JSON data type in PostgreSQL stores the value as plain text, as opposed to b
 
 #### MSSQL
 
-MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately. 
+MSSQL does not have a JSON data type, however it does provide support for JSON stored as strings through certain functions since SQL Server 2016. Using these functions, you will be able to query the JSON stored in the string, but any returned values will need to be parsed seperately.
 
 ```js
 // ISJSON - to test if a string contains valid JSON
 User.findAll({
   where: sequelize.where(sequelize.fn('ISJSON', sequelize.col('userDetails')), 1)
-})
+});
 
 // JSON_VALUE - extract a scalar value from a JSON string
 User.findAll({
-  attributes: [[ sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), 'address line 1']]
-})
+  attributes: [[sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), 'address line 1']]
+});
 
 // JSON_VALUE - query a scalar value from a JSON string
 User.findAll({
   where: sequelize.where(sequelize.fn('JSON_VALUE', sequelize.col('userDetails'), '$.address.Line1'), '14, Foo Street')
-})
+});
 
 // JSON_QUERY - extract an object or array
 User.findAll({
-  attributes: [[ sequelize.fn('JSON_QUERY', sequelize.col('userDetails'), '$.address'), 'full address']]
-})
+  attributes: [[sequelize.fn('JSON_QUERY', sequelize.col('userDetails'), '$.address'), 'full address']]
+});
 ```
 
 ### JSONB
@@ -353,6 +365,7 @@ User.findAll({
 JSONB can be queried in three different ways.
 
 #### Nested object
+
 ```js
 {
   meta: {
@@ -366,6 +379,7 @@ JSONB can be queried in three different ways.
 ```
 
 #### Nested key
+
 ```js
 {
   "meta.audio.length": {
@@ -375,6 +389,7 @@ JSONB can be queried in three different ways.
 ```
 
 #### Containment
+
 ```js
 {
   "meta": {
@@ -388,27 +403,30 @@ JSONB can be queried in three different ways.
 ```
 
 ### Relations / Associations
+
 ```js
 // Find all projects with a least one task where task.state === project.state
 Project.findAll({
-    include: [{
-        model: Task,
-        where: { state: Sequelize.col('project.state') }
-    }]
-})
+  include: [
+    {
+      model: Task,
+      where: { state: Sequelize.col('project.state') }
+    }
+  ]
+});
 ```
 
 ## Pagination / Limiting
 
 ```js
 // Fetch 10 instances/rows
-Project.findAll({ limit: 10 })
+Project.findAll({ limit: 10 });
 
 // Skip 8 instances/rows
-Project.findAll({ offset: 8 })
+Project.findAll({ offset: 8 });
 
 // Skip 5 instances and fetch the 5 after that
-Project.findAll({ offset: 5, limit: 5 })
+Project.findAll({ offset: 5, limit: 5 });
 ```
 
 ## Ordering
@@ -471,7 +489,7 @@ Subtask.findAll({
 
 ## Table Hint
 
-`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query. 
+`tableHint` can be used to optionally pass a table hint when using mssql. The hint must be a value from `Sequelize.TableHints` and should only be used when absolutely necessary. Only a single table hint is currently supported per query.
 
 Table hints override the default behavior of mssql query optimizer by specifing certain options. They only affect the table or view referenced in that clause.
 
@@ -482,5 +500,5 @@ Project.findAll({
   // adding the table hint NOLOCK
   tableHint: TableHints.NOLOCK
   // this will generate the SQL 'WITH (NOLOCK)'
-})
+});
 ```

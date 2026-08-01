@@ -3,7 +3,6 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
-  dialect = Support.getTestDialect(),
   QueryTypes = require('../../lib/query-types'),
   Transaction = require(__dirname + '/../../lib/transaction'),
   sinon = require('sinon'),
@@ -34,9 +33,6 @@ if (current.dialect.supports.transactions) {
       it('should call dialect specific generateTransactionId method', function () {
         const transaction = new Transaction(this.sequelize);
         expect(transaction.id).to.exist;
-        if (dialect === 'mssql') {
-          expect(transaction.id).to.have.lengthOf(20);
-        }
       });
     });
 
@@ -113,43 +109,42 @@ if (current.dialect.supports.transactions) {
       });
 
       //Promise rejection test is specifc to postgres
-      if (dialect === 'postgres') {
-        it('do not rollback if already committed', function () {
-          const SumSumSum = this.sequelize.define('transaction', {
-              value: {
-                type: Support.Sequelize.DECIMAL(10, 3),
-                field: 'value'
-              }
-            }),
-            self = this,
-            transTest = function (val) {
-              return self.sequelize.transaction({ isolationLevel: 'SERIALIZABLE' }, (t) => {
-                return SumSumSum.sum('value', { transaction: t }).then(() => {
-                  return SumSumSum.create({ value: -val }, { transaction: t });
-                });
+
+      it('do not rollback if already committed', function () {
+        const SumSumSum = this.sequelize.define('transaction', {
+            value: {
+              type: Support.Sequelize.DECIMAL(10, 3),
+              field: 'value'
+            }
+          }),
+          self = this,
+          transTest = function (val) {
+            return self.sequelize.transaction({ isolationLevel: 'SERIALIZABLE' }, (t) => {
+              return SumSumSum.sum('value', { transaction: t }).then(() => {
+                return SumSumSum.create({ value: -val }, { transaction: t });
               });
-            };
-          // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
-          return SumSumSum.sync({ force: true })
-            .then(() => {
-              return expect(Promise.all([transTest(80), transTest(80), transTest(80)])).to.eventually.be.rejectedWith(
-                'could not serialize access due to read/write dependencies among transactions'
-              );
-            })
-            .then(() => delay(100))
-            .then(() => {
-              if (self.sequelize.test.$runningQueries !== 0) {
-                return delay(200);
-              }
-              return void 0;
-            })
-            .then(() => {
-              if (self.sequelize.test.$runningQueries !== 0) {
-                return delay(500);
-              }
             });
-        });
-      }
+          };
+        // Attention: this test is a bit racy. If you find a nicer way to test this: go ahead
+        return SumSumSum.sync({ force: true })
+          .then(() => {
+            return expect(Promise.all([transTest(80), transTest(80), transTest(80)])).to.eventually.be.rejectedWith(
+              'could not serialize access due to read/write dependencies among transactions'
+            );
+          })
+          .then(() => delay(100))
+          .then(() => {
+            if (self.sequelize.test.$runningQueries !== 0) {
+              return delay(200);
+            }
+            return void 0;
+          })
+          .then(() => {
+            if (self.sequelize.test.$runningQueries !== 0) {
+              return delay(500);
+            }
+          });
+      });
     });
 
     it('does not allow queries after commit', function () {
@@ -440,41 +435,6 @@ if (current.dialect.supports.transactions) {
         });
     });
 
-    if (dialect === 'sqlite') {
-      it('provides persistent transactions', () => {
-        const sequelize = new Support.Sequelize('database', 'username', 'password', { dialect: 'sqlite' }),
-          User = sequelize.define('user', {
-            username: Support.Sequelize.STRING,
-            awesome: Support.Sequelize.BOOLEAN
-          });
-        let persistentTransaction;
-
-        return sequelize
-          .transaction()
-          .then((t) => {
-            return sequelize.sync({ transaction: t }).then(() => {
-              return t;
-            });
-          })
-          .then((t) => {
-            return User.create({}, { transaction: t }).then(() => {
-              return t.commit();
-            });
-          })
-          .then(() => {
-            return sequelize.transaction().then((t) => {
-              persistentTransaction = t;
-            });
-          })
-          .then(() => {
-            return User.findAll({ transaction: persistentTransaction }).then((users) => {
-              expect(users.length).to.equal(1);
-              return persistentTransaction.commit();
-            });
-          });
-      });
-    }
-
     if (current.dialect.supports.transactionOptions.type) {
       describe('transaction types', () => {
         it('should support default transaction type DEFERRED', function () {
@@ -496,54 +456,6 @@ if (current.dialect.supports.transactions) {
                   expect(t.options.type).to.equal(Transaction.TYPES[key]);
                 });
               });
-          });
-        });
-      });
-    }
-
-    if (dialect === 'sqlite') {
-      it('automatically retries on SQLITE_BUSY failure', function () {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
-          const User = sequelize.define('User', { username: Support.Sequelize.STRING });
-          return User.sync({ force: true }).then(() => {
-            const newTransactionFunc = function () {
-              return sequelize.transaction({ type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE }).then((t) => {
-                return User.create({}, { transaction: t }).then(() => {
-                  return t.commit();
-                });
-              });
-            };
-            return Promise.all([newTransactionFunc(), newTransactionFunc()]).then(() => {
-              return User.findAll().then((users) => {
-                expect(users.length).to.equal(2);
-              });
-            });
-          });
-        });
-      });
-
-      it('fails with SQLITE_BUSY when retry.match is changed', function () {
-        return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
-          const User = sequelize.define('User', {
-            id: { type: Support.Sequelize.INTEGER, primaryKey: true },
-            username: Support.Sequelize.STRING
-          });
-          return User.sync({ force: true }).then(() => {
-            const newTransactionFunc = function () {
-              return sequelize
-                .transaction({ type: Support.Sequelize.Transaction.TYPES.EXCLUSIVE, retry: { match: ['NO_MATCH'] } })
-                .then((t) => {
-                  // introduce delay to force the busy state race condition to fail
-                  return delay(1000).then(() => {
-                    return User.create({ id: null, username: 'test ' + t.id }, { transaction: t }).then(() => {
-                      return t.commit();
-                    });
-                  });
-                });
-            };
-            return expect(Promise.all([newTransactionFunc(), newTransactionFunc()])).to.be.rejectedWith(
-              'SQLITE_BUSY: database is locked'
-            );
           });
         });
       });

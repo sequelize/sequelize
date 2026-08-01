@@ -4,8 +4,7 @@ const chai = require('chai'),
   Sequelize = require('../../../../index'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  dialect = Support.getTestDialect();
+  Support = require(__dirname + '/../../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {
@@ -112,10 +111,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               return Post.bulkCreate([{ text: 'text1' }, { text: 'text2' }]);
             })
             .then(() => {
-              let boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
-              if (dialect === 'mssql') {
-                boolQuery = 'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someBoolean"';
-              }
+              const boolQuery = 'EXISTS(SELECT 1) AS "someBoolean"';
 
               return Post.find({ attributes: ['id', 'text', Sequelize.literal(boolQuery)] });
             })

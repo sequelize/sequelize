@@ -7,8 +7,6 @@ const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
 const Utils = require(__dirname + '/../../lib/utils');
 const Op = require(__dirname + '/../../lib/operators');
-const tedious = require('tedious');
-const tediousIsolationLevel = tedious.ISOLATION_LEVEL;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('merge', () => {
@@ -308,42 +306,4 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
       expect(testLogger.namespace).to.be.eql('sequelize:test');
     });
   });
-
-  if (Support.getTestDialect() === 'mssql') {
-    describe('mapIsolationLevelStringToTedious', () => {
-      it('READ_UNCOMMITTED', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('READ_UNCOMMITTED', tedious)).to.equal(
-          tediousIsolationLevel.READ_UNCOMMITTED
-        );
-      });
-
-      it('READ_COMMITTED', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('READ_COMMITTED', tedious)).to.equal(
-          tediousIsolationLevel.READ_COMMITTED
-        );
-      });
-
-      it('REPEATABLE_READ', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('REPEATABLE_READ', tedious)).to.equal(
-          tediousIsolationLevel.REPEATABLE_READ
-        );
-      });
-
-      it('SERIALIZABLE', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('SERIALIZABLE', tedious)).to.equal(
-          tediousIsolationLevel.SERIALIZABLE
-        );
-      });
-
-      it('SNAPSHOT', () => {
-        expect(Utils.mapIsolationLevelStringToTedious('SNAPSHOT', tedious)).to.equal(tediousIsolationLevel.SNAPSHOT);
-      });
-
-      it('should throw error if tedious lib is not passed as a parameter', () => {
-        expect(Utils.mapIsolationLevelStringToTedious.bind(Utils, 'SNAPSHOT')).to.throw(
-          'An instance of tedious lib should be passed to this function'
-        );
-      });
-    });
-  }
 });

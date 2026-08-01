@@ -3,8 +3,7 @@
 const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  dialect = Support.getTestDialect();
+  Support = require(__dirname + '/../support');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('sync', () => {
@@ -181,13 +180,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => User.sync({ alter: true }))
             .then(() => this.sequelize.getQueryInterface().showIndex(User.getTableName()))
             .then((results) => {
-              if (dialect === 'sqlite') {
-                // SQLite doesn't treat primary key as index
-                expect(results).to.have.length(4);
-              } else {
-                expect(results).to.have.length(4 + 1);
-                expect(results.filter((r) => r.primary)).to.have.length(1);
-              }
+              expect(results).to.have.length(4 + 1);
+              expect(results.filter((r) => r.primary)).to.have.length(1);
 
               expect(results.filter((r) => r.name === 'another_index_email_mobile')).to.have.length(1);
               expect(results.filter((r) => r.name === 'another_index_phone_mobile')).to.have.length(1);
@@ -226,13 +220,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             .then(() => User.sync({ alter: true }))
             .then(() => this.sequelize.getQueryInterface().showIndex(User.getTableName()))
             .then((results) => {
-              if (dialect === 'sqlite') {
-                // SQLite doesn't treat primary key as index
-                expect(results).to.have.length(4);
-              } else {
-                expect(results).to.have.length(4 + 1);
-                expect(results.filter((r) => r.primary)).to.have.length(1);
-              }
+              expect(results).to.have.length(4 + 1);
+              expect(results.filter((r) => r.primary)).to.have.length(1);
             });
         });
       });
@@ -250,13 +239,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.getQueryInterface().showIndex(User.getTableName());
           })
           .then((results) => {
-            if (dialect === 'sqlite') {
-              // SQLite doesn't treat primary key as index
-              expect(results).to.have.length(1);
-            } else {
-              expect(results).to.have.length(2);
-              expect(results.filter((r) => r.primary)).to.have.length(1);
-            }
+            expect(results).to.have.length(2);
+            expect(results.filter((r) => r.primary)).to.have.length(1);
 
             expect(results.filter((r) => r.unique === true && r.primary === false)).to.have.length(1);
           });
@@ -279,13 +263,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.getQueryInterface().showIndex(User.getTableName());
           })
           .then((results) => {
-            if (dialect === 'sqlite') {
-              // SQLite doesn't treat primary key as index
-              expect(results).to.have.length(2);
-            } else {
-              expect(results).to.have.length(3);
-              expect(results.filter((r) => r.primary)).to.have.length(1);
-            }
+            expect(results).to.have.length(3);
+            expect(results.filter((r) => r.primary)).to.have.length(1);
 
             expect(results.filter((r) => r.unique === true && r.primary === false)).to.have.length(2);
           });
@@ -314,13 +293,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.getQueryInterface().showIndex(User.getTableName());
           })
           .then((results) => {
-            if (dialect === 'sqlite') {
-              // SQLite doesn't treat primary key as index
-              expect(results).to.have.length(3);
-            } else {
-              expect(results).to.have.length(4);
-              expect(results.filter((r) => r.primary)).to.have.length(1);
-            }
+            expect(results).to.have.length(4);
+            expect(results.filter((r) => r.primary)).to.have.length(1);
 
             expect(results.filter((r) => r.unique === true && r.primary === false)).to.have.length(3);
             expect(results.filter((r) => r.name === 'wow_my_index')).to.have.length(1);
@@ -340,20 +314,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.getQueryInterface().showIndex(User.getTableName());
           })
           .then((results) => {
-            if (dialect === 'sqlite') {
-              // SQLite doesn't treat primary key as index
-              expect(results).to.have.length(1);
-            } else {
-              expect(results).to.have.length(2);
-              expect(results.filter((r) => r.primary)).to.have.length(1);
-            }
+            expect(results).to.have.length(2);
+            expect(results.filter((r) => r.primary)).to.have.length(1);
 
             expect(results.filter((r) => r.unique === true && r.primary === false)).to.have.length(1);
-
-            if (['postgres', 'sqlite'].indexOf(dialect) === -1) {
-              // Postgres/SQLite doesn't support naming indexes in create table
-              expect(results.filter((r) => r.name === 'wow_my_index')).to.have.length(1);
-            }
           });
       });
 
@@ -374,19 +338,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return this.sequelize.getQueryInterface().showIndex(User.getTableName());
           })
           .then((results) => {
-            if (dialect === 'sqlite') {
-              // SQLite doesn't treat primary key as index
-              expect(results).to.have.length(1);
-            } else {
-              expect(results).to.have.length(2);
-              expect(results.filter((r) => r.primary)).to.have.length(1);
-            }
+            expect(results).to.have.length(2);
+            expect(results.filter((r) => r.primary)).to.have.length(1);
 
             expect(results.filter((r) => r.unique === true && r.primary === false)).to.have.length(1);
-            if (['postgres', 'sqlite'].indexOf(dialect) === -1) {
-              // Postgres/SQLite doesn't support naming indexes in create table
-              expect(results.filter((r) => r.name === 'wow_my_index')).to.have.length(1);
-            }
           });
       });
     });

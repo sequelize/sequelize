@@ -4,7 +4,6 @@ const chai = require('chai'),
   Sequelize = require('../../../index'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
-  dialect = Support.getTestDialect(),
   DataTypes = require(__dirname + '/../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
@@ -138,13 +137,8 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
           return User.create({}).then((user) => {
             // Create the user first to set the proper default values. PG does not support column references in insert,
             // so we must create a record with the right value for always_false, then reference it in an update
-            let now =
-              dialect === 'sqlite'
-                ? self.sequelize.fn('', self.sequelize.fn('datetime', 'now'))
-                : self.sequelize.fn('NOW');
-            if (dialect === 'mssql') {
-              now = self.sequelize.fn('', self.sequelize.fn('getdate'));
-            }
+            const now = self.sequelize.fn('NOW');
+
             user.set({
               d: now,
               b: self.sequelize.col('always_false')

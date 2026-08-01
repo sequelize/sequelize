@@ -1414,55 +1414,53 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
       });
 
-      if (current.dialect.name === 'postgres') {
-        describe('$iRegexp', () => {
-          testsql(
-            'username',
-            {
-              $iRegexp: '^sw.*r$'
-            },
-            {
-              postgres: '"username" ~* \'^sw.*r$\''
-            }
-          );
-        });
+      describe('$iRegexp', () => {
+        testsql(
+          'username',
+          {
+            $iRegexp: '^sw.*r$'
+          },
+          {
+            postgres: '"username" ~* \'^sw.*r$\''
+          }
+        );
+      });
 
-        describe('$iRegexp', () => {
-          testsql(
-            'newline',
-            {
-              $iRegexp: '^new\nline$'
-            },
-            {
-              postgres: '"newline" ~* \'^new\nline$\''
-            }
-          );
-        });
+      describe('$iRegexp', () => {
+        testsql(
+          'newline',
+          {
+            $iRegexp: '^new\nline$'
+          },
+          {
+            postgres: '"newline" ~* \'^new\nline$\''
+          }
+        );
+      });
 
-        describe('$notIRegexp', () => {
-          testsql(
-            'username',
-            {
-              $notIRegexp: '^sw.*r$'
-            },
-            {
-              postgres: '"username" !~* \'^sw.*r$\''
-            }
-          );
-        });
+      describe('$notIRegexp', () => {
+        testsql(
+          'username',
+          {
+            $notIRegexp: '^sw.*r$'
+          },
+          {
+            postgres: '"username" !~* \'^sw.*r$\''
+          }
+        );
+      });
 
-        describe('$notIRegexp', () => {
-          testsql(
-            'newline',
-            {
-              $notIRegexp: '^new\nline$'
-            },
-            {
-              postgres: '"newline" !~* \'^new\nline$\''
-            }
-          );
-        });
-      }
+      describe('$notIRegexp', () => {
+        testsql(
+          'newline',
+          {
+            $notIRegexp: '^new\nline$'
+          },
+          {
+            postgres: '"newline" !~* \'^new\nline$\''
+          }
+        );
+      });
     }
 
     describe('fn', () => {

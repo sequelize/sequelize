@@ -2,8 +2,8 @@
 
 Sequelize supports two ways of using transactions:
 
-* One which will automatically commit or rollback the transaction based on the result of a promise chain and, (if enabled) pass the transaction to all calls within the callback
-* And one which leaves committing, rolling back and passing the transaction to the user.
+- One which will automatically commit or rollback the transaction based on the result of a promise chain and, (if enabled) pass the transaction to all calls within the callback
+- And one which leaves committing, rolling back and passing the transaction to the user.
 
 The key difference is that the managed transaction uses a callback that expects a promise to be returned to it while the unmanaged transaction returns a promise.
 
@@ -14,26 +14,33 @@ Managed transactions handle committing or rolling back the transaction automagic
 Notice how the callback passed to `transaction` returns a promise chain, and does not explicitly call `t.commit()` nor `t.rollback()`. If all promises in the returned chain are resolved successfully the transaction is committed. If one or several of the promises are rejected, the transaction is rolled back.
 
 ```js
-return sequelize.transaction(function (t) {
-
-  // chain all your queries here. make sure you return them.
-  return User.create({
-    firstName: 'Abraham',
-    lastName: 'Lincoln'
-  }, {transaction: t}).then(function (user) {
-    return user.setShooter({
-      firstName: 'John',
-      lastName: 'Boothe'
-    }, {transaction: t});
+return sequelize
+  .transaction(function (t) {
+    // chain all your queries here. make sure you return them.
+    return User.create(
+      {
+        firstName: 'Abraham',
+        lastName: 'Lincoln'
+      },
+      { transaction: t }
+    ).then(function (user) {
+      return user.setShooter(
+        {
+          firstName: 'John',
+          lastName: 'Boothe'
+        },
+        { transaction: t }
+      );
+    });
+  })
+  .then(function (result) {
+    // Transaction has been committed
+    // result is whatever the result of the promise chain returned to the transaction callback
+  })
+  .catch(function (err) {
+    // Transaction has been rolled back
+    // err is whatever rejected the promise chain returned to the transaction callback
   });
-
-}).then(function (result) {
-  // Transaction has been committed
-  // result is whatever the result of the promise chain returned to the transaction callback
-}).catch(function (err) {
-  // Transaction has been rolled back
-  // err is whatever rejected the promise chain returned to the transaction callback
-});
 ```
 
 ### Throw errors to rollback
@@ -42,10 +49,13 @@ When using the managed transaction you should _never_ commit or rollback the tra
 
 ```js
 return sequelize.transaction(function (t) {
-  return User.create({
-    firstName: 'Abraham',
-    lastName: 'Lincoln'
-  }, {transaction: t}).then(function (user) {
+  return User.create(
+    {
+      firstName: 'Abraham',
+      lastName: 'Lincoln'
+    },
+    { transaction: t }
+  ).then(function (user) {
     // Woops, the query was successful but we still want to roll back!
     throw new Error();
   });
@@ -58,7 +68,7 @@ In the examples above, the transaction is still manually passed, by passing `{ t
 
 ```js
 const cls = require('continuation-local-storage'),
-    namespace = cls.createNamespace('my-very-own-namespace');
+  namespace = cls.createNamespace('my-very-own-namespace');
 ```
 
 To enable CLS you must tell sequelize which namespace to use by using a static method of the sequelize constructor:
@@ -70,7 +80,7 @@ Sequelize.useCLS(namespace);
 new Sequelize(....);
 ```
 
-Notice, that the `useCLS()` method is on the *constructor*, not on an instance of sequelize. This means that all instances will share the same namespace, and that CLS is all-or-nothing - you cannot enable it only for some instances.
+Notice, that the `useCLS()` method is on the _constructor_, not on an instance of sequelize. This means that all instances will share the same namespace, and that CLS is all-or-nothing - you cannot enable it only for some instances.
 
 CLS works like a thread-local storage for callbacks. What this means in practice is that different callback chains can access local variables by using the CLS namespace. When CLS is enabled sequelize will set the `transaction` property on the namespace when a new transaction is created. Since variables set within a callback chain are private to that chain several concurrent transactions can exist at the same time:
 
@@ -97,7 +107,6 @@ After you've used `Sequelize.useCLS()` all promises returned from sequelize will
 
 **Note:** _[CLS only supports async/await, at the moment, when using cls-hooked package](https://github.com/othiym23/node-continuation-local-storage/issues/98#issuecomment-323503807). Although, [cls-hooked](https://github.com/Jeff-Lewis/cls-hooked/blob/master/README.md) relies on *experimental API* [async_hooks](https://github.com/nodejs/node/blob/master/doc/api/async_hooks.md)_
 
-
 ## Concurrent/Partial transactions
 
 You can have concurrent transactions within a sequence of queries or have some of them excluded from any transactions. Use the `{transaction: }` option to control which transaction a query belong to:
@@ -105,71 +114,85 @@ You can have concurrent transactions within a sequence of queries or have some o
 **Warning:** _SQLite does not support more than one transaction at the same time._
 
 ### Without CLS enabled
+
 ```js
 sequelize.transaction(function (t1) {
   return sequelize.transaction(function (t2) {
     // With CLS enable, queries here will by default use t2
     // Pass in the `transaction` option to define/alter the transaction they belong to.
     return Promise.all([
-        User.create({ name: 'Bob' }, { transaction: null }),
-        User.create({ name: 'Mallory' }, { transaction: t1 }),
-        User.create({ name: 'John' }) // this would default to t2
+      User.create({ name: 'Bob' }, { transaction: null }),
+      User.create({ name: 'Mallory' }, { transaction: t1 }),
+      User.create({ name: 'John' }) // this would default to t2
     ]);
   });
 });
 ```
 
 ## Isolation levels
+
 The possible isolations levels to use when starting a transaction:
 
 ```js
-Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED // "READ UNCOMMITTED"
-Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED // "READ COMMITTED"
-Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ  // "REPEATABLE READ"
-Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE // "SERIALIZABLE"
+Sequelize.Transaction.ISOLATION_LEVELS.READ_UNCOMMITTED; // "READ UNCOMMITTED"
+Sequelize.Transaction.ISOLATION_LEVELS.READ_COMMITTED; // "READ COMMITTED"
+Sequelize.Transaction.ISOLATION_LEVELS.REPEATABLE_READ; // "REPEATABLE READ"
+Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE; // "SERIALIZABLE"
 ```
 
 By default, sequelize uses the isolation level of the database. If you want to use a different isolation level, pass in the desired level as the first argument:
 
 ```js
-return sequelize.transaction({
-  isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
-  }, function (t) {
-
-  // your transactions
-
-  });
+return sequelize.transaction(
+  {
+    isolationLevel: Sequelize.Transaction.ISOLATION_LEVELS.SERIALIZABLE
+  },
+  function (t) {
+    // your transactions
+  }
+);
 ```
 
 **Note:** _The SET ISOLATION LEVEL queries are not logged in case of MSSQL as the specified isolationLevel is passed directly to tedious_
 
 ## Unmanaged transaction (then-callback)
+
 Unmanaged transactions force you to manually rollback or commit the transaction. If you don't do that, the transaction will hang until it times out. To start an unmanaged transaction, call `sequelize.transaction()` without a callback (you can still pass an options object) and call `then` on the returned promise. Notice that `commit()` and `rollback()` returns a promise.
 
 ```js
 return sequelize.transaction().then(function (t) {
-  return User.create({
-    firstName: 'Bart',
-    lastName: 'Simpson'
-  }, {transaction: t}).then(function (user) {
-    return user.addSibling({
-      firstName: 'Lisa',
+  return User.create(
+    {
+      firstName: 'Bart',
       lastName: 'Simpson'
-    }, {transaction: t});
-  }).then(function () {
-    return t.commit();
-  }).catch(function (err) {
-    return t.rollback();
-  });
+    },
+    { transaction: t }
+  )
+    .then(function (user) {
+      return user.addSibling(
+        {
+          firstName: 'Lisa',
+          lastName: 'Simpson'
+        },
+        { transaction: t }
+      );
+    })
+    .then(function () {
+      return t.commit();
+    })
+    .catch(function (err) {
+      return t.rollback();
+    });
 });
 ```
 
 ## Options
+
 The `transaction` method can be called with an options object as the first argument, that
 allows the configuration of the transaction.
 
 ```js
-return sequelize.transaction({ /* options */ });
+return sequelize.transaction({/* options */});
 ```
 
 The following options (with their default values) are available:
@@ -211,7 +234,7 @@ sequelize.transaction({
 
   // to not defer constraints:
   deferrable: Sequelize.Deferrable.SET_IMMEDIATE
-})
+});
 ```
 
 ## Usage with other sequelize methods
@@ -225,20 +248,21 @@ If unsure, refer to the API documentation for the method you are using to be sur
 A `transaction` object allows tracking if and when it is committed.
 
 An `afterCommit` hook can be added to both managed and unmanaged transaction objects:
+
 ```js
-sequelize.transaction(t => {
+sequelize.transaction((t) => {
   t.afterCommit((transaction) => {
     // Your logic
   });
 });
 
-sequelize.transaction().then(t => {
+sequelize.transaction().then((t) => {
   t.afterCommit((transaction) => {
     // Your logic
   });
 
   return t.commit();
-})
+});
 ```
 
 The function passed to `afterCommit` can optionally return a promise that will resolve before the promise chain
@@ -261,3 +285,4 @@ model.afterSave((instance, options) => {
   }
   // Save done outside a transaction, safe for callers to fetch the updated model
   // Notify
+```

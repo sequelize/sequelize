@@ -6,8 +6,7 @@ const chai = require('chai'),
   Promise = Sequelize.Promise,
   expect = chai.expect,
   Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  dialect = Support.getTestDialect();
+  DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
@@ -522,18 +521,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             return Test.create({});
           })
           .then(() => {
-            let findAttributes;
-            if (dialect === 'mssql') {
-              findAttributes = [
-                Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"'),
-                [Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'), 'someProperty2']
-              ];
-            } else {
-              findAttributes = [
-                Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
-                [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
-              ];
-            }
+            const findAttributes = [
+              Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
+              [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2']
+            ];
 
             return Test.findAll({
               attributes: findAttributes

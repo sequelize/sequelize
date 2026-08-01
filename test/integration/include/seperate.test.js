@@ -7,7 +7,6 @@ const chai = require('chai'),
   Sequelize = require(__dirname + '/../../../index'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   current = Support.sequelize,
-  dialect = Support.getTestDialect(),
   Promise = Sequelize.Promise,
   _ = require('lodash');
 
@@ -417,9 +416,7 @@ if (current.dialect.supports.groupedLimit) {
                   expect(result[1].tasks[1].title).to.equal('c');
                   return this.sequelize.dropSchema('archive').then(() => {
                     return this.sequelize.showAllSchemas().then((schemas) => {
-                      if (dialect === 'postgres' || dialect === 'mssql') {
-                        expect(schemas).to.be.empty;
-                      }
+                      expect(schemas).to.be.empty;
                     });
                   });
                 });

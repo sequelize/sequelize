@@ -1,13 +1,12 @@
 'use strict';
 
-const chai = require('chai'),
-  Sequelize = require('../../../index'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  _ = require('lodash'),
-  current = Support.sequelize;
+const chai = require('chai');
+const Sequelize = require('../../../index');
+const expect = chai.expect;
+const Support = require(__dirname + '/../support');
+const DataTypes = require(__dirname + '/../../../lib/data-types');
+const _ = require('lodash');
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function () {
@@ -129,18 +128,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
           {
             logging(sql) {
-              if (dialect === 'postgres') {
-                expect(
-                  sql.indexOf('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT')
-                ).not.be.equal(-1);
-              } else if (dialect === 'mssql') {
-                expect(sql.indexOf('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) VALUES')).not.be.equal(-1);
-              } else {
-                // mysql, sqlite
-                expect(
-                  sql.indexOf('INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL')
-                ).not.be.equal(-1);
-              }
+              expect(
+                sql.indexOf('INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT')
+              ).not.be.equal(-1);
             }
           }
         );
@@ -443,28 +433,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 expect(users[2].uniqueName).to.equal('Michael');
                 expect(users[2].secretValue).to.equal('26');
               });
-            }
-          );
-        });
-      });
-    } else {
-      it('should throw an error when the ignoreDuplicates option is passed', function () {
-        const self = this;
-        const data = [
-          { uniqueName: 'Peter', secretValue: '42' },
-          { uniqueName: 'Paul', secretValue: '23' }
-        ];
-
-        return this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] }).then(() => {
-          data.push({ uniqueName: 'Michael', secretValue: '26' });
-
-          return self.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'], ignoreDuplicates: true }).catch(
-            (err) => {
-              if (dialect === 'mssql') {
-                expect(err.message).to.match(/mssql does not support the 'ignoreDuplicates' option./);
-              } else {
-                expect(err.message).to.match(/postgres does not support the 'ignoreDuplicates' option./);
-              }
             }
           );
         });

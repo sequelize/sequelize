@@ -3,9 +3,7 @@
 const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  semver = require('semver');
+  DataTypes = require(__dirname + '/../../../lib/data-types');
 
 const current = Support.sequelize;
 
@@ -256,9 +254,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should properly escape the single quotes in coordinates', function () {
         // MySQL 5.7, those guys finally fixed this
-        if (dialect === 'mysql' && semver.gte(this.sequelize.options.databaseVersion, '5.7.0')) {
-          return;
-        }
 
         return this.Model.create({
           location: {

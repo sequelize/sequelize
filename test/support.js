@@ -1,16 +1,13 @@
 'use strict';
 
-const fs = require('fs'),
-  fsp = require('fs/promises'),
-  path = require('path'),
-  _ = require('lodash'),
-  Sequelize = require(__dirname + '/../index'),
-  DataTypes = require(__dirname + '/../lib/data-types'),
-  Config = require(__dirname + '/config/config'),
-  supportShim = require(__dirname + '/supportShim'),
-  chai = require('chai'),
-  expect = chai.expect,
-  PostgresQueryGenerator = require('../lib/dialects/postgres/query-generator');
+const _ = require('lodash');
+const Sequelize = require(__dirname + '/../index');
+const DataTypes = require(__dirname + '/../lib/data-types');
+const Config = require(__dirname + '/config/config');
+const supportShim = require(__dirname + '/supportShim');
+const chai = require('chai');
+const expect = chai.expect;
+const PostgresQueryGenerator = require('../lib/dialects/postgres/query-generator');
 
 chai.use(require('./support/chai-datetime'));
 chai.use(require('chai-as-promised').default);
@@ -55,29 +52,10 @@ const Support = {
   },
 
   prepareTransactionTest(sequelize, callback) {
-    const dialect = Support.getTestDialect();
-
-    if (dialect === 'sqlite') {
-      const p = path.join(__dirname, 'tmp', 'db.sqlite');
-
-      return (fs.existsSync(p) ? fsp.unlink(p) : Promise.resolve()).then(() => {
-        const options = _.extend({}, sequelize.options, { storage: p }),
-          _sequelize = new Sequelize(sequelize.config.database, null, null, options);
-
-        if (callback) {
-          _sequelize.sync({ force: true }).then(() => {
-            callback(_sequelize);
-          });
-        } else {
-          return _sequelize.sync({ force: true }).then(() => _sequelize);
-        }
-      });
+    if (callback) {
+      callback(sequelize);
     } else {
-      if (callback) {
-        callback(sequelize);
-      } else {
-        return Promise.resolve(sequelize);
-      }
+      return Promise.resolve(sequelize);
     }
   },
 

@@ -7,8 +7,7 @@ const chai = require('chai'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   Sequelize = require('../../../index'),
   Promise = Sequelize.Promise,
-  current = Support.sequelize,
-  dialect = Support.getTestDialect();
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   describe('Model.associations', () => {
@@ -168,9 +167,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
           expect(user).to.be.ok;
           return this.sequelize.dropSchema('archive').then(() => {
             return this.sequelize.showAllSchemas().then((schemas) => {
-              if (dialect === 'postgres' || dialect === 'mssql') {
-                expect(schemas).to.be.empty;
-              }
+              expect(schemas).to.be.empty;
             });
           });
         });

@@ -8,8 +8,7 @@ const chai = require('chai'),
   _ = require('lodash'),
   sinon = require('sinon'),
   Promise = Sequelize.Promise,
-  current = Support.sequelize,
-  dialect = Support.getTestDialect();
+  current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
   describe('getAssociations', () => {
@@ -252,9 +251,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           expect(project.ProjectUsers.status).to.equal('active');
           return this.sequelize.dropSchema('acme').then(() => {
             return this.sequelize.showAllSchemas().then((schemas) => {
-              if (dialect === 'postgres' || dialect === 'mssql') {
-                expect(schemas).to.be.empty;
-              }
+              expect(schemas).to.be.empty;
             });
           });
         });
@@ -2147,10 +2144,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           return self.sequelize.getQueryInterface().showAllTables();
         })
         .then((result) => {
-          if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-            result = _.map(result, 'tableName');
-          }
-
           expect(result.indexOf('group_user')).not.to.equal(-1);
         });
     });
@@ -2170,10 +2163,6 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
           return self.sequelize.getQueryInterface().showAllTables();
         })
         .then((result) => {
-          if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-            result = _.map(result, 'tableName');
-          }
-
           expect(result.indexOf('user_groups')).not.to.equal(-1);
         });
     });

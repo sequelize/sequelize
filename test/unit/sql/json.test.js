@@ -115,13 +115,11 @@ if (current.dialect.supports.JSON) {
       });
 
       describe('raw json query', () => {
-        if (current.dialect.name === 'postgres') {
-          it('#>> operator', () => {
-            expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
-              postgres: "(\"data\"#>>'{id}') = 'id'"
-            });
+        it('#>> operator', () => {
+          expectsql(sql.whereItemQuery(Sequelize.json('("data"#>>\'{id}\')'), 'id'), {
+            postgres: "(\"data\"#>>'{id}') = 'id'"
           });
-        }
+        });
 
         it('json function', () => {
           expectsql(sql.handleSequelizeMethod(Sequelize.json('json(\'{"profile":{"name":"david"}}\')')), {

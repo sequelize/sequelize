@@ -1,39 +1,42 @@
 _Please note!_ The github issue tracker should only be used for feature requests and bugs with a clear description of the issue and the expected behaviour (see below). All questions belong on [Slack](https://sequelize.slack.com), [StackOverflow](https://stackoverflow.com/questions/tagged/sequelize.js) or [Google groups](https://groups.google.com/forum/#!forum/sequelize).
 
 # Issues
+
 Issues are always very welcome - after all, they are a big part of making sequelize better. However, there are a couple of things you can do to make the lives of the developers _much, much_ easier:
 
 ### Tell us:
 
-* What you are doing?
-  * Post a _minimal_ code sample that reproduces the issue, including models and associations
-  * What do you expect to happen?
-  * What is actually happening?
-* Which dialect you are using (postgres, mysql etc)?
-* Which sequelize version you are using?
+- What you are doing?
+  - Post a _minimal_ code sample that reproduces the issue, including models and associations
+  - What do you expect to happen?
+  - What is actually happening?
+- Which dialect you are using (postgres, mysql etc)?
+- Which sequelize version you are using?
 
 When you post code, please use [Github flavored markdown](https://help.github.com/articles/github-flavored-markdown), in order to get proper syntax highlighting!
 
 If you can even provide a pull request with a failing unit test, we will love you long time! Plus your issue will likely be fixed much faster.
 
 # Pull requests
+
 We're glad to get pull request if any functionality is missing or something is buggy. However, there are a couple of things you can do to make life easier for the maintainers:
 
-* Explain the issue that your PR is solving - or link to an existing issue
-* Make sure that all existing tests pass
-* Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
-* Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
+- Explain the issue that your PR is solving - or link to an existing issue
+- Make sure that all existing tests pass
+- Make sure you followed [coding guidelines](https://github.com/sequelize/sequelize/blob/master/CONTRIBUTING.md#coding-guidelines)
+- Add some tests for your new functionality or a test exhibiting the bug you are solving. Ideally all new tests should not pass _without_ your changes.
   - Use [promise style](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Using_promises) in all new tests. Specifically this means:
     - don't use `EventEmitter`, `QueryChainer` or the `success`, `done` and `error` events
     - don't use nested callbacks (use arrow functions or variables to maintain context in promise chains)
     - don't use a done callback in your test, just return the promise chain.
   - Small bugfixes and direct backports to the 1.7 branch are accepted without tests.
-* If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation  ) for the specifics.
-* Add an entry to the [changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md), with a link to the issue you are solving
+- If you are adding to / changing the public API, remember to add API docs, in the form of [JSDoc style](http://usejsdoc.org/about-getting-started.html) comments. See [section 4a](#4a-check-the-documentation) for the specifics.
+- Add an entry to the [changelog](https://github.com/sequelize/sequelize/blob/master/changelog.md), with a link to the issue you are solving
 
 Still interested? Coolio! Here is how to get started:
 
 ### 1. Prepare your environment
+
 Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
 This repository uses [pnpm](https://pnpm.io), and pins both Node and pnpm with
@@ -186,7 +189,7 @@ Nothing else will include it. Verify with `pnpm pack` and inspect the tarball.
 This package ships raw `lib/` — there is deliberately no `prepare`, `prepack`, or
 `build` script, and adding one is a breaking change for consumers. Because the package
 is fetched as a GitHub tarball, a build script forces pnpm off that fast path into
-clone-and-build, *and* trips pnpm's build gate: every consuming repo would have to add
+clone-and-build, _and_ trips pnpm's build gate: every consuming repo would have to add
 `sequelize` to its own `onlyBuiltDependencies` before it would install at all.
 
 If a build step ever becomes genuinely necessary, publish to a private registry instead.

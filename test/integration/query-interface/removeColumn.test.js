@@ -4,7 +4,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/../support');
 const DataTypes = require(__dirname + '/../../../lib/data-types');
-const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {
@@ -101,18 +100,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       //    The modified column cannot be any one of the following:
       //      - Used in a CHECK or UNIQUE constraint.
       // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
-      if (dialect !== 'mssql') {
-        it('should be able to remove a column with unique contraint', function () {
-          return this.queryInterface
-            .removeColumn('users', 'email')
-            .then(() => {
-              return this.queryInterface.describeTable('users');
-            })
-            .then((table) => {
-              expect(table).to.not.have.property('email');
-            });
-        });
-      }
+
+      it('should be able to remove a column with unique contraint', function () {
+        return this.queryInterface
+          .removeColumn('users', 'email')
+          .then(() => {
+            return this.queryInterface.describeTable('users');
+          })
+          .then((table) => {
+            expect(table).to.not.have.property('email');
+          });
+      });
     });
 
     describe('(with a schema)', () => {
@@ -209,27 +207,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       //    The modified column cannot be any one of the following:
       //      - Used in a CHECK or UNIQUE constraint.
       // https://docs.microsoft.com/en-us/sql/t-sql/statements/alter-table-transact-sql#arguments
-      if (dialect !== 'mssql') {
-        it('should be able to remove a column with unique contraint', function () {
-          return this.queryInterface
-            .removeColumn(
-              {
-                tableName: 'users',
-                schema: 'archive'
-              },
-              'email'
-            )
-            .then(() => {
-              return this.queryInterface.describeTable({
-                tableName: 'users',
-                schema: 'archive'
-              });
-            })
-            .then((table) => {
-              expect(table).to.not.have.property('email');
+
+      it('should be able to remove a column with unique contraint', function () {
+        return this.queryInterface
+          .removeColumn(
+            {
+              tableName: 'users',
+              schema: 'archive'
+            },
+            'email'
+          )
+          .then(() => {
+            return this.queryInterface.describeTable({
+              tableName: 'users',
+              schema: 'archive'
             });
-        });
-      }
+          })
+          .then((table) => {
+            expect(table).to.not.have.property('email');
+          });
+      });
     });
   });
 });

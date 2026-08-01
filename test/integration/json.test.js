@@ -1,11 +1,11 @@
 'use strict';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require('./support'),
-  Sequelize = Support.Sequelize,
-  current = Support.sequelize,
-  DataTypes = Sequelize.DataTypes;
+const chai = require('chai');
+const expect = chai.expect;
+const Support = require('./support');
+const Sequelize = Support.Sequelize;
+const current = Support.sequelize;
+const DataTypes = Sequelize.DataTypes;
 
 describe('model', () => {
   if (current.dialect.supports.JSON) {
@@ -269,24 +269,6 @@ describe('model', () => {
       });
 
       // JSONB Supports this, but not JSON in postgres/mysql
-      if (current.dialect.name === 'sqlite') {
-        it('should be able to find with just string', function () {
-          return this.User.create({
-            username: 'swen123',
-            emergency_contact: 'Unknown'
-          })
-            .then(() => {
-              return this.User.find({
-                where: {
-                  emergency_contact: 'Unknown'
-                }
-              });
-            })
-            .then((user) => {
-              expect(user.username).to.equal('swen123');
-            });
-        });
-      }
     });
   }
 });

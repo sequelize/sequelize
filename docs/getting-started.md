@@ -26,13 +26,13 @@ $ yarn add tedious // MSSQL
 
 ## Setting up a connection
 
-Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances".  So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
+Sequelize will setup a connection pool on initialization so you should ideally only ever create one instance per database if you're connecting to the DB from a single process. If you're connecting to the DB from multiple processes, you'll have to create one instance per process, but each instance should have a maximum connection pool size of "max connection pool size divided by number of instances". So, if you wanted a max connection pool size of 90 and you had 3 worker processes, each process's instance should have a max connection pool size of 30.
 
 ```js
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
-  dialect: 'mysql'|'sqlite'|'postgres'|'mssql',
+  dialect: 'mysql' | 'sqlite' | 'postgres' | 'mssql',
   operatorsAliases: false,
 
   pool: {
@@ -62,7 +62,7 @@ sequelize
   .then(() => {
     console.log('Connection has been established successfully.');
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('Unable to connect to the database:', err);
   });
 ```
@@ -82,7 +82,7 @@ const User = sequelize.define('user', {
 });
 
 // force: true will drop the table if it already exists
-User.sync({force: true}).then(() => {
+User.sync({ force: true }).then(() => {
   // Table created
   return User.create({
     firstName: 'John',
@@ -96,9 +96,9 @@ You can read more about creating models at [Model API reference](/class/lib/mode
 ## Your first query
 
 ```js
-User.findAll().then(users => {
-  console.log(users)
-})
+User.findAll().then((users) => {
+  console.log(users);
+});
 ```
 
 You can read more about finder functions on models like `.findAll()` at [Data retrieval](/manual/tutorial/models-usage.html#data-retrieval-finders) or how to do specific queries like `WHERE` and `JSONB` at [Querying](/manual/tutorial/querying.html).
@@ -115,9 +115,13 @@ const sequelize = new Sequelize('connectionUri', {
 });
 
 const User = sequelize.define('user', {}); // timestamps is false by default
-const Post = sequelize.define('post', {}, {
-  timestamps: true // timestamps will now be true
-});
+const Post = sequelize.define(
+  'post',
+  {},
+  {
+    timestamps: true // timestamps will now be true
+  }
+);
 ```
 
 ## Promises
@@ -132,7 +136,7 @@ Basically, a promise represents a value which will be present at some point - "I
 
 ```js
 // DON'T DO THIS
-user = User.findOne()
+user = User.findOne();
 
 console.log(user.get('firstName'));
 ```
@@ -140,7 +144,7 @@ console.log(user.get('firstName'));
 _will never work!_ This is because `user` is a promise object, not a data row from the DB. The right way to do it is:
 
 ```js
-User.findOne().then(user => {
+User.findOne().then((user) => {
   console.log(user.get('firstName'));
 });
 ```
@@ -148,10 +152,10 @@ User.findOne().then(user => {
 When your environment or transpiler supports [async/await](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/await) this will work but only in the body of an [async](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function) function:
 
 ```js
-user = await User.findOne()
+user = await User.findOne();
 
 console.log(user.get('firstName'));
 ```
 
 Once you've got the hang of what promises are and how they work, use the [bluebird API reference](http://bluebirdjs.com/docs/api-reference.html) as your go-to tool. In particular, you'll probably be using [`.all`](http://bluebirdjs.com/docs/api/promise.all.html) a lot.
- In particular, you'll probably be using [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) a lot.
+In particular, you'll probably be using [`Promise.all`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all) a lot.

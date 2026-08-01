@@ -14,18 +14,19 @@ To use new ES2015 features, Sequelize v4 requires at least Node v4 or above.
 
 ### General
 
-* Counter Cache plugin and consequently the ```counterCache``` option for associations has been removed.
-* MariaDB dialect now removed. This was just a thin wrapper around MySQL. You can set ``dialect: 'mysql'`` an d Sequelize should be able to work with MariaDB server.
-* `Model.Instance` and `instance.Model` are removed. To access the Model from an instance, simply use [`instance.constructor`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor). The Instance class (`Model.Instance`) is now the Model itself.
-* Sequelize now uses native promises instead of the bluebird library.
-* Promises returned by sequelize are now native promises. `Sequelize.Promise` is a reference to the global `Promise`.
-* Pooling library was updated to `v3`, now you will need to call `sequelize.close()` to shutdown the pool.
+- Counter Cache plugin and consequently the `counterCache` option for associations has been removed.
+- MariaDB dialect now removed. This was just a thin wrapper around MySQL. You can set `dialect: 'mysql'` an d Sequelize should be able to work with MariaDB server.
+- `Model.Instance` and `instance.Model` are removed. To access the Model from an instance, simply use [`instance.constructor`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/constructor). The Instance class (`Model.Instance`) is now the Model itself.
+- Sequelize now uses native promises instead of the bluebird library.
+- Promises returned by sequelize are now native promises. `Sequelize.Promise` is a reference to the global `Promise`.
+- Pooling library was updated to `v3`, now you will need to call `sequelize.close()` to shutdown the pool.
 
 ### Config / Options
 
-* Removed support for old connection pooling configuration keys. Instead of
+- Removed support for old connection pooling configuration keys. Instead of
 
   **Old**
+
   ```js
     pool: {
       maxIdleTime: 30000,
@@ -35,6 +36,7 @@ To use new ES2015 features, Sequelize v4 requires at least Node v4 or above.
   ```
 
   **New**
+
   ```js
     pool: {
       idle: 30000,
@@ -42,16 +44,17 @@ To use new ES2015 features, Sequelize v4 requires at least Node v4 or above.
       max: 30
     }
   ```
-* Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
-* Removed support for ``referencesKey``, use a references object
+
+- Removed support for `pool: false`. To use a single connection, set `pool.max` to 1.
+- Removed support for `referencesKey`, use a references object
   ```js
     references: {
       key: '',
       model: ''
     }
   ```
-* Removed `classMethods` and `instanceMethods` options from `sequelize.define`. Sequelize models
-are now ES6 classes. You can set class / instance level methods like this
+- Removed `classMethods` and `instanceMethods` options from `sequelize.define`. Sequelize models
+  are now ES6 classes. You can set class / instance level methods like this
 
   **Old**
 
@@ -84,9 +87,9 @@ are now ES6 classes. You can set class / instance level methods like this
   Model.prototype.someMethod = function () {..}
   ```
 
-* `options.order` now only accepts values with type of array or Sequelize method. Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
-* With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as `options.through` (previously second argument was used as through attributes, now it's considered options with `through` being a sub option)
-* Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
+- `options.order` now only accepts values with type of array or Sequelize method. Support for string values (ie `{order: 'name DESC'}`) has been deprecated.
+- With `BelongsToMany` relationships `add/set/create` setters now set through attributes by passing them as `options.through` (previously second argument was used as through attributes, now it's considered options with `through` being a sub option)
+- Raw options for where, order and group like `where: { $raw: '..', order: [{ raw: '..' }], group: [{ raw: '..' }] }` have been removed to prevent SQL injection attacks.
 
   **Old**
 
@@ -102,39 +105,39 @@ are now ES6 classes. You can set class / instance level methods like this
 
 ### Data Types
 
-* (MySQL/Postgres) `BIGINT` now returned as string.
-* (MySQL/Postgres) `DECIMAL` and `NEWDECIMAL` types now returned as string.
-* (MSSQL) `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone. To migrate existing `DATETIME2` columns into `DATETIMEOFFSET`, see [#7201](https://github.com/sequelize/sequelize/pull/7201#issuecomment-278899803).
-* `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
+- (MySQL/Postgres) `BIGINT` now returned as string.
+- (MySQL/Postgres) `DECIMAL` and `NEWDECIMAL` types now returned as string.
+- (MSSQL) `DataTypes.DATE` now uses `DATETIMEOFFSET` instead of `DATETIME2` sql datatype in case of MSSQL to record timezone. To migrate existing `DATETIME2` columns into `DATETIMEOFFSET`, see [#7201](https://github.com/sequelize/sequelize/pull/7201#issuecomment-278899803).
+- `DATEONLY` now returns string in `YYYY-MM-DD` format rather than `Date` type
 
 ### Transactions / CLS
 
-* Removed `autocommit: true` default, set this option explicitly to have transactions auto commit.
-* Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
-* Native promises propagate CLS context automatically via `async_hooks`. No promise patching is required.
+- Removed `autocommit: true` default, set this option explicitly to have transactions auto commit.
+- Removed default `REPEATABLE_READ` transaction isolation. The isolation level now defaults to that of the database. Explicitly pass the required isolation level when initiating the transaction.
+- Native promises propagate CLS context automatically via `async_hooks`. No promise patching is required.
 
-    ```js
-    const Sequelize = require('sequelize');
-    const cls = require('cls-hooked');
+  ```js
+  const Sequelize = require('sequelize');
+  const cls = require('cls-hooked');
 
-    const ns = cls.createNamespace('transaction-namespace');
+  const ns = cls.createNamespace('transaction-namespace');
 
-    Sequelize.useCLS(ns);
-    ```
+  Sequelize.useCLS(ns);
+  ```
 
 ### Raw Queries
 
-* Sequelize now supports bind parameters for all dialects. In v3 `bind` option would fallback to `replacements` if dialect didn't supported binding. This could be a breaking change for MySQL / MSSQL where now queries will actually use bind parameters instead of replacements fallback.
+- Sequelize now supports bind parameters for all dialects. In v3 `bind` option would fallback to `replacements` if dialect didn't supported binding. This could be a breaking change for MySQL / MSSQL where now queries will actually use bind parameters instead of replacements fallback.
 
 ### Others
 
-* `Sequelize.Validator` is now an independent copy of `validator` library.
-* `Model.validate` instance method now runs validation hooks by default. Previously you needed to pass `{ hooks: true }`. You can override this behavior by passing `{ hooks: false }`.
-* The resulting promise from the `Model.validate` instance method will be rejected when validation fails. It will fulfill when validation succeeds.
-* `Sequelize.Utils` is not longer part of the public API, use it at your own risk.
-* `Hooks` should return Promises now. Callbacks are deprecated.
-* Getters wont run with `instance.get({ raw: true })`, use `instance.get({ plain: true })`
-* `required` inside include does not propagate up the include chain.
+- `Sequelize.Validator` is now an independent copy of `validator` library.
+- `Model.validate` instance method now runs validation hooks by default. Previously you needed to pass `{ hooks: true }`. You can override this behavior by passing `{ hooks: false }`.
+- The resulting promise from the `Model.validate` instance method will be rejected when validation fails. It will fulfill when validation succeeds.
+- `Sequelize.Utils` is not longer part of the public API, use it at your own risk.
+- `Hooks` should return Promises now. Callbacks are deprecated.
+- Getters wont run with `instance.get({ raw: true })`, use `instance.get({ plain: true })`
+- `required` inside include does not propagate up the include chain.
 
   To get v3 compatible results you'll need to either set `required` on the containing include.
 

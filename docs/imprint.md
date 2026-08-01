@@ -1,7 +1,7 @@
-# Imprint 
+# Imprint
 
 - Boring legal stuff for the rest of us.
-As there are people who are suing for fun and glory, you can find the respective information about the author of the page right here. Have fun reading ...
+  As there are people who are suing for fun and glory, you can find the respective information about the author of the page right here. Have fun reading ...
 
 ## AUTHOR(S)
 
@@ -18,6 +18,6 @@ sascha [at] depold [dot] com
 ## INHALTLICHE VERANTWORTUNG
 
 ```
-Ich übernehme keine Haftung für ausgehende Links. 
+Ich übernehme keine Haftung für ausgehende Links.
 Daher musst du dich bei Problemen an deren Betreiber wenden!
 ```

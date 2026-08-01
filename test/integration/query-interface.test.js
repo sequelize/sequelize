@@ -4,7 +4,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
-const dialect = Support.getTestDialect();
 const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const _ = require('lodash');
@@ -28,9 +27,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => this.queryInterface.renameTable('myTestTable', 'myTestTableNew'))
         .then(() => this.queryInterface.showAllTables())
         .then((tableNames) => {
-          if (dialect === 'mssql') {
-            tableNames = _.map(tableNames, 'tableName');
-          }
           expect(tableNames).to.contain('myTestTableNew');
           expect(tableNames).to.not.contain('myTestTable');
         });
@@ -72,9 +68,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         .then(() => {
           return self.queryInterface.dropAllTables({ skip: ['skipme'] }).then(() => {
             return self.queryInterface.showAllTables().then((tableNames) => {
-              if (dialect === 'mssql' /* current.dialect.supports.schemas */) {
-                tableNames = _.map(tableNames, 'tableName');
-              }
               expect(tableNames).to.contain('skipme');
             });
           });
@@ -190,63 +183,21 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         return self.queryInterface.describeTable('_Users').then((metadata) => {
           const id = metadata.id;
           const username = metadata.username;
-          const city = metadata.city;
           const isAdmin = metadata.isAdmin;
           const enumVals = metadata.enumVals;
 
           expect(id.primaryKey).to.be.ok;
 
-          let assertVal = 'VARCHAR(255)';
-          switch (dialect) {
-            case 'postgres':
-              assertVal = 'CHARACTER VARYING(255)';
-              break;
-            case 'mssql':
-              assertVal = 'NVARCHAR';
-              break;
-          }
-          expect(username.type).to.equal(assertVal);
+          expect(username.type).to.equal('CHARACTER VARYING(255)');
           expect(username.allowNull).to.be.true;
+          expect(username.defaultValue).to.be.null;
 
-          switch (dialect) {
-            case 'sqlite':
-              expect(username.defaultValue).to.be.undefined;
-              break;
-            default:
-              expect(username.defaultValue).to.be.null;
-          }
-
-          switch (dialect) {
-            case 'sqlite':
-              expect(city.defaultValue).to.be.null;
-              break;
-          }
-
-          assertVal = 'TINYINT(1)';
-          switch (dialect) {
-            case 'postgres':
-              assertVal = 'BOOLEAN';
-              break;
-            case 'mssql':
-              assertVal = 'BIT';
-              break;
-          }
-          expect(isAdmin.type).to.equal(assertVal);
+          expect(isAdmin.type).to.equal('BOOLEAN');
           expect(isAdmin.allowNull).to.be.true;
-          switch (dialect) {
-            case 'sqlite':
-              expect(isAdmin.defaultValue).to.be.undefined;
-              break;
-            default:
-              expect(isAdmin.defaultValue).to.be.null;
-          }
+          expect(isAdmin.defaultValue).to.be.null;
 
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
-            expect(enumVals.special).to.be.instanceof(Array);
-            expect(enumVals.special).to.have.length(2);
-          } else if (dialect === 'mysql') {
-            expect(enumVals.type).to.eql("ENUM('hello','world')");
-          }
+          expect(enumVals.special).to.be.instanceof(Array);
+          expect(enumVals.special).to.have.length(2);
         });
       });
     });
@@ -676,38 +627,16 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
     it('should get a list of foreign keys for the table', function () {
       const sql = this.queryInterface.QueryGenerator.getForeignKeysQuery('hosts', this.sequelize.config.database);
-      const self = this;
-      return this.sequelize
-        .query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS })
-        .then((fks) => {
-          expect(fks).to.have.length(3);
-          const keys = Object.keys(fks[0]),
-            keys2 = Object.keys(fks[1]),
-            keys3 = Object.keys(fks[2]);
+      return this.sequelize.query(sql, { type: this.sequelize.QueryTypes.FOREIGNKEYS }).then((fks) => {
+        expect(fks).to.have.length(3);
+        const keys = Object.keys(fks[0]),
+          keys2 = Object.keys(fks[1]),
+          keys3 = Object.keys(fks[2]);
 
-          if (dialect === 'postgres' || dialect === 'postgres-native') {
-            expect(keys).to.have.length(6);
-            expect(keys2).to.have.length(7);
-            expect(keys3).to.have.length(7);
-          } else if (dialect === 'sqlite') {
-            expect(keys).to.have.length(8);
-          } else if (dialect === 'mysql' || dialect === 'mssql') {
-            expect(keys).to.have.length(12);
-          } else {
-            console.log("This test doesn't support " + dialect);
-          }
-          return fks;
-        })
-        .then((fks) => {
-          if (dialect === 'mysql') {
-            return self.sequelize
-              .query(self.queryInterface.QueryGenerator.getForeignKeyQuery('hosts', 'admin'), {})
-              .then(([fk]) => {
-                expect(fks[0]).to.deep.eql(fk[0]);
-              });
-          }
-          return;
-        });
+        expect(keys).to.have.length(6);
+        expect(keys2).to.have.length(7);
+        expect(keys3).to.have.length(7);
+      });
     });
 
     it('should get a list of foreign key references details for the table', function () {
@@ -826,14 +755,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           .then(() => this.queryInterface.showConstraint('users'))
           .then((constraints) => {
             constraints = constraints.map((constraint) => constraint.constraintName);
-            //The name of primaryKey constraint is always PRIMARY in case of mysql
-            if (dialect === 'mysql') {
-              expect(constraints).to.include('PRIMARY');
-              return this.queryInterface.removeConstraint('users', 'PRIMARY');
-            } else {
-              expect(constraints).to.include('users_username_pk');
-              return this.queryInterface.removeConstraint('users', 'users_username_pk');
-            }
+            expect(constraints).to.include('users_username_pk');
+            return this.queryInterface.removeConstraint('users', 'users_username_pk');
           })
           .then(() => this.queryInterface.showConstraint('users'))
           .then((constraints) => {

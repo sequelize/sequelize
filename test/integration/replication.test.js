@@ -4,14 +4,9 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require(__dirname + '/support');
 const DataTypes = require(__dirname + '/../../lib/data-types');
-const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Replication'), function () {
-  if (dialect === 'sqlite') {
-    return;
-  }
-
   let sandbox;
   let readSpy, writeSpy;
 

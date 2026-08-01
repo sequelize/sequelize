@@ -186,12 +186,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for TEXT', () => {
     const Type = new Sequelize.TEXT();
 
-    if (dialect === 'mssql') {
-      // Text uses nvarchar, same type as string
-      testFailure(Type);
-    } else {
-      return testSuccess(Type, 'foobar');
-    }
+    return testSuccess(Type, 'foobar');
   });
 
   it('calls parse and stringify for BOOLEAN', () => {
@@ -215,12 +210,7 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for BIGINT', () => {
     const Type = new Sequelize.BIGINT();
 
-    if (dialect === 'mssql') {
-      // Same type as integer
-      testFailure(Type);
-    } else {
-      return testSuccess(Type, 1);
-    }
+    return testSuccess(Type, 1);
   });
 
   it('should handle JS BigInt type', function () {
@@ -246,48 +236,6 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       });
   });
 
-  if (dialect === 'mysql') {
-    it('should handle TINYINT booleans', function () {
-      const User = this.sequelize.define('user', {
-        id: { type: Sequelize.TINYINT, primaryKey: true },
-        isRegistered: Sequelize.TINYINT
-      });
-
-      return User.sync({ force: true })
-        .then(() => {
-          return User.create({ id: 1, isRegistered: true });
-        })
-        .then((registeredUser) => {
-          expect(registeredUser.isRegistered).to.equal(true);
-          return User.findOne({
-            where: {
-              id: 1,
-              isRegistered: true
-            }
-          });
-        })
-        .then((registeredUser) => {
-          expect(registeredUser).to.be.ok;
-          expect(registeredUser.isRegistered).to.equal(1);
-
-          return User.create({ id: 2, isRegistered: false });
-        })
-        .then((unregisteredUser) => {
-          expect(unregisteredUser.isRegistered).to.equal(false);
-          return User.findOne({
-            where: {
-              id: 2,
-              isRegistered: false
-            }
-          });
-        })
-        .then((unregisteredUser) => {
-          expect(unregisteredUser).to.be.ok;
-          expect(unregisteredUser.isRegistered).to.equal(0);
-        });
-    });
-  }
-
   it('calls parse and stringify for DOUBLE', () => {
     const Type = new Sequelize.DOUBLE();
 
@@ -297,12 +245,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
   it('calls parse and stringify for FLOAT', () => {
     const Type = new Sequelize.FLOAT();
 
-    if (dialect === 'postgres') {
-      // Postgres doesn't have float, maps to either decimal or double
-      testFailure(Type);
-    } else {
-      return testSuccess(Type, 1.5);
-    }
+    // Postgres doesn't have float, maps to either decimal or double
+    testFailure(Type);
   });
 
   it('calls parse and stringify for REAL', () => {
@@ -315,52 +259,32 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     const Type = new Sequelize.UUID();
 
     // there is no dialect.supports.UUID yet
-    if (['postgres', 'sqlite'].indexOf(dialect) !== -1) {
-      return testSuccess(Type, uuid.v4());
-    } else {
-      // No native uuid type
-      testFailure(Type);
-    }
+
+    return testSuccess(Type, uuid.v4());
   });
 
   it('calls parse and stringify for CIDR', () => {
     const Type = new Sequelize.CIDR();
 
-    if (['postgres'].indexOf(dialect) !== -1) {
-      return testSuccess(Type, '10.1.2.3/32');
-    } else {
-      testFailure(Type);
-    }
+    return testSuccess(Type, '10.1.2.3/32');
   });
 
   it('calls parse and stringify for INET', () => {
     const Type = new Sequelize.INET();
 
-    if (['postgres'].indexOf(dialect) !== -1) {
-      return testSuccess(Type, '127.0.0.1');
-    } else {
-      testFailure(Type);
-    }
+    return testSuccess(Type, '127.0.0.1');
   });
 
   it('calls parse and stringify for MACADDR', () => {
     const Type = new Sequelize.MACADDR();
 
-    if (['postgres'].indexOf(dialect) !== -1) {
-      return testSuccess(Type, '01:23:45:67:89:ab');
-    } else {
-      testFailure(Type);
-    }
+    return testSuccess(Type, '01:23:45:67:89:ab');
   });
 
   it('calls parse and stringify for ENUM', () => {
     const Type = new Sequelize.ENUM('hat', 'cat');
 
-    if (['postgres'].indexOf(dialect) !== -1) {
-      return testSuccess(Type, 'hat');
-    } else {
-      testFailure(Type);
-    }
+    return testSuccess(Type, 'hat');
   });
 
   if (current.dialect.supports.GEOMETRY) {
@@ -374,25 +298,18 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
       const Type = new Sequelize.GEOMETRY();
 
       // MySQL 5.7 or above doesn't support POINT EMPTY
-      if (dialect === 'mysql' && semver.gte(current.options.databaseVersion, '5.7.0')) {
-        return;
-      }
 
       return new Sequelize.Promise((resolve, reject) => {
-        if (/^postgres/.test(dialect)) {
-          current
-            .query('SELECT PostGIS_Lib_Version();')
-            .then((result) => {
-              if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
-                resolve(true);
-              } else {
-                resolve();
-              }
-            })
-            .catch(reject);
-        } else {
-          resolve(true);
-        }
+        current
+          .query('SELECT PostGIS_Lib_Version();')
+          .then((result) => {
+            if (result[0][0] && semver.lte(result[0][0].postgis_lib_version, '2.1.7')) {
+              resolve(true);
+            } else {
+              resolve();
+            }
+          })
+          .catch(reject);
       }).then((runTests) => {
         if (current.dialect.supports.GEOMETRY && runTests) {
           current.refreshTypes();
@@ -413,15 +330,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
               return User.findAll();
             })
             .then((users) => {
-              if (dialect === 'mysql') {
-                // MySQL will return NULL, becuase they lack EMPTY geometry data support.
-                expect(users[0].field).to.be.eql(null);
-              } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-                //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
-                expect(users[0].field).to.be.deep.eql({ type: 'Point', coordinates: [0, 0] });
-              } else {
-                expect(users[0].field).to.be.deep.eql(point);
-              }
+              //Empty Geometry data [0,0] as per https://trac.osgeo.org/postgis/ticket/1996
+              expect(users[0].field).to.be.deep.eql({ type: 'Point', coordinates: [0, 0] });
             });
         }
       });
@@ -453,122 +363,113 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     });
   }
 
-  if (dialect === 'postgres' || dialect === 'sqlite') {
-    // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
-    it('should store and parse IEEE floating point literals (NaN and Infinity)', function () {
-      const Model = this.sequelize.define('model', {
-        float: Sequelize.FLOAT,
-        double: Sequelize.DOUBLE,
-        real: Sequelize.REAL
-      });
-
-      return Model.sync({ force: true })
-        .then(() => {
-          return Model.create({
-            id: 1,
-            float: NaN,
-            double: Infinity,
-            real: -Infinity
-          });
-        })
-        .then(() => {
-          return Model.find({ where: { id: 1 } });
-        })
-        .then((user) => {
-          expect(user.get('float')).to.be.NaN;
-          expect(user.get('double')).to.eq(Infinity);
-          expect(user.get('real')).to.eq(-Infinity);
-        });
-    });
-  }
-
-  if (dialect === 'postgres' || dialect === 'mysql') {
-    it('should parse DECIMAL as string', function () {
-      const Model = this.sequelize.define('model', {
-        decimal: Sequelize.DECIMAL,
-        decimalPre: Sequelize.DECIMAL(10, 4),
-        decimalWithParser: Sequelize.DECIMAL(32, 15),
-        decimalWithIntParser: Sequelize.DECIMAL(10, 4),
-        decimalWithFloatParser: Sequelize.DECIMAL(10, 8)
-      });
-
-      const sampleData = {
-        id: 1,
-        decimal: 12345678.12345678,
-        decimalPre: 123456.1234,
-        decimalWithParser: '12345678123456781.123456781234567',
-        decimalWithIntParser: 1.234,
-        decimalWithFloatParser: 0.12345678
-      };
-
-      return Model.sync({ force: true })
-        .then(() => {
-          return Model.create(sampleData);
-        })
-        .then(() => {
-          return Model.findById(1);
-        })
-        .then((user) => {
-          /**
-           * MYSQL default precision is 10 and scale is 0
-           * Thus test case below will return number without any fraction values
-           */
-          if (dialect === 'mysql') {
-            expect(user.get('decimal')).to.be.eql('12345678');
-          } else {
-            expect(user.get('decimal')).to.be.eql('12345678.12345678');
-          }
-
-          expect(user.get('decimalPre')).to.be.eql('123456.1234');
-          expect(user.get('decimalWithParser')).to.be.eql('12345678123456781.123456781234567');
-          expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
-          expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
-        });
+  // postgres actively supports IEEE floating point literals, and sqlite doesn't care what we throw at it
+  it('should store and parse IEEE floating point literals (NaN and Infinity)', function () {
+    const Model = this.sequelize.define('model', {
+      float: Sequelize.FLOAT,
+      double: Sequelize.DOUBLE,
+      real: Sequelize.REAL
     });
 
-    it('should parse BIGINT as string', function () {
-      const Model = this.sequelize.define('model', {
-        jewelPurity: Sequelize.BIGINT
-      });
-
-      const sampleData = {
-        id: 1,
-        jewelPurity: '9223372036854775807'
-      };
-
-      return Model.sync({ force: true })
-        .then(() => {
-          return Model.create(sampleData);
-        })
-        .then(() => {
-          return Model.findById(1);
-        })
-        .then((user) => {
-          expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
-          expect(user.get('jewelPurity')).to.be.string;
+    return Model.sync({ force: true })
+      .then(() => {
+        return Model.create({
+          id: 1,
+          float: NaN,
+          double: Infinity,
+          real: -Infinity
         });
-    });
-  }
-
-  if (dialect === 'postgres') {
-    it('should return Int4 range properly #5747', function () {
-      const Model = this.sequelize.define('M', {
-        interval: {
-          type: Sequelize.RANGE(Sequelize.INTEGER),
-          allowNull: false,
-          unique: true
-        }
+      })
+      .then(() => {
+        return Model.find({ where: { id: 1 } });
+      })
+      .then((user) => {
+        expect(user.get('float')).to.be.NaN;
+        expect(user.get('double')).to.eq(Infinity);
+        expect(user.get('real')).to.eq(-Infinity);
       });
+  });
 
-      return Model.sync({ force: true })
-        .then(() => Model.create({ interval: [1, 4] }))
-        .then(() => Model.findAll())
-        .then(([m]) => {
-          expect(m.interval[0]).to.be.eql(1);
-          expect(m.interval[1]).to.be.eql(4);
-        });
+  it('should parse DECIMAL as string', function () {
+    const Model = this.sequelize.define('model', {
+      decimal: Sequelize.DECIMAL,
+      decimalPre: Sequelize.DECIMAL(10, 4),
+      decimalWithParser: Sequelize.DECIMAL(32, 15),
+      decimalWithIntParser: Sequelize.DECIMAL(10, 4),
+      decimalWithFloatParser: Sequelize.DECIMAL(10, 8)
     });
-  }
+
+    const sampleData = {
+      id: 1,
+      decimal: 12345678.12345678,
+      decimalPre: 123456.1234,
+      decimalWithParser: '12345678123456781.123456781234567',
+      decimalWithIntParser: 1.234,
+      decimalWithFloatParser: 0.12345678
+    };
+
+    return Model.sync({ force: true })
+      .then(() => {
+        return Model.create(sampleData);
+      })
+      .then(() => {
+        return Model.findById(1);
+      })
+      .then((user) => {
+        /**
+         * MYSQL default precision is 10 and scale is 0
+         * Thus test case below will return number without any fraction values
+         */
+
+        expect(user.get('decimal')).to.be.eql('12345678.12345678');
+
+        expect(user.get('decimalPre')).to.be.eql('123456.1234');
+        expect(user.get('decimalWithParser')).to.be.eql('12345678123456781.123456781234567');
+        expect(user.get('decimalWithIntParser')).to.be.eql('1.2340');
+        expect(user.get('decimalWithFloatParser')).to.be.eql('0.12345678');
+      });
+  });
+
+  it('should parse BIGINT as string', function () {
+    const Model = this.sequelize.define('model', {
+      jewelPurity: Sequelize.BIGINT
+    });
+
+    const sampleData = {
+      id: 1,
+      jewelPurity: '9223372036854775807'
+    };
+
+    return Model.sync({ force: true })
+      .then(() => {
+        return Model.create(sampleData);
+      })
+      .then(() => {
+        return Model.findById(1);
+      })
+      .then((user) => {
+        expect(user.get('jewelPurity')).to.be.eql(sampleData.jewelPurity);
+        expect(user.get('jewelPurity')).to.be.string;
+      });
+  });
+
+  it('should return Int4 range properly #5747', function () {
+    const Model = this.sequelize.define('M', {
+      interval: {
+        type: Sequelize.RANGE(Sequelize.INTEGER),
+        allowNull: false,
+        unique: true
+      }
+    });
+
+    return Model.sync({ force: true })
+      .then(() => Model.create({ interval: [1, 4] }))
+      .then(() => Model.findAll())
+      .then(([m]) => {
+        expect(m.interval[0]).to.be.eql(1);
+        expect(m.interval[1]).to.be.eql(4);
+      });
+  });
 
   it('should allow spaces in ENUM', function () {
     const Model = this.sequelize.define('user', {

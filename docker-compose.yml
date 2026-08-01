@@ -4,7 +4,7 @@ services:
   sequelize:
     build: .
     links:
-     - postgres-17
+      - postgres-17
     volumes:
       - .:/sequelize
     environment:
@@ -22,7 +22,7 @@ services:
     volumes:
       - /mnt/sequelize-postgres-ramdisk:/var/lib/postgresql/data
     ports:
-      - "8998:5432"
+      - '8998:5432'
     container_name: postgres-95
 
   # PostgreSQL 17
@@ -36,6 +36,5 @@ services:
     volumes:
       - ./test/config/init-postgres.sql:/docker-entrypoint-initdb.d/init-postgres.sql
     ports:
-      - "8996:5432"
+      - '8996:5432'
     container_name: postgres-17
-

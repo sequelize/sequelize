@@ -7,43 +7,45 @@ Scoping allows you to define commonly used queries that you can easily use later
 Scopes are defined in the model definition and can be finder objects, or functions returning finder objects - except for the default scope, which can only be an object:
 
 ```js
-const Project = sequelize.define('project', {
-  // Attributes
-}, {
-  defaultScope: {
-    where: {
-      active: true
-    }
+const Project = sequelize.define(
+  'project',
+  {
+    // Attributes
   },
-  scopes: {
-    deleted: {
+  {
+    defaultScope: {
       where: {
-        deleted: true
+        active: true
       }
     },
-    activeUsers: {
-      include: [
-        { model: User, where: { active: true }}
-      ]
-    },
-    random: function () {
-      return {
+    scopes: {
+      deleted: {
         where: {
-          someNumber: Math.random()
+          deleted: true
         }
-      }
-    },
-    accessLevel: function (value) {
-      return {
-        where: {
-          accessLevel: {
-            [Op.gte]: value
+      },
+      activeUsers: {
+        include: [{ model: User, where: { active: true } }]
+      },
+      random: function () {
+        return {
+          where: {
+            someNumber: Math.random()
           }
-        }
+        };
+      },
+      accessLevel: function (value) {
+        return {
+          where: {
+            accessLevel: {
+              [Op.gte]: value
+            }
+          }
+        };
       }
     }
   }
-});
+);
 ```
 
 You can also add scopes after a model has been defined by calling `addScope`. This is especially useful for scopes with includes, where the model in the include might not be defined at the time the other model is being defined.
@@ -59,6 +61,7 @@ The default scope can be removed by calling `.unscoped()`, `.scope(null)`, or by
 ```js
 Project.scope('deleted').findAll(); // Removes the default scope
 ```
+
 ```sql
 SELECT * FROM projects WHERE deleted = true
 ```
@@ -68,13 +71,12 @@ Using the above example, and invoking the `active` scope on the included User mo
 
 ```js
 activeUsers: {
-  include: [
-    { model: User.scope('active')}
-  ]
+  include: [{ model: User.scope('active') }];
 }
 ```
 
 ## Usage
+
 Scopes are applied by calling `.scope` on the model definition, passing the name of one or more scopes. `.scope` returns a fully functional model instance with all the regular methods: `.findAll`, `.update`, `.count`, `.destroy` etc. You can save this model instance and reuse it later:
 
 ```js
@@ -92,13 +94,15 @@ Scopes apply to `.find`, `.findAll`, `.count`, `.update`, `.increment` and `.des
 Scopes which are functions can be invoked in two ways. If the scope does not take any arguments it can be invoked as normally. If the scope takes arguments, pass an object:
 
 ```js
-Project.scope('random', { method: ['accessLevel', 19]}).findAll();
+Project.scope('random', { method: ['accessLevel', 19] }).findAll();
 ```
+
 ```sql
 SELECT * FROM projects WHERE someNumber = 42 AND accessLevel >= 19
 ```
 
 ## Merging
+
 Several scopes can be applied simultaneously by passing an array of scopes to `.scope`, or by passing the scopes as consecutive arguments.
 
 ```js
@@ -106,6 +110,7 @@ Several scopes can be applied simultaneously by passing an array of scopes to `.
 Project.scope('deleted', 'activeUsers').findAll();
 Project.scope(['deleted', 'activeUsers']).findAll();
 ```
+
 ```sql
 SELECT * FROM projects
 INNER JOIN users ON projects.userId = users.id
@@ -117,6 +122,7 @@ If you want to apply another scope alongside the default scope, pass the key `de
 ```js
 Project.scope('defaultScope', 'deleted').findAll();
 ```
+
 ```sql
 SELECT * FROM projects WHERE active = true AND deleted = true
 ```
@@ -160,8 +166,9 @@ Project.scope('deleted').findAll({
   where: {
     firstName: 'john'
   }
-})
+});
 ```
+
 ```sql
 WHERE deleted = true AND firstName = 'john'
 ```
@@ -169,10 +176,11 @@ WHERE deleted = true AND firstName = 'john'
 Here the `deleted` scope is merged with the finder. If we were to pass `where: { firstName: 'john', deleted: false }` to the finder, the `deleted` scope would be overwritten.
 
 ## Associations
+
 Sequelize has two different but related scope concepts in relation to associations. The difference is subtle but important:
 
-* **Association scopes** Allow you to specify default attributes when getting and setting associations - useful when implementing polymorphic associations. This scope is only invoked on the association between the two models, when using the `get`, `set`, `add` and `create` associated model functions
-* **Scopes on associated models** Allows you to apply default and other scopes when fetching associations, and allows you to pass a scoped model when creating associations. These scopes both apply to regular finds on the model and to find through the association.
+- **Association scopes** Allow you to specify default attributes when getting and setting associations - useful when implementing polymorphic associations. This scope is only invoked on the association between the two models, when using the `get`, `set`, `add` and `create` associated model functions
+- **Scopes on associated models** Allows you to apply default and other scopes when fetching associations, and allows you to pass a scoped model when creating associations. These scopes both apply to regular finds on the model and to find through the association.
 
 As an example, consider the models Post and Comment. Comment is associated to several other models (Image, Video etc.) and the association between Comment and other models is polymorphic, which means that Comment stores a `commentable` column, in addition to the foreign key `commentable_id`.
 
@@ -192,8 +200,9 @@ When calling `post.getComments()`, this will automatically add `WHERE commentabl
 Consider then, that Post has a default scope which only shows active posts: `where: { active: true }`. This scope lives on the associated model (Post), and not on the association like the `commentable` scope did. Just like the default scope is applied when calling `Post.findAll()`, it is also applied when calling `User.getPosts()` - this will only return the active posts for that user.
 
 To disable the default scope, pass `scope: null` to the getter: `User.getPosts({ scope: null })`. Similarly, if you want to apply other scopes, pass an array like you would to `.scope`:
+
 ```js
-User.getPosts({ scope: ['scope1', 'scope2']});
+User.getPosts({ scope: ['scope1', 'scope2'] });
 ```
 
 If you want to create a shortcut method to a scope on an associated model, you can pass the scoped model to the association. Consider a shortcut to get all deleted posts for a user:
@@ -216,7 +225,6 @@ const Post = sequelize.define('post', attributes, {
 
 User.hasMany(Post); // regular getPosts association
 User.hasMany(Post.scope('deleted'), { as: 'deletedPosts' });
-
 ```
 
 ```js

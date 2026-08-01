@@ -4524,7 +4524,7 @@ declare namespace sequelize {
     /**
      * Deletes a row
      */
-    'delete'(instance: Instance<any>, tableName: string, identifier: Object, options?: QueryOptions): Promise<Object>;
+    delete(instance: Instance<any>, tableName: string, identifier: Object, options?: QueryOptions): Promise<Object>;
 
     /**
      * Deletes multiple rows at once

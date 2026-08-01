@@ -6,8 +6,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/../support'),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Promise = Sequelize.Promise,
-  dialect = Support.getTestDialect();
+  Promise = Sequelize.Promise;
 
 const sortById = function (a, b) {
   return a.id < b.id ? -1 : 1;
@@ -1150,13 +1149,8 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
                 },
                 include: [Group]
               }).then((users) => {
-                if (dialect === 'sqlite') {
-                  expect(new Date(users[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
-                  expect(new Date(users[0].groups[0].dateField).getTime()).to.equal(Date.UTC(2014, 1, 20));
-                } else {
-                  expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-                  expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
-                }
+                expect(users[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
+                expect(users[0].groups[0].dateField.getTime()).to.equal(Date.UTC(2014, 1, 20));
               });
             });
           });

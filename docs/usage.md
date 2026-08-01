@@ -7,6 +7,7 @@ const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'mysql'
 });
 ```
+
 This will save the passed database credentials and provide all further methods.
 
 Furthermore you can specify a non-default host/port:
@@ -14,9 +15,9 @@ Furthermore you can specify a non-default host/port:
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'mysql',
-  host: "my.server.tld",
-  port: 9821,
-})
+  host: 'my.server.tld',
+  port: 9821
+});
 ```
 
 If you just don't have a password:
@@ -35,7 +36,7 @@ You can also use a connection string:
 ```js
 const sequelize = new Sequelize('mysql://user:pass@example.com:9821/db_name', {
   // Look to the next section for possible options
-})
+});
 ```
 
 ## Options
@@ -162,7 +163,7 @@ In order to get Sequelize working nicely together with MySQL, you'll need to ins
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'mysql'
-})
+});
 ```
 
 **Note:** You can pass options directly to dialect library by setting the
@@ -177,18 +178,17 @@ For SQLite compatibility you'll need`sqlite3@~3.0.0`. Configure Sequelize like t
 const sequelize = new Sequelize('database', 'username', 'password', {
   // sqlite! now!
   dialect: 'sqlite',
- 
   // the storage engine for sqlite
   // - default ':memory:'
   storage: 'path/to/database.sqlite'
-})
+});
 ```
 
 Or you can use a connection string as well with a path:
 
 ```js
-const sequelize = new Sequelize('sqlite:/home/abs/path/dbname.db')
-const sequelize = new Sequelize('sqlite:relativePath/dbname.db')
+const sequelize = new Sequelize('sqlite:/home/abs/path/dbname.db');
+const sequelize = new Sequelize('sqlite:relativePath/dbname.db');
 ```
 
 ### PostgreSQL
@@ -199,7 +199,7 @@ The library for PostgreSQL is`pg@^5.0.0 || ^6.0.0` You'll just need to define th
 const sequelize = new Sequelize('database', 'username', 'password', {
   // gimme postgres, please!
   dialect: 'postgres'
-})
+});
 ```
 
 ### MSSQL
@@ -209,7 +209,7 @@ The library for MSSQL is`tedious@^1.7.0` You'll just need to define the dialect:
 ```js
 const sequelize = new Sequelize('database', 'username', 'password', {
   dialect: 'mssql'
-})
+});
 ```
 
 ## Executing raw SQL queries
@@ -223,50 +223,44 @@ Here is how it works:
 
 ```js
 // Arguments for raw queries
-sequelize.query('your query', [, options])
+sequelize.query('your query', [, options]);
 
 // Quick example
-sequelize.query("SELECT * FROM myTable").then(myTableRows => {
-  console.log(myTableRows)
-})
+sequelize.query('SELECT * FROM myTable').then((myTableRows) => {
+  console.log(myTableRows);
+});
 
 // If you want to return sequelize instances use the model options.
 // This allows you to easily map a query to a predefined model for sequelize e.g:
-sequelize
-  .query('SELECT * FROM projects', { model: Projects })
-  .then(projects => {
-    // Each record will now be mapped to the project's model.
-    console.log(projects)
-  })
-
+sequelize.query('SELECT * FROM projects', { model: Projects }).then((projects) => {
+  // Each record will now be mapped to the project's model.
+  console.log(projects);
+});
 
 // Options is an object with the following keys:
-sequelize
-  .query('SELECT 1', {
-    // A function (or false) for logging your queries
-    // Will get called for every SQL query that gets send
-    // to the server.
-    logging: console.log,
+sequelize.query('SELECT 1', {
+  // A function (or false) for logging your queries
+  // Will get called for every SQL query that gets send
+  // to the server.
+  logging: console.log,
 
-    // If plain is true, then sequelize will only return the first
-    // record of the result set. In case of false it will all records.
-    plain: false,
+  // If plain is true, then sequelize will only return the first
+  // record of the result set. In case of false it will all records.
+  plain: false,
 
-    // Set this to true if you don't have a model definition for your query.
-    raw: false,
+  // Set this to true if you don't have a model definition for your query.
+  raw: false,
 
-    // The type of query you are executing. The query type affects how results are formatted before they are passed back.
-    type: Sequelize.QueryTypes.SELECT
-  })
+  // The type of query you are executing. The query type affects how results are formatted before they are passed back.
+  type: Sequelize.QueryTypes.SELECT
+});
 
 // Note the second argument being null!
 // Even if we declared a callee here, the raw: true would
 // supersede and return a raw object.
-sequelize
-  .query('SELECT * FROM projects', { raw: true })
-  .then(projects => {
-    console.log(projects)
-  })
+sequelize.query('SELECT * FROM projects', { raw: true }).then((projects) => {
+  console.log(projects);
+});
 ```
 
 Replacements in a query can be done in two different ways, either using
@@ -274,10 +268,10 @@ named parameters (starting with `:`), or unnamed, represented by a ?
 
 The syntax used depends on the replacements option passed to the function:
 
-* If an array is passed, `?` will be replaced in the order that they appear in the array
-* If an object is passed, `:key` will be replaced with the keys from that object.
-If the object contains keys not found in the query or vice versa, an exception
-will be thrown.
+- If an array is passed, `?` will be replaced in the order that they appear in the array
+- If an object is passed, `:key` will be replaced with the keys from that object.
+  If the object contains keys not found in the query or vice versa, an exception
+  will be thrown.
 
 ```js
 sequelize
@@ -302,8 +296,8 @@ sequelize
 **One note:** If the attribute names of the table contain dots, the resulting objects will be nested:
 
 ```js
-sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
-  console.log(JSON.stringify(rows))
+sequelize.query('select 1 as `foo.bar.baz`').then((rows) => {
+  console.log(JSON.stringify(rows));
 
   /*
     [{
@@ -314,9 +308,8 @@ sequelize.query('select 1 as `foo.bar.baz`').then(rows => {
       }
     }]
   */
-})
+});
 ```
-
 
 [0]: /docs/latest/usage#options
 [1]: /manual/tutorial/models-definition.html#configuration

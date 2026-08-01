@@ -7,7 +7,6 @@ const chai = require('chai'),
   expect = chai.expect,
   moment = require('moment'),
   Support = require(__dirname + '/../support'),
-  dialect = Support.getTestDialect(),
   DataTypes = require(__dirname + '/../../../lib/data-types'),
   config = require(__dirname + '/../../config/config'),
   current = Support.sequelize;
@@ -72,49 +71,6 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
-
-      if (dialect === 'mysql') {
-        // Bit fields interpreted as boolean need conversion from buffer / bool.
-        // Sqlite returns the inserted value as is, and postgres really should the built in bool type instead
-
-        it('allows bit fields as booleans', function () {
-          const self = this;
-          let bitUser = this.sequelize.define(
-            'bituser',
-            {
-              bool: 'BIT(1)'
-            },
-            {
-              timestamps: false
-            }
-          );
-
-          // First use a custom data type def to create the bit field
-          return bitUser
-            .sync({ force: true })
-            .then(() => {
-              // Then change the definition to BOOLEAN
-              bitUser = self.sequelize.define(
-                'bituser',
-                {
-                  bool: DataTypes.BOOLEAN
-                },
-                {
-                  timestamps: false
-                }
-              );
-
-              return bitUser.bulkCreate([{ bool: 0 }, { bool: 1 }]);
-            })
-            .then(() => {
-              return bitUser.findAll();
-            })
-            .then((bitUsers) => {
-              expect(bitUsers[0].bool).not.to.be.ok;
-              expect(bitUsers[1].bool).to.be.ok;
-            });
-        });
-      }
 
       it('treats questionmarks in an array', function () {
         let test = false;
