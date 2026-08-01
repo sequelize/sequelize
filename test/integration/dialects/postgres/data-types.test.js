@@ -8,6 +8,17 @@ const dialect = Support.getTestDialect();
 const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 describe('[POSTGRES Specific] Data Types', () => {
+  // Reads the server's clock. Assertions about values the database generated (NOW() defaults) have
+  // to be bounded by the server's own time rather than the client's, because the two clocks drift.
+  function dbNow() {
+    return Support.sequelize
+      .query('SELECT NOW() AS now', {
+        type: Support.sequelize.QueryTypes.SELECT,
+        plain: true
+      })
+      .then((row) => row.now);
+  }
+
   describe('DATE/DATEONLY Validate and Stringify', () => {
     const now = new Date();
     const nowString = now.toISOString();
@@ -102,10 +113,20 @@ describe('[POSTGRES Specific] Data Types', () => {
         }
       );
 
+      // `sometime` is filled in by the database's NOW(), so the window it is checked against has to
+      // come from the database's clock as well. The Postgres server and the node process do not
+      // share a clock -- drift of tens of milliseconds is normal when the server runs in a VM or
+      // container -- so a window built from client-side `new Date()` calls could exclude a
+      // perfectly good server timestamp.
+      let windowStart;
+
       return User.sync({
         force: true
       })
-        .then(() => {
+        .then(() => dbNow())
+        .then((now) => {
+          windowStart = now;
+
           return User.create(
             {
               username: 'bob',
@@ -116,10 +137,11 @@ describe('[POSTGRES Specific] Data Types', () => {
             }
           );
         })
-        .then((user) => {
+        .then((user) => dbNow().then((windowEnd) => ({ user, windowEnd })))
+        .then(({ user, windowEnd }) => {
           expect(user.username).to.equal('bob');
           expect(user.beforeTime).to.equal(-Infinity);
-          expect(user.sometime).to.be.withinTime(date, new Date());
+          expect(user.sometime).to.be.withinTime(windowStart, windowEnd);
           expect(user.anotherTime).to.equal(Infinity);
           expect(user.afterTime).to.equal(Infinity);
 
@@ -142,17 +164,22 @@ describe('[POSTGRES Specific] Data Types', () => {
         .then((user) => {
           expect(user.sometime).to.equal(Infinity);
 
-          return user.update(
-            {
-              sometime: this.sequelize.fn('NOW')
-            },
-            {
-              returning: true
-            }
-          );
+          return dbNow().then((now) => {
+            windowStart = now;
+
+            return user.update(
+              {
+                sometime: this.sequelize.fn('NOW')
+              },
+              {
+                returning: true
+              }
+            );
+          });
         })
-        .then((user) => {
-          expect(user.sometime).to.be.withinTime(date, new Date());
+        .then((user) => dbNow().then((windowEnd) => ({ user, windowEnd })))
+        .then(({ user, windowEnd }) => {
+          expect(user.sometime).to.be.withinTime(windowStart, windowEnd);
 
           // find
           return User.findAll();
