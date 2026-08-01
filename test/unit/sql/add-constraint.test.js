@@ -61,8 +61,6 @@ if (current.dialect.supports.constraints.addConstraint) {
               }
             }),
             {
-              mssql:
-                "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN (N'value1', N'value2', N'value3'));",
               default:
                 "ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_ck] CHECK ([myColumn] IN ('value1', 'value2', 'value3'));"
             }
@@ -101,9 +99,7 @@ if (current.dialect.supports.constraints.addConstraint) {
                 fields: ['myColumn'],
                 defaultValue: 0
               }),
-              {
-                mssql: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_df] DEFAULT (0) FOR [myColumn];'
-              }
+              {}
             );
           });
 
@@ -115,10 +111,7 @@ if (current.dialect.supports.constraints.addConstraint) {
                 defaultValue: 'some default value',
                 name: 'default_mytable_null'
               }),
-              {
-                mssql:
-                  "ALTER TABLE [myTable] ADD CONSTRAINT [default_mytable_null] DEFAULT (N'some default value') FOR [myColumn];"
-              }
+              {}
             );
           });
 

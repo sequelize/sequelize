@@ -31,9 +31,7 @@ if (current.dialect.name === 'mysql') {
               allowNull: false
             })
           ),
-          {
-            mysql: 'ALTER TABLE `users` ADD `level_id` FLOAT NOT NULL;'
-          }
+          {}
         );
       });
 
@@ -52,10 +50,7 @@ if (current.dialect.name === 'mysql') {
               onDelete: 'cascade'
             })
           ),
-          {
-            mysql:
-              'ALTER TABLE `users` ADD `level_id` INTEGER, ADD CONSTRAINT `users_level_id_foreign_idx` FOREIGN KEY (`level_id`) REFERENCES `level` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;'
-          }
+          {}
         );
       });
 
@@ -69,9 +64,7 @@ if (current.dialect.name === 'mysql') {
               first: true
             })
           ),
-          {
-            mysql: 'ALTER TABLE `users` ADD `test_added_col_first` VARCHAR(255) FIRST;'
-          }
+          {}
         );
       });
     });

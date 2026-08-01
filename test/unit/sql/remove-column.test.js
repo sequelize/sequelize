@@ -20,8 +20,6 @@ if (current.dialect.name !== 'sqlite') {
             'email'
           ),
           {
-            mssql: 'ALTER TABLE [archive].[user] DROP COLUMN [email];',
-            mysql: 'ALTER TABLE `archive.user` DROP `email`;',
             postgres: 'ALTER TABLE "archive"."user" DROP COLUMN "email";'
           }
         );

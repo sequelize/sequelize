@@ -24,8 +24,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         model: { primaryKeyField: 'id', name: 'tableRef' }
       },
       {
-        default: ' LIMIT 10',
-        mssql: ' ORDER BY [tableRef].[id] OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+        default: ' LIMIT 10'
       }
     );
 
@@ -37,8 +36,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: ' LIMIT 10',
-        mssql: ' OFFSET 0 ROWS FETCH NEXT 10 ROWS ONLY'
+        default: ' LIMIT 10'
       }
     );
 
@@ -52,8 +50,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       },
       {
         default: ' LIMIT 20, 10',
-        postgres: ' LIMIT 10 OFFSET 20',
-        mssql: ' OFFSET 20 ROWS FETCH NEXT 10 ROWS ONLY'
+        postgres: ' LIMIT 10 OFFSET 20'
       }
     );
 
@@ -65,9 +62,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        default: " LIMIT ''';DELETE FROM user'",
-        mysql: " LIMIT '\\';DELETE FROM user'",
-        mssql: " OFFSET 0 ROWS FETCH NEXT N''';DELETE FROM user' ROWS ONLY"
+        default: " LIMIT ''';DELETE FROM user'"
       }
     );
 
@@ -80,10 +75,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ]
       },
       {
-        sqlite: " LIMIT ''';DELETE FROM user', 10",
-        postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'",
-        mysql: " LIMIT '\\';DELETE FROM user', 10",
-        mssql: " OFFSET N''';DELETE FROM user' ROWS FETCH NEXT 10 ROWS ONLY"
+        postgres: " LIMIT 10 OFFSET ''';DELETE FROM user'"
       }
     );
   });

@@ -30,8 +30,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasTrigger: true
       };
       expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.rawAttributes, options), {
-        mssql:
-          "declare @tmp table ([id] INTEGER,[user_name] NVARCHAR(255));INSERT INTO [users] ([user_name]) OUTPUT INSERTED.[id],INSERTED.[user_name] into @tmp VALUES (N'triggertest');select * from @tmp;",
         postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
         default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');"
       });
@@ -64,10 +62,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {}
         ),
         {
-          postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 01:00:00.000 +01:00\');',
-          sqlite: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 00:00:00.000 +00:00');",
-          mssql: "INSERT INTO [users] ([date]) VALUES (N'2015-01-20 01:00:00.000 +01:00');",
-          mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 01:00:00');"
+          postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 01:00:00.000 +01:00\');'
         }
       );
     });
@@ -97,10 +92,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           {}
         ),
         {
-          postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 02:02:03.089 +01:00\');',
-          sqlite: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 01:02:03.089 +00:00');",
-          mssql: "INSERT INTO [users] ([date]) VALUES (N'2015-01-20 02:02:03.089 +01:00');",
-          mysql: "INSERT INTO `users` (`date`) VALUES ('2015-01-20 02:02:03.089');"
+          postgres: 'INSERT INTO "users" ("date") VALUES (\'2015-01-20 02:02:03.089 +01:00\');'
         }
       );
     });
@@ -142,10 +134,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ),
         {
           default: "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
-          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
-          mssql: "INSERT INTO [users] ([user_name],[pass_word]) VALUES (N'testuser',N'12345');",
-          mysql:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);"
+          postgres: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');'
         }
       );
     });

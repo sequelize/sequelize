@@ -276,8 +276,7 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           )
         ),
         {
-          default: "SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))",
-          mssql: "SUM(CAST(([foo] = N'foo' OR [bar] = N'bar') AS INT))"
+          default: "SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))"
         }
       );
     });

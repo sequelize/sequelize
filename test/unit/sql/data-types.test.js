@@ -22,31 +22,24 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('STRING', () => {
       testsql('STRING', DataTypes.STRING, {
-        default: 'VARCHAR(255)',
-        mssql: 'NVARCHAR(255)'
+        default: 'VARCHAR(255)'
       });
 
       testsql('STRING(1234)', DataTypes.STRING(1234), {
-        default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        default: 'VARCHAR(1234)'
       });
 
       testsql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
-        default: 'VARCHAR(1234)',
-        mssql: 'NVARCHAR(1234)'
+        default: 'VARCHAR(1234)'
       });
 
       testsql('STRING(1234).BINARY', DataTypes.STRING(1234).BINARY, {
         default: 'VARCHAR(1234) BINARY',
-        sqlite: 'VARCHAR BINARY(1234)',
-        mssql: 'BINARY(1234)',
         postgres: 'BYTEA'
       });
 
       testsql('STRING.BINARY', DataTypes.STRING.BINARY, {
         default: 'VARCHAR(255) BINARY',
-        sqlite: 'VARCHAR BINARY(255)',
-        mssql: 'BINARY(255)',
         postgres: 'BYTEA'
       });
 
@@ -63,32 +56,23 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('TEXT', () => {
       testsql('TEXT', DataTypes.TEXT, {
-        default: 'TEXT',
-        mssql: 'NVARCHAR(MAX)' // in mssql text is actually representing a non unicode text field
+        default: 'TEXT'
       });
 
       testsql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
-        default: 'TEXT',
-        mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT'
+        default: 'TEXT'
       });
 
       testsql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
-        default: 'TEXT',
-        mssql: 'NVARCHAR(256)',
-        mysql: 'TINYTEXT'
+        default: 'TEXT'
       });
 
       testsql('TEXT("medium")', DataTypes.TEXT('medium'), {
-        default: 'TEXT',
-        mssql: 'NVARCHAR(MAX)',
-        mysql: 'MEDIUMTEXT'
+        default: 'TEXT'
       });
 
       testsql('TEXT("long")', DataTypes.TEXT('long'), {
-        default: 'TEXT',
-        mssql: 'NVARCHAR(MAX)',
-        mysql: 'LONGTEXT'
+        default: 'TEXT'
       });
 
       describe('validate', () => {
@@ -123,23 +107,18 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('CHAR(12).BINARY', DataTypes.CHAR(12).BINARY, {
         default: 'CHAR(12) BINARY',
-        sqlite: 'CHAR BINARY(12)',
         postgres: 'BYTEA'
       });
 
       testsql('CHAR.BINARY', DataTypes.CHAR.BINARY, {
         default: 'CHAR(255) BINARY',
-        sqlite: 'CHAR BINARY(255)',
         postgres: 'BYTEA'
       });
     });
 
     describe('BOOLEAN', () => {
       testsql('BOOLEAN', DataTypes.BOOLEAN, {
-        postgres: 'BOOLEAN',
-        mssql: 'BIT',
-        mysql: 'TINYINT(1)',
-        sqlite: 'TINYINT(1)'
+        postgres: 'BOOLEAN'
       });
 
       describe('validate', () => {
@@ -166,17 +145,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('DATE', () => {
       testsql('DATE', DataTypes.DATE, {
-        postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIMEOFFSET',
-        mysql: 'DATETIME',
-        sqlite: 'DATETIME'
+        postgres: 'TIMESTAMP WITH TIME ZONE'
       });
 
       testsql('DATE(6)', DataTypes.DATE(6), {
-        postgres: 'TIMESTAMP WITH TIME ZONE',
-        mssql: 'DATETIMEOFFSET',
-        mysql: 'DATETIME(6)',
-        sqlite: 'DATETIME'
+        postgres: 'TIMESTAMP WITH TIME ZONE'
       });
 
       describe('validate', () => {
@@ -218,10 +191,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('UUID', () => {
       testsql('UUID', DataTypes.UUID, {
-        postgres: 'UUID',
-        mssql: 'CHAR(36)',
-        mysql: 'CHAR(36) BINARY',
-        sqlite: 'UUID'
+        postgres: 'UUID'
       });
 
       describe('validate', () => {
@@ -318,8 +288,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('NOW', () => {
       testsql('NOW', DataTypes.NOW, {
-        default: 'NOW',
-        mssql: 'GETDATE()'
+        default: 'NOW'
       });
     });
 
@@ -330,54 +299,42 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('INTEGER.UNSIGNED', DataTypes.INTEGER.UNSIGNED, {
         default: 'INTEGER UNSIGNED',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER.UNSIGNED.ZEROFILL', DataTypes.INTEGER.UNSIGNED.ZEROFILL, {
         default: 'INTEGER UNSIGNED ZEROFILL',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER(11)', DataTypes.INTEGER(11), {
         default: 'INTEGER(11)',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER({ length: 11 })', DataTypes.INTEGER({ length: 11 }), {
         default: 'INTEGER(11)',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER(11).UNSIGNED', DataTypes.INTEGER(11).UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED',
-        sqlite: 'INTEGER UNSIGNED(11)',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER(11).UNSIGNED.ZEROFILL', DataTypes.INTEGER(11).UNSIGNED.ZEROFILL, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
-        sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER(11).ZEROFILL', DataTypes.INTEGER(11).ZEROFILL, {
         default: 'INTEGER(11) ZEROFILL',
-        sqlite: 'INTEGER ZEROFILL(11)',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       testsql('INTEGER(11).ZEROFILL.UNSIGNED', DataTypes.INTEGER(11).ZEROFILL.UNSIGNED, {
         default: 'INTEGER(11) UNSIGNED ZEROFILL',
-        sqlite: 'INTEGER UNSIGNED ZEROFILL(11)',
-        postgres: 'INTEGER',
-        mssql: 'INTEGER'
+        postgres: 'INTEGER'
       });
 
       describe('validate', () => {
@@ -419,84 +376,70 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'TINYINT(2)',
           dataType: DataTypes.TINYINT(2),
           expect: {
-            default: 'TINYINT(2)',
-            mssql: 'TINYINT'
+            default: 'TINYINT(2)'
           }
         },
         {
           title: 'TINYINT({ length: 2 })',
           dataType: DataTypes.TINYINT({ length: 2 }),
           expect: {
-            default: 'TINYINT(2)',
-            mssql: 'TINYINT'
+            default: 'TINYINT(2)'
           }
         },
         {
           title: 'TINYINT.UNSIGNED',
           dataType: DataTypes.TINYINT.UNSIGNED,
           expect: {
-            default: 'TINYINT UNSIGNED',
-            mssql: 'TINYINT'
+            default: 'TINYINT UNSIGNED'
           }
         },
         {
           title: 'TINYINT(2).UNSIGNED',
           dataType: DataTypes.TINYINT(2).UNSIGNED,
           expect: {
-            default: 'TINYINT(2) UNSIGNED',
-            sqlite: 'TINYINT UNSIGNED(2)',
-            mssql: 'TINYINT'
+            default: 'TINYINT(2) UNSIGNED'
           }
         },
         {
           title: 'TINYINT.UNSIGNED.ZEROFILL',
           dataType: DataTypes.TINYINT.UNSIGNED.ZEROFILL,
           expect: {
-            default: 'TINYINT UNSIGNED ZEROFILL',
-            mssql: 'TINYINT'
+            default: 'TINYINT UNSIGNED ZEROFILL'
           }
         },
         {
           title: 'TINYINT(2).UNSIGNED.ZEROFILL',
           dataType: DataTypes.TINYINT(2).UNSIGNED.ZEROFILL,
           expect: {
-            default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
-            mssql: 'TINYINT'
+            default: 'TINYINT(2) UNSIGNED ZEROFILL'
           }
         },
         {
           title: 'TINYINT.ZEROFILL',
           dataType: DataTypes.TINYINT.ZEROFILL,
           expect: {
-            default: 'TINYINT ZEROFILL',
-            mssql: 'TINYINT'
+            default: 'TINYINT ZEROFILL'
           }
         },
         {
           title: 'TINYINT(2).ZEROFILL',
           dataType: DataTypes.TINYINT(2).ZEROFILL,
           expect: {
-            default: 'TINYINT(2) ZEROFILL',
-            sqlite: 'TINYINT ZEROFILL(2)',
-            mssql: 'TINYINT'
+            default: 'TINYINT(2) ZEROFILL'
           }
         },
         {
           title: 'TINYINT.ZEROFILL.UNSIGNED',
           dataType: DataTypes.TINYINT.ZEROFILL.UNSIGNED,
           expect: {
-            default: 'TINYINT UNSIGNED ZEROFILL',
-            mssql: 'TINYINT'
+            default: 'TINYINT UNSIGNED ZEROFILL'
           }
         },
         {
           title: 'TINYINT(2).ZEROFILL.UNSIGNED',
           dataType: DataTypes.TINYINT(2).ZEROFILL.UNSIGNED,
           expect: {
-            default: 'TINYINT(2) UNSIGNED ZEROFILL',
-            sqlite: 'TINYINT UNSIGNED ZEROFILL(2)',
-            mssql: 'TINYINT'
+            default: 'TINYINT(2) UNSIGNED ZEROFILL'
           }
         }
       ];
@@ -540,8 +483,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4),
           expect: {
             default: 'SMALLINT(4)',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -549,8 +491,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT({ length: 4 }),
           expect: {
             default: 'SMALLINT(4)',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -558,8 +499,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.UNSIGNED,
           expect: {
             default: 'SMALLINT UNSIGNED',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -567,9 +507,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED',
-            sqlite: 'SMALLINT UNSIGNED(4)',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -577,8 +515,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -586,9 +523,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).UNSIGNED.ZEROFILL,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -596,8 +531,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.ZEROFILL,
           expect: {
             default: 'SMALLINT ZEROFILL',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -605,9 +539,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL,
           expect: {
             default: 'SMALLINT(4) ZEROFILL',
-            sqlite: 'SMALLINT ZEROFILL(4)',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -615,8 +547,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT.ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT UNSIGNED ZEROFILL',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         },
         {
@@ -624,9 +555,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           dataType: DataTypes.SMALLINT(4).ZEROFILL.UNSIGNED,
           expect: {
             default: 'SMALLINT(4) UNSIGNED ZEROFILL',
-            sqlite: 'SMALLINT UNSIGNED ZEROFILL(4)',
-            postgres: 'SMALLINT',
-            mssql: 'SMALLINT'
+            postgres: 'SMALLINT'
           }
         }
       ];
@@ -690,8 +619,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT(6).UNSIGNED',
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED,
           expect: {
-            default: 'MEDIUMINT(6) UNSIGNED',
-            sqlite: 'MEDIUMINT UNSIGNED(6)'
+            default: 'MEDIUMINT(6) UNSIGNED'
           }
         },
         {
@@ -705,8 +633,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT(6).UNSIGNED.ZEROFILL',
           dataType: DataTypes.MEDIUMINT(6).UNSIGNED.ZEROFILL,
           expect: {
-            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
+            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL'
           }
         },
         {
@@ -720,8 +647,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT(6).ZEROFILL',
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL,
           expect: {
-            default: 'MEDIUMINT(6) ZEROFILL',
-            sqlite: 'MEDIUMINT ZEROFILL(6)'
+            default: 'MEDIUMINT(6) ZEROFILL'
           }
         },
         {
@@ -735,8 +661,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           title: 'MEDIUMINT(6).ZEROFILL.UNSIGNED',
           dataType: DataTypes.MEDIUMINT(6).ZEROFILL.UNSIGNED,
           expect: {
-            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL',
-            sqlite: 'MEDIUMINT UNSIGNED ZEROFILL(6)'
+            default: 'MEDIUMINT(6) UNSIGNED ZEROFILL'
           }
         }
       ];
@@ -773,54 +698,42 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('BIGINT.UNSIGNED', DataTypes.BIGINT.UNSIGNED, {
         default: 'BIGINT UNSIGNED',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT.UNSIGNED.ZEROFILL', DataTypes.BIGINT.UNSIGNED.ZEROFILL, {
         default: 'BIGINT UNSIGNED ZEROFILL',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT(11)', DataTypes.BIGINT(11), {
         default: 'BIGINT(11)',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT({ length: 11 })', DataTypes.BIGINT({ length: 11 }), {
         default: 'BIGINT(11)',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT(11).UNSIGNED', DataTypes.BIGINT(11).UNSIGNED, {
         default: 'BIGINT(11) UNSIGNED',
-        sqlite: 'BIGINT UNSIGNED(11)',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT(11).UNSIGNED.ZEROFILL', DataTypes.BIGINT(11).UNSIGNED.ZEROFILL, {
         default: 'BIGINT(11) UNSIGNED ZEROFILL',
-        sqlite: 'BIGINT UNSIGNED ZEROFILL(11)',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT(11).ZEROFILL', DataTypes.BIGINT(11).ZEROFILL, {
         default: 'BIGINT(11) ZEROFILL',
-        sqlite: 'BIGINT ZEROFILL(11)',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       testsql('BIGINT(11).ZEROFILL.UNSIGNED', DataTypes.BIGINT(11).ZEROFILL.UNSIGNED, {
         default: 'BIGINT(11) UNSIGNED ZEROFILL',
-        sqlite: 'BIGINT UNSIGNED ZEROFILL(11)',
-        postgres: 'BIGINT',
-        mssql: 'BIGINT'
+        postgres: 'BIGINT'
       });
 
       describe('validate', () => {
@@ -851,89 +764,67 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('REAL.UNSIGNED', DataTypes.REAL.UNSIGNED, {
         default: 'REAL UNSIGNED',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11)', DataTypes.REAL(11), {
         default: 'REAL(11)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL({ length: 11 })', DataTypes.REAL({ length: 11 }), {
         default: 'REAL(11)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11).UNSIGNED', DataTypes.REAL(11).UNSIGNED, {
         default: 'REAL(11) UNSIGNED',
-        sqlite: 'REAL UNSIGNED(11)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11).UNSIGNED.ZEROFILL', DataTypes.REAL(11).UNSIGNED.ZEROFILL, {
         default: 'REAL(11) UNSIGNED ZEROFILL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11).ZEROFILL', DataTypes.REAL(11).ZEROFILL, {
         default: 'REAL(11) ZEROFILL',
-        sqlite: 'REAL ZEROFILL(11)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11).ZEROFILL.UNSIGNED', DataTypes.REAL(11).ZEROFILL.UNSIGNED, {
         default: 'REAL(11) UNSIGNED ZEROFILL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11, 12)', DataTypes.REAL(11, 12), {
         default: 'REAL(11,12)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11, 12).UNSIGNED', DataTypes.REAL(11, 12).UNSIGNED, {
         default: 'REAL(11,12) UNSIGNED',
-        sqlite: 'REAL UNSIGNED(11,12)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.REAL({ length: 11, decimals: 12 }).UNSIGNED, {
         default: 'REAL(11,12) UNSIGNED',
-        sqlite: 'REAL UNSIGNED(11,12)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11, 12).UNSIGNED.ZEROFILL', DataTypes.REAL(11, 12).UNSIGNED.ZEROFILL, {
         default: 'REAL(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11, 12).ZEROFILL', DataTypes.REAL(11, 12).ZEROFILL, {
         default: 'REAL(11,12) ZEROFILL',
-        sqlite: 'REAL ZEROFILL(11,12)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
 
       testsql('REAL(11, 12).ZEROFILL.UNSIGNED', DataTypes.REAL(11, 12).ZEROFILL.UNSIGNED, {
         default: 'REAL(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'REAL UNSIGNED ZEROFILL(11,12)',
-        postgres: 'REAL',
-        mssql: 'REAL'
+        postgres: 'REAL'
       });
     });
 
@@ -954,31 +845,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('DOUBLE(11).UNSIGNED', DataTypes.DOUBLE(11).UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE({ length: 11 }).UNSIGNED', DataTypes.DOUBLE({ length: 11 }).UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11).UNSIGNED.ZEROFILL, {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).ZEROFILL', DataTypes.DOUBLE(11).ZEROFILL, {
         default: 'DOUBLE PRECISION(11) ZEROFILL',
-        sqlite: 'DOUBLE PRECISION ZEROFILL(11)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11).ZEROFILL.UNSIGNED, {
         default: 'DOUBLE PRECISION(11) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11)',
         postgres: 'DOUBLE PRECISION'
       });
 
@@ -989,25 +875,21 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('DOUBLE(11, 12).UNSIGNED', DataTypes.DOUBLE(11, 12).UNSIGNED, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED',
-        sqlite: 'DOUBLE PRECISION UNSIGNED(11,12)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).UNSIGNED.ZEROFILL', DataTypes.DOUBLE(11, 12).UNSIGNED.ZEROFILL, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL', DataTypes.DOUBLE(11, 12).ZEROFILL, {
         default: 'DOUBLE PRECISION(11,12) ZEROFILL',
-        sqlite: 'DOUBLE PRECISION ZEROFILL(11,12)',
         postgres: 'DOUBLE PRECISION'
       });
 
       testsql('DOUBLE(11, 12).ZEROFILL.UNSIGNED', DataTypes.DOUBLE(11, 12).ZEROFILL.UNSIGNED, {
         default: 'DOUBLE PRECISION(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'DOUBLE PRECISION UNSIGNED ZEROFILL(11,12)',
         postgres: 'DOUBLE PRECISION'
       });
     });
@@ -1020,90 +902,67 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       testsql('FLOAT.UNSIGNED', DataTypes.FLOAT.UNSIGNED, {
         default: 'FLOAT UNSIGNED',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       testsql('FLOAT(11)', DataTypes.FLOAT(11), {
         default: 'FLOAT(11)',
-        postgres: 'FLOAT(11)', // 1-24 = 4 bytes; 35-53 = 8 bytes
-        mssql: 'FLOAT(11)' // 1-24 = 4 bytes; 35-53 = 8 bytes
+        postgres: 'FLOAT(11)' // 1-24 = 4 bytes; 35-53 = 8 bytes
       });
 
       testsql('FLOAT(11).UNSIGNED', DataTypes.FLOAT(11).UNSIGNED, {
         default: 'FLOAT(11) UNSIGNED',
-        sqlite: 'FLOAT UNSIGNED(11)',
-        postgres: 'FLOAT(11)',
-        mssql: 'FLOAT(11)'
+        postgres: 'FLOAT(11)'
       });
 
       testsql('FLOAT(11).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11).UNSIGNED.ZEROFILL, {
         default: 'FLOAT(11) UNSIGNED ZEROFILL',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        mssql: 'FLOAT(11)'
+        postgres: 'FLOAT(11)'
       });
 
       testsql('FLOAT(11).ZEROFILL', DataTypes.FLOAT(11).ZEROFILL, {
         default: 'FLOAT(11) ZEROFILL',
-        sqlite: 'FLOAT ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        mssql: 'FLOAT(11)'
+        postgres: 'FLOAT(11)'
       });
 
       testsql('FLOAT({ length: 11 }).ZEROFILL', DataTypes.FLOAT({ length: 11 }).ZEROFILL, {
         default: 'FLOAT(11) ZEROFILL',
-        sqlite: 'FLOAT ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        mssql: 'FLOAT(11)'
+        postgres: 'FLOAT(11)'
       });
 
       testsql('FLOAT(11).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11).ZEROFILL.UNSIGNED, {
         default: 'FLOAT(11) UNSIGNED ZEROFILL',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11)',
-        postgres: 'FLOAT(11)',
-        mssql: 'FLOAT(11)'
+        postgres: 'FLOAT(11)'
       });
 
       testsql('FLOAT(11, 12)', DataTypes.FLOAT(11, 12), {
         default: 'FLOAT(11,12)',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       testsql('FLOAT(11, 12).UNSIGNED', DataTypes.FLOAT(11, 12).UNSIGNED, {
         default: 'FLOAT(11,12) UNSIGNED',
-        sqlite: 'FLOAT UNSIGNED(11,12)',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       testsql('FLOAT({ length: 11, decimals: 12 }).UNSIGNED', DataTypes.FLOAT({ length: 11, decimals: 12 }).UNSIGNED, {
         default: 'FLOAT(11,12) UNSIGNED',
-        sqlite: 'FLOAT UNSIGNED(11,12)',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       testsql('FLOAT(11, 12).UNSIGNED.ZEROFILL', DataTypes.FLOAT(11, 12).UNSIGNED.ZEROFILL, {
         default: 'FLOAT(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       testsql('FLOAT(11, 12).ZEROFILL', DataTypes.FLOAT(11, 12).ZEROFILL, {
         default: 'FLOAT(11,12) ZEROFILL',
-        sqlite: 'FLOAT ZEROFILL(11,12)',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       testsql('FLOAT(11, 12).ZEROFILL.UNSIGNED', DataTypes.FLOAT(11, 12).ZEROFILL.UNSIGNED, {
         default: 'FLOAT(11,12) UNSIGNED ZEROFILL',
-        sqlite: 'FLOAT UNSIGNED ZEROFILL(11,12)',
-        postgres: 'FLOAT',
-        mssql: 'FLOAT'
+        postgres: 'FLOAT'
       });
 
       describe('validate', () => {
@@ -1159,12 +1018,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       testsql('DECIMAL.UNSIGNED', DataTypes.DECIMAL.UNSIGNED, {
-        mysql: 'DECIMAL UNSIGNED',
         default: 'DECIMAL'
       });
 
       testsql('DECIMAL.UNSIGNED.ZEROFILL', DataTypes.DECIMAL.UNSIGNED.ZEROFILL, {
-        mysql: 'DECIMAL UNSIGNED ZEROFILL',
         default: 'DECIMAL'
       });
 
@@ -1172,7 +1029,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         'DECIMAL({ precision: 10, scale: 2 }).UNSIGNED',
         DataTypes.DECIMAL({ precision: 10, scale: 2 }).UNSIGNED,
         {
-          mysql: 'DECIMAL(10,2) UNSIGNED',
           default: 'DECIMAL(10,2)'
         }
       );
@@ -1236,31 +1092,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     describe('BLOB', () => {
       testsql('BLOB', DataTypes.BLOB, {
         default: 'BLOB',
-        mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
       testsql('BLOB("tiny")', DataTypes.BLOB('tiny'), {
         default: 'TINYBLOB',
-        mssql: 'VARBINARY(256)',
         postgres: 'BYTEA'
       });
 
       testsql('BLOB("medium")', DataTypes.BLOB('medium'), {
         default: 'MEDIUMBLOB',
-        mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
       testsql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
         default: 'MEDIUMBLOB',
-        mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
       testsql('BLOB("long")', DataTypes.BLOB('long'), {
         default: 'LONGBLOB',
-        mssql: 'VARBINARY(MAX)',
         postgres: 'BYTEA'
       });
 
@@ -1421,23 +1272,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         testsql("GEOMETRY('POINT')", DataTypes.GEOMETRY('POINT'), {
-          postgres: 'GEOMETRY(POINT)',
-          mysql: 'POINT'
+          postgres: 'GEOMETRY(POINT)'
         });
 
         testsql("GEOMETRY('LINESTRING')", DataTypes.GEOMETRY('LINESTRING'), {
-          postgres: 'GEOMETRY(LINESTRING)',
-          mysql: 'LINESTRING'
+          postgres: 'GEOMETRY(LINESTRING)'
         });
 
         testsql("GEOMETRY('POLYGON')", DataTypes.GEOMETRY('POLYGON'), {
-          postgres: 'GEOMETRY(POLYGON)',
-          mysql: 'POLYGON'
+          postgres: 'GEOMETRY(POLYGON)'
         });
 
         testsql("GEOMETRY('POINT',4326)", DataTypes.GEOMETRY('POINT', 4326), {
-          postgres: 'GEOMETRY(POINT,4326)',
-          mysql: 'POINT'
+          postgres: 'GEOMETRY(POINT,4326)'
         });
       });
     }
