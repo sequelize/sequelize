@@ -36,14 +36,50 @@ Still interested? Coolio! Here is how to get started:
 ### 1. Prepare your environment
 Here comes a little surprise: You need [Node.JS](http://nodejs.org).
 
+This repository uses [pnpm](https://pnpm.io), and pins both Node and pnpm with
+[Volta](https://volta.sh):
+
+```json
+"volta": { "node": "24.18.1", "pnpm": "10.34.5" }
+```
+
+With Volta installed, `cd`-ing into the repo gives you the right Node and pnpm
+automatically — nothing else to do. Without Volta, the same pnpm version is also in the
+`packageManager` field, which `corepack enable` and pnpm itself both honour; you will
+just have to get Node 24 yourself.
+
+Keep `volta.pnpm` and `packageManager` in sync. pnpm self-switches to whatever
+`packageManager` says, so if they disagree the `packageManager` value silently wins and
+your Volta pin does nothing.
+
+Node is pinned to 24 (current LTS) because that is the newest version CI tests. Newer
+Node is not currently supported — Node 26 removed enough of the legacy `url.parse`
+behaviour that `lib/sequelize.js` relies on to fail a unit test.
+
+**pnpm is held at 10.x on purpose. Do not upgrade it to 11.** pnpm 11 requires Node
+`>=22.13` and does not merely warn on older Node — it crashes with
+`ERR_UNKNOWN_BUILTIN_MODULE`, so the Node 20 leg of the CI matrix would fail outright.
+Node 20 support is a hard requirement (see `engines`), so pnpm stays on 10.x until that
+floor moves. Everything 11 offers that we use, including the `minimumReleaseAge`
+supply-chain gate, is already in pnpm 10.28+.
+
 ### 2. Install the dependencies
 
-Just "cd" into sequelize directory and run `npm install`, see an example below:
+Just "cd" into sequelize directory and run `pnpm install`, see an example below:
 
 ```sh
 $ cd path/to/sequelize
-$ npm install
+$ pnpm install
 ```
+
+`pnpm-lock.yaml` is committed, so this gives you the same dependency tree CI uses.
+If you change anything in `package.json`, commit the updated lockfile alongside it —
+CI installs with `--frozen-lockfile` and will fail if the two disagree.
+
+The `sqlite3` and `libpq` (via `pg-native`) packages compile native bindings. pnpm only
+runs their build scripts because they are listed under `onlyBuiltDependencies` in
+`pnpm-workspace.yaml`; if you add another dependency that needs a build step, it has to
+be added there too or it will install silently broken.
 
 ### 3. Database
 
@@ -85,19 +121,19 @@ All tests are located in the `test` folder (which contains the
 lovely [Mocha](http://visionmedia.github.io/mocha/) tests).
 
 ```sh
-$ npm run test-all || test-mysql || test-sqlite || test-mssql || test-postgres || test-postgres-native
+$ pnpm run test-all || test-mysql || test-sqlite || test-mssql || test-postgres || test-postgres-native
 
 $ # alternatively you can pass database credentials with $variables when testing
-$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password npm test
+$ DIALECT=dialect SEQ_DB=database SEQ_USER=user SEQ_PW=password pnpm test
 ```
 
 For docker users you can use these commands instead
 
 ```sh
-$ DIALECT=mysql npm run test-docker # Or DIALECT=postgres for Postgres SQL
+$ DIALECT=mysql pnpm run test-docker # Or DIALECT=postgres for Postgres SQL
 
 # Only integration tests
-$ DIALECT=mysql npm run test-docker-integration
+$ DIALECT=mysql pnpm run test-docker-integration
 ```
 
 ### 5. Commit
@@ -119,12 +155,38 @@ Have a look at our [.eslintrc.json](https://github.com/sequelize/sequelize/blob/
 
 # Publishing a release (For Maintainers)
 
-**Note:** _You really don't need this as Sequelize use semantic-release, Travis will automatically release new version_
+This fork is **not published to a registry**. Consumers install it straight from a git
+tag, so cutting a release means tagging — there is no `publish` step.
 
-1. Ensure that latest build on master is green
-2. Ensure your local code is up to date (`git pull origin master`)
-3. `npm version patch|minor|major` (see [Semantic Versioning](http://semver.org))
-4. Update changelog to match version number, commit changelog
-5. `git push --tags origin master`
-6. `npm publish .`
-7. Copy changelog for version to release notes for version on github
+1. Ensure the latest build on `develop-v4` is green
+2. Ensure your local code is up to date (`git pull origin develop-v4`)
+3. `pnpm version patch|minor|major` (see [Semantic Versioning](http://semver.org)) — this
+   bumps `package.json` and creates the `vX.Y.Z` tag
+4. `git push origin develop-v4 --follow-tags`
+5. Bump the pinned tag in the consumer, e.g. in `auditboard-backend`'s
+   `pnpm-workspace.yaml` catalog: `"sequelize": "github:soxhub/sequelize#vX.Y.Z"`
+
+**The tag is the only thing consumers see.** Commits pushed to `develop-v4` after the
+most recent tag are not shipped, no matter how long they have been on the branch. If a
+fix needs to go out, it needs a new tag and a matching bump on the consumer side.
+
+## What gets shipped
+
+The `files` array in `package.json` is the single source of truth for package contents:
+`lib`, `index.js`, `index.d.ts`, plus `package.json`/`README.md`/`LICENSE`, which are
+always included. There is deliberately no `.npmignore` — when `files` is present it
+overrides `.npmignore` entirely, so having both meant one of them was dead config that
+still looked authoritative.
+
+If you add a new top-level file or directory that consumers need, add it to `files`.
+Nothing else will include it. Verify with `pnpm pack` and inspect the tarball.
+
+## Do not add a build step
+
+This package ships raw `lib/` — there is deliberately no `prepare`, `prepack`, or
+`build` script, and adding one is a breaking change for consumers. Because the package
+is fetched as a GitHub tarball, a build script forces pnpm off that fast path into
+clone-and-build, *and* trips pnpm's build gate: every consuming repo would have to add
+`sequelize` to its own `onlyBuiltDependencies` before it would install at all.
+
+If a build step ever becomes genuinely necessary, publish to a private registry instead.

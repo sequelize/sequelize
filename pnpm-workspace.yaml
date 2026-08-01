@@ -1,0 +1,11 @@
+# pnpm blocks dependency build scripts by default. These two compile native
+# bindings and are silently non-functional without an approved build:
+#   sqlite3 -> node_sqlite3.node   (the sqlite dialect)
+#   libpq   -> addon.node          (transitive via pg-native, postgres-native dialect)
+#
+# Note: pnpm 11 renamed this key to `allowBuilds` (a bool map). Do not migrate to it
+# without also reading the pnpm version note in CONTRIBUTING.md -- we are held on
+# pnpm 10 deliberately.
+onlyBuiltDependencies:
+  - libpq
+  - sqlite3

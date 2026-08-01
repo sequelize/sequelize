@@ -1,22 +1,18 @@
-name: Test Postgres
+# Companion to test-postgres.yml. That job installs from the committed lockfile
+# so PR failures always mean "your change broke it". This one deliberately
+# ignores the lockfile and resolves every dependency range fresh, so upstream
+# releases that break us surface here on a schedule instead of in a consumer.
+name: Floating Deps
 
 on:
-  push:
-    branches: [main, 'release/**', 'develop-v4']
-  pull_request:
-    branches: [main, 'release/**', 'develop-v4']
+  schedule:
+    # Mondays, 13:00 UTC
+    - cron: '0 13 * * 1'
   workflow_dispatch:
 
 jobs:
-  test-postgres:
+  floating:
     runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [20, 22, 24]
-
-    name: test-postgres (node ${{ matrix.node-version }})
 
     services:
       postgres:
@@ -40,15 +36,18 @@ jobs:
 
       - uses: actions/setup-node@v7
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
+          node-version: 24
 
       - name: Install Postgres extensions
         env:
           PGPASSWORD: sequelize_test
         run: psql -h localhost -U sequelize_test -d sequelize_test -f test/config/init-postgres.sql
 
-      - run: pnpm install --frozen-lockfile
+      - name: Install with freshly resolved dependencies
+        run: pnpm install --no-lockfile
+
+      - name: Report resolved versions
+        run: pnpm list --depth 0
 
       - name: Run Postgres tests
         env:

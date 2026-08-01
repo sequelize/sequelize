@@ -14,17 +14,20 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: pnpm
 
-      - run: npm install
+      - run: pnpm install --frozen-lockfile
 
       - name: Check formatting
-        run: npm run fmt:check
+        run: pnpm run fmt:check
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: No focused tests
         run: |
@@ -39,11 +42,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
+          cache: pnpm
 
-      - run: npm install
+      - run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: npm run test:types
+        run: pnpm run test:types
