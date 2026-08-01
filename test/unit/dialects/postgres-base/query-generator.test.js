@@ -3,22 +3,22 @@
 const chai = require('chai'),
   expect = chai.expect,
   Op = require('../../../../lib/operators'),
-  getAbstractQueryGenerator = require(__dirname + '/../../support').getAbstractQueryGenerator;
+  getQueryGenerator = require(__dirname + '/../../support').getQueryGenerator;
 
 describe('QueryGenerator', () => {
   describe('selectQuery', () => {
     it('should generate correct query using array placeholder', function () {
-      const QG = getAbstractQueryGenerator(this.sequelize);
+      const QG = getQueryGenerator(this.sequelize);
 
       QG.selectQuery('foo', { where: { bar: { [Op.like]: { [Op.any]: ['a', 'b'] } } } }).should.be.equal(
-        "SELECT * FROM foo WHERE foo.bar LIKE ANY ('a', 'b');"
+        "SELECT * FROM foo WHERE foo.bar LIKE ANY (ARRAY['a','b']);"
       );
     });
   });
 
   describe('whereItemQuery', () => {
     it('should generate correct query for Symbol operators', function () {
-      const QG = getAbstractQueryGenerator(this.sequelize);
+      const QG = getQueryGenerator(this.sequelize);
       QG.whereItemQuery(Op.or, [
         { test: { [Op.gt]: 5 } },
         { test: { [Op.lt]: 3 } },
@@ -37,7 +37,7 @@ describe('QueryGenerator', () => {
     });
 
     it('should not parse any strings as aliases  operators', function () {
-      const QG = getAbstractQueryGenerator(this.sequelize);
+      const QG = getQueryGenerator(this.sequelize);
       expect(() => QG.whereItemQuery('$or', [{ test: 5 }, { test: 3 }])).to.throw('Invalid value { test: 5 }');
 
       expect(() => QG.whereItemQuery('$and', [{ test: 5 }, { test: 3 }])).to.throw('Invalid value { test: 5 }');
@@ -54,7 +54,7 @@ describe('QueryGenerator', () => {
     });
 
     it('should parse set aliases strings as operators', function () {
-      const QG = getAbstractQueryGenerator(this.sequelize),
+      const QG = getQueryGenerator(this.sequelize),
         aliases = {
           OR: Op.or,
           '!': Op.not,

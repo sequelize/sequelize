@@ -5,7 +5,7 @@ const chai = require('chai'),
   expect = chai.expect,
   Support = require(__dirname + '/support'),
   Sequelize = require(__dirname + '/../../index'),
-  ConnectionManager = require(__dirname + '/../../lib/dialects/abstract/connection-manager'),
+  ConnectionManager = require(__dirname + '/../../lib/dialects/postgres/base/connection-manager'),
   Promise = Sequelize.Promise;
 
 describe('connection manager', () => {

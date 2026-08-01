@@ -93,14 +93,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
     );
 
+    // NUL bytes are passed through verbatim rather than escaped -- Postgres rejects them
+    // (ERROR: null character not permitted) instead of silently storing a substitute.
     testsql(
       {
         name: 'here is a null char: \0'
       },
       {
-        default: "WHERE [name] = 'here is a null char: \\0'",
-        mssql: "WHERE [name] = N'here is a null char: \0'",
-        sqlite: "WHERE `name` = 'here is a null char: \0'"
+        default: "WHERE [name] = 'here is a null char: \0'"
       }
     );
   });

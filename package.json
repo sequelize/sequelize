@@ -1,16 +1,13 @@
 {
   "name": "sequelize",
   "version": "400.49.0",
-  "description": "Multi dialect ORM for Node.JS",
+  "description": "PostgreSQL ORM for Node.JS",
   "keywords": [
-    "mssql",
-    "mysql",
     "nodejs",
     "object relational mapper",
     "orm",
     "postgres",
-    "postgresql",
-    "sqlite"
+    "postgresql"
   ],
   "bugs": {
     "url": "https://github.com/sequelize/sequelize/issues"
@@ -39,33 +36,20 @@
     "test-docker-integration": "env-cmd -f ./test/config/.docker.env pnpm run test-integration",
     "teaser": "node -e \"console.log('#'.repeat(process.env.DIALECT.length + 22) + '\\n# Running tests for ' + process.env.DIALECT + ' #\\n' + '#'.repeat(process.env.DIALECT.length + 22))\"",
     "test-unit": "mocha --globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec \"test/unit/**/*.js\"",
-    "test-unit-mysql": "cross-env DIALECT=mysql pnpm run test-unit",
     "test-unit-postgres": "cross-env DIALECT=postgres pnpm run test-unit",
     "test-unit-postgres-native": "cross-env DIALECT=postgres-native pnpm run test-unit",
-    "test-unit-sqlite": "cross-env DIALECT=sqlite pnpm run test-unit",
-    "test-unit-mssql": "cross-env DIALECT=mssql pnpm run test-unit",
-    "test-unit-all": "pnpm run test-unit-mysql && pnpm run test-unit-postgres && pnpm run test-unit-postgres-native && pnpm run test-unit-mssql && pnpm run test-unit-sqlite",
     "test-integration": "mocha --globals setImmediate,clearImmediate --exit --colors -t 30000 --reporter spec \"test/integration/**/*.test.js\"",
-    "test-integration-mysql": "cross-env DIALECT=mysql pnpm run test-integration",
     "test-integration-postgres": "cross-env DIALECT=postgres pnpm run test-integration",
     "test-integration-postgres-native": "cross-env DIALECT=postgres-native pnpm run test-integration",
-    "test-integration-sqlite": "cross-env DIALECT=sqlite pnpm run test-integration",
-    "test-integration-mssql": "cross-env DIALECT=mssql pnpm run test-integration",
-    "test-integration-all": "pnpm run test-integration-mysql && pnpm run test-integration-postgres && pnpm run test-integration-postgres-native && pnpm run test-integration-mssql && pnpm run test-integration-sqlite",
-    "test-mysql": "cross-env DIALECT=mysql pnpm test",
-    "test-sqlite": "cross-env DIALECT=sqlite pnpm test",
     "test-postgres": "cross-env DIALECT=postgres pnpm test",
     "test-postgres-docker": "DIALECT=postgres SEQ_PORT=8996 SEQ_USER=sequelize_test SEQ_PW=sequelize_test SEQ_DB=sequelize_test pnpm test",
     "test-integration-postgres-docker": "DIALECT=postgres SEQ_PORT=8996 SEQ_USER=sequelize_test SEQ_PW=sequelize_test SEQ_DB=sequelize_test pnpm run test-integration",
     "test-pgsql": "pnpm run test-postgres",
     "test-postgres-native": "cross-env DIALECT=postgres-native pnpm test",
     "test-postgresn": "pnpm run test-postgres-native",
-    "test-mssql": "cross-env DIALECT=mssql pnpm test",
-    "test-all": "pnpm run test-mysql && pnpm run test-sqlite && pnpm run test-postgres && pnpm run test-postgres-native && pnpm run test-mssql",
+    "test-all": "pnpm run test-postgres && pnpm run test-postgres-native",
     "sscce": "env-cmd -f $npm_package_options_env_cmd node sscce.js",
-    "sscce-mysql": "cross-env DIALECT=mysql pnpm run sscce",
-    "sscce-postgres": "cross-env DIALECT=postgres pnpm run sscce",
-    "sscce-sqlite": "cross-env DIALECT=sqlite pnpm run sscce"
+    "sscce-postgres": "cross-env DIALECT=postgres pnpm run sscce"
   },
   "dependencies": {
     "debug": "^4.4.3",
@@ -98,7 +82,6 @@
     "env-cmd": "11.0.0",
     "hints": "1.1.0",
     "mocha": "11.7.6",
-    "mysql2": "1.5.3",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "pg": "8.22.0",
@@ -106,8 +89,6 @@
     "pg-native": "3.8.0",
     "pg-types": "2.2.0",
     "sinon": "22.1.0",
-    "sqlite3": "6.0.1",
-    "tedious": "3.0.1",
     "typescript": "7.0.2",
     "uuid-validate": "0.0.3"
   },

@@ -70,10 +70,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
           port: config[dialect].port,
           dialect: 'some-fancy-dialect'
         });
-      }).to.throw(
-        Error,
-        'The dialect some-fancy-dialect is not supported. Supported dialects: mssql, mysql, postgres, and sqlite.'
-      );
+      }).to.throw(Error, 'The dialect some-fancy-dialect is not supported. Supported dialects: postgres.');
     });
   });
 

@@ -5721,11 +5721,9 @@ declare namespace sequelize {
    */
   interface Options {
     /**
-     * The dialect of the database you are connecting to. One of mysql, postgres, sqlite, mariadb and mssql.
-     *
-     * Defaults to 'mysql'
+     * The dialect of the database you are connecting to. Only `postgres` is supported.
      */
-    dialect?: string | undefined;
+    dialect?: 'postgres' | undefined;
 
     /**
      * If specified, load the dialect library from this path. For example, if you want to use pg.js instead of
@@ -5737,13 +5735,6 @@ declare namespace sequelize {
      * An object of additional options, which are passed directly to the connection library
      */
     dialectOptions?: Object | undefined;
-
-    /**
-     * Only used by sqlite.
-     *
-     * Defaults to ':memory:'
-     */
-    storage?: string | undefined;
 
     /**
      * The host of the relational database.
@@ -6279,17 +6270,6 @@ declare namespace sequelize {
      * @param options Query options
      */
     query(sql: string | { query: string; values: any[] }, options?: QueryOptions): Promise<any>;
-
-    /**
-     * Execute a query which would set an environment or user variable. The variables are set per connection,
-     * so this function needs a transaction.
-     *
-     * Only works for MySQL.
-     *
-     * @param variables Object with multiple variables.
-     * @param options Query options.
-     */
-    set(variables: Object, options: QueryOptionsTransactionRequired): Promise<any>;
 
     /**
      * Escape value.

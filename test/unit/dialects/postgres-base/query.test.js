@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const Query = require(path.resolve('./lib/dialects/abstract/query.js'));
+const Query = require(path.resolve('./lib/dialects/postgres/base/query.js'));
 const Support = require(path.join(__dirname, './../../support'));
 const chai = require('chai');
 

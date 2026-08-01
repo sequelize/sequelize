@@ -17,16 +17,24 @@ describe('Sequelize', () => {
     it('works when dialect explicitly supplied', () => {
       expect(() => {
         new Sequelize('localhost', 'test', 'test', {
-          dialect: 'mysql'
+          dialect: 'postgres'
         });
       }).not.to.throw(Error);
+    });
+
+    it('throws for a dialect that is no longer supported', () => {
+      expect(() => {
+        new Sequelize('localhost', 'test', 'test', {
+          dialect: 'mysql'
+        });
+      }).to.throw('The dialect mysql is not supported. Supported dialects: postgres.');
     });
   });
 
   it('should throw error if pool:false', () => {
     expect(() => {
       new Sequelize('localhost', 'test', 'test', {
-        dialect: 'mysql',
+        dialect: 'postgres',
         pool: false
       });
     }).to.throw('Support for pool:false was removed in v4.0');
@@ -56,11 +64,11 @@ describe('Sequelize', () => {
 
   describe('Instantiation with a URL string', () => {
     it('should accept username, password, host, port, and database', () => {
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
+      const sequelize = new Sequelize('postgres://user:pass@example.com:9821/dbname');
       const config = sequelize.config;
       const options = sequelize.options;
 
-      expect(options.dialect).to.equal('mysql');
+      expect(options.dialect).to.equal('postgres');
 
       expect(config.database).to.equal('dbname');
       expect(config.host).to.equal('example.com');
@@ -69,44 +77,8 @@ describe('Sequelize', () => {
       expect(config.port).to.equal('9821');
     });
 
-    describe('sqllite path inititalization', () => {
-      const current = Support.sequelize;
-      if (current.dialect.name === 'sqlite') {
-        it('should accept relative paths for sqlite', () => {
-          const sequelize = new Sequelize('sqlite:subfolder/dbname.db');
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal('subfolder/dbname.db');
-        });
-
-        it('should accept absolute paths for sqlite', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db');
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal('/home/abs/dbname.db');
-        });
-
-        it('should prefer storage in options object', () => {
-          const sequelize = new Sequelize('sqlite:/home/abs/dbname.db', { storage: '/completely/different/path.db' });
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-          expect(options.storage).to.equal('/completely/different/path.db');
-        });
-
-        it('should be able to use :memory:', () => {
-          const sequelize = new Sequelize('sqlite://:memory:');
-          const options = sequelize.options;
-          expect(options.dialect).to.equal('sqlite');
-
-          // empty host is treated as :memory:
-          expect(options.host).to.equal('');
-          expect(options.storage).to.equal(undefined);
-        });
-      }
-    });
-
     it('should work with no authentication options', () => {
-      const sequelize = new Sequelize('mysql://example.com:9821/dbname');
+      const sequelize = new Sequelize('postgres://example.com:9821/dbname');
       const config = sequelize.config;
 
       expect(config.username).to.not.be.ok;
@@ -114,7 +86,7 @@ describe('Sequelize', () => {
     });
 
     it('should work with no authentication options and passing additional options', () => {
-      const sequelize = new Sequelize('mysql://example.com:9821/dbname', {});
+      const sequelize = new Sequelize('postgres://example.com:9821/dbname', {});
       const config = sequelize.config;
 
       expect(config.username).to.not.be.ok;
@@ -126,18 +98,8 @@ describe('Sequelize', () => {
           dialect
         }),
         config = sequelize.config;
-      let port;
 
-      if (dialect === 'mysql') {
-        port = 3306;
-      } else if (dialect === 'postgres' || dialect === 'postgres-native') {
-        port = 5432;
-      } else {
-        // sqlite has no concept of ports when connecting
-        return;
-      }
-
-      expect(config.port).to.equal(port);
+      expect(config.port).to.equal(5432);
     });
   });
 });

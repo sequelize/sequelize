@@ -13,7 +13,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       expect(Sequelize).to.have.property('Error');
       expect(Sequelize).to.have.property('ValidationError');
       expect(Sequelize).to.have.property('OptimisticLockError');
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
+      const sequelize = new Sequelize('postgres://user:pass@example.com:9821/dbname');
       expect(sequelize).to.have.property('Error');
       expect(sequelize).to.have.property('ValidationError');
       expect(sequelize).to.have.property('OptimisticLockError');
@@ -33,7 +33,7 @@ describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
       ]);
       const optimisticLockError = new Sequelize.OptimisticLockError();
 
-      const sequelize = new Sequelize('mysql://user:pass@example.com:9821/dbname');
+      const sequelize = new Sequelize('postgres://user:pass@example.com:9821/dbname');
       const instError = new sequelize.Error();
       const instValidationError = new sequelize.ValidationError();
       const instOptimisticLockError = new sequelize.OptimisticLockError();

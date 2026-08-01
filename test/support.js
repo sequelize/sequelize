@@ -10,7 +10,7 @@ const fs = require('fs'),
   supportShim = require(__dirname + '/supportShim'),
   chai = require('chai'),
   expect = chai.expect,
-  AbstractQueryGenerator = require('../lib/dialects/abstract/query-generator');
+  PostgresQueryGenerator = require('../lib/dialects/postgres/query-generator');
 
 chai.use(require('./support/chai-datetime'));
 chai.use(require('chai-as-promised').default);
@@ -134,9 +134,7 @@ const Support = {
   },
 
   getSupportedDialects() {
-    return fs.readdirSync(__dirname + '/../lib/dialects').filter((file) => {
-      return file.indexOf('.js') === -1 && file.indexOf('abstract') === -1;
-    });
+    return ['postgres'];
   },
 
   checkMatchForDialects(dialect, value, expectations) {
@@ -147,8 +145,13 @@ const Support = {
     }
   },
 
-  getAbstractQueryGenerator(sequelize) {
-    return Object.assign({}, AbstractQueryGenerator, {
+  // Builds the real postgres query generator, but with identifier quoting stubbed out so that
+  // assertions can be written against bare identifiers. Composing only the base generator would
+  // miss every postgres override and produce something that never runs in practice.
+  getQueryGenerator(sequelize) {
+    // `Object.create` rather than `Object.assign({}, ...)`: the postgres generator inherits most of
+    // its methods from the base via `__proto__`, and those are not own properties.
+    return Object.assign(Object.create(PostgresQueryGenerator), {
       options: sequelize.options,
       _dialect: sequelize.dialect,
       sequelize,
@@ -159,7 +162,7 @@ const Support = {
   },
 
   getTestDialect() {
-    let envDialect = process.env.DIALECT || 'mysql';
+    let envDialect = process.env.DIALECT || 'postgres';
 
     if (envDialect === 'postgres-native') {
       envDialect = 'postgres';
@@ -183,20 +186,14 @@ const Support = {
   },
 
   getTestUrl(config) {
-    let url;
     const dbConfig = config[config.dialect];
 
-    if (config.dialect === 'sqlite') {
-      url = 'sqlite://' + dbConfig.storage;
-    } else {
-      let credentials = dbConfig.username;
-      if (dbConfig.password) {
-        credentials += ':' + dbConfig.password;
-      }
-
-      url = config.dialect + '://' + credentials + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
+    let credentials = dbConfig.username;
+    if (dbConfig.password) {
+      credentials += ':' + dbConfig.password;
     }
-    return url;
+
+    return config.dialect + '://' + credentials + '@' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database;
   },
 
   expectsql(query, expectations) {

@@ -4,8 +4,7 @@ services:
   sequelize:
     build: .
     links:
-     - mysql-57
-     - postgres-95
+     - postgres-17
     volumes:
       - .:/sequelize
     environment:
@@ -39,28 +38,4 @@ services:
     ports:
       - "8996:5432"
     container_name: postgres-17
-
-  # MySQL
-  mysql-57:
-    image: mysql:5.7
-    environment:
-      MYSQL_ROOT_PASSWORD: lollerskates
-      MYSQL_DATABASE: sequelize_test
-      MYSQL_USER: sequelize_test
-      MYSQL_PASSWORD: sequelize_test
-    volumes:
-      - /mnt/sequelize-mysql-ramdisk:/var/lib/mysql
-    ports:
-      - "8999:3306"
-    container_name: mysql-57
-
-  # MSSQL
-  mssql:
-    image: microsoft/mssql-server-linux:latest
-    environment:
-      ACCEPT_EULA: "Y"
-      SA_PASSWORD: yourStrong(!)Password
-    ports:
-      - "8997:1433"
-    container_name: mssql
 

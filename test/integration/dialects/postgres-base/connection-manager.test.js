@@ -5,7 +5,7 @@ const chai = require('chai'),
   Support = require(__dirname + '/../../support'),
   sinon = require('sinon'),
   Config = require(__dirname + '/../../../config/config'),
-  ConnectionManager = require(__dirname + '/../../../../lib/dialects/abstract/connection-manager'),
+  ConnectionManager = require(__dirname + '/../../../../lib/dialects/postgres/base/connection-manager'),
   Pooling = require('generic-pool'),
   _ = require('lodash');
 

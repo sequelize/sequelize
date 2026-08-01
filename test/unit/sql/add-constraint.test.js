@@ -249,13 +249,11 @@ if (current.dialect.supports.constraints.addConstraint) {
           addConstraintQuerySpy.restore();
         });
 
-        if (!current.dialect.supports.constraints.default) {
-          it('should throw error if default constraints are used in other dialects', () => {
-            expect(
-              sql.addConstraintQuery.bind(sql, 'myTable', { type: 'default', defaultValue: 0, fields: [] })
-            ).to.throw('Default constraints are supported only for MSSQL dialect.');
-          });
-        }
+        it('should throw error if a default constraint is requested', () => {
+          expect(
+            sql.addConstraintQuery.bind(sql, 'myTable', { type: 'default', defaultValue: 0, fields: [] })
+          ).to.throw('Default constraints are not supported by Postgres.');
+        });
       });
     });
   });
