@@ -9,6 +9,74 @@ const current = Support.sequelize;
 const expect = chai.expect;
 
 describe('[ABSTRACT]', () => {
+  describe('handleSelectQuery with nest', () => {
+    const nest = (rows) => {
+      const query = Object.create(Query.prototype);
+      query.options = { raw: true, nest: true };
+      return query.handleSelectQuery(rows);
+    };
+
+    it('destructures dot separated keys into nested objects', () => {
+      expect(nest([{ 'foo.bar.baz': 1 }])).to.deep.equal([{ foo: { bar: { baz: 1 } } }]);
+    });
+
+    it('merges sibling keys sharing a prefix and passes undotted keys through', () => {
+      expect(nest([{ id: 7, 'user.name': 'john', 'user.email': 'j@example.com' }])).to.deep.equal([
+        { id: 7, user: { name: 'john', email: 'j@example.com' } }
+      ]);
+    });
+
+    it('nests every row independently', () => {
+      expect(nest([{ 'user.name': 'john' }, { 'user.name': 'jane' }])).to.deep.equal([
+        { user: { name: 'john' } },
+        { user: { name: 'jane' } }
+      ]);
+    });
+
+    it('preserves non-plain values as leaves', () => {
+      const created = new Date('2017-03-06T15:47:30.000Z');
+      const uuid = Buffer.from('966ea4c3028c11e7bc99a99d4c0d78cf', 'hex');
+
+      expect(nest([{ 'player.created': created, 'player.uuid': uuid, 'player.name': null }])).to.deep.equal([
+        { player: { created, uuid, name: null } }
+      ]);
+    });
+
+    it('preserves empty path segments', () => {
+      expect(nest([{ 'a..b': 1, 'c.': 2 }])).to.deep.equal([{ a: { '': { b: 1 } }, c: { '': 2 } }]);
+    });
+
+    it('drops only the prototype-reaching key, keeping the rest of the row', () => {
+      const rows = nest([{ x: 1, '__proto__.y': 2, 'constructor.prototype.z': 3, 'a.prototype.b': 4, w: 5 }]);
+
+      expect(rows).to.deep.equal([{ x: 1, w: 5 }]);
+      expect({}.y).to.be.undefined;
+      expect({}.z).to.be.undefined;
+    });
+
+    it('drops a dotted key whose path is occupied by a non-object', () => {
+      // Both orderings: the flat alias may arrive before or after the dotted one.
+      expect(nest([{ a: 5, 'a.b': 1, z: 9 }])).to.deep.equal([{ a: 5, z: 9 }]);
+      expect(nest([{ a: 5, 'a.b.c': 1, z: 9 }])).to.deep.equal([{ a: 5, z: 9 }]);
+      expect(nest([{ a: null, 'a.b': 1 }])).to.deep.equal([{ a: null }]);
+      expect(nest([{ 'a.b': 1, a: 5 }])).to.deep.equal([{ a: 5 }]);
+    });
+
+    it('copies own enumerable keys only, dropping the row prototype', () => {
+      const row = Object.create({ inherited: 'no' }, { 'user.name': { value: 'john', enumerable: true } });
+
+      expect(nest([row])).to.deep.equal([{ user: { name: 'john' } }]);
+    });
+
+    it('returns a single row when options.plain is set', () => {
+      const query = Object.create(Query.prototype);
+      query.options = { raw: true, nest: true, plain: true };
+
+      expect(query.handleSelectQuery([{ 'user.name': 'john' }])).to.deep.equal({ user: { name: 'john' } });
+      expect(query.handleSelectQuery([])).to.be.null;
+    });
+  });
+
   describe('_groupJoinData', () => {
     it('should hash second nested set correctly, when has multiple primary keys and one is a Buffer', () => {
       const Team = current.define('team', {
