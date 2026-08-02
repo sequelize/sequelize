@@ -183,6 +183,74 @@ if (current.dialect.supports.JSON) {
           expect(() => sql.handleSequelizeMethod(Sequelize.json('json(); DELETE YOLO INJECTIONS; -- '))).to.throw();
         });
       });
+
+      // CVE-2026-30951. A JSON path key may carry a `::cast`, and the cast used to be interpolated
+      // into `CAST(... AS x)` unescaped -- so an attacker who controlled a key in an object reaching
+      // `where` (e.g. `where: { metadata: req.body.filter }`) could append arbitrary SQL.
+      describe('cast type in a JSON path key', () => {
+        const Model = current.define('User', { metadata: new DataTypes.JSONB() }, { timestamps: false });
+        const whereSql = (filter) => sql.selectQuery('Users', { where: { metadata: filter } }, Model);
+
+        // Case list mirrors the upstream v6 regression test for this advisory.
+        it('rejects SQL injection via the :: cast notation', () => {
+          expect(() => whereSql({ 'role::text) OR 1=1--': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects UNION-based injection via the :: cast notation', () => {
+          expect(() => whereSql({ 'role::text) AND 0 UNION SELECT * FROM secrets--': 'x' })).to.throw(
+            /Invalid cast type/
+          );
+        });
+
+        it('rejects cast types with parentheses', () => {
+          expect(() => whereSql({ 'role::text)': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects cast types with semicolons', () => {
+          expect(() => whereSql({ 'role::text; DROP TABLE users': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects cast types with comment markers', () => {
+          expect(() => whereSql({ 'role::text--': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects an empty cast type', () => {
+          expect(() => whereSql({ 'role::': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects unknown cast types', () => {
+          expect(() => whereSql({ 'role::foobar': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects regardless of casing', () => {
+          expect(() => whereSql({ 'role::TeXt) or 1=1--': 'x' })).to.throw(/Invalid cast type/);
+        });
+
+        it('rejects inside a nested path', () => {
+          expect(() => whereSql({ a: { 'b::int) or 1=1--': 1 } })).to.throw(/Invalid cast type/);
+        });
+
+        it('still allows known cast types', () => {
+          expectsql(whereSql({ 'role::text': 'admin' }), {
+            postgres:
+              'SELECT * FROM "Users" AS "User" WHERE CAST(("User"."metadata"#>>\'{role}\') AS TEXT) = \'admin\';'
+          });
+          expectsql(whereSql({ 'age::integer': 30 }), {
+            postgres: 'SELECT * FROM "Users" AS "User" WHERE CAST(("User"."metadata"#>>\'{age}\') AS INTEGER) = 30;'
+          });
+        });
+
+        it('still allows the casts inferred from the value type', () => {
+          expectsql(whereSql({ age: 30 }), {
+            postgres:
+              'SELECT * FROM "Users" AS "User" WHERE CAST(("User"."metadata"#>>\'{age}\') AS DOUBLE PRECISION) = 30;'
+          });
+          expectsql(whereSql({ active: true }), {
+            postgres:
+              'SELECT * FROM "Users" AS "User" WHERE CAST(("User"."metadata"#>>\'{active}\') AS BOOLEAN) = true;'
+          });
+        });
+      });
     });
   });
 }
