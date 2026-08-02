@@ -52,6 +52,7 @@
     "sscce-postgres": "cross-env DIALECT=postgres pnpm run sscce"
   },
   "dependencies": {
+    "@terraformer/wkt": "^2.2.2",
     "debug": "^4.4.3",
     "depd": "^2.0.0",
     "generic-pool": "3.9.0",
@@ -61,7 +62,6 @@
     "moment-timezone": "^0.6.3",
     "retry-as-promised": "^3.0.0",
     "semver": "^7.0.0",
-    "terraformer-wkt-parser": "^1.1.2",
     "toposort-class": "^1.0.1",
     "uuid": "^14.0.1",
     "validator": "^13.7.0",

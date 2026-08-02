@@ -9,3 +9,8 @@
 onlyBuiltDependencies:
   - libpq
   - sqlite3
+
+# mocha pins glob ^10.4.5, but every glob line before v13 is deprecated upstream.
+# mocha only uses glob.hasMagic/globSync, both unchanged in v13, so force v13.
+overrides:
+  glob: ^13.0.6
