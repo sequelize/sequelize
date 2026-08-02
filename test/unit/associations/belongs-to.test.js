@@ -1,13 +1,13 @@
-'use strict';
+import * as chai from 'chai';
+import _ from 'lodash';
+import Support from '../support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  _ = require('lodash'),
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
-  it('should not override custom methods with association mixin', () => {
+  it('should not override custom methods with association mixin', function () {
     const methods = {
       getTask: 'get',
       setTask: 'set',

@@ -1,12 +1,12 @@
-/* eslint-disable camelcase */
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import * as Utils from '../../lib/utils.js';
+import Op from '../../lib/operators.js';
 
-const chai = require('chai');
+/* eslint-disable camelcase */
+
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
-const Utils = require(__dirname + '/../../lib/utils');
-const Op = require(__dirname + '/../../lib/operators');
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('merge', () => {

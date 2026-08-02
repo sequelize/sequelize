@@ -1,18 +1,19 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from './support.js';
+import sinon from 'sinon';
+import _ from 'lodash';
+import moment from 'moment';
+import * as uuid from 'uuid';
+import DataTypes from '../../lib/data-types.js';
+import BigInt from 'big-integer';
+import semver from 'semver';
 
-const chai = require('chai'),
-  Sequelize = require('../../index'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  sinon = require('sinon'),
-  _ = require('lodash'),
-  moment = require('moment'),
-  current = Support.sequelize,
-  uuid = require('uuid'),
-  DataTypes = require('../../lib/data-types'),
-  dialect = Support.getTestDialect(),
-  BigInt = require('big-integer'),
-  semver = require('semver');
+const expect = chai.expect;
+
+const current = Support.sequelize;
+
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('DataTypes'), () => {
   afterEach(function () {
@@ -21,7 +22,8 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     this.sequelize.connectionManager.refreshTypeParser(DataTypes[dialect]); // Reload custom parsers
   });
 
-  it('allows me to return values from a custom parse function', () => {
+  // oxlint-disable-next-line prefer-arrow-callback
+  it('allows me to return values from a custom parse function', function () {
     const parse = (Sequelize.DATE.parse = sinon.spy((value) => {
       return moment(value, 'YYYY-MM-DD HH:mm:ss');
     }));

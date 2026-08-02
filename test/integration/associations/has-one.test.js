@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import Sequelize from '../../../index.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const Promise = Sequelize.Promise;
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('Model.associations', () => {

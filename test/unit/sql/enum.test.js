@@ -1,11 +1,10 @@
-'use strict';
+import { expect } from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.QueryGenerator,
-  expect = require('chai').expect;
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
+const sql = current.dialect.QueryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('enum', () => {

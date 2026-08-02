@@ -1,9 +1,9 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model') + 'Schemas', () => {
   if (current.dialect.supports.schemas) {

@@ -1,9 +1,10 @@
-'use strict';
+import _getQueryGeneratorMod from '../../support.js';
+import * as chai from 'chai';
+import Op from '../../../../lib/operators.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Op = require('../../../../lib/operators'),
-  getQueryGenerator = require(__dirname + '/../../support').getQueryGenerator;
+const expect = chai.expect;
+
+const getQueryGenerator = _getQueryGeneratorMod.getQueryGenerator;
 
 describe('QueryGenerator', () => {
   describe('selectQuery', () => {

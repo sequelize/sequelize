@@ -1,14 +1,15 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from '../../support.js';
+import DataTypes from '../../../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  Sequelize = Support.Sequelize,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  current = Support.sequelize,
-  Promise = current.Promise,
-  _ = require('lodash');
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 
 if (current.dialect.supports['UNION ALL']) {
   describe(Support.getTestDialectTeaser('Model'), () => {

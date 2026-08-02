@@ -67,14 +67,16 @@ return sequelize.transaction(function (t) {
 In the examples above, the transaction is still manually passed, by passing `{ transaction: t }` as the second argument. To automatically pass the transaction to all queries you must install the [continuation local storage](https://github.com/othiym23/node-continuation-local-storage) (CLS) module and instantiate a namespace in your own code:
 
 ```js
-const cls = require('continuation-local-storage'),
-  namespace = cls.createNamespace('my-very-own-namespace');
+import cls from 'continuation-local-storage';
+
+const namespace = cls.createNamespace('my-very-own-namespace');
 ```
 
 To enable CLS you must tell sequelize which namespace to use by using a static method of the sequelize constructor:
 
 ```js
-const Sequelize = require('sequelize');
+import Sequelize from 'sequelize';
+
 Sequelize.useCLS(namespace);
 
 new Sequelize(....);

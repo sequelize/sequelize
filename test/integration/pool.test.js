@@ -1,22 +1,23 @@
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
+import sinon from 'sinon';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
+
 const dialect = Support.getTestDialect();
-const sinon = require('sinon');
+
 const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Pooling'), function () {
-  beforeEach(() => {
+  beforeEach(function () {
     this.sinon = sinon.createSandbox();
   });
 
-  afterEach(() => {
+  afterEach(function () {
     this.sinon.restore();
   });
 
-  it('should reject when unable to acquire connection in given time', () => {
+  it('should reject when unable to acquire connection in given time', function () {
     this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
       dialect,
       databaseVersion: '1.2.3',
@@ -30,7 +31,7 @@ describe(Support.getTestDialectTeaser('Pooling'), function () {
     return expect(this.testInstance.authenticate()).to.eventually.be.rejectedWith('ResourceRequest timed out');
   });
 
-  it('should not result in unhandled promise rejection when unable to acquire connection', () => {
+  it('should not result in unhandled promise rejection when unable to acquire connection', function () {
     this.testInstance = new Sequelize('localhost', 'ffd', 'dfdf', {
       dialect,
       databaseVersion: '1.2.3',

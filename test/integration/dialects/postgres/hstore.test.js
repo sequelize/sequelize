@@ -1,8 +1,7 @@
-'use strict';
+import * as chai from 'chai';
+import * as hstore from '../../../../lib/dialects/postgres/hstore.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  hstore = require('../../../../lib/dialects/postgres/hstore');
+const expect = chai.expect;
 
 describe('[POSTGRES Specific] hstore', () => {
   describe('stringify', () => {

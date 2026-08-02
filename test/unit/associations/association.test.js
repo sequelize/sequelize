@@ -1,10 +1,10 @@
-'use strict';
+import { AssociationError } from '../../../lib/errors.js';
+import * as chai from 'chai';
+import Support from '../support.js';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
+
 const current = Support.sequelize;
-const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsTo'), () => {
   it('should throw an AssociationError when two associations have the same alias', () => {

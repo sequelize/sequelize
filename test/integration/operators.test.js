@@ -1,12 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from '../support.js';
+import DataTypes from '../../lib/data-types.js';
 
-const chai = require('chai');
-const Sequelize = require('../../index');
 const Op = Sequelize.Op;
 const Promise = Sequelize.Promise;
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
 
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {

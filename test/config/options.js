@@ -1,8 +1,6 @@
-'use strict';
+import path from 'node:path';
 
-const path = require('path');
-
-module.exports = {
+export default {
   configFile: path.resolve('config', 'database.json'),
   migrationsPath: path.resolve('db', 'migrate')
 };

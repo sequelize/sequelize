@@ -1,16 +1,16 @@
-'use strict';
-const { each: pEach } = require('../../../lib/utils/promise-helpers');
+import { each as pEach } from '../../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import Sequelize from '../../../index.js';
+import moment from 'moment';
+import sinon from 'sinon';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  Sequelize = require('../../../index'),
-  moment = require('moment'),
-  sinon = require('sinon'),
-  Promise = Sequelize.Promise,
-  current = Support.sequelize,
-  _ = require('lodash');
+const expect = chai.expect;
+
+const Promise = Sequelize.Promise;
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('HasMany'), () => {
   describe('Model.associations', () => {

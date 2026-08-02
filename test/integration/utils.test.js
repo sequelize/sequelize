@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import * as Utils from '../../lib/utils.js';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import Sequelize from '../../index.js';
+import queryGenerator from '../../lib/dialects/postgres/query-generator.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Utils = require(__dirname + '/../../lib/utils'),
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
-  Sequelize = require('../../index');
+const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Utils'), () => {
   describe('removeCommentsFromFunctionString', () => {
@@ -184,8 +184,6 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
 
   if (Support.getTestDialect() === 'postgres') {
     describe('json', () => {
-      const queryGenerator = require('../../lib/dialects/postgres/query-generator.js');
-
       it('successfully parses a complex nested condition hash', () => {
         const conditions = {
           metadata: {

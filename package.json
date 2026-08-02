@@ -9,22 +9,37 @@
     "postgres",
     "postgresql"
   ],
-  "bugs": {
-    "url": "https://github.com/sequelize/sequelize/issues"
-  },
   "license": "MIT",
   "author": "Sascha Depold <sascha@depold.com>",
   "repository": {
     "type": "git",
-    "url": "https://github.com/sequelize/sequelize.git"
+    "url": "https://github.com/soxhub/sequelize.git"
   },
   "files": [
     "lib",
     "index.js",
-    "index.d.ts"
+    "index.cjs",
+    "index.d.ts",
+    "index.d.cts"
   ],
-  "main": "index",
+  "type": "module",
+  "main": "./index.cjs",
   "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./index.d.cts",
+        "default": "./index.cjs"
+      },
+      "default": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      }
+    },
+    "./lib/*.js": "./lib/*.js",
+    "./lib/*": "./lib/*.js",
+    "./package.json": "./package.json"
+  },
   "scripts": {
     "lint": "oxlint --quiet lib test",
     "test:types": "tsc --noEmit -p tsconfig.json",

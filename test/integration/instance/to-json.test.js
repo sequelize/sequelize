@@ -1,9 +1,8 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('toJSON', () => {

@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+const expect = chai.expect;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 const SCHEMA_ONE = 'schema_one';
 const SCHEMA_TWO = 'schema_two';
 

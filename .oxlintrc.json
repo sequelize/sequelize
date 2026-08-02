@@ -34,7 +34,8 @@
     {
       "files": ["test/**"],
       "rules": {
-        "no-unused-expressions": "off"
+        "no-unused-expressions": "off",
+        "prefer-arrow-callback": "off"
       }
     }
   ]

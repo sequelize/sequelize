@@ -1,11 +1,9 @@
-'use strict';
-
 // Local replacement for the unmaintained chai-datetime package.
 // Implements only the matchers this suite uses.
 const sameDay = (a, b) =>
   a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
-module.exports = function (chai) {
+export default function (chai) {
   const { Assertion } = chai;
 
   Assertion.addMethod('equalTime', function (expected) {
@@ -52,4 +50,4 @@ module.exports = function (chai) {
       `expected ${this._obj.toISOString()} to not be within ${start.toISOString()} and ${finish.toISOString()}`
     );
   });
-};
+}

@@ -1,18 +1,18 @@
-'use strict';
+import { AssociationError } from '../../../lib/errors.js';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import _ from 'lodash';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import BelongsTo from '../../../lib/associations/belongs-to.js';
+import HasMany from '../../../lib/associations/has-many.js';
+import HasOne from '../../../lib/associations/has-one.js';
 
-const chai = require('chai');
-const sinon = require('sinon');
 const expect = chai.expect;
 const stub = sinon.stub;
-const _ = require('lodash');
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
-const BelongsTo = require(__dirname + '/../../../lib/associations/belongs-to');
-const HasMany = require(__dirname + '/../../../lib/associations/has-many');
-const HasOne = require(__dirname + '/../../../lib/associations/has-one');
+
 const current = Support.sequelize;
 const Promise = current.Promise;
-const AssociationError = require(__dirname + '/../../../lib/errors').AssociationError;
 
 describe(Support.getTestDialectTeaser('belongsToMany'), () => {
   it('should not inherit scopes from parent to join table', () => {
@@ -65,7 +65,8 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
     expect(AB.options.validate).to.deep.equal({});
   });
 
-  it('should not override custom methods with association mixin', () => {
+  // oxlint-disable-next-line prefer-arrow-callback
+  it('should not override custom methods with association mixin', function () {
     const methods = {
       getTasks: 'get',
       countTasks: 'count',

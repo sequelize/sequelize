@@ -1,13 +1,12 @@
-'use strict';
-const { props: pProps } = require('../../lib/utils/promise-helpers');
+import { props as pProps } from '../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  Sequelize = require('../../index'),
-  Promise = Sequelize.Promise,
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  DataTypes = require(__dirname + '/../../lib/data-types'),
-  _ = require('lodash');
+const Promise = Sequelize.Promise;
+const expect = chai.expect;
 
 const sortById = function (a, b) {
   return a.id < b.id ? -1 : 1;

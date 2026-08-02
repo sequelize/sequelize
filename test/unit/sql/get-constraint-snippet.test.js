@@ -1,10 +1,9 @@
-'use strict';
+import { expect } from 'chai';
+import Support from '../support.js';
 
-const Support = require(__dirname + '/../support');
 const current = Support.sequelize;
 const expectsql = Support.expectsql;
 const sql = current.dialect.QueryGenerator;
-const expect = require('chai').expect;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('getConstraintSnippet', () => {

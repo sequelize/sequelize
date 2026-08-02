@@ -1,11 +1,10 @@
-'use strict';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import _ from 'lodash';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.QueryGenerator,
-  _ = require('lodash');
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
+const sql = current.dialect.QueryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('createTable', () => {
@@ -47,7 +46,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
       after(() => {
         // reset
-        const __ = require('lodash').runInContext();
+        const __ = _.runInContext();
         _.templateSettings.evaluate = __.templateSettings.evaluate;
         _.templateSettings.interpolate = __.templateSettings.interpolate;
         _.templateSettings.escape = __.templateSettings.escape;

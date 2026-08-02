@@ -1,12 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon'),
-  Support = require(__dirname + '/../support'),
-  DataTypes = require('../../../lib/data-types'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+const expect = chai.expect;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('bulkCreate', () => {

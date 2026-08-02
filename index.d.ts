@@ -6905,6 +6905,345 @@ declare namespace sequelize {
   }
 }
 
-declare var sequelize: sequelize.SequelizeStatic;
+declare const sequelize: sequelize.SequelizeStatic;
 
-export = sequelize;
+export default sequelize;
+
+/* ------------------------------------------------------------------ *
+ * Named type exports.
+ *
+ * `export import` aliases carry every meaning the target has (type,
+ * namespace) and forward generic parameters automatically, so these need
+ * no per-name upkeep. Names that are also runtime values are declared
+ * separately below.
+ * ------------------------------------------------------------------ */
+export import AddCheckConstraintOptions = sequelize.AddCheckConstraintOptions;
+export import AddConstraintOptions = sequelize.AddConstraintOptions;
+export import AddDefaultConstraintOptions = sequelize.AddDefaultConstraintOptions;
+export import AddForeignKeyConstraintOptions = sequelize.AddForeignKeyConstraintOptions;
+export import AddPrimaryKeyConstraintOptions = sequelize.AddPrimaryKeyConstraintOptions;
+export import AddScopeOptions = sequelize.AddScopeOptions;
+export import AddUniqueConstraintOptions = sequelize.AddUniqueConstraintOptions;
+export import AggregateOptions = sequelize.AggregateOptions;
+export import AnyFindOptions = sequelize.AnyFindOptions;
+export import AnyWhereOptions = sequelize.AnyWhereOptions;
+export import AssociationForeignKeyOptions = sequelize.AssociationForeignKeyOptions;
+export import AssociationOptions = sequelize.AssociationOptions;
+export import AssociationOptionsBelongsTo = sequelize.AssociationOptionsBelongsTo;
+export import AssociationOptionsBelongsToMany = sequelize.AssociationOptionsBelongsToMany;
+export import AssociationOptionsHasMany = sequelize.AssociationOptionsHasMany;
+export import AssociationOptionsHasOne = sequelize.AssociationOptionsHasOne;
+export import AssociationOptionsManyToMany = sequelize.AssociationOptionsManyToMany;
+export import AssociationScope = sequelize.AssociationScope;
+export import Associations = sequelize.Associations;
+export import BaseError = sequelize.BaseError;
+export import BelongsToCreateAssociationMixin = sequelize.BelongsToCreateAssociationMixin;
+export import BelongsToCreateAssociationMixinOptions = sequelize.BelongsToCreateAssociationMixinOptions;
+export import BelongsToGetAssociationMixin = sequelize.BelongsToGetAssociationMixin;
+export import BelongsToGetAssociationMixinOptions = sequelize.BelongsToGetAssociationMixinOptions;
+export import BelongsToManyAddAssociationMixin = sequelize.BelongsToManyAddAssociationMixin;
+export import BelongsToManyAddAssociationMixinOptions = sequelize.BelongsToManyAddAssociationMixinOptions;
+export import BelongsToManyAddAssociationsMixin = sequelize.BelongsToManyAddAssociationsMixin;
+export import BelongsToManyAddAssociationsMixinOptions = sequelize.BelongsToManyAddAssociationsMixinOptions;
+export import BelongsToManyCountAssociationsMixin = sequelize.BelongsToManyCountAssociationsMixin;
+export import BelongsToManyCountAssociationsMixinOptions = sequelize.BelongsToManyCountAssociationsMixinOptions;
+export import BelongsToManyCreateAssociationMixin = sequelize.BelongsToManyCreateAssociationMixin;
+export import BelongsToManyCreateAssociationMixinOptions = sequelize.BelongsToManyCreateAssociationMixinOptions;
+export import BelongsToManyGetAssociationsMixin = sequelize.BelongsToManyGetAssociationsMixin;
+export import BelongsToManyGetAssociationsMixinOptions = sequelize.BelongsToManyGetAssociationsMixinOptions;
+export import BelongsToManyHasAssociationMixin = sequelize.BelongsToManyHasAssociationMixin;
+export import BelongsToManyHasAssociationMixinOptions = sequelize.BelongsToManyHasAssociationMixinOptions;
+export import BelongsToManyHasAssociationsMixin = sequelize.BelongsToManyHasAssociationsMixin;
+export import BelongsToManyHasAssociationsMixinOptions = sequelize.BelongsToManyHasAssociationsMixinOptions;
+export import BelongsToManyRemoveAssociationMixin = sequelize.BelongsToManyRemoveAssociationMixin;
+export import BelongsToManyRemoveAssociationMixinOptions = sequelize.BelongsToManyRemoveAssociationMixinOptions;
+export import BelongsToManyRemoveAssociationsMixin = sequelize.BelongsToManyRemoveAssociationsMixin;
+export import BelongsToManyRemoveAssociationsMixinOptions = sequelize.BelongsToManyRemoveAssociationsMixinOptions;
+export import BelongsToManySetAssociationsMixin = sequelize.BelongsToManySetAssociationsMixin;
+export import BelongsToManySetAssociationsMixinOptions = sequelize.BelongsToManySetAssociationsMixinOptions;
+export import BelongsToSetAssociationMixin = sequelize.BelongsToSetAssociationMixin;
+export import BelongsToSetAssociationMixinOptions = sequelize.BelongsToSetAssociationMixinOptions;
+export import BuildOptions = sequelize.BuildOptions;
+export import BulkCreateOptions = sequelize.BulkCreateOptions;
+export import ColumnOptions = sequelize.ColumnOptions;
+export import CountOptions = sequelize.CountOptions;
+export import CreateOptions = sequelize.CreateOptions;
+export import DataTypeAbstract = sequelize.DataTypeAbstract;
+export import DataTypeAbstractNumber = sequelize.DataTypeAbstractNumber;
+export import DataTypeAbstractString = sequelize.DataTypeAbstractString;
+export import DataTypeAbstractUUID = sequelize.DataTypeAbstractUUID;
+export import DataTypeArray = sequelize.DataTypeArray;
+export import DataTypeBigInt = sequelize.DataTypeBigInt;
+export import DataTypeBlob = sequelize.DataTypeBlob;
+export import DataTypeBoolean = sequelize.DataTypeBoolean;
+export import DataTypeChar = sequelize.DataTypeChar;
+export import DataTypeDate = sequelize.DataTypeDate;
+export import DataTypeDateOnly = sequelize.DataTypeDateOnly;
+export import DataTypeDecimal = sequelize.DataTypeDecimal;
+export import DataTypeDouble = sequelize.DataTypeDouble;
+export import DataTypeEnum = sequelize.DataTypeEnum;
+export import DataTypeFloat = sequelize.DataTypeFloat;
+export import DataTypeGeometry = sequelize.DataTypeGeometry;
+export import DataTypeHStore = sequelize.DataTypeHStore;
+export import DataTypeInteger = sequelize.DataTypeInteger;
+export import DataTypeJSONB = sequelize.DataTypeJSONB;
+export import DataTypeJSONType = sequelize.DataTypeJSONType;
+export import DataTypeMediumInt = sequelize.DataTypeMediumInt;
+export import DataTypeNow = sequelize.DataTypeNow;
+export import DataTypeNumber = sequelize.DataTypeNumber;
+export import DataTypeRange = sequelize.DataTypeRange;
+export import DataTypeReal = sequelize.DataTypeReal;
+export import DataTypeSmallInt = sequelize.DataTypeSmallInt;
+export import DataTypeString = sequelize.DataTypeString;
+export import DataTypeText = sequelize.DataTypeText;
+export import DataTypeTime = sequelize.DataTypeTime;
+export import DataTypeTinyInt = sequelize.DataTypeTinyInt;
+export import DataTypeUUID = sequelize.DataTypeUUID;
+export import DataTypeUUIDv1 = sequelize.DataTypeUUIDv1;
+export import DataTypeUUIDv4 = sequelize.DataTypeUUIDv4;
+export import DataTypeVirtual = sequelize.DataTypeVirtual;
+export import DeferrableAbstract = sequelize.DeferrableAbstract;
+export import DeferrableInitiallyDeferred = sequelize.DeferrableInitiallyDeferred;
+export import DeferrableInitiallyImmediate = sequelize.DeferrableInitiallyImmediate;
+export import DeferrableNot = sequelize.DeferrableNot;
+export import DeferrableSetDeferred = sequelize.DeferrableSetDeferred;
+export import DeferrableSetImmediate = sequelize.DeferrableSetImmediate;
+export import DefineAttributeColumnOptions = sequelize.DefineAttributeColumnOptions;
+export import DefineAttributeColumnReferencesOptions = sequelize.DefineAttributeColumnReferencesOptions;
+export import DefineAttributes = sequelize.DefineAttributes;
+export import DefineGetterMethodsOptions = sequelize.DefineGetterMethodsOptions;
+export import DefineIndexOptions = sequelize.DefineIndexOptions;
+export import DefineIndexesOptions = sequelize.DefineIndexesOptions;
+export import DefineModelAttributes = sequelize.DefineModelAttributes;
+export import DefineNameOptions = sequelize.DefineNameOptions;
+export import DefineOptions = sequelize.DefineOptions;
+export import DefineScopeOptions = sequelize.DefineScopeOptions;
+export import DefineSetterMethodsOptions = sequelize.DefineSetterMethodsOptions;
+export import DefineValidateOptions = sequelize.DefineValidateOptions;
+export import DestroyOptions = sequelize.DestroyOptions;
+export import DropOptions = sequelize.DropOptions;
+export import Errors = sequelize.Errors;
+export import FieldsOptions = sequelize.FieldsOptions;
+export import FindCreateFindOptions = sequelize.FindCreateFindOptions;
+export import FindOptions = sequelize.FindOptions;
+export import FindOptionsAttributesArray = sequelize.FindOptionsAttributesArray;
+export import FindOptionsOrderArray = sequelize.FindOptionsOrderArray;
+export import FindOrInitializeOptions = sequelize.FindOrInitializeOptions;
+export import GetTableNameOptions = sequelize.GetTableNameOptions;
+export import HasManyAddAssociationMixin = sequelize.HasManyAddAssociationMixin;
+export import HasManyAddAssociationMixinOptions = sequelize.HasManyAddAssociationMixinOptions;
+export import HasManyAddAssociationsMixin = sequelize.HasManyAddAssociationsMixin;
+export import HasManyAddAssociationsMixinOptions = sequelize.HasManyAddAssociationsMixinOptions;
+export import HasManyCountAssociationsMixin = sequelize.HasManyCountAssociationsMixin;
+export import HasManyCountAssociationsMixinOptions = sequelize.HasManyCountAssociationsMixinOptions;
+export import HasManyCreateAssociationMixin = sequelize.HasManyCreateAssociationMixin;
+export import HasManyCreateAssociationMixinOptions = sequelize.HasManyCreateAssociationMixinOptions;
+export import HasManyGetAssociationsMixin = sequelize.HasManyGetAssociationsMixin;
+export import HasManyGetAssociationsMixinOptions = sequelize.HasManyGetAssociationsMixinOptions;
+export import HasManyHasAssociationMixin = sequelize.HasManyHasAssociationMixin;
+export import HasManyHasAssociationMixinOptions = sequelize.HasManyHasAssociationMixinOptions;
+export import HasManyHasAssociationsMixin = sequelize.HasManyHasAssociationsMixin;
+export import HasManyHasAssociationsMixinOptions = sequelize.HasManyHasAssociationsMixinOptions;
+export import HasManyRemoveAssociationMixin = sequelize.HasManyRemoveAssociationMixin;
+export import HasManyRemoveAssociationMixinOptions = sequelize.HasManyRemoveAssociationMixinOptions;
+export import HasManyRemoveAssociationsMixin = sequelize.HasManyRemoveAssociationsMixin;
+export import HasManyRemoveAssociationsMixinOptions = sequelize.HasManyRemoveAssociationsMixinOptions;
+export import HasManySetAssociationsMixin = sequelize.HasManySetAssociationsMixin;
+export import HasManySetAssociationsMixinOptions = sequelize.HasManySetAssociationsMixinOptions;
+export import HasOneCreateAssociationMixin = sequelize.HasOneCreateAssociationMixin;
+export import HasOneCreateAssociationMixinOptions = sequelize.HasOneCreateAssociationMixinOptions;
+export import HasOneGetAssociationMixin = sequelize.HasOneGetAssociationMixin;
+export import HasOneGetAssociationMixinOptions = sequelize.HasOneGetAssociationMixinOptions;
+export import HasOneSetAssociationMixin = sequelize.HasOneSetAssociationMixin;
+export import HasOneSetAssociationMixinOptions = sequelize.HasOneSetAssociationMixinOptions;
+export import Hooks = sequelize.Hooks;
+export import HooksDefineOptions = sequelize.HooksDefineOptions;
+export import IncludeAssociation = sequelize.IncludeAssociation;
+export import IncludeOptions = sequelize.IncludeOptions;
+export import IncludeThroughOptions = sequelize.IncludeThroughOptions;
+export import IncrementDecrementOptions = sequelize.IncrementDecrementOptions;
+export import IndexType = sequelize.IndexType;
+export import InstanceDestroyOptions = sequelize.InstanceDestroyOptions;
+export import InstanceIncrementDecrementOptions = sequelize.InstanceIncrementDecrementOptions;
+export import InstanceRestoreOptions = sequelize.InstanceRestoreOptions;
+export import InstanceSaveOptions = sequelize.InstanceSaveOptions;
+export import InstanceSetOptions = sequelize.InstanceSetOptions;
+export import InstanceUpdateOptions = sequelize.InstanceUpdateOptions;
+export import LoggingOptions = sequelize.LoggingOptions;
+export import Models = sequelize.Models;
+export import ModelsHashInterface = sequelize.ModelsHashInterface;
+export import Operators = sequelize.Operators;
+export import OperatorsAliases = sequelize.OperatorsAliases;
+export import Options = sequelize.Options;
+export import PoolOptions = sequelize.PoolOptions;
+export import Primitives = sequelize.Primitives;
+export import QueryGenerator = sequelize.QueryGenerator;
+export import QueryInterface = sequelize.QueryInterface;
+export import QueryInterfaceOptions = sequelize.QueryInterfaceOptions;
+export import QueryOptions = sequelize.QueryOptions;
+export import QueryOptionsTransactionRequired = sequelize.QueryOptionsTransactionRequired;
+export import ReplicationOptions = sequelize.ReplicationOptions;
+export import RestoreOptions = sequelize.RestoreOptions;
+export import RetryOptions = sequelize.RetryOptions;
+export import ReturningOptions = sequelize.ReturningOptions;
+export import SchemaOptions = sequelize.SchemaOptions;
+export import ScopeOptions = sequelize.ScopeOptions;
+export import SearchPathOptions = sequelize.SearchPathOptions;
+export import SequelizeLoDash = sequelize.SequelizeLoDash;
+export import SequelizeStatic = sequelize.SequelizeStatic;
+export import SequelizeStaticAndInstance = sequelize.SequelizeStaticAndInstance;
+export import SetOptions = sequelize.SetOptions;
+export import SyncOptions = sequelize.SyncOptions;
+export import ThroughOptions = sequelize.ThroughOptions;
+export import TransactionIsolationLevel = sequelize.TransactionIsolationLevel;
+export import TransactionIsolationLevelReadCommitted = sequelize.TransactionIsolationLevelReadCommitted;
+export import TransactionIsolationLevelReadUncommitted = sequelize.TransactionIsolationLevelReadUncommitted;
+export import TransactionIsolationLevelRepeatableRead = sequelize.TransactionIsolationLevelRepeatableRead;
+export import TransactionIsolationLevelSerializable = sequelize.TransactionIsolationLevelSerializable;
+export import TransactionIsolationLevels = sequelize.TransactionIsolationLevels;
+export import TransactionLock = sequelize.TransactionLock;
+export import TransactionLockLevel = sequelize.TransactionLockLevel;
+export import TransactionLockLevelKeyShare = sequelize.TransactionLockLevelKeyShare;
+export import TransactionLockLevelNoKeyUpdate = sequelize.TransactionLockLevelNoKeyUpdate;
+export import TransactionLockLevelShare = sequelize.TransactionLockLevelShare;
+export import TransactionLockLevelUpdate = sequelize.TransactionLockLevelUpdate;
+export import TransactionOptions = sequelize.TransactionOptions;
+export import TransactionStatic = sequelize.TransactionStatic;
+export import TransactionType = sequelize.TransactionType;
+export import TransactionTypeDeferred = sequelize.TransactionTypeDeferred;
+export import TransactionTypeExclusive = sequelize.TransactionTypeExclusive;
+export import TransactionTypeImmediate = sequelize.TransactionTypeImmediate;
+export import TransactionTypes = sequelize.TransactionTypes;
+export import TruncateOptions = sequelize.TruncateOptions;
+export import UpdateOptions = sequelize.UpdateOptions;
+export import UpsertOptions = sequelize.UpsertOptions;
+export import ValidatorJSType = sequelize.ValidatorJSType;
+export import WhereGeometryOptions = sequelize.WhereGeometryOptions;
+export import WhereLogic = sequelize.WhereLogic;
+export import WhereNested = sequelize.WhereNested;
+export import WhereOptions = sequelize.WhereOptions;
+export import WherePGStatement = sequelize.WherePGStatement;
+export import andStatic = sequelize.andStatic;
+export import castStatic = sequelize.castStatic;
+export import colStatic = sequelize.colStatic;
+export import fnStatic = sequelize.fnStatic;
+export import jsonStatic = sequelize.jsonStatic;
+export import literalStatic = sequelize.literalStatic;
+export import orStatic = sequelize.orStatic;
+export import whereStatic = sequelize.whereStatic;
+
+/* ------------------------------------------------------------------ *
+ * Named value exports, mirroring the runtime named exports.
+ *
+ * Types come off `SequelizeStatic` by indexed access so they stay in
+ * sync with the interface. Where the name is also a type, the `const`
+ * and the `type` merge into one symbol carrying both meanings.
+ * ------------------------------------------------------------------ */
+export declare const DataTypes: sequelize.DataTypes;
+export type DataTypes = sequelize.DataTypes;
+
+export declare const Sequelize: sequelize.SequelizeStatic['Sequelize'];
+export type Sequelize = sequelize.Sequelize;
+
+export declare const Op: sequelize.SequelizeStatic['Op'];
+
+export declare const QueryTypes: sequelize.SequelizeStatic['QueryTypes'];
+export type QueryTypes = sequelize.QueryTypes;
+
+export declare const Utils: sequelize.SequelizeStatic['Utils'];
+export type Utils = sequelize.Utils;
+
+export declare const Validator: sequelize.SequelizeStatic['Validator'];
+export type Validator = sequelize.Validator;
+
+export declare const Deferrable: sequelize.SequelizeStatic['Deferrable'];
+export type Deferrable = sequelize.Deferrable;
+
+export declare const Transaction: sequelize.SequelizeStatic['Transaction'];
+export type Transaction = sequelize.Transaction;
+
+export declare const Model: sequelize.SequelizeStatic['Model'];
+export type Model<TInstance, TAttributes, TCreationAttributes = TAttributes> = sequelize.Model<TInstance, TAttributes, TCreationAttributes>;
+
+// Type-only: v4 folded `Instance` into `Model`, so there is no runtime
+// `Sequelize.Instance` to export as a value.
+export type Instance<TAttributes> = sequelize.Instance<TAttributes>;
+
+export declare const fn: sequelize.SequelizeStatic['fn'];
+export type fn = sequelize.fn;
+
+export declare const col: sequelize.SequelizeStatic['col'];
+export type col = sequelize.col;
+
+export declare const cast: sequelize.SequelizeStatic['cast'];
+export type cast = sequelize.cast;
+
+export declare const literal: sequelize.SequelizeStatic['literal'];
+export type literal = sequelize.literal;
+
+export declare const asIs: sequelize.SequelizeStatic['asIs'];
+
+export declare const and: sequelize.SequelizeStatic['and'];
+export type and = sequelize.and;
+
+export declare const or: sequelize.SequelizeStatic['or'];
+export type or = sequelize.or;
+
+export declare const json: sequelize.SequelizeStatic['json'];
+export type json = sequelize.json;
+
+export declare const where: sequelize.SequelizeStatic['where'];
+export type where = sequelize.where;
+
+export declare const condition: sequelize.SequelizeStatic['condition'];
+
+// `Error` is Sequelize's BaseError constructor. Value-only on purpose: adding a
+// matching `type Error` alias would shadow the global `Error` across this whole
+// file and break the `extends Error` clauses inside the namespace above. The type
+// is exported as `BaseError`.
+export declare const Error: sequelize.SequelizeStatic['Error'];
+
+export declare const ValidationError: sequelize.SequelizeStatic['ValidationError'];
+export type ValidationError = sequelize.ValidationError;
+
+export declare const ValidationErrorItem: sequelize.SequelizeStatic['ValidationErrorItem'];
+export type ValidationErrorItem = sequelize.ValidationErrorItem;
+
+export declare const DatabaseError: sequelize.SequelizeStatic['DatabaseError'];
+export type DatabaseError = sequelize.DatabaseError;
+
+export declare const TimeoutError: sequelize.SequelizeStatic['TimeoutError'];
+export type TimeoutError = sequelize.TimeoutError;
+
+export declare const UniqueConstraintError: sequelize.SequelizeStatic['UniqueConstraintError'];
+export type UniqueConstraintError = sequelize.UniqueConstraintError;
+
+export declare const ExclusionConstraintError: sequelize.SequelizeStatic['ExclusionConstraintError'];
+export type ExclusionConstraintError = sequelize.ExclusionConstraintError;
+
+export declare const ForeignKeyConstraintError: sequelize.SequelizeStatic['ForeignKeyConstraintError'];
+export type ForeignKeyConstraintError = sequelize.ForeignKeyConstraintError;
+
+export declare const ConnectionError: sequelize.SequelizeStatic['ConnectionError'];
+export type ConnectionError = sequelize.ConnectionError;
+
+export declare const ConnectionRefusedError: sequelize.SequelizeStatic['ConnectionRefusedError'];
+export type ConnectionRefusedError = sequelize.ConnectionRefusedError;
+
+export declare const AccessDeniedError: sequelize.SequelizeStatic['AccessDeniedError'];
+export type AccessDeniedError = sequelize.AccessDeniedError;
+
+export declare const HostNotFoundError: sequelize.SequelizeStatic['HostNotFoundError'];
+export type HostNotFoundError = sequelize.HostNotFoundError;
+
+export declare const HostNotReachableError: sequelize.SequelizeStatic['HostNotReachableError'];
+export type HostNotReachableError = sequelize.HostNotReachableError;
+
+export declare const InvalidConnectionError: sequelize.SequelizeStatic['InvalidConnectionError'];
+export type InvalidConnectionError = sequelize.InvalidConnectionError;
+
+export declare const ConnectionTimedOutError: sequelize.SequelizeStatic['ConnectionTimedOutError'];
+export type ConnectionTimedOutError = sequelize.ConnectionTimedOutError;
+
+export declare const EmptyResultError: sequelize.SequelizeStatic['EmptyResultError'];
+export type EmptyResultError = sequelize.EmptyResultError;

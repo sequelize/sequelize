@@ -1,9 +1,6 @@
-'use strict';
-
-const path = require('path');
-const Query = require(path.resolve('./lib/dialects/postgres/base/query.js'));
-const Support = require(path.join(__dirname, './../../support'));
-const chai = require('chai');
+import * as chai from 'chai';
+import Query from '../../../../lib/dialects/postgres/base/query.js';
+import Support from '../../support.js';
 
 const current = Support.sequelize;
 const expect = chai.expect;

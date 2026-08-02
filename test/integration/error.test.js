@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import * as errors from '../../lib/errors.js';
+import Support from './support.js';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  errors = require('../../lib/errors'),
-  Support = require(__dirname + '/support'),
-  Sequelize = Support.Sequelize;
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Sequelize Errors'), () => {
   describe('API Surface', () => {

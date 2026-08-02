@@ -1,13 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../../index.js';
+import moment from 'moment';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const chai = require('chai'),
-  Sequelize = require('../../../index'),
-  Promise = Sequelize.Promise,
-  moment = require('moment'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current = Support.sequelize;
+const Promise = Sequelize.Promise;
+
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   if (current.dialect.supports.JSON) {

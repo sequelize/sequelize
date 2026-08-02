@@ -9,5 +9,5 @@
     "target": "es2023",
     "lib": ["ES2023"]
   },
-  "files": ["index.d.ts"]
+  "files": ["index.d.ts", "index.d.cts"]
 }

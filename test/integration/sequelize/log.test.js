@@ -1,10 +1,10 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from '../support.js';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  dialect = Support.getTestDialect();
+const expect = chai.expect;
+
+const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('log', () => {

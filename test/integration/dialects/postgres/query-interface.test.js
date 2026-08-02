@@ -1,10 +1,9 @@
-'use strict';
-const { inspectFulfilled, inspectRejected } = require('../../../../lib/utils/promise-helpers');
+import { inspectFulfilled, inspectRejected } from '../../../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import DataTypes from '../../../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai');
 const expect = chai.expect;
-const DataTypes = require(__dirname + '/../../../../lib/data-types');
-const _ = require('lodash');
 
 describe('[POSTGRES Specific] QueryInterface', () => {
   beforeEach(function () {

@@ -1,11 +1,11 @@
-'use strict';
+import { UniqueConstraintError } from '../../../lib/errors.js';
+import * as chai from 'chai';
+import Support from '../support.js';
+import sinon from 'sinon';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  UniqueConstraintError = require(__dirname + '/../../../lib/errors').UniqueConstraintError,
-  current = Support.sequelize,
-  sinon = require('sinon');
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findCreateFind', () => {

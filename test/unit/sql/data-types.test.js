@@ -1,11 +1,11 @@
-'use strict';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import * as chai from 'chai';
+import util from 'node:util';
+import * as uuid from 'uuid';
 
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
 const Sequelize = Support.Sequelize;
-const chai = require('chai');
-const util = require('util');
-const uuid = require('uuid');
+
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const expect = chai.expect;

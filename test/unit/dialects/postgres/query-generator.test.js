@@ -1,14 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import Operators from '../../../../lib/operators.js';
+import QueryGenerator from '../../../../lib/dialects/postgres/query-generator.js';
+import Support from '../../support.js';
+import DataTypes from '../../../../lib/data-types.js';
+import moment from 'moment';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Operators = require('../../../../lib/operators'),
-  QueryGenerator = require('../../../../lib/dialects/postgres/query-generator'),
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  moment = require('moment'),
-  current = Support.sequelize,
-  _ = require('lodash');
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe('[POSTGRES Specific] QueryGenerator', () => {
   const suites = {

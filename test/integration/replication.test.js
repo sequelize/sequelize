@@ -1,16 +1,15 @@
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import sinon from 'sinon';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
-const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Replication'), function () {
   let sandbox;
   let readSpy, writeSpy;
 
-  beforeEach(() => {
+  beforeEach(function () {
     sandbox = sinon.createSandbox();
 
     this.sequelize = Support.getSequelizeInstance(null, null, null, {
@@ -50,17 +49,17 @@ describe(Support.getTestDialectTeaser('Replication'), function () {
     chai.expect(readSpy.notCalled).eql(true);
   }
 
-  it('should be able to make a write', () => {
+  it('should be able to make a write', function () {
     return this.User.create({
       firstName: Math.random().toString()
     }).then(expectWriteCalls);
   });
 
-  it('should be able to make a read', () => {
+  it('should be able to make a read', function () {
     return this.User.findAll().then(expectReadCalls);
   });
 
-  it('should run read-only transactions on the replica', () => {
+  it('should run read-only transactions on the replica', function () {
     return this.sequelize
       .transaction({ readOnly: true }, (transaction) => {
         return this.User.findAll({ transaction });
@@ -68,7 +67,7 @@ describe(Support.getTestDialectTeaser('Replication'), function () {
       .then(expectReadCalls);
   });
 
-  it('should run non-read-only transactions on the primary', () => {
+  it('should run non-read-only transactions on the primary', function () {
     return this.sequelize
       .transaction((transaction) => {
         return this.User.findAll({ transaction });

@@ -1,10 +1,9 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import sinon from 'sinon';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  sinon = require('sinon');
+const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {

@@ -1,12 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../../support.js';
+import DataTypes from '../../../../lib/data-types.js';
+import sequelize from '../../../../lib/sequelize.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  Sequelize = Support.Sequelize,
-  Promise = Sequelize.Promise,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  sequelize = require(__dirname + '/../../../../lib/sequelize');
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
+const Promise = Sequelize.Promise;
 
 describe('[POSTGRES Specific] DAO', () => {
   beforeEach(function () {

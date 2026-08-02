@@ -117,8 +117,8 @@ To use new ES2015 features, Sequelize v4 requires at least Node v4 or above.
 - Native promises propagate CLS context automatically via `async_hooks`. No promise patching is required.
 
   ```js
-  const Sequelize = require('sequelize');
-  const cls = require('cls-hooked');
+  import Sequelize from 'sequelize';
+  import cls from 'cls-hooked';
 
   const ns = cls.createNamespace('transaction-namespace');
 

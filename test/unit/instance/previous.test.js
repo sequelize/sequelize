@@ -1,14 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
+
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   describe('previous', () => {
-    it('should return correct previous value', () => {
+    it('should return correct previous value', function () {
       const Model = current.define('Model', {
         text: DataTypes.STRING,
         textCustom: {

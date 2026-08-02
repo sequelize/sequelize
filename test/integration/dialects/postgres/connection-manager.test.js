@@ -1,10 +1,9 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../../support.js';
+import DataTypes from '../../../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  _ = require('lodash');
+const expect = chai.expect;
 
 describe('[POSTGRES] Sequelize', () => {
   function checkTimezoneParsing(baseOptions) {

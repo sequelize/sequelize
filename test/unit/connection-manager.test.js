@@ -1,12 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from './support.js';
+import Sequelize from '../../index.js';
+import ConnectionManager from '../../lib/dialects/postgres/base/connection-manager.js';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  Sequelize = require(__dirname + '/../../index'),
-  ConnectionManager = require(__dirname + '/../../lib/dialects/postgres/base/connection-manager'),
-  Promise = Sequelize.Promise;
+const expect = chai.expect;
+
+const Promise = Sequelize.Promise;
 
 describe('connection manager', () => {
   describe('_connect', () => {

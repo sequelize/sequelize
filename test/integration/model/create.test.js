@@ -1,14 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Sequelize from '../../../index.js';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import lodash from 'lodash';
+import assert from 'node:assert';
 
-const chai = require('chai');
-const sinon = require('sinon');
-const Sequelize = require('../../../index');
 const Promise = Sequelize.Promise;
 const expect = chai.expect;
-const Support = require(__dirname + '/../support');
-const DataTypes = require(__dirname + '/../../../lib/data-types');
-const lodash = require('lodash');
-const assert = require('assert');
+
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {

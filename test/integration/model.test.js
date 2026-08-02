@@ -1,14 +1,14 @@
-'use strict';
+import { mapWithConcurrency } from '../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import sinon from 'sinon';
+import _ from 'lodash';
+import moment from 'moment';
 
-const chai = require('chai');
-const Sequelize = require('../../index');
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
-const sinon = require('sinon');
-const _ = require('lodash');
-const moment = require('moment');
-const { mapWithConcurrency } = require('../../lib/utils/promise-helpers');
+
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {

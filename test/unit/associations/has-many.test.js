@@ -1,16 +1,16 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import _ from 'lodash';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import HasMany from '../../../lib/associations/has-many.js';
+import Op from '../../../lib/operators.js';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  stub = sinon.stub,
-  _ = require('lodash'),
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  HasMany = require(__dirname + '/../../../lib/associations/has-many'),
-  Op = require(__dirname + '/../../../lib/operators'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+const expect = chai.expect;
+const stub = sinon.stub;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 
 describe(Support.getTestDialectTeaser('hasMany'), () => {
   describe('optimizations using bulk create, destroy and update', () => {
@@ -93,7 +93,7 @@ describe(Support.getTestDialectTeaser('hasMany'), () => {
       expect(obj[association.accessors.count]).to.be.an('function');
     });
 
-    it('should not override custom methods', () => {
+    it('should not override custom methods', function () {
       const methods = {
         getTasks: 'get',
         countTasks: 'count',

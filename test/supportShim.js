@@ -1,15 +1,13 @@
-'use strict';
-
-const QueryInterface = require(__dirname + '/../lib/query-interface'),
-  hintsModule = require('hints'),
-  _ = require('lodash'),
-  util = require('util');
+import QueryInterface from '../lib/query-interface.js';
+import hintsModule from 'hints';
+import _ from 'lodash';
+import util from 'node:util';
 
 /**
  * Shims all Sequelize methods to test for logging passing.
  * @param {Object} Sequelize - Sequelize constructor
  */
-module.exports = function (Sequelize) {
+export default function (Sequelize) {
   // Shim all Sequelize methods
   shimAll(Sequelize.prototype, 'Sequelize#');
   shimAll(Sequelize.Model, 'Model.');
@@ -292,13 +290,13 @@ module.exports = function (Sequelize) {
    *
    * @returns {boolean} - true if this method called from within the tests
    */
-  const pathRegStr = _.escapeRegExp(__dirname + '/'),
+  const pathRegStr = _.escapeRegExp(import.meta.dirname + '/'),
     regExp = new RegExp('^\\s+at\\s+(' + pathRegStr + '|.+ \\(' + pathRegStr + ')');
 
   function calledFromTests() {
     return !!new Error().stack.split(/[\r\n]+/)[3].match(regExp);
   }
-};
+}
 
 // Helper functions for examining code for hints
 

@@ -1,9 +1,8 @@
-'use strict';
+import * as chai from 'chai';
+import config from '../../../config/config.js';
+import DataTypes from '../../../../lib/data-types.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  config = require(__dirname + '/../../../config/config'),
-  DataTypes = require(__dirname + '/../../../../lib/data-types');
+const expect = chai.expect;
 
 describe('[POSTGRES Specific] associations', () => {
   describe('many-to-many', () => {

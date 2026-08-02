@@ -14,7 +14,7 @@ Sequelize is a promise-based ORM for Node.js v4 and up. It supports the dialects
 ## Example usage
 
 ```js
-const Sequelize = require('sequelize');
+import Sequelize from 'sequelize';
 const sequelize = new Sequelize('database', 'username', 'password', {
   host: 'localhost',
   dialect: 'mysql' | 'sqlite' | 'postgres' | 'mssql',

@@ -1,10 +1,9 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from './support.js';
+import config from '../config/config.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = require(__dirname + '/../../index'),
-  Support = require(__dirname + '/support'),
-  config = require(__dirname + '/../config/config');
+const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('#update', () => {

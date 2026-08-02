@@ -1,12 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from './support.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  _ = require('lodash'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+const expect = chai.expect;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
   beforeEach(function () {
@@ -43,7 +43,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('defined by options.hooks', () => {
-      beforeEach(() => {
+      beforeEach(function () {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
         this.afterCreateHook = sinon.spy();
@@ -63,7 +63,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         );
       });
 
-      it('calls beforeSave/afterSave', () => {
+      it('calls beforeSave/afterSave', function () {
         return this.Model.create({}).then(() => {
           expect(this.afterCreateHook.calledOnce).to.be.true;
           expect(this.beforeSaveHook.calledOnce).to.be.true;
@@ -73,7 +73,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('defined by addHook method', () => {
-      beforeEach(() => {
+      beforeEach(function () {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
 
@@ -85,7 +85,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model.addHook('afterSave', this.afterSaveHook);
       });
 
-      it('calls beforeSave/afterSave', () => {
+      it('calls beforeSave/afterSave', function () {
         return this.Model.create({}).then(() => {
           expect(this.beforeSaveHook.calledOnce).to.be.true;
           expect(this.afterSaveHook.calledOnce).to.be.true;
@@ -94,7 +94,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
     });
 
     describe('defined by hook method', () => {
-      beforeEach(() => {
+      beforeEach(function () {
         this.beforeSaveHook = sinon.spy();
         this.afterSaveHook = sinon.spy();
 
@@ -106,7 +106,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         this.Model.hook('afterSave', this.afterSaveHook);
       });
 
-      it('calls beforeSave/afterSave', () => {
+      it('calls beforeSave/afterSave', function () {
         return this.Model.create({}).then(() => {
           expect(this.beforeSaveHook.calledOnce).to.be.true;
           expect(this.afterSaveHook.calledOnce).to.be.true;

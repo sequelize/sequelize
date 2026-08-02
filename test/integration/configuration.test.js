@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import config from '../config/config.js';
+import Support from './support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  config = require(__dirname + '/../config/config'),
-  Support = require(__dirname + '/support'),
-  dialect = Support.getTestDialect(),
-  Sequelize = Support.Sequelize;
+const expect = chai.expect;
+
+const dialect = Support.getTestDialect();
+const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
   describe('Connections problems should fail with a nice message', () => {

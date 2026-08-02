@@ -1,10 +1,10 @@
-'use strict';
-
 /*
  * Copy this file to ./sscce.js
  * Add code from issue
- * npm run sscce-{dialect}
+ * pnpm run sscce-{dialect}
  */
 
-const Sequelize = require('./index');
-const sequelize = require('./test/support').createSequelizeInstance();
+import Sequelize from './index.js';
+import Support from './test/support.js';
+
+const sequelize = Support.createSequelizeInstance();

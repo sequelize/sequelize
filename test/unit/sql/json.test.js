@@ -1,12 +1,11 @@
-'use strict';
+import { expect } from 'chai';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  expect = require('chai').expect,
-  expectsql = Support.expectsql,
-  Sequelize = Support.Sequelize,
-  current = Support.sequelize,
-  sql = current.dialect.QueryGenerator;
+const expectsql = Support.expectsql;
+const Sequelize = Support.Sequelize;
+const current = Support.sequelize;
+const sql = current.dialect.QueryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 if (current.dialect.supports.JSON) {

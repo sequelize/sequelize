@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import DataTypes from '../../../../lib/data-types.js';
+import Support from '../../support.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  Support = require(__dirname + '/../../support'),
-  Sequelize = Support.Sequelize,
-  _ = require('lodash');
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
 
 const constraintName = 'overlap_period';
 beforeEach(function () {

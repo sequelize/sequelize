@@ -1,8 +1,8 @@
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Support = require('./support');
+
 const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
 const DataTypes = Sequelize.DataTypes;

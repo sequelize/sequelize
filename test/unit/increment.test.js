@@ -1,10 +1,10 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize,
-  Sequelize = Support.Sequelize;
+const expect = chai.expect;
+
+const current = Support.sequelize;
+const Sequelize = Support.Sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('increment', () => {

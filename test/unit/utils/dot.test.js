@@ -1,8 +1,7 @@
-'use strict';
+import * as chai from 'chai';
+import * as Dot from '../../../lib/utils/dot.js';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Dot = require(__dirname + '/../../../lib/utils/dot');
 
 describe('Utils.dot', () => {
   describe('get', () => {

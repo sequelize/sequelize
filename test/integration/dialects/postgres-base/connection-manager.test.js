@@ -1,13 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../../support.js';
+import sinon from 'sinon';
+import Config from '../../../config/config.js';
+import ConnectionManager from '../../../../lib/dialects/postgres/base/connection-manager.js';
+import Pooling from 'generic-pool';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  sinon = require('sinon'),
-  Config = require(__dirname + '/../../../config/config'),
-  ConnectionManager = require(__dirname + '/../../../../lib/dialects/postgres/base/connection-manager'),
-  Pooling = require('generic-pool'),
-  _ = require('lodash');
+const expect = chai.expect;
 
 const baseConf = Config[Support.getTestDialect()];
 const poolEntry = {

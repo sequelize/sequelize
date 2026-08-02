@@ -1,16 +1,17 @@
-'use strict';
+import _ from 'lodash';
+import Sequelize from '../index.js';
+import DataTypes from '../lib/data-types.js';
+import Config from './config/config.js';
+import supportShim from './supportShim.js';
+import * as chai from 'chai';
+import chaiAsPromised from 'chai-as-promised';
+import PostgresQueryGenerator from '../lib/dialects/postgres/query-generator.js';
+import chaiDatetime from './support/chai-datetime.js';
 
-const _ = require('lodash');
-const Sequelize = require(__dirname + '/../index');
-const DataTypes = require(__dirname + '/../lib/data-types');
-const Config = require(__dirname + '/config/config');
-const supportShim = require(__dirname + '/supportShim');
-const chai = require('chai');
 const expect = chai.expect;
-const PostgresQueryGenerator = require('../lib/dialects/postgres/query-generator');
 
-chai.use(require('./support/chai-datetime'));
-chai.use(require('chai-as-promised').default);
+chai.use(chaiDatetime);
+chai.use(chaiAsPromised);
 chai.config.includeStack = true;
 chai.should();
 
@@ -201,4 +202,5 @@ if (typeof beforeEach !== 'undefined') {
   });
 }
 Support.sequelize = Support.createSequelizeInstance();
-module.exports = Support;
+
+export default Support;

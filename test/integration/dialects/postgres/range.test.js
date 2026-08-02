@@ -1,13 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import DataTypes from '../../../../lib/data-types.js';
+import * as range from '../../../../lib/dialects/postgres/range.js';
+import _ from 'lodash';
+import pg from 'pg';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  DataTypes = require(__dirname + '/../../../../lib/data-types'),
-  range = require('../../../../lib/dialects/postgres/range'),
-  _ = require('lodash');
+const expect = chai.expect;
 
 // Don't try to load pg until we know we're running on postgres.
-const pg = require('pg');
 
 describe('[POSTGRES Specific] range datatype', () => {
   describe('stringify', () => {

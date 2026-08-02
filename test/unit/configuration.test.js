@@ -1,10 +1,10 @@
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  Sequelize = Support.Sequelize,
-  dialect = Support.getTestDialect();
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
+const dialect = Support.getTestDialect();
 
 describe('Sequelize', () => {
   describe('dialect is required', () => {

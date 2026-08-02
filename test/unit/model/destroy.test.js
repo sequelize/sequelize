@@ -1,13 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import sinon from 'sinon';
+import DataTypes from '../../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize,
-  sinon = require('sinon'),
-  Promise = current.Promise,
-  DataTypes = require('../../../lib/data-types'),
-  _ = require('lodash');
+const expect = chai.expect;
+
+const current = Support.sequelize;
+
+const Promise = current.Promise;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method destroy', () => {
@@ -37,7 +38,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.stubDelete.restore();
     });
 
-    it('can detect complexe objects', () => {
+    it('can detect complexe objects', function () {
       const Where = function () {
         this.secretValue = '1';
       };

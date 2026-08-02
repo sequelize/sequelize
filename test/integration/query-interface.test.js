@@ -1,12 +1,12 @@
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai');
 const expect = chai.expect;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
+
 const Sequelize = Support.Sequelize;
 const current = Support.sequelize;
-const _ = require('lodash');
 
 describe(Support.getTestDialectTeaser('QueryInterface'), () => {
   beforeEach(function () {

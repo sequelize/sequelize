@@ -1,6 +1,4 @@
-'use strict';
-
-module.exports = {
+export default {
   username: process.env.SEQ_USER || 'root',
   password: process.env.SEQ_PW || null,
   database: process.env.SEQ_DB || 'sequelize_test',

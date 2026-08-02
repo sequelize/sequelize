@@ -170,7 +170,9 @@ The BLOB data type allows you to insert data both as strings and as buffers. Whe
 If you are working with the PostgreSQL TIMESTAMP WITHOUT TIME ZONE and you need to parse it to a different timezone, please use the pg library's own parser:
 
 ```js
-require('pg').types.setTypeParser(1114, (stringValue) => {
+import pg from 'pg';
+
+pg.types.setTypeParser(1114, (stringValue) => {
   return new Date(stringValue + '+0000');
   // e.g., UTC offset. Use any offset that you would like.
 });
@@ -653,7 +655,9 @@ const AuthorModel = db.import('./path/to/models/project');
 ... this should succeed ...
 
 ```js
-const AuthorModel = db.import('project', require('./path/to/models/project'));
+import projectModel from './path/to/models/project.js';
+
+const AuthorModel = db.import('project', projectModel);
 ```
 
 ## Optimistic Locking

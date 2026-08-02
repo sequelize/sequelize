@@ -1,9 +1,8 @@
-'use strict';
+import Support from '../support.js';
 
-const Support = require(__dirname + '/../support'),
-  expectsql = Support.expectsql,
-  current = Support.sequelize,
-  sql = current.dialect.QueryGenerator;
+const expectsql = Support.expectsql;
+const current = Support.sequelize;
+const sql = current.dialect.QueryGenerator;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('removeColumn', () => {

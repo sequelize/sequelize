@@ -1,9 +1,9 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../../support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support'),
-  Sequelize = Support.Sequelize;
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
 
 describe('[POSTGRES Specific] Regressions', () => {
   it('properly fetch OIDs after sync, #8749', function () {

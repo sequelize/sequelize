@@ -1,14 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from '../support.js';
+import Sequelize from '../../../index.js';
+import DataTypes from '../../../lib/data-types.js';
+import _ from 'lodash';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  sinon = require('sinon'),
-  Support = require(__dirname + '/../support'),
-  Sequelize = require(__dirname + '/../../../index'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  current = Support.sequelize,
-  Promise = Sequelize.Promise,
-  _ = require('lodash');
+const expect = chai.expect;
+
+const current = Support.sequelize;
+const Promise = Sequelize.Promise;
 
 if (current.dialect.supports.groupedLimit) {
   describe(Support.getTestDialectTeaser('Include'), () => {

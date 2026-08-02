@@ -237,6 +237,10 @@ $ touch .sequelizerc
 
 Now let's work with an example config.
 
+> **Note:** `.sequelizerc`, `config/config.js`, migrations and seeders are loaded by
+> `sequelize-cli` with `require()`, so they must be written as CommonJS
+> (`module.exports` / `require`) even though Sequelize itself is an ES module.
+
 ```js
 const path = require('path');
 

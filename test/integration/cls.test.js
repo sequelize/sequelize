@@ -1,12 +1,13 @@
-'use strict';
+import { delay } from '../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import Support from './support.js';
+import cls from 'cls-hooked';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  Sequelize = Support.Sequelize,
-  cls = require('cls-hooked'),
-  { delay } = require(__dirname + '/../../lib/utils/promise-helpers'),
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const Sequelize = Support.Sequelize;
+
+const current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Continuation local storage'), () => {

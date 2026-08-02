@@ -1,13 +1,13 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Sequelize from '../../../index.js';
+import Support from '../support.js';
+import config from '../../config/config.js';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  expect = chai.expect,
-  Sequelize = require(__dirname + '/../../../index'),
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize,
-  Promise = current.Promise,
-  config = require(__dirname + '/../../config/config');
+const expect = chai.expect;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   describe('validations', () => {

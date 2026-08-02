@@ -1,15 +1,15 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import sinon from 'sinon';
+import DataTypes from '../../../lib/data-types.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize,
-  sinon = require('sinon'),
-  DataTypes = require(__dirname + '/../../../lib/data-types');
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method count', () => {
-    before(() => {
+    before(function () {
       this.oldFindAll = current.Model.findAll;
       this.oldAggregate = current.Model.aggregate;
 
@@ -27,17 +27,17 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Project.belongsTo(this.User);
     });
 
-    after(() => {
+    after(function () {
       current.Model.findAll = this.oldFindAll;
       current.Model.aggregate = this.oldAggregate;
     });
 
-    beforeEach(() => {
+    beforeEach(function () {
       this.stub = current.Model.aggregate = sinon.stub().returns(Promise.resolve());
     });
 
     describe('should pass the same options to model.aggregate as findAndCount', () => {
-      it('with includes', () => {
+      it('with includes', function () {
         const queryObject = {
           include: [this.Project]
         };
@@ -50,7 +50,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
       });
 
-      it('attributes should be stripped in case of findAndCount', () => {
+      it('attributes should be stripped in case of findAndCount', function () {
         const queryObject = {
           attributes: ['username']
         };

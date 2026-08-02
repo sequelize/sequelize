@@ -1,18 +1,19 @@
-'use strict';
+import * as chai from 'chai';
+import Support from './support.js';
+import DataTypes from '../../lib/data-types.js';
+import _ from 'lodash';
+import Sequelize from '../../index.js';
+import config from '../config/config.js';
+import moment from 'moment';
+import Transaction from '../../lib/transaction.js';
+import * as Utils from '../../lib/utils.js';
+import sinon from 'sinon';
 
-const chai = require('chai');
 const expect = chai.expect;
 const assert = chai.assert;
-const Support = require(__dirname + '/support');
-const DataTypes = require(__dirname + '/../../lib/data-types');
+
 const dialect = Support.getTestDialect();
-const _ = require('lodash');
-const Sequelize = require(__dirname + '/../../index');
-const config = require(__dirname + '/../config/config');
-const moment = require('moment');
-const Transaction = require(__dirname + '/../../lib/transaction');
-const Utils = require(__dirname + '/../../lib/utils');
-const sinon = require('sinon');
+
 const current = Support.sequelize;
 
 const qq = function (str) {
@@ -51,15 +52,19 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('should log deprecated warning if operators aliases were not set', () => {
-      sinon.stub(Utils, 'deprecate');
-      Support.createSequelizeInstance();
-      expect(Utils.deprecate.calledOnce).to.be.true;
-      expect(Utils.deprecate.args[0][0]).to.be.equal(
-        'String based operators are now deprecated. Please use Symbol based operators for better security, read more at http://docs.sequelizejs.com/manual/tutorial/querying.html#operators'
-      );
-      Utils.deprecate.resetHistory();
-      Support.createSequelizeInstance({ operatorsAliases: {} });
-      expect(Utils.deprecate.called).to.be.false;
+      const deprecate = sinon.stub(Utils.getLogger(), 'deprecate');
+      try {
+        Support.createSequelizeInstance();
+        expect(deprecate.calledOnce).to.be.true;
+        expect(deprecate.args[0][0]).to.be.equal(
+          'String based operators are now deprecated. Please use Symbol based operators for better security, read more at http://docs.sequelizejs.com/manual/tutorial/querying.html#operators'
+        );
+        deprecate.resetHistory();
+        Support.createSequelizeInstance({ operatorsAliases: {} });
+        expect(deprecate.called).to.be.false;
+      } finally {
+        deprecate.restore();
+      }
     });
 
     it('should set operators aliases on dialect QueryGenerator', () => {
@@ -1273,12 +1278,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
 
   describe('import', () => {
     it('imports a dao definition from a file absolute path', function () {
-      const Project = this.sequelize.import(__dirname + '/assets/project');
+      const Project = this.sequelize.import(import.meta.dirname + '/assets/project');
       expect(Project).to.exist;
     });
 
     it('imports a dao definition with a default export', function () {
-      const Project = this.sequelize.import(__dirname + '/assets/es6project');
+      const Project = this.sequelize.import(import.meta.dirname + '/assets/es6project');
       expect(Project).to.exist;
     });
 

@@ -1,14 +1,14 @@
-'use strict';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Support from './support.js';
 
-const chai = require('chai');
 const expect = chai.expect;
-const sinon = require('sinon');
-const Support = require(__dirname + '/support');
+
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe('Transaction', function () {
-  before(() => {
+  before(function () {
     this.stub = sinon.stub(current, 'query').returns(Promise.resolve({}));
 
     this.stubConnection = sinon.stub(current.connectionManager, 'getConnection').returns(
@@ -21,18 +21,18 @@ describe('Transaction', function () {
     this.stubRelease = sinon.stub(current.connectionManager, 'releaseConnection').returns(Promise.resolve());
   });
 
-  beforeEach(() => {
+  beforeEach(function () {
     this.stub.resetHistory();
     this.stubConnection.resetHistory();
     this.stubRelease.resetHistory();
   });
 
-  after(() => {
+  after(function () {
     this.stub.restore();
     this.stubConnection.restore();
   });
 
-  it('should run auto commit query only when needed', () => {
+  it('should run auto commit query only when needed', function () {
     const expectations = {
       all: ['START TRANSACTION;']
     };

@@ -1,16 +1,16 @@
-'use strict';
-const { props: pProps } = require('../../../lib/utils/promise-helpers');
+import { props as pProps } from '../../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import sinon from 'sinon';
+import Sequelize from '../../../index.js';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import config from '../../config/config.js';
+import _ from 'lodash';
+import moment from 'moment';
 
-const chai = require('chai'),
-  sinon = require('sinon'),
-  Sequelize = require('../../../index'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  DataTypes = require(__dirname + '/../../../lib/data-types'),
-  config = require(__dirname + '/../../config/config'),
-  _ = require('lodash'),
-  moment = require('moment'),
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   beforeEach(function () {

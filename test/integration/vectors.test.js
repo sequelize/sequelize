@@ -1,9 +1,8 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from './support.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Sequelize = require('../../index'),
-  Support = require(__dirname + '/support');
+const expect = chai.expect;
 
 chai.should();
 

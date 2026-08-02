@@ -1,16 +1,15 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import Sequelize from '../../../index.js';
+import config from '../../config/config.js';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  Sequelize = require(__dirname + '/../../../index'),
-  config = require(__dirname + '/../../config/config');
+const expect = chai.expect;
 
-if (!Support.sequelize.dialect.supports.deferrableConstraints) {
-  return;
-}
+// A top-level `return` guard worked under the CommonJS module wrapper; ESM has no
+// such wrapper, so skip the suite instead.
+const describeDeferrable = Support.sequelize.dialect.supports.deferrableConstraints ? describe : describe.skip;
 
-describe(Support.getTestDialectTeaser('Sequelize'), () => {
+describeDeferrable(Support.getTestDialectTeaser('Sequelize'), () => {
   describe('Deferrable', () => {
     beforeEach(function () {
       this.run = function (deferrable, options) {

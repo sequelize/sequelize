@@ -1,10 +1,10 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../index.js';
+import Support from '../support.js';
 
-const chai = require('chai'),
-  Sequelize = require('../../index'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 if (current.dialect.supports.tmpTableTrigger) {
   describe(Support.getTestDialectTeaser('Model'), () => {

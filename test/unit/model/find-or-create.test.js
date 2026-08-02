@@ -1,12 +1,13 @@
-'use strict';
+import * as chai from 'chai';
+import Support from '../support.js';
+import cls from 'cls-hooked';
+import sinon from 'sinon';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/../support'),
-  current = Support.sequelize,
-  cls = require('cls-hooked'),
-  sinon = require('sinon'),
-  stub = sinon.stub;
+const expect = chai.expect;
+
+const current = Support.sequelize;
+
+const stub = sinon.stub;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOrCreate', () => {

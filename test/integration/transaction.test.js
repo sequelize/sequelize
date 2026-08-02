@@ -1,13 +1,13 @@
-'use strict';
+import { delay } from '../../lib/utils/promise-helpers.js';
+import * as chai from 'chai';
+import Support from './support.js';
+import QueryTypes from '../../lib/query-types.js';
+import Transaction from '../../lib/transaction.js';
+import sinon from 'sinon';
 
-const chai = require('chai'),
-  expect = chai.expect,
-  Support = require(__dirname + '/support'),
-  QueryTypes = require('../../lib/query-types'),
-  Transaction = require(__dirname + '/../../lib/transaction'),
-  sinon = require('sinon'),
-  { delay } = require(__dirname + '/../../lib/utils/promise-helpers'),
-  current = Support.sequelize;
+const expect = chai.expect;
+
+const current = Support.sequelize;
 
 if (current.dialect.supports.transactions) {
   describe(Support.getTestDialectTeaser('Transaction'), () => {

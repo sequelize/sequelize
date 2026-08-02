@@ -1,10 +1,9 @@
-'use strict';
+import * as chai from 'chai';
+import Sequelize from '../../../../index.js';
+import Support from '../../support.js';
 
-const chai = require('chai'),
-  Sequelize = require('../../../../index'),
-  Promise = Sequelize.Promise,
-  expect = chai.expect,
-  Support = require(__dirname + '/../../support');
+const Promise = Sequelize.Promise;
+const expect = chai.expect;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('attributes', () => {

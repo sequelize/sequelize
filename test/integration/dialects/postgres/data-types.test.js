@@ -1,11 +1,11 @@
-'use strict';
+import * as chai from 'chai';
+import moment from 'moment';
+import Support from '../../support.js';
+import DataTypes from '../../../../lib/data-types.js';
 
-const chai = require('chai');
 const expect = chai.expect;
-const moment = require('moment');
-const Support = require(__dirname + '/../../support');
+
 const dialect = Support.getTestDialect();
-const DataTypes = require(__dirname + '/../../../../lib/data-types');
 
 describe('[POSTGRES Specific] Data Types', () => {
   // Reads the server's clock. Assertions about values the database generated (NOW() defaults) have

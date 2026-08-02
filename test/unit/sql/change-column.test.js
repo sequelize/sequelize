@@ -1,11 +1,11 @@
-'use strict';
+import Support from '../support.js';
+import DataTypes from '../../../lib/data-types.js';
+import sinon from 'sinon';
 
-const Support = require(__dirname + '/../support'),
-  DataTypes = require('../../../lib/data-types'),
-  expectsql = Support.expectsql,
-  sinon = require('sinon'),
-  current = Support.sequelize,
-  Promise = current.Promise;
+const expectsql = Support.expectsql;
+
+const current = Support.sequelize;
+const Promise = current.Promise;
 
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('changeColumn', () => {

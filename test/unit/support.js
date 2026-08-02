@@ -1,3 +1,1 @@
-'use strict';
-
-module.exports = require('../support');
+export { default } from '../support.js';
