@@ -79,10 +79,10 @@ $ pnpm install
 If you change anything in `package.json`, commit the updated lockfile alongside it —
 CI installs with `--frozen-lockfile` and will fail if the two disagree.
 
-The `sqlite3` and `libpq` (via `pg-native`) packages compile native bindings. pnpm only
-runs their build scripts because they are listed under `onlyBuiltDependencies` in
-`pnpm-workspace.yaml`; if you add another dependency that needs a build step, it has to
-be added there too or it will install silently broken.
+The `libpq` package (via `pg-native`) compiles native bindings. pnpm only runs its build
+script because it is listed under `onlyBuiltDependencies` in `pnpm-workspace.yaml`; if you
+add another dependency that needs a build step, it has to be added there too or it will
+install silently broken.
 
 ### 3. Database
 

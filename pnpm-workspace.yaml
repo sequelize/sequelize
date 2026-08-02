@@ -1,14 +1,12 @@
-# pnpm blocks dependency build scripts by default. These two compile native
-# bindings and are silently non-functional without an approved build:
-#   sqlite3 -> node_sqlite3.node   (the sqlite dialect)
-#   libpq   -> addon.node          (transitive via pg-native, postgres-native dialect)
+# pnpm blocks dependency build scripts by default. This one compiles native
+# bindings and is silently non-functional without an approved build:
+#   libpq -> addon.node   (transitive via pg-native, postgres-native dialect)
 #
 # Note: pnpm 11 renamed this key to `allowBuilds` (a bool map). Do not migrate to it
 # without also reading the pnpm version note in CONTRIBUTING.md -- we are held on
 # pnpm 10 deliberately.
 onlyBuiltDependencies:
   - libpq
-  - sqlite3
 
 # mocha pins glob ^10.4.5, but every glob line before v13 is deprecated upstream.
 # mocha only uses glob.hasMagic/globSync, both unchanged in v13, so force v13.
