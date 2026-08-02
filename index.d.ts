@@ -3829,6 +3829,19 @@ declare namespace sequelize {
     all<TCustomAttributes>(options?: FindOptions<TAttributes & TCustomAttributes>): Promise<TInstance[]>;
 
     /**
+     * Build the SELECT statement that {@link Model.findAll} would run for these options, without
+     * running it.
+     *
+     * The options are normalized exactly as `findAll` normalizes them -- both share the same
+     * internal steps -- but no hooks are run, no query is issued, and `rejectOnEmpty` and
+     * `separate` includes are not applied, none of which affect the generated SQL.
+     *
+     * @param options The same options accepted by {@link Model.findAll}.
+     * @returns The generated SQL.
+     */
+    buildFindAllQuery<TCustomAttributes>(options?: FindOptions<TAttributes & TCustomAttributes>): string;
+
+    /**
      * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
      * always be called with a single instance.
      */
@@ -7172,7 +7185,11 @@ export declare const Transaction: sequelize.SequelizeStatic['Transaction'];
 export type Transaction = sequelize.Transaction;
 
 export declare const Model: sequelize.SequelizeStatic['Model'];
-export type Model<TInstance, TAttributes, TCreationAttributes = TAttributes> = sequelize.Model<TInstance, TAttributes, TCreationAttributes>;
+export type Model<TInstance, TAttributes, TCreationAttributes = TAttributes> = sequelize.Model<
+  TInstance,
+  TAttributes,
+  TCreationAttributes
+>;
 
 // Type-only: v4 folded `Instance` into `Model`, so there is no runtime
 // `Sequelize.Instance` to export as a value.
