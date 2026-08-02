@@ -14,13 +14,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # Node and Postgres versions exercise different layers, so we sweep one
+        # axis at a time rather than running the full cross product.
         node-version: [20, 22, 24]
+        postgres:
+          - version: 17
+            image: postgis/postgis:17-3.5
+        include:
+          - node-version: 24
+            postgres:
+              version: 18
+              image: postgis/postgis:18-3.6
 
-    name: test-postgres (node ${{ matrix.node-version }})
+    name: test-postgres (node ${{ matrix.node-version }}, pg ${{ matrix.postgres.version }})
 
     services:
       postgres:
-        image: postgis/postgis:17-3.5
+        image: ${{ matrix.postgres.image }}
         env:
           POSTGRES_USER: sequelize_test
           POSTGRES_PASSWORD: sequelize_test
