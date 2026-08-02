@@ -58,7 +58,7 @@
     "inflection": "^3.0.2",
     "lodash": "^4.18.1",
     "moment": "^2.30.1",
-    "moment-timezone": "^0.6.1",
+    "moment-timezone": "^0.6.3",
     "retry-as-promised": "^3.0.0",
     "semver": "^7.0.0",
     "terraformer-wkt-parser": "^1.1.2",

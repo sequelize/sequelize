@@ -27,7 +27,7 @@ importers:
         specifier: ^2.30.1
         version: 2.30.1
       moment-timezone:
-        specifier: ^0.6.1
+        specifier: ^0.6.3
         version: 0.6.3
       retry-as-promised:
         specifier: ^3.0.0
