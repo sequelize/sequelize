@@ -245,7 +245,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       };
 
     for (let validator in checks) {
-      if (checks.hasOwnProperty(validator)) {
+      if (Object.hasOwn(checks, validator)) {
         validator = validator.replace(/\$$/, '');
         const validatorDetails = checks[validator];
 

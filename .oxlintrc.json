@@ -27,7 +27,8 @@
     "no-loop-func": "warn",
     "object-shorthand": "error",
     "no-shadow": "warn",
-    "prefer-object-has-own": "error"
+    "prefer-object-has-own": "error",
+    "no-prototype-builtins": "error"
   },
   "overrides": [
     {

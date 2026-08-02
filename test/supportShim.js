@@ -238,7 +238,7 @@ module.exports = function (Sequelize) {
       options = {};
     }
 
-    const hadLogging = options.hasOwnProperty('logging'),
+    const hadLogging = Object.hasOwn(options, 'logging'),
       originalLogging = options.logging;
 
     options.logging = function () {
@@ -267,7 +267,7 @@ module.exports = function (Sequelize) {
    * @returns {Object} - Options with `logging` attribute reverted to original value
    */
   function removeLogger(options) {
-    if (options.logging.hasOwnProperty('__originalLogging')) {
+    if (Object.hasOwn(options.logging, '__originalLogging')) {
       options.logging = options.logging.__originalLogging;
     } else {
       delete options.logging;
@@ -314,7 +314,7 @@ module.exports = function (Sequelize) {
  */
 function forOwn(obj, fn) {
   Object.getOwnPropertyNames(obj).forEach((key) => {
-    if (Object.getOwnPropertyDescriptor(obj, key).hasOwnProperty('value')) {
+    if (Object.hasOwn(Object.getOwnPropertyDescriptor(obj, key), 'value')) {
       fn(obj[key], key, obj);
     }
   });

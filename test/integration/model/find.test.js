@@ -173,7 +173,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         return this.User.findOne({ limit: 10 }).then((user) => {
           // it returns an object instead of an array
           expect(Array.isArray(user)).to.not.be.ok;
-          expect(user.dataValues.hasOwnProperty('username')).to.be.ok;
+          expect(Object.hasOwn(user.dataValues, 'username')).to.be.ok;
         });
       });
 
