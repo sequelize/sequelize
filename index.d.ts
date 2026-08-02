@@ -2812,11 +2812,13 @@ declare namespace sequelize {
      */
     update<K extends keyof TAttributes>(key: K, value: TAttributes[K], options?: InstanceUpdateOptions): Promise<this>;
     update(keys: Object, options?: InstanceUpdateOptions): Promise<this>;
+    /** @deprecated Use {@link Instance.update} instead. */
     updateAttributes<K extends keyof TAttributes>(
       key: K,
       value: TAttributes[K],
       options?: InstanceUpdateOptions
     ): Promise<this>;
+    /** @deprecated Use {@link Instance.update} instead. */
     updateAttributes(keys: Object, options?: InstanceUpdateOptions): Promise<this>;
 
     /**
@@ -3823,16 +3825,19 @@ declare namespace sequelize {
      * @see    {Sequelize#query}
      */
     findAll<TCustomAttributes>(options?: FindOptions<TAttributes & TCustomAttributes>): Promise<TInstance[]>;
+    /** @deprecated Use {@link Model.findAll} instead. */
     all<TCustomAttributes>(options?: FindOptions<TAttributes & TCustomAttributes>): Promise<TInstance[]>;
 
     /**
      * Search for a single instance by its primary key. This applies LIMIT 1, so the listener will
      * always be called with a single instance.
      */
+    /** @deprecated Use {@link Model.findByPk} instead. */
     findById<TCustomAttributes>(
       identifier?: number | string | Buffer,
       options?: Omit<FindOptions<TAttributes & TCustomAttributes>, 'where'>
     ): Promise<TInstance | null>;
+    /** @deprecated Use {@link Model.findByPk} instead. */
     findByPrimary<TCustomAttributes>(
       identifier?: number | string | Buffer,
       options?: Omit<FindOptions<TAttributes & TCustomAttributes>, 'where'>
@@ -3847,6 +3852,7 @@ declare namespace sequelize {
      * instance.
      */
     findOne<TCustomAttributes>(options?: FindOptions<TAttributes & TCustomAttributes>): Promise<TInstance | null>;
+    /** @deprecated Use {@link Model.findOne} instead. */
     find<TCustomAttributes>(options?: FindOptions<TAttributes & TCustomAttributes>): Promise<TInstance | null>;
 
     /**
@@ -3902,6 +3908,7 @@ declare namespace sequelize {
      * without
      * profiles will be counted
      */
+    /** @deprecated Use {@link Model.findAndCountAll} instead. */
     findAndCount<TCustomAttributes>(
       options?: FindOptions<TAttributes & TCustomAttributes>
     ): Promise<{ rows: TInstance[]; count: number }>;
@@ -3943,6 +3950,7 @@ declare namespace sequelize {
      * Find a row that matches the query, or build (but don't save) the row if none is found.
      * The successfull result of the promise will be (instance, initialized) - Make sure to use .spread()
      */
+    /** @deprecated Use {@link Model.findOrBuild} instead. */
     findOrInitialize(options: FindOrInitializeOptions<TAttributes>): Promise<[TInstance, boolean]>;
     findOrBuild(options: FindOrInitializeOptions<TAttributes>): Promise<[TInstance, boolean]>;
 
@@ -3978,7 +3986,9 @@ declare namespace sequelize {
      */
     upsert(values: TAttributes, options?: UpsertOptions & { returning?: false | undefined }): Promise<boolean>;
     upsert(values: TAttributes, options?: UpsertOptions & { returning: true }): Promise<[TInstance, boolean]>;
+    /** @deprecated Use {@link Model.upsert} instead. */
     insertOrUpdate(values: TAttributes, options?: UpsertOptions & { returning: false | undefined }): Promise<boolean>;
+    /** @deprecated Use {@link Model.upsert} instead. */
     insertOrUpdate(values: TAttributes, options?: UpsertOptions & { returning: true }): Promise<[TInstance, boolean]>;
 
     /**
