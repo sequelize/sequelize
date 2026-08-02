@@ -112,6 +112,33 @@ if (current.dialect.supports.JSON) {
             postgres: "(\"json\"#>>'{}') = '{}'"
           });
         });
+
+        describe('dotted key on a JSON model attribute', () => {
+          const User = current.define('User', { meta: DataTypes.JSONB });
+
+          it('single segment', () => {
+            expectsql(sql.whereItemQuery('meta.city', 'Copenhagen', { model: User }), {
+              postgres: '("meta"#>>\'{city}\') = \'Copenhagen\''
+            });
+          });
+
+          it('multiple segments', () => {
+            expectsql(sql.whereItemQuery('meta.address.city', 'Copenhagen', { model: User }), {
+              postgres: '("meta"#>>\'{address,city}\') = \'Copenhagen\''
+            });
+          });
+
+          it('numeric segment stays a path element rather than becoming an array', () => {
+            expectsql(sql.whereItemQuery('meta.items.0.name', 'x', { model: User }), {
+              postgres: '("meta"#>>\'{items,0,name}\') = \'x\''
+            });
+          });
+
+          it('ignores a prototype-reaching segment', () => {
+            expect(sql.whereItemQuery('meta.__proto__.x', 'x', { model: User })).to.equal('');
+            expect({}.x).to.be.undefined;
+          });
+        });
       });
 
       describe('raw json query', () => {

@@ -35,6 +35,48 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(user.get('meta') === meta).to.equal(true);
     });
 
+    it('creates missing intermediate keys in JSON objects', () => {
+      const User = current.define('User', { meta: DataTypes.JSONB });
+      const user = User.build({ meta: {} }, { isNewRecord: false, raw: true });
+
+      user.set('meta.address.city', 'Copenhagen');
+      expect(user.get('meta')).to.deep.equal({ address: { city: 'Copenhagen' } });
+      expect(user.changed('meta')).to.equal(true);
+    });
+
+    it('keeps numeric JSON path segments as object keys', () => {
+      const User = current.define('User', { meta: DataTypes.JSONB });
+      const user = User.build({ meta: {} }, { isNewRecord: false, raw: true });
+
+      user.set('meta.items.0.name', 'x');
+      expect(user.get('meta')).to.deep.equal({ items: { 0: { name: 'x' } } });
+      expect(Array.isArray(user.get('meta').items)).to.equal(false);
+    });
+
+    it('does not flag the attribute as changed when the nested value is unchanged', () => {
+      const User = current.define('User', { meta: DataTypes.JSONB });
+      const user = User.build({ meta: { location: 'Stockhollm' } }, { isNewRecord: false, raw: true });
+
+      user.set('meta.location', 'Stockhollm');
+      expect(user.changed('meta')).to.equal(false);
+    });
+
+    it('throws when a nested JSON path runs through a non-object', () => {
+      const User = current.define('User', { meta: DataTypes.JSONB });
+      const user = User.build({ meta: 5 }, { isNewRecord: false, raw: true });
+
+      expect(() => user.set('meta.location', 'Copenhagen')).to.throw(/not suitable for a nested value/);
+    });
+
+    it('ignores a prototype-reaching nested JSON path', () => {
+      const User = current.define('User', { meta: DataTypes.JSONB });
+      const user = User.build({ meta: {} }, { isNewRecord: false, raw: true });
+
+      user.set('meta.__proto__.polluted', true);
+      expect(user.get('meta')).to.deep.equal({});
+      expect({}.polluted).to.be.undefined;
+    });
+
     it('doesnt mutate the JSONB defaultValue', () => {
       const User = current.define('User', {
         meta: {
