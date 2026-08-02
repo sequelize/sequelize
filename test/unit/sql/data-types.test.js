@@ -1,7 +1,7 @@
 import Support from '../support.js';
 import DataTypes from '../../../lib/data-types.js';
 import * as chai from 'chai';
-import util from 'node:util';
+import { format } from 'node:util';
 import * as uuid from 'uuid';
 
 const Sequelize = Support.Sequelize;
@@ -265,7 +265,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
           expect(() => {
             type.validate(value);
-          }).to.throw(Sequelize.ValidationError, util.format('%j is not a valid uuidv4', value));
+          }).to.throw(Sequelize.ValidationError, format('%j is not a valid uuidv4', value));
 
           expect(() => {
             type.validate(['foobar']);

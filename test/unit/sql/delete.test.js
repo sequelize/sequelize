@@ -1,5 +1,5 @@
 import Support from '../support.js';
-import util from 'node:util';
+import { inspect } from 'node:util';
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -28,7 +28,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         limit: 10
       };
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.deleteQuery(options.table, options.where, options, User), {
           postgres: 'TRUNCATE "public"."test_users" CASCADE'
         });
@@ -45,7 +45,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         limit: 10
       };
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.deleteQuery(options.table, options.where, options, User), {
           postgres: 'TRUNCATE "public"."test_users" RESTART IDENTITY CASCADE'
         });
@@ -59,7 +59,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         limit: null
       };
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.deleteQuery(options.table, options.where, options, User), {
           default: "DELETE FROM [public.test_users] WHERE `name` = 'foo'",
           postgres: 'DELETE FROM "public"."test_users" WHERE "name" = \'foo\''
@@ -74,7 +74,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         limit: 10
       };
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.deleteQuery(options.table, options.where, options, User), {
           postgres:
             'DELETE FROM "public"."test_users" WHERE "id" IN (SELECT "id" FROM "public"."test_users" WHERE "name" = \'foo\'\';DROP TABLE mySchema.myTable;\' LIMIT 10)',
@@ -90,7 +90,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         limit: 10
       };
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         let query;
         try {
           query = sql.deleteQuery(options.table, options.where, options, null);
@@ -126,7 +126,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         where: { test_user_id: 100 }
       };
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.deleteQuery(options.table, options.where, options, User), {
           postgres:
             'DELETE FROM "test_user" WHERE "test_user_id" IN (SELECT "test_user_id" FROM "test_user" WHERE "test_user_id" = 100 LIMIT 1)',

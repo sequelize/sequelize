@@ -1,7 +1,7 @@
 import Support from '../support.js';
 import DataTypes from '../../../lib/data-types.js';
 import Sequelize from '../../../lib/sequelize.js';
-import util from 'node:util';
+import { inspect } from 'node:util';
 import _ from 'lodash';
 
 const expectsql = Support.expectsql;
@@ -13,7 +13,7 @@ const sql = current.dialect.QueryGenerator;
 describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('generateJoin', () => {
     const testsql = function (path, options, expectation) {
-      const name = `${path}, ${util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity })}`;
+      const name = `${path}, ${inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity })}`;
 
       Sequelize.Model._conformOptions(options);
       options = Sequelize.Model._validateIncludedElements(options);

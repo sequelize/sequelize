@@ -1,6 +1,6 @@
 import Support from '../support.js';
 import DataTypes from '../../../lib/data-types.js';
-import util from 'node:util';
+import { inspect } from 'node:util';
 import * as chai from 'chai';
 
 const expect = chai.expect;
@@ -19,8 +19,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
 
       it(
-        util.inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) +
-          ((options && ', ' + util.inspect(options)) || ''),
+        `${inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity })}${options ? `, ${inspect(options)}` : ''}`,
         () => {
           return expectsql(sql.whereQuery(params, options), expectation);
         }
@@ -109,10 +108,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       }
 
       it(
-        key +
-          ': ' +
-          util.inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }) +
-          ((options && ', ' + util.inspect(options)) || ''),
+        `${key}: ${inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity })}${options ? `, ${inspect(options)}` : ''}`,
         () => {
           return expectsql(sql.whereItemQuery(key, value, options), expectation);
         }
@@ -1475,7 +1471,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function (value, expectation) {
       const User = current.define('user', {});
 
-      it(util.inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.getWhereConditions(value, User.tableName, User), expectation);
       });
     };

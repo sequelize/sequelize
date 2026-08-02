@@ -1,7 +1,7 @@
 import QueryInterface from '../lib/query-interface.js';
 import hintsModule from 'hints';
 import _ from 'lodash';
-import util from 'node:util';
+import { inspect } from 'node:util';
 
 /**
  * Shims all Sequelize methods to test for logging passing.
@@ -406,9 +406,7 @@ function cloneOptions(options) {
  */
 function checkOptions(options, original, name) {
   if (!optionsEqual(options, original)) {
-    throw new Error(
-      'options modified in ' + name + ', input: ' + util.inspect(original) + ' output: ' + util.inspect(options)
-    );
+    throw new Error(`options modified in ${name}, input: ${inspect(original)} output: ${inspect(options)}`);
   }
 }
 

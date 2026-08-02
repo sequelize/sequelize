@@ -1,4 +1,4 @@
-import util from 'node:util';
+import { inspect } from 'node:util';
 import * as chai from 'chai';
 import Support from '../support.js';
 import DataTypes from '../../../lib/data-types.js';
@@ -17,7 +17,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = (options, expectation) => {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(
           sql.selectQuery(options.table || (model && model.getTableName()), options, options.model),
           expectation

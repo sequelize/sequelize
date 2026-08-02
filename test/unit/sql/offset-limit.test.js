@@ -1,5 +1,5 @@
 import Support from '../support.js';
-import util from 'node:util';
+import { inspect } from 'node:util';
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -12,7 +12,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     const testsql = function (options, expectation) {
       const model = options.model;
 
-      it(util.inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
+      it(inspect(options, { depth: 0, maxArrayLength: 5, breakLength: Infinity }), () => {
         return expectsql(sql.addLimitAndOffset(options, model), expectation);
       });
     };
