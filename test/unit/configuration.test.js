@@ -60,6 +60,33 @@ describe('Sequelize', () => {
       expect(config.dialectOptions.supportBigNumbers).to.be.true;
       expect(config.dialectOptions.bigNumberStrings).to.be.true;
     });
+
+    it('should accept a single options object (database, username, password in options)', () => {
+      const sequelize = new Sequelize({
+        database: 'dbname',
+        username: 'root',
+        password: 'pass',
+        port: 999,
+        dialect
+      });
+      const config = sequelize.config;
+
+      expect(config.database).to.equal('dbname');
+      expect(config.username).to.equal('root');
+      expect(config.password).to.equal('pass');
+      expect(config.port).to.equal(999);
+      expect(sequelize.options.dialect).to.equal(dialect);
+    });
+
+    it('should read options from the fourth parameter, not an earlier one', () => {
+      // `password` and `options` are adjacent positionally; make them
+      // distinguishable so a mix-up cannot pass.
+      const sequelize = new Sequelize('dbname', 'root', 'pass', { port: 999, dialect });
+
+      expect(sequelize.config.password).to.equal('pass');
+      expect(sequelize.config.port).to.equal(999);
+      expect(sequelize.options.dialect).to.equal(dialect);
+    });
   });
 
   describe('Instantiation with a URL string', () => {

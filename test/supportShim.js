@@ -140,7 +140,7 @@ export default function (Sequelize) {
     shimMethod(obj, name, (original) => {
       const sequelizeProto = obj === Sequelize.prototype;
 
-      return function () {
+      return function (...callArgs) {
         let sequelize = sequelizeProto ? this : this.sequelize;
         if (this instanceof Sequelize.Association) {
           sequelize = this.target.sequelize;
@@ -149,11 +149,11 @@ export default function (Sequelize) {
           throw new Error('Object does not have a `sequelize` attribute');
         }
 
-        let args = Sequelize.Utils.sliceArgs(arguments);
+        let args = [...callArgs];
         const fromTests = calledFromTests();
 
         if (conform) {
-          args = conform.apply(this, arguments);
+          args = conform.apply(this, callArgs);
         }
 
         let options = args[index];

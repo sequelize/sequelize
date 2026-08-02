@@ -6885,7 +6885,6 @@ declare namespace sequelize {
     removeNullValuesFromHash(hash: Object, omitNull?: boolean, options?: Object): any;
     inherit(subClass: Object, superClass: Object): Object;
     stack(): string;
-    sliceArgs(args: any[], begin?: number): any[];
     now(dialect: string): Date;
     tick(f: Function): void;
     addTicks(s: string, tickChar?: string): string;
