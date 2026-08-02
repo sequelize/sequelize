@@ -18,12 +18,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(
-        `${inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity })}${options ? `, ${inspect(options)}` : ''}`,
-        () => {
-          return expectsql(sql.whereQuery(params, options), expectation);
-        }
-      );
+      it(`${inspect(params, { depth: 2, maxArrayLength: 5, breakLength: Infinity })}${options ? `, ${inspect(options)}` : ''}`, () => {
+        return expectsql(sql.whereQuery(params, options), expectation);
+      });
     };
 
     testsql(
@@ -107,12 +104,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         options = undefined;
       }
 
-      it(
-        `${key}: ${inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity })}${options ? `, ${inspect(options)}` : ''}`,
-        () => {
-          return expectsql(sql.whereItemQuery(key, value, options), expectation);
-        }
-      );
+      it(`${key}: ${inspect(value, { depth: 2, maxArrayLength: 5, breakLength: Infinity })}${options ? `, ${inspect(options)}` : ''}`, () => {
+        return expectsql(sql.whereItemQuery(key, value, options), expectation);
+      });
     };
 
     testsql(undefined, 'lol=1', {
