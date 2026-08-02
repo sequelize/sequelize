@@ -6,8 +6,8 @@
     "types": ["node"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
-    "target": "es2020",
-    "lib": ["es2020"]
+    "target": "es2023",
+    "lib": ["ES2023"]
   },
   "files": ["index.d.ts"]
 }

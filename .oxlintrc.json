@@ -7,7 +7,7 @@
   "env": {
     "node": true,
     "mocha": true,
-    "es2021": true
+    "es2023": true
   },
   "rules": {
     "new-cap": ["warn", { "capIsNewExceptionPattern": "^BigInt", "properties": false }],
@@ -26,7 +26,8 @@
     "max-depth": ["error", 8],
     "no-loop-func": "warn",
     "object-shorthand": "error",
-    "no-shadow": "warn"
+    "no-shadow": "warn",
+    "prefer-object-has-own": "error"
   },
   "overrides": [
     {
