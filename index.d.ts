@@ -1275,7 +1275,6 @@ declare namespace sequelize {
   interface AssociationOptionsManyToMany extends AssociationOptions {
     /**
      * A key/value set that will be used for association create and find defaults on the target.
-     * (sqlite not supported for N:M)
      */
     scope?: AssociationScope | undefined;
   }
@@ -3422,8 +3421,8 @@ declare namespace sequelize {
     ignoreDuplicates?: boolean | undefined;
 
     /**
-     * Fields to update if row key already exists (on duplicate key update)? (only supported by mysql &
-     * mariadb). By default, all fields are updated.
+     * Fields to update if row key already exists (on duplicate key update)?
+     * Not supported on Postgres — passing this throws at runtime.
      */
     updateOnDuplicate?: string[] | undefined;
   }
@@ -3548,7 +3547,7 @@ declare namespace sequelize {
     individualHooks?: boolean | undefined;
 
     /**
-     * How many rows to update (only for mysql and mariadb)
+     * How many rows to update. Not supported on Postgres — silently ignored.
      */
     limit?: number | undefined;
 
@@ -3668,10 +3667,8 @@ declare namespace sequelize {
     drop(options?: DropOptions): Promise<void>;
 
     /**
-     * Apply a schema to this model. For postgres, this will actually place the schema in front of the table
-     * name
-     * - `"schema"."tableName"`, while the schema will be prepended to the table name for mysql and
-     * sqlite - `'schema.tablename'`.
+     * Apply a schema to this model. This will place the schema in front of the table name
+     * - `"schema"."tableName"`.
      *
      * @param schema The name of the schema
      * @param options
@@ -3955,10 +3952,8 @@ declare namespace sequelize {
      *
      * If no transaction is passed in the `options` object, a new transaction will be created internally, to
      * prevent the race condition where a matching row is created by another connection after the find but
-     * before the insert call. However, it is not always possible to handle this case in SQLite, specifically
-     * if one transaction inserts and another tries to select before the first one has comitted. In this case,
-     * an instance of sequelize.TimeoutError will be thrown instead. If a transaction is created, a savepoint
-     * will be created instead, and any unique constraint violation will be handled internally.
+     * before the insert call. If a transaction is created, a savepoint will be created instead, and any
+     * unique constraint violation will be handled internally.
      */
     findOrCreate(options: FindOrInitializeOptions<TAttributes>): Promise<[TInstance, boolean]>;
 
@@ -3978,16 +3973,8 @@ declare namespace sequelize {
      *
      * **Implementation details:**
      *
-     * * MySQL - Implemented as a single query `INSERT values ON DUPLICATE KEY UPDATE values`
-     * * PostgreSQL - Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN
-     *   unique_constraint UPDATE
-     * * SQLite - Implemented as two queries `INSERT; UPDATE`. This means that the update is executed
-     * regardless
-     *   of whether the row already existed or not
-     *
-     * **Note** that SQLite returns undefined for created, no matter if the row was created or updated. This is
-     * because SQLite always runs INSERT OR IGNORE + UPDATE, in a single query, so there is no way to know
-     * whether the row was inserted or not.
+     * Implemented as a temporary function with exception handling: INSERT EXCEPTION WHEN
+     * unique_constraint UPDATE
      */
     upsert(values: TAttributes, options?: UpsertOptions & { returning?: false | undefined }): Promise<boolean>;
     upsert(values: TAttributes, options?: UpsertOptions & { returning: true }): Promise<[TInstance, boolean]>;
@@ -3998,10 +3985,9 @@ declare namespace sequelize {
      * Create and insert multiple instances in bulk.
      *
      * The success handler is passed an array of instances, but please notice that these may not completely
-     * represent the state of the rows in the DB. This is because MySQL and SQLite do not make it easy to
-     * obtain
-     * back automatically generated IDs and other default values in a way that can be mapped to multiple
-     * records. To obtain Instances for the newly created values, you will need to query for them again.
+     * represent the state of the rows in the DB, because `returning` defaults to false. Pass
+     * `returning: true` to append RETURNING * and get back automatically generated IDs and other default
+     * values, or query for the records again.
      *
      * @param records List of objects (key/value pairs) to create instances from
      */
@@ -5203,7 +5189,7 @@ declare namespace sequelize {
     operator?: string | undefined;
 
     /**
-     * A hash of attributes to limit your index(Filtered Indexes - MSSQL & PostgreSQL only)
+     * A hash of attributes to limit your index (Filtered Indexes)
      */
     where?: AnyWhereOptions | undefined;
 
@@ -5225,13 +5211,13 @@ declare namespace sequelize {
     name?: string | undefined;
 
     /**
-     * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
+     * Index type. Not used on Postgres. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
      */
     type?: IndexType | undefined;
 
     /**
-     * The method to create the index by (`USING` statement in SQL). BTREE and HASH are supported by mysql and
-     * postgres, and postgres additionally supports GIST and GIN.
+     * The method to create the index by (`USING` statement in SQL). BTREE, HASH, GIST and GIN are
+     * supported.
      */
     method?: string | undefined;
 
@@ -5460,19 +5446,21 @@ declare namespace sequelize {
     charset?: string | undefined;
 
     /**
-     * Finaly you can specify a comment for the table in MySQL and PG
+     * Finally you can specify a comment for the table
      */
     comment?: string | undefined;
 
     collate?: string | undefined;
 
     /**
-     * Specify the ROW_FORMAT for use with the MySQL InnoDB engine.
+     * Specify the ROW_FORMAT for use with the MySQL InnoDB engine. No-op on Postgres; kept for
+     * source compatibility.
      */
     rowFormat?: string | undefined;
 
     /**
-     * Set the initial AUTO_INCREMENT value for the table in MySQL.
+     * Set the initial AUTO_INCREMENT value for the table in MySQL. No-op on Postgres; kept for
+     * source compatibility.
      */
     initialAutoIncrement?: string | undefined;
 
@@ -6066,7 +6054,7 @@ declare namespace sequelize {
      * var sequelize = new Sequelize('my_database', 'john', 'doe', {})
      *
      * // with uri (see below)
-     * var sequelize = new Sequelize('mysql://localhost:3306/database', {})
+     * var sequelize = new Sequelize('postgres://localhost:5432/database', {})
      * ```
      *
      * @param database The name of the database
@@ -6283,7 +6271,7 @@ declare namespace sequelize {
      *
      * Note,that this is a schema in the
      * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-     * not a database table. In mysql and sqlite, this command will do nothing.
+     * not a database table.
      *
      * @param schema Name of the schema
      * @param options Options supplied
@@ -6296,7 +6284,7 @@ declare namespace sequelize {
      *
      * Note,that this is a schema in the
      * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-     * not a database table. In mysql and sqlite, this will show all tables.
+     * not a database table.
      *
      * @param options Options supplied
      * @param options.logging A function that logs sql queries, or false for no logging
@@ -6308,7 +6296,7 @@ declare namespace sequelize {
      *
      * Note,that this is a schema in the
      * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-     * not a database table. In mysql and sqlite, this drop a table matching the schema name
+     * not a database table.
      *
      * @param schema Name of the schema
      * @param options Options supplied
@@ -6321,7 +6309,7 @@ declare namespace sequelize {
      *
      * Note,that this is a schema in the
      * [postgres sense of the word](http://www.postgresql.org/docs/9.1/static/ddl-schemas.html),
-     * not a database table. In mysql and sqlite, this is the equivalent of drop all tables.
+     * not a database table.
      *
      * @param options Options supplied
      * @param options.logging A function that logs sql queries, or false for no logging
