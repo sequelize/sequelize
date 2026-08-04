@@ -74,5 +74,26 @@ describe('Model#findCreateFind', () => {
       expect(findSpy).to.have.been.calledTwice;
       expect(findSpy.getCall(1).args[0].where).to.equal(where);
     });
+
+    it(`should rethrow the create error if the second find is empty after an error of type ${Error.name}`, async function () {
+      const { TestModel } = vars;
+      const where = { prop: Math.random().toString() };
+      const createError = new Error();
+      const findSpy = this.sinon.stub(TestModel, 'findOne');
+
+      this.sinon.stub(TestModel, 'create').rejects(createError);
+
+      findSpy.onFirstCall().resolves(null);
+      findSpy.onSecondCall().resolves(null);
+
+      try {
+        await TestModel.findCreateFind({ where });
+        expect.fail('findCreateFind should reject when the recovery find is empty');
+      } catch (error) {
+        expect(error).to.equal(createError);
+      }
+
+      expect(findSpy).to.have.been.calledTwice;
+    });
   }
 });
