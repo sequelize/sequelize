@@ -5,8 +5,6 @@
 //
 // Based on original work by: samuelneff <https://github.com/samuelneff/sequelize-auto-ts/blob/master/lib/sequelize.d.ts>
 
-import * as cls from 'cls-hooked';
-
 import ValidatorJS = require('validator');
 
 type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
@@ -5918,6 +5916,12 @@ declare namespace sequelize {
    */
   interface SequelizeStaticAndInstance extends Errors {
     /**
+     * A reference to the CLS namespace class, for subclassing. Use `createCLSNamespace()` if you
+     * only need an instance.
+     */
+    CLSNamespace: CLSNamespaceConstructor;
+
+    /**
      * A reference to sequelize utilities. Most users will not need to use these utils directly.
      */
     Utils: Utils;
@@ -6052,6 +6056,54 @@ declare namespace sequelize {
   }
 
   /**
+   * A continuation-local storage context, as created by `CLSNamespace#createContext`.
+   * Reads fall through to `parent`; writes shadow it.
+   */
+  interface CLSContext {
+    readonly parent?: CLSContext | undefined;
+    get(key: string): any;
+  }
+
+  /**
+   * The shape `Sequelize.useCLS` accepts.
+   *
+   * Declared structurally rather than against a specific implementation so that both
+   * the namespace this fork ships (`Sequelize.createCLSNamespace`) and a `cls-hooked`
+   * namespace — which callers had to supply before that existed — satisfy it. Only
+   * `get`, `set`, `run` and `bind` are used by Sequelize itself.
+   */
+  interface CLSNamespaceLike {
+    get(key: string): any;
+    set<T>(key: string, value: T): T;
+    run(fn: (context: any) => void): any;
+    bind<T extends (...args: any[]) => any>(fn: T, context?: any): T;
+  }
+
+  /**
+   * An instance of the CLS namespace this fork ships, as returned by
+   * `Sequelize.createCLSNamespace()`.
+   */
+  interface CLSNamespace extends CLSNamespaceLike {
+    readonly name: string;
+    readonly active: CLSContext | null;
+    createContext(): CLSContext;
+    run(fn: (context: CLSContext) => void): CLSContext;
+    runAndReturn<T>(fn: (context: CLSContext) => T): T;
+
+    /**
+     * The context reads and writes resolve against. Override this in a subclass to add a
+     * fallback for code running outside any `run()`/`bind()` scope — that is how you layer
+     * `cls-hooked`'s `enter`/`exit` on top, which this namespace intentionally omits.
+     */
+    _activeContext(): CLSContext | undefined;
+  }
+
+  interface CLSNamespaceConstructor {
+    new (name?: string): CLSNamespace;
+    readonly prototype: CLSNamespace;
+  }
+
+  /**
    * Sequelize methods available only for the static class ( basically this is the constructor and some extends )
    */
   interface SequelizeStatic extends SequelizeStaticAndInstance, DataTypes {
@@ -6103,10 +6155,17 @@ declare namespace sequelize {
     new (options: Options): Sequelize;
 
     /**
-     * Provide access to cls-hooked (http://docs.sequelizejs.com/en/latest/api/sequelize/#transactionoptions-promise)
+     * Provide access to the CLS namespace in use.
+     * @deprecated Use `useCLS()` and keep track of the namespace yourself.
      */
     cls: any;
-    useCLS(namespace: cls.Namespace): Sequelize;
+
+    /**
+     * Creates an `AsyncLocalStorage`-backed CLS namespace to pass to `useCLS`.
+     */
+    createCLSNamespace(name?: string): CLSNamespace;
+
+    useCLS(namespace: CLSNamespaceLike): Sequelize;
 
     /**
      * Default export for `import Sequelize from 'sequelize';` kind of imports
@@ -6399,15 +6458,12 @@ declare namespace sequelize {
      * });
      * ```
      *
-     * If you have [CLS](https://github.com/jeff-lewis/cls-hooked) enabled, the transaction
-     * will automatically be passed to any query that runs witin the callback. To enable CLS, add it do your
-     * project, create a namespace and set it on the sequelize constructor:
+     * If you have CLS enabled, the transaction will automatically be passed to any query that runs
+     * within the callback. To enable CLS, create a namespace and set it on the sequelize constructor:
      *
      * ```js
-     * var cls = require('cls-hooked'),
-     *     ns = cls.createNamespace('....');
      * var Sequelize = require('sequelize');
-     * Sequelize.cls = ns;
+     * Sequelize.useCLS(Sequelize.createCLSNamespace());
      * ```
      * Note, that CLS is enabled for all sequelize instances, and all instances will share the same namespace
      *
@@ -7256,3 +7312,8 @@ export type ConnectionTimedOutError = sequelize.ConnectionTimedOutError;
 
 export declare const EmptyResultError: sequelize.SequelizeStatic['EmptyResultError'];
 export type EmptyResultError = sequelize.EmptyResultError;
+
+export declare const CLSNamespace: sequelize.SequelizeStatic['CLSNamespace'];
+export type CLSNamespace = sequelize.CLSNamespace;
+export type CLSNamespaceLike = sequelize.CLSNamespaceLike;
+export type CLSContext = sequelize.CLSContext;

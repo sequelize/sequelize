@@ -1,7 +1,7 @@
 import { delay } from '../../lib/utils/promise-helpers.js';
 import * as chai from 'chai';
 import Support from './support.js';
-import cls from 'cls-hooked';
+import clsHooked from 'cls-hooked';
 
 const expect = chai.expect;
 
@@ -9,10 +9,23 @@ const Sequelize = Support.Sequelize;
 
 const current = Support.sequelize;
 
-if (current.dialect.supports.transactions) {
-  describe(Support.getTestDialectTeaser('Continuation local storage'), () => {
+// Run the whole suite against both namespace implementations: the one this fork ships
+// (`Sequelize.createCLSNamespace`) and `cls-hooked`, which callers had to supply
+// themselves before it existed and which `useCLS` still duck-types for.
+const implementations = current.dialect.supports.transactions
+  ? [
+      ['CLSNamespace', () => Sequelize.createCLSNamespace()],
+      ['cls-hooked', () => clsHooked.createNamespace('sequelize')]
+    ]
+  : [];
+
+for (const [implementation, createNamespace] of implementations) {
+  describe(`${Support.getTestDialectTeaser('Continuation local storage')} (${implementation})`, () => {
+    let ns;
+
     before(() => {
-      Sequelize.useCLS(cls.createNamespace('sequelize'));
+      ns = createNamespace();
+      Sequelize.useCLS(ns);
     });
 
     after(() => {
@@ -23,7 +36,7 @@ if (current.dialect.supports.transactions) {
       return Support.prepareTransactionTest(this.sequelize).then((sequelize) => {
         this.sequelize = sequelize;
 
-        this.ns = cls.getNamespace('sequelize');
+        this.ns = ns;
 
         this.User = this.sequelize.define('user', {
           name: Sequelize.STRING

@@ -17,6 +17,7 @@ export const {
   Validator,
   Deferrable,
   Transaction,
+  CLSNamespace,
   Model,
   fn,
   col,

@@ -1,6 +1,5 @@
 import * as chai from 'chai';
 import Support from '../support.js';
-import cls from 'cls-hooked';
 import sinon from 'sinon';
 
 const expect = chai.expect;
@@ -12,7 +11,7 @@ const stub = sinon.stub;
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOrCreate', () => {
     before(() => {
-      current.constructor.useCLS(cls.createNamespace('sequelize'));
+      current.constructor.useCLS(current.constructor.createCLSNamespace());
     });
 
     after(() => {
