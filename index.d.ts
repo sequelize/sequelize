@@ -5,7 +5,6 @@
 //
 // Based on original work by: samuelneff <https://github.com/samuelneff/sequelize-auto-ts/blob/master/lib/sequelize.d.ts>
 
-import * as _ from 'lodash';
 import * as cls from 'cls-hooked';
 
 import ValidatorJS = require('validator');
@@ -5919,9 +5918,7 @@ declare namespace sequelize {
    */
   interface SequelizeStaticAndInstance extends Errors {
     /**
-     * A reference to sequelize utilities. Most users will not need to use these utils directly. However, you
-     * might want to use `Sequelize.Utils._`, which is a reference to the lodash library, if you don't already
-     * have it imported in your project.
+     * A reference to sequelize utilities. Most users will not need to use these utils directly.
      */
     Utils: Utils;
 
@@ -6850,27 +6847,14 @@ declare namespace sequelize {
     new (attr: Object, logic: string | Object): where;
   }
 
-  interface SequelizeLoDash extends _.LoDashStatic {
+  interface Utils {
+    /**
+     * Same concept as lodash's `merge`, but don't overwrite properties that have already been assigned
+     */
+    mergeDefaults<TObject, TSource>(object: TObject, source: TSource): TObject & TSource;
+
     camelizeIf(str: string, condition: boolean): string;
     underscoredIf(str: string, condition: boolean): string;
-    /**
-     * * Returns an array with some falsy values removed. The values null, "", undefined and NaN are considered
-     * falsey.
-     *
-     * @param arr Array to compact.
-     */
-    compactLite<T>(arr: T[]): T[];
-    matchesDots(dots: string | string[], value: Object): (item: Object) => boolean;
-  }
-
-  interface Utils {
-    _: SequelizeLoDash;
-
-    /**
-     * Same concept as _.merge, but don't overwrite properties that have already been assigned
-     */
-    mergeDefaults: typeof _.merge;
-
     lowercaseFirst(str: string): string;
     uppercaseFirst(str: string): string;
     spliceStr(str: string, index: number, count: number, add: string): string;
@@ -7111,7 +7095,6 @@ export import ReturningOptions = sequelize.ReturningOptions;
 export import SchemaOptions = sequelize.SchemaOptions;
 export import ScopeOptions = sequelize.ScopeOptions;
 export import SearchPathOptions = sequelize.SearchPathOptions;
-export import SequelizeLoDash = sequelize.SequelizeLoDash;
 export import SequelizeStatic = sequelize.SequelizeStatic;
 export import SequelizeStaticAndInstance = sequelize.SequelizeStaticAndInstance;
 export import SetOptions = sequelize.SetOptions;
