@@ -5683,6 +5683,8 @@ declare namespace sequelize {
     placeholder: symbol;
     join: symbol;
     raw: symbol; // deprecated remove by v5.0
+    Aliases: OperatorsAliases;
+    LegacyAliases: OperatorsAliases; // deprecated remove by v5.0
   }
 
   type OperatorsAliases = Partial<{
