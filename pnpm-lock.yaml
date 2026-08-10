@@ -100,14 +100,14 @@ importers:
         specifier: 1.78.0
         version: 1.78.0
       pg:
-        specifier: 8.22.0
-        version: 8.22.0(pg-native@3.8.0)
+        specifier: 8.23.0
+        version: 8.23.0(pg-native@3.9.0)
       pg-hstore:
         specifier: 2.3.4
         version: 2.3.4
       pg-native:
-        specifier: 3.8.0
-        version: 3.8.0
+        specifier: 3.9.0
+        version: 3.9.0
       pg-types:
         specifier: 2.2.0
         version: 2.2.0
@@ -896,23 +896,23 @@ packages:
     resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
     engines: {node: '>=4.0.0'}
 
-  pg-native@3.8.0:
-    resolution: {integrity: sha512-AYSHGrkB4NOX7stBvWZvMA2fQ+Lgq9z3dnqJ9VRJcVpgMuErvM9RxbbCgJZjFvaKNLUyAGhu3Eino76DSPdNEA==}
+  pg-native@3.9.0:
+    resolution: {integrity: sha512-Ft2bWjeioMQY4jylHKWPQujwJfqGikgSmdUtPU8E+UtRMHtOYDi7FP72LRDF0wpQFC3/QUk8K6cDPD3YEuOdAw==}
 
   pg-pool@3.14.0:
     resolution: {integrity: sha512-gKtPkFdQPU3DksooVLi9LsjZxrsBUZIpa+7aVx+LV5pNh0KzP4Zleud2po+ConrxbuXGBJ6Hfer6hdgpIBpBaw==}
     peerDependencies:
       pg: '>=8.0'
 
-  pg-protocol@1.15.0:
-    resolution: {integrity: sha512-cq9sECI5s0+uPUXjbz8ioyPJni6RzsRib0US67i5IoTZKw8fNeYlVE7u8F4dG7vEJJtc5wdD1K189lCCUwqWTQ==}
+  pg-protocol@1.16.0:
+    resolution: {integrity: sha512-sILXutLVjCLjcDuOmvhX5e2Z4cS5qG/6Bu3VkpFwdf/633ElGLpEh9bgmuI5I4sqKqkifQiGyiCcx1HdtrK7tg==}
 
   pg-types@2.2.0:
     resolution: {integrity: sha512-qTAAlrEsl8s4OiEQY69wDvcMIdQN6wdz5ojQiOy6YRMuynxenON0O5oCpJI6lshc6scgAY8qvJ2On/p+CXY0GA==}
     engines: {node: '>=4'}
 
-  pg@8.22.0:
-    resolution: {integrity: sha512-8wih1vVIBMxoUM2oB4soJsD9tDnDpLv4OXBJ+EJzFsvycD+lfyIreC2gGHq78f8jbLLt+bvlPTFdFZfJkOuzAA==}
+  pg@8.23.0:
+    resolution: {integrity: sha512-Ip2EQCngowJLGOfCwkFhPXU7/ljlhn6Rxlmy4XYfL2Y+vyRM59+8uR2xqRWKdYmbXmxCFOAmKxBuSUCdF34qLg==}
     engines: {node: '>= 16.0.0'}
     peerDependencies:
       pg-native: '>=3.0.1'
@@ -1702,16 +1702,16 @@ snapshots:
 
   pg-int8@1.0.1: {}
 
-  pg-native@3.8.0:
+  pg-native@3.9.0:
     dependencies:
       libpq: 1.11.0
       pg-types: 2.2.0
 
-  pg-pool@3.14.0(pg@8.22.0(pg-native@3.8.0)):
+  pg-pool@3.14.0(pg@8.23.0(pg-native@3.9.0)):
     dependencies:
-      pg: 8.22.0(pg-native@3.8.0)
+      pg: 8.23.0(pg-native@3.9.0)
 
-  pg-protocol@1.15.0: {}
+  pg-protocol@1.16.0: {}
 
   pg-types@2.2.0:
     dependencies:
@@ -1721,16 +1721,16 @@ snapshots:
       postgres-date: 1.0.7
       postgres-interval: 1.2.0
 
-  pg@8.22.0(pg-native@3.8.0):
+  pg@8.23.0(pg-native@3.9.0):
     dependencies:
       pg-connection-string: 2.14.0
-      pg-pool: 3.14.0(pg@8.22.0(pg-native@3.8.0))
-      pg-protocol: 1.15.0
+      pg-pool: 3.14.0(pg@8.23.0(pg-native@3.9.0))
+      pg-protocol: 1.16.0
       pg-types: 2.2.0
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.4.0
-      pg-native: 3.8.0
+      pg-native: 3.9.0
 
   pgpass@1.0.5:
     dependencies:
