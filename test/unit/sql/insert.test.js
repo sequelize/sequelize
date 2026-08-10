@@ -29,8 +29,73 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasTrigger: true
       };
       expectsql(sql.insertQuery(User.tableName, { user_name: 'triggertest' }, User.rawAttributes, options), {
-        postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING *;',
+        postgres: 'INSERT INTO "users" ("user_name") VALUES (\'triggertest\') RETURNING "id","user_name";',
         default: "INSERT INTO `users` (`user_name`) VALUES ('triggertest');"
+      });
+    });
+
+    describe('returning', () => {
+      const User = Support.sequelize.define(
+        'user',
+        {
+          username: {
+            type: DataTypes.STRING,
+            field: 'user_name'
+          },
+          displayName: {
+            type: DataTypes.VIRTUAL,
+            get() {
+              return this.username;
+            }
+          }
+        },
+        { timestamps: false }
+      );
+
+      it('returns the model columns, skipping virtual attributes', () => {
+        expectsql(sql.insertQuery(User.tableName, { user_name: 'john' }, User.rawAttributes, { returning: true }), {
+          postgres: 'INSERT INTO "users" ("user_name") VALUES (\'john\') RETURNING "id","user_name";',
+          default: "INSERT INTO `users` (`user_name`) VALUES ('john');"
+        });
+      });
+
+      it('restricts the clause to the requested columns', () => {
+        expectsql(
+          sql.insertQuery(User.tableName, { user_name: 'john' }, User.rawAttributes, { returning: ['user_name'] }),
+          {
+            postgres: 'INSERT INTO "users" ("user_name") VALUES (\'john\') RETURNING "user_name";',
+            default: "INSERT INTO `users` (`user_name`) VALUES ('john');"
+          }
+        );
+      });
+
+      it('falls back to every column when there is no model to enumerate', () => {
+        expectsql(sql.insertQuery(User.tableName, { user_name: 'john' }, undefined, { returning: true }), {
+          postgres: 'INSERT INTO "users" ("user_name") VALUES (\'john\') RETURNING *;',
+          default: "INSERT INTO `users` (`user_name`) VALUES ('john');"
+        });
+      });
+
+      it('falls back to every column for an empty list', () => {
+        expectsql(sql.insertQuery(User.tableName, { user_name: 'john' }, User.rawAttributes, { returning: [] }), {
+          postgres: 'INSERT INTO "users" ("user_name") VALUES (\'john\') RETURNING *;',
+          default: "INSERT INTO `users` (`user_name`) VALUES ('john');"
+        });
+      });
+
+      it('restricts the clause for a bulk insert', () => {
+        expectsql(
+          sql.bulkInsertQuery(
+            User.tableName,
+            [{ user_name: 'john' }],
+            { returning: ['user_name'] },
+            User.rawAttributes
+          ),
+          {
+            postgres: 'INSERT INTO "users" ("user_name") VALUES (\'john\') RETURNING "user_name";',
+            default: "INSERT INTO `users` (`user_name`) VALUES ('john');"
+          }
+        );
       });
     });
   });

@@ -2923,9 +2923,12 @@ declare namespace sequelize {
 
   interface ReturningOptions {
     /**
-     * Append RETURNING * to get back auto generated values (Postgres only)
+     * Append a RETURNING clause to get back auto generated values (Postgres only).
+     *
+     * `true` returns the model's own columns. Pass an array of attribute names to return only those
+     * columns; names are mapped to the columns they are stored under.
      */
-    returning?: boolean | undefined;
+    returning?: boolean | string[] | undefined;
   }
 
   interface FieldsOptions {
@@ -4006,8 +4009,8 @@ declare namespace sequelize {
      *
      * The success handler is passed an array of instances, but please notice that these may not completely
      * represent the state of the rows in the DB, because `returning` defaults to false. Pass
-     * `returning: true` to append RETURNING * and get back automatically generated IDs and other default
-     * values, or query for the records again.
+     * `returning: true` to append a RETURNING clause and get back automatically generated IDs and other
+     * default values, or query for the records again.
      *
      * @param records List of objects (key/value pairs) to create instances from
      */

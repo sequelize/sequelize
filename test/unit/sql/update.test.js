@@ -29,8 +29,60 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         hasTrigger: true
       };
       expectsql(sql.updateQuery(User.tableName, { user_name: 'triggertest' }, { id: 2 }, options, User.rawAttributes), {
-        postgres: 'UPDATE "users" SET "user_name"=\'triggertest\' WHERE "id" = 2 RETURNING *',
+        postgres: 'UPDATE "users" SET "user_name"=\'triggertest\' WHERE "id" = 2 RETURNING "id","user_name"',
         default: "UPDATE `users` SET `user_name`='triggertest' WHERE `id` = 2"
+      });
+    });
+
+    describe('returning', () => {
+      const User = Support.sequelize.define(
+        'user',
+        {
+          username: {
+            type: DataTypes.STRING,
+            field: 'user_name'
+          },
+          displayName: {
+            type: DataTypes.VIRTUAL,
+            get() {
+              return this.username;
+            }
+          }
+        },
+        { timestamps: false }
+      );
+
+      it('returns the model columns, skipping virtual attributes', () => {
+        expectsql(
+          sql.updateQuery(User.tableName, { user_name: 'john' }, { id: 2 }, { returning: true }, User.tableAttributes),
+          {
+            postgres: 'UPDATE "users" SET "user_name"=\'john\' WHERE "id" = 2 RETURNING "id","user_name"',
+            default: "UPDATE `users` SET `user_name`='john' WHERE `id` = 2"
+          }
+        );
+      });
+
+      it('restricts the clause to the requested columns', () => {
+        expectsql(
+          sql.updateQuery(
+            User.tableName,
+            { user_name: 'john' },
+            { id: 2 },
+            { returning: ['user_name'] },
+            User.tableAttributes
+          ),
+          {
+            postgres: 'UPDATE "users" SET "user_name"=\'john\' WHERE "id" = 2 RETURNING "user_name"',
+            default: "UPDATE `users` SET `user_name`='john' WHERE `id` = 2"
+          }
+        );
+      });
+
+      it('falls back to every column when there is no model to enumerate', () => {
+        expectsql(sql.updateQuery(User.tableName, { user_name: 'john' }, { id: 2 }, { returning: true }), {
+          postgres: 'UPDATE "users" SET "user_name"=\'john\' WHERE "id" = 2 RETURNING *',
+          default: "UPDATE `users` SET `user_name`='john' WHERE `id` = 2"
+        });
       });
     });
 

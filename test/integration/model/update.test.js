@@ -55,6 +55,43 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
+
+      it('should return only the requested attributes', function () {
+        return this.Account.create({ ownerId: 2 }).then((account) => {
+          return this.Account.update(
+            { name: 'FooBar' },
+            {
+              where: {
+                id: account.get('id')
+              },
+              returning: ['name']
+            }
+          ).then(([, accounts]) => {
+            const firstAcc = accounts[0];
+            expect(firstAcc.name).to.be.equal('FooBar');
+            expect(firstAcc.ownerId).to.be.equal(undefined);
+          });
+        });
+      });
+
+      it('should accept attribute names whose column differs', function () {
+        return this.Account.create({ ownerId: 2 }).then((account) => {
+          return this.Account.update(
+            { name: 'FooBar' },
+            {
+              where: {
+                id: account.get('id')
+              },
+              // `ownerId` is stored as `owner_id`, so the name has to be mapped to the column
+              returning: ['ownerId']
+            }
+          ).then(([, accounts]) => {
+            const firstAcc = accounts[0];
+            expect(firstAcc.ownerId).to.be.equal(2);
+            expect(firstAcc.name).to.be.equal(undefined);
+          });
+        });
+      });
     }
 
     if (current.dialect.supports['LIMIT ON UPDATE']) {
