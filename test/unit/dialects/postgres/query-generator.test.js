@@ -1312,14 +1312,20 @@ describe('[POSTGRES Specific] QueryGenerator', () => {
         context: { options: { quoteIdentifiers: false } }
       },
       {
+        title: 'generates no query for a savepoint unless releasing on commit is enabled',
         arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
-        expectation: 'RELEASE SAVEPOINT "transaction-uid";',
+        expectation: undefined,
         context: { options: { quoteIdentifiers: false } }
       },
       {
         arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
         expectation: 'RELEASE SAVEPOINT "transaction-uid";',
-        context: { options: { quoteIdentifiers: true } }
+        context: { options: { quoteIdentifiers: false, releaseSavepointsOnCommit: true } }
+      },
+      {
+        arguments: [{ parent: 'MockTransaction', name: 'transaction-uid' }],
+        expectation: 'RELEASE SAVEPOINT "transaction-uid";',
+        context: { options: { quoteIdentifiers: true, releaseSavepointsOnCommit: true } }
       }
     ],
 

@@ -1563,6 +1563,82 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
           });
         });
 
+        describe('rejects overlapping savepoints', () => {
+          // The guard only applies when savepoints are actually released on commit.
+          beforeEach(function () {
+            this.sequelizeWithTransaction.options.releaseSavepointsOnCommit = true;
+          });
+
+          afterEach(function () {
+            delete this.sequelizeWithTransaction.options.releaseSavepointsOnCommit;
+          });
+
+          it('names the cause when a sibling savepoint is closed after an outer one released it', async function () {
+            const transaction = await this.sequelizeWithTransaction.transaction();
+            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction });
+
+            // Releasing sp1 discards sp2 along with it, so closing sp2 afterwards is invalid.
+            await sp1.commit();
+
+            await expect(sp2.commit()).to.be.rejectedWith(/was already discarded/);
+            await transaction.rollback();
+          });
+
+          it('reports the error without leaving the parent transaction unusable', async function () {
+            const transaction = await this.sequelizeWithTransaction.transaction();
+            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction });
+
+            await sp1.commit();
+            await expect(sp2.rollback()).to.be.rejectedWith(/was already discarded/);
+
+            // The guard throws before issuing SQL, so the parent is still good.
+            const [rows] = await this.sequelizeWithTransaction.query('SELECT 1 AS ok', { transaction });
+            expect(rows[0].ok).to.equal(1);
+
+            await transaction.rollback();
+          });
+
+          it('exposes the root transaction from any depth', async function () {
+            const transaction = await this.sequelizeWithTransaction.transaction();
+            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction: sp1 });
+
+            expect(transaction.rootTransaction).to.equal(transaction);
+            expect(sp1.rootTransaction).to.equal(transaction);
+            expect(sp2.rootTransaction).to.equal(transaction);
+
+            await sp2.commit();
+            await sp1.commit();
+            await transaction.rollback();
+          });
+
+          it('allows sequential nesting, which never overlaps', async function () {
+            const transaction = await this.sequelizeWithTransaction.transaction();
+
+            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            await sp1.commit();
+
+            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction });
+            await sp2.commit();
+
+            await transaction.rollback();
+          });
+
+          it('allows rolling back to an outer savepoint while an inner one is open', async function () {
+            const transaction = await this.sequelizeWithTransaction.transaction();
+            const sp1 = await this.sequelizeWithTransaction.transaction({ transaction });
+            const sp2 = await this.sequelizeWithTransaction.transaction({ transaction: sp1 });
+
+            // Postgres permits ROLLBACK TO on a non-innermost savepoint; sp2 goes with it.
+            await sp1.rollback();
+            await expect(sp2.commit()).to.be.rejectedWith(/was already discarded/);
+
+            await transaction.rollback();
+          });
+        });
+
         it('supports rolling back a nested transaction', function () {
           const self = this;
           const User = this.sequelizeWithTransaction.define('Users', { username: DataTypes.STRING });

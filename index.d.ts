@@ -5893,6 +5893,20 @@ declare namespace sequelize {
     transactionType?: TransactionType | undefined;
 
     /**
+     * Commit a nested transaction by issuing `RELEASE SAVEPOINT`, rather than leaving its savepoint
+     * open until the root transaction ends.
+     *
+     * Releasing reclaims server-side state, but it also discards every savepoint opened after it, so
+     * nested transactions must not overlap — two running concurrently (typically under `Promise.all`)
+     * will have one destroy the other's savepoint. When enabled, closing a savepoint that an
+     * enclosing one already discarded throws before any SQL is issued, naming the cause and leaving
+     * the parent transaction usable.
+     *
+     * Defaults to false
+     */
+    releaseSavepointsOnCommit?: boolean | undefined;
+
+    /**
      * Print query execution time in milliseconds when logging SQL.
      *
      * Defaults to false
@@ -6547,6 +6561,12 @@ declare namespace sequelize {
      * @see TransactionStatic
      */
     LOCK: TransactionLock;
+
+    /**
+     * The outermost transaction in this chain — the one that owns the connection. A transaction that
+     * is not nested is its own root.
+     */
+    readonly rootTransaction: Transaction;
 
     /**
      * Commit the transaction

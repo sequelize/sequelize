@@ -231,6 +231,15 @@ for (const [implementation, createNamespace] of implementations) {
     });
 
     describe('nested transaction savepoint release', () => {
+      // Releasing on commit is opt-in; without it a savepoint commit generates no query at all.
+      beforeEach(function () {
+        this.sequelize.options.releaseSavepointsOnCommit = true;
+      });
+
+      afterEach(function () {
+        delete this.sequelize.options.releaseSavepointsOnCommit;
+      });
+
       it('releases the savepoint when a nested transaction commits', function () {
         const sql = [];
 
@@ -284,6 +293,40 @@ for (const [implementation, createNamespace] of implementations) {
 
           const users = await this.User.findAll();
           expect(users.map((user) => user.name)).to.deep.equal(['outer']);
+        });
+      });
+
+      it('generates no commit query for a savepoint when releasing is not enabled', function () {
+        delete this.sequelize.options.releaseSavepointsOnCommit;
+        const sql = [];
+
+        return this.sequelize
+          .transaction(async () => {
+            await this.sequelize.transaction({ logging: (s) => sql.push(s) }, async () => {
+              await this.User.create({ name: 'bob' });
+            });
+          })
+          .then(() => {
+            expect(sql.join('\n')).not.to.match(/RELEASE SAVEPOINT/);
+          });
+      });
+
+      it('tolerates overlapping nested transactions when releasing is not enabled', function () {
+        delete this.sequelize.options.releaseSavepointsOnCommit;
+
+        // The whole point of the default: nothing is released early, so these cannot corrupt
+        // each other's savepoints.
+        return this.sequelize.transaction(async () => {
+          await Promise.all([
+            this.sequelize.transaction(async () => {
+              await this.User.create({ name: 'a' });
+            }),
+            this.sequelize.transaction(async () => {
+              await this.User.create({ name: 'b' });
+            })
+          ]);
+
+          await expect(this.User.findAll()).to.eventually.have.length(2);
         });
       });
 
