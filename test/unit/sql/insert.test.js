@@ -83,6 +83,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
       });
 
+      it('returns every column into the exception wrapper, projecting the model columns by name', () => {
+        // `INTO response` assigns positionally against the table's row type, so the inner INSERT has
+        // to use `RETURNING *`; enumerating the model's columns there shuffles the values whenever
+        // the model's attribute order differs from the table's physical column order.
+        const query = sql.insertQuery(User.tableName, { user_name: 'john' }, User.rawAttributes, {
+          returning: true,
+          exception: true
+        });
+
+        expectsql(query.replace(/\$func_[0-9a-f]{32}\$/g, '$func$'), {
+          postgres:
+            'CREATE OR REPLACE FUNCTION pg_temp.testfunc(OUT response "users", OUT sequelize_caught_exception text) RETURNS RECORD AS $func$ ' +
+            'BEGIN INSERT INTO "users" ("user_name") VALUES (\'john\') RETURNING * INTO response; ' +
+            'EXCEPTION WHEN unique_violation THEN GET STACKED DIAGNOSTICS sequelize_caught_exception = PG_EXCEPTION_DETAIL; ' +
+            'END $func$ LANGUAGE plpgsql; ' +
+            'SELECT (testfunc.response)."id", (testfunc.response)."user_name", testfunc.sequelize_caught_exception ' +
+            'FROM pg_temp.testfunc(); DROP FUNCTION IF EXISTS pg_temp.testfunc();'
+        });
+      });
+
       it('restricts the clause for a bulk insert', () => {
         expectsql(
           sql.bulkInsertQuery(

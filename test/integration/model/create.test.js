@@ -367,6 +367,86 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
     });
 
+    if (current.dialect.supports.EXCEPTION) {
+      // A table created by a migration rather than by sync() can have a physical column order that
+      // does not match its model's attribute order. The exception wrapper's `RETURNING ... INTO
+      // response` assigns positionally against the table's composite row type, so it has to return
+      // every column: an enumerated list in attribute order lands the values in the wrong fields.
+      describe('when the model and table column orders differ', () => {
+        beforeEach(function () {
+          return this.sequelize
+            .query('DROP TABLE IF EXISTS "ordered_categories", "swapped_labels"')
+            .then(() => {
+              return this.sequelize.query(
+                'CREATE TABLE "ordered_categories" ("id" SERIAL PRIMARY KEY, "name" TEXT, ' +
+                  '"sort_order" INTEGER, "is_default" BOOLEAN, "code" TEXT)'
+              );
+            })
+            .then(() => {
+              return this.sequelize.query(
+                'CREATE TABLE "swapped_labels" ("id" SERIAL PRIMARY KEY, "alpha" TEXT, "beta" TEXT)'
+              );
+            });
+        });
+
+        afterEach(function () {
+          return this.sequelize.query('DROP TABLE IF EXISTS "ordered_categories", "swapped_labels"');
+        });
+
+        it('returns the created row when the shuffle would cross incompatible types', function () {
+          const Category = this.sequelize.define(
+            'OrderedCategory',
+            {
+              id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+              isDefault: { type: DataTypes.BOOLEAN, field: 'is_default' },
+              code: { type: DataTypes.STRING, field: 'code' },
+              name: { type: DataTypes.STRING, field: 'name' },
+              sortOrder: { type: DataTypes.INTEGER, field: 'sort_order' }
+            },
+            { tableName: 'ordered_categories', timestamps: false }
+          );
+
+          return Category.findOrCreate({
+            where: { isDefault: true },
+            defaults: { code: 'DEF', name: 'Default', sortOrder: 7 }
+          }).then(([category, created]) => {
+            expect(created).to.equal(true);
+            expect(category.isDefault).to.equal(true);
+            expect(category.code).to.equal('DEF');
+            expect(category.name).to.equal('Default');
+            expect(category.sortOrder).to.equal(7);
+          });
+        });
+
+        it('returns the created row when the shuffle would be silent', function () {
+          // Nothing throws when the crossed columns share a type -- the instance just comes back with
+          // its values in the wrong fields, while the row in the table is correct.
+          const Label = this.sequelize.define(
+            'SwappedLabel',
+            {
+              id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+              beta: DataTypes.STRING,
+              alpha: DataTypes.STRING
+            },
+            { tableName: 'swapped_labels', timestamps: false }
+          );
+
+          return Label.findOrCreate({ where: { beta: 'B' }, defaults: { alpha: 'A' } })
+            .then(([label, created]) => {
+              expect(created).to.equal(true);
+              expect(label.alpha).to.equal('A');
+              expect(label.beta).to.equal('B');
+
+              return Label.findByPk(label.id);
+            })
+            .then((reloaded) => {
+              expect(reloaded.alpha).to.equal('A');
+              expect(reloaded.beta).to.equal('B');
+            });
+        });
+      });
+    }
+
     it('creates new instance with default value.', function () {
       const data = {
           username: 'Username'
