@@ -1638,6 +1638,14 @@ declare namespace sequelize {
      * something than can be evaluated to an empty object.
      */
     dialectTypes: string;
+
+    /**
+     * The runtime data types are constructors: `sequelize.define` accepts both `DataTypes.STRING` and
+     * `new DataTypes.STRING(255)`, and callers branch on `value instanceof DataTypes.STRING`. Several of
+     * these interfaces (BOOLEAN, TIME, DATEONLY, JSONB, …) declare no call signature of their own, so
+     * without this they are plain object types and `instanceof` fails to compile with TS2359.
+     */
+    new (...args: unknown[]): DataTypeAbstract;
   }
 
   interface DataTypeAbstractString<T> extends DataTypeAbstract {
