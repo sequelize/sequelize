@@ -3416,7 +3416,15 @@ declare namespace sequelize {
     individualHooks?: boolean | undefined;
 
     /**
-     * Ignore duplicate values for primary keys? (not supported by postgres)
+     * Skip rows that violate a unique constraint, via `INSERT ... ON CONFLICT DO NOTHING`.
+     *
+     * Skipped rows are not returned by `RETURNING`, so when `returning` is set the result can be
+     * shorter than the input and carries no indication of which rows conflicted. Callers that pair
+     * the result with the input by index, or rely on `result.length`, are wrong whenever a row is
+     * skipped. Use `ON CONFLICT ... DO UPDATE` or a follow-up `SELECT` when you need to know.
+     *
+     * Ignored when `individualHooks` is set, because bulkCreate then falls back to a per-row
+     * `save()` and a conflicting row raises a UniqueConstraintError instead of being skipped.
      *
      * Defaults to false
      */
