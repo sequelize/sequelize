@@ -3431,8 +3431,9 @@ declare namespace sequelize {
     ignoreDuplicates?: boolean | undefined;
 
     /**
-     * Fields to update if row key already exists (on duplicate key update)?
-     * Not supported on Postgres — passing this throws at runtime.
+     * Fields to update if the row already exists.
+     *
+     * Not implemented.
      */
     updateOnDuplicate?: string[] | undefined;
   }
