@@ -2365,7 +2365,38 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const joinColumn = association.sourceKeyField || attrSource || identSource;
 
         if (isRootParent) {
-          sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+          // Top-level include whose join is executed on the outer query, against the
+          // derived main table: if the source key column is not part of the subquery
+          // select (e.g. a custom sourceKey that is not selected), it must be projected
+          // under a minified alias, otherwise the outer join references a column that
+          // does not exist in the derived table.
+          const primaryKeyAttribute = association.source.primaryKeyAttribute;
+          const mainAttributes = topLevelInfo.options.attributes || [];
+          const isAlreadySelected =
+            attrSource === primaryKeyAttribute ||
+            mainAttributes.some(
+              attr =>
+                attr === attrSource ||
+                (Array.isArray(attr) && (attr[0] === attrSource || attr[1] === attrSource)),
+            );
+
+          if (isAlreadySelected) {
+            sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+          } else {
+            aliasedSource = this._getMinifiedAlias(
+              `${dottedTableSource}.${joinColumn}`,
+              tableSource,
+              topLevelInfo.options,
+            );
+
+            const projection = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+
+            if (!attributes.subQuery.includes(projection)) {
+              attributes.subQuery.push(projection);
+            }
+
+            sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+          }
         } else {
           const aliasBase = `${dottedTableSource}.${joinColumn}`;
 
@@ -2382,6 +2413,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (!sourceJoinOn) {
         sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
       }
+    } else if (
+      topLevelInfo.subQuery &&
+      !include.subQuery &&
+      include.parent.subQuery &&
+      isRootParent
+    ) {
+      // Subquery + root parent: the join is executed on the outer query, against the
+      // derived main table, so the source key column must be projected in the subquery
+      // select, otherwise the outer join references a column that does not exist
+      // in the derived table (see https://github.com/sequelize/sequelize/issues/18256).
+      const joinColumn = association.sourceKeyField || attrSource || identSource;
+      const projection = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)}`;
+
+      if (!attributes.subQuery.includes(projection)) {
+        attributes.subQuery.push(projection);
+      }
+
+      sourceJoinOn = `${projection} = `;
     } else if (
       topLevelInfo.subQuery &&
       !include.subQuery &&

@@ -1687,6 +1687,155 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       });
     });
 
+    it('projects the sourceKey of a belongsToMany include in the subquery select (#18256)', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [{ association: User.associations.uuidTags, attributes: ['id'], required: true }],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [uuidTags].[id] AS [uuidTags.id],
+            [uuidTags->UserUuidTags].[createdAt] AS [uuidTags.UserUuidTags.createdAt],
+            [uuidTags->UserUuidTags].[updatedAt] AS [uuidTags.UserUuidTags.updatedAt],
+            [uuidTags->UserUuidTags].[tagId] AS [uuidTags.UserUuidTags.tagId],
+            [uuidTags->UserUuidTags].[userUuid] AS [uuidTags.UserUuidTags.userUuid]
+          FROM (
+            SELECT [User].[id], [User].[uuid]
+            FROM [mySchema].[Users] AS [User]
+            WHERE EXISTS (
+              SELECT [UserUuidTags].[tagId]
+              FROM [mySchema].[UserUuidTags] AS [UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTag] ON [UserUuidTags].[tagId] = [uuidTag].[id]
+              WHERE [User].[uuid] = [UserUuidTags].[userUuid]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[UserUuidTags] AS [uuidTags->UserUuidTags]
+            INNER JOIN [mySchema].[Tags] AS [uuidTags] ON [uuidTags].[id] = [uuidTags->UserUuidTags].[tagId]
+          )
+            ON [User].[uuid] = [uuidTags->UserUuidTags].[userUuid];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.*,
+            \`uuidTags\`.\`id\` AS \`uuidTags.id\`,
+            \`uuidTags->UserUuidTags\`.\`createdAt\` AS \`uuidTags.UserUuidTags.createdAt\`,
+            \`uuidTags->UserUuidTags\`.\`updatedAt\` AS \`uuidTags.UserUuidTags.updatedAt\`,
+            \`uuidTags->UserUuidTags\`.\`tagId\` AS \`uuidTags.UserUuidTags.tagId\`,
+            \`uuidTags->UserUuidTags\`.\`userUuid\` AS \`uuidTags.UserUuidTags.userUuid\`
+          FROM (
+            SELECT \`User\`.\`id\`, \`User\`.\`uuid\`
+            FROM \`mySchema.Users\` AS \`User\`
+            WHERE EXISTS (
+              SELECT \`UserUuidTags\`.\`tagId\`
+              FROM \`mySchema.UserUuidTags\` AS \`UserUuidTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`uuidTag\` ON \`UserUuidTags\`.\`tagId\` = \`uuidTag\`.\`id\`
+              WHERE \`User\`.\`uuid\` = \`UserUuidTags\`.\`userUuid\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`
+          INNER JOIN (
+            \`mySchema.UserUuidTags\` AS \`uuidTags->UserUuidTags\`
+            INNER JOIN \`mySchema.Tags\` AS \`uuidTags\` ON \`uuidTags\`.\`id\` = \`uuidTags->UserUuidTags\`.\`tagId\`
+          )
+            ON \`User\`.\`uuid\` = \`uuidTags->UserUuidTags\`.\`userUuid\`;
+        `,
+      });
+    });
+
+    it('projects the sourceKey of a belongsToMany include in the subquery select with minified aliases (#18256)', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [{ association: User.associations.uuidTags, attributes: ['id'], required: true }],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+          minifyAliases: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [uuidTags].[id] AS [_0],
+            [uuidTags->UserUuidTags].[createdAt] AS [_1],
+            [uuidTags->UserUuidTags].[updatedAt] AS [_2],
+            [uuidTags->UserUuidTags].[tagId] AS [_3],
+            [uuidTags->UserUuidTags].[userUuid] AS [_4]
+          FROM (
+            SELECT [User].[id], [User].[uuid] AS [_5]
+            FROM [mySchema].[Users] AS [User]
+            WHERE EXISTS (
+              SELECT [UserUuidTags].[tagId]
+              FROM [mySchema].[UserUuidTags] AS [UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTag] ON [UserUuidTags].[tagId] = [uuidTag].[id]
+              WHERE [User].[uuid] = [UserUuidTags].[userUuid]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[UserUuidTags] AS [uuidTags->UserUuidTags]
+            INNER JOIN [mySchema].[Tags] AS [uuidTags] ON [uuidTags].[id] = [uuidTags->UserUuidTags].[tagId]
+          )
+            ON [_5] = [uuidTags->UserUuidTags].[userUuid];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.*,
+            \`uuidTags\`.\`id\` AS \`_0\`,
+            \`uuidTags->UserUuidTags\`.\`createdAt\` AS \`_1\`,
+            \`uuidTags->UserUuidTags\`.\`updatedAt\` AS \`_2\`,
+            \`uuidTags->UserUuidTags\`.\`tagId\` AS \`_3\`,
+            \`uuidTags->UserUuidTags\`.\`userUuid\` AS \`_4\`
+          FROM (
+            SELECT \`User\`.\`id\`, \`User\`.\`uuid\` AS \`_5\`
+            FROM \`mySchema.Users\` AS \`User\`
+            WHERE EXISTS (
+              SELECT \`UserUuidTags\`.\`tagId\`
+              FROM \`mySchema.UserUuidTags\` AS \`UserUuidTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`uuidTag\` ON \`UserUuidTags\`.\`tagId\` = \`uuidTag\`.\`id\`
+              WHERE \`User\`.\`uuid\` = \`UserUuidTags\`.\`userUuid\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`
+          INNER JOIN (
+            \`mySchema.UserUuidTags\` AS \`uuidTags->UserUuidTags\`
+            INNER JOIN \`mySchema.Tags\` AS \`uuidTags\` ON \`uuidTags\`.\`id\` = \`uuidTags->UserUuidTags\`.\`tagId\`
+          )
+            ON \`_5\` = \`uuidTags->UserUuidTags\`.\`userUuid\`;
+        `,
+      });
+    });
+
     it('does not schema-qualify table aliases in a belongsToMany JOIN condition with minified aliases', () => {
       const { schemaQueryGenerator, User } = schemaVars;
 
