@@ -100,7 +100,8 @@ for (const [implementation, createNamespace] of implementations) {
         let transactionSetup = false,
           transactionEnded = false;
 
-        this.sequelize.transaction(() => {
+        // Deliberately not awaited yet: the assertions below have to run while it is still open.
+        const transaction = this.sequelize.transaction(() => {
           transactionSetup = true;
 
           return delay(500).then(() => {
@@ -124,6 +125,10 @@ for (const [implementation, createNamespace] of implementations) {
 
           // Just to make sure it didn't change between our last check and the assertion
           expect(transactionEnded).not.to.be.ok;
+
+          // Let it finish before the test ends. Otherwise its COMMIT is still in flight during a
+          // later test, and that test's afterEach reports the running query against itself.
+          return transaction;
         });
       });
 
