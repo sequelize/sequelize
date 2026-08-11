@@ -1634,10 +1634,10 @@ declare namespace sequelize {
    */
   interface DataTypeAbstract {
     /**
-     * Although this is not needed for the definitions itself, we want to make sure that DataTypeAbstract is not
-     * something than can be evaluated to an empty object.
+     * The data type's name, e.g. `'BOOLEAN'`. Carried by both the constructor and its instances, and
+     * used by `Sequelize#normalizeDataType` to look the type up in the dialect's overrides.
      */
-    dialectTypes: string;
+    key: string;
 
     /**
      * The runtime data types are constructors: `sequelize.define` accepts both `DataTypes.STRING` and
@@ -1646,6 +1646,17 @@ declare namespace sequelize {
      * without this they are plain object types and `instanceof` fails to compile with TS2359.
      */
     new (...args: unknown[]): DataTypeAbstract;
+
+    /**
+     * Declared so that callers reflecting over a data type (rendering a column's SQL, validating a
+     * value) are type-checked rather than having to fall back to `any`.
+     */
+    prototype: {
+      key: string;
+      toString(options?: unknown): string;
+      toSql(options?: unknown): string;
+      validate?(value?: unknown): boolean;
+    };
   }
 
   interface DataTypeAbstractString<T> extends DataTypeAbstract {
