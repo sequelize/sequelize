@@ -1651,12 +1651,15 @@ declare namespace sequelize {
      * Declared so that callers reflecting over a data type (rendering a column's SQL, validating a
      * value) are type-checked rather than having to fall back to `any`.
      */
-    prototype: {
-      key: string;
-      toString(options?: unknown): string;
-      toSql(options?: unknown): string;
-      validate?(value?: unknown): boolean;
-    };
+    prototype: DataTypePrototype;
+  }
+
+  /** The shape shared by every data type's prototype; see {@link DataTypeAbstract.prototype}. */
+  interface DataTypePrototype {
+    key: string;
+    toString(options?: unknown): string;
+    toSql(options?: unknown): string;
+    validate?(value?: unknown): boolean;
   }
 
   interface DataTypeAbstractString<T> extends DataTypeAbstract {
@@ -1672,7 +1675,12 @@ declare namespace sequelize {
     BINARY: T;
   }
 
-  interface DataTypeString extends DataTypeAbstractString<DataTypeString> {}
+  interface DataTypeString extends DataTypeAbstractString<DataTypeString> {
+    prototype: DataTypePrototype & {
+      /** The declared length; defaults to 255 when `STRING` is used without arguments. */
+      _length: number;
+    };
+  }
 
   interface DataTypeChar extends DataTypeAbstractString<DataTypeChar> {}
 
@@ -1823,6 +1831,13 @@ declare namespace sequelize {
      * Array of required attributes that are available on the model
      */
     new (subtype: DataTypeAbstract, requireAttributes?: string[]): DataTypeVirtual;
+
+    prototype: DataTypePrototype & {
+      /** The wrapped data type the virtual column resolves to. */
+      returnType?: DataTypeAbstract;
+      /** Model attributes the virtual column depends on. */
+      fields?: string[];
+    };
   }
 
   interface DataTypeEnum extends DataTypeAbstract {
@@ -1844,6 +1859,11 @@ declare namespace sequelize {
      */
     (options: { type: DataTypeAbstract }): DataTypeArray;
     (type: DataTypeAbstract): DataTypeArray;
+
+    prototype: DataTypePrototype & {
+      /** The element type, e.g. TEXT for `ARRAY(TEXT)`. */
+      type?: DataTypeAbstract;
+    };
   }
 
   interface DataTypeGeometry extends DataTypeAbstract {
