@@ -3610,6 +3610,22 @@ declare namespace sequelize {
      * If true, the updatedAt timestamp will not be updated.
      */
     silent?: boolean | undefined;
+
+    /**
+     * If true, only non-deleted rows will be updated. If false, both deleted and non-deleted rows will be
+     * updated. Only applies if `paranoid` is true for the model.
+     *
+     * Defaults to true
+     */
+    paranoid?: boolean | undefined;
+
+    /**
+     * If true, the rows produced by `returning` come back as plain objects rather than model instances, so
+     * getters and virtual attributes are not applied. Has no effect without `returning`.
+     *
+     * Defaults to false
+     */
+    raw?: boolean | undefined;
   }
 
   /**
@@ -4085,7 +4101,14 @@ declare namespace sequelize {
      * Update multiple instances that match the where options. The promise returns an array with one or two
      * elements. The first element is always the number of affected rows, while the second element is the actual
      * affected rows (only supported in postgres with `options.returning` true.)
+     *
+     * With `raw: true` the affected rows are plain objects instead of instances, and hold only the attributes
+     * named by `returning`.
      */
+    update(
+      values: Partial<TAttributes>,
+      options: UpdateOptions & { raw: true; returning: true | string[] },
+    ): Promise<[number, Partial<TAttributes>[]]>;
     update(values: Partial<TAttributes>, options?: UpdateOptions): Promise<[number, TInstance[]]>;
 
     /**

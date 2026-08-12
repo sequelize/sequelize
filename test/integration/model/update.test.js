@@ -92,6 +92,26 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
       });
+
+      it('should return plain objects with raw', function () {
+        return this.Account.create({ ownerId: 2 }).then((account) => {
+          return this.Account.update(
+            { name: 'FooBar' },
+            {
+              where: {
+                id: account.get('id')
+              },
+              returning: ['ownerId'],
+              raw: true
+            }
+          ).then(([, accounts]) => {
+            const firstAcc = accounts[0];
+            expect(firstAcc).to.not.be.an.instanceOf(this.Account);
+            expect(Object.keys(firstAcc)).to.deep.equal(['ownerId']);
+            expect(firstAcc.ownerId).to.be.equal(2);
+          });
+        });
+      });
     }
 
     if (current.dialect.supports['LIMIT ON UPDATE']) {
