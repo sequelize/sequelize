@@ -109,7 +109,11 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
             for (const val of vals) {
               promises.push(() => {
                 return this.sequelize.queryRaw(
-                  this.queryGenerator.pgEnumAdd(tableName, field, val, { ...options, before: null, after: null }),
+                  this.queryGenerator.pgEnumAdd(tableName, field, val, {
+                    ...options,
+                    before: null,
+                    after: null,
+                  }),
                   options,
                 );
               });
