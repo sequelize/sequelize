@@ -532,8 +532,16 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return (
-      'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t ' +
-      'JOIN pg_enum e ON t.oid = e.enumtypid ' +
+      'SELECT t.typname enum_name, ' +
+      'COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value ' +
+      'FROM pg_type t ' +
+      // A LEFT JOIN (rather than an inner JOIN) is required so that a type that already exists
+      // but has no values yet (CREATE TYPE ... AS ENUM ()) still produces a result row, with an
+      // empty enum_value array, rather than no row at all. An inner join made that case
+      // indistinguishable from "the type does not exist yet", which caused ensureEnums() to
+      // attempt to (re-)create the type from scratch -- a no-op due to the duplicate_object
+      // guard in pgEnum() -- instead of adding the missing values to the existing, empty type.
+      'LEFT JOIN pg_enum e ON t.oid = e.enumtypid ' +
       'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
       `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`
     );
