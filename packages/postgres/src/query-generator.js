@@ -543,7 +543,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       // guard in pgEnum() -- instead of adding the missing values to the existing, empty type.
       'LEFT JOIN pg_enum e ON t.oid = e.enumtypid ' +
       'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
-      `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`
+      // The LEFT JOIN above means this query is no longer implicitly restricted to enum types
+      // (t.typtype = 'e') the way the old inner join was, so it must be restricted explicitly --
+      // otherwise every type in the schema (tables' row types, domains, extension types, etc.)
+      // comes back as a row with an empty enum_value array.
+      `WHERE n.nspname = ${this.escape(tableDetails.schema)} AND t.typtype = 'e'${enumName} GROUP BY 1`
     );
   }
 
