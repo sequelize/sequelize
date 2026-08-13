@@ -837,6 +837,22 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       ).to.eventually.deep.equal(expected);
     });
 
+    if (dialectName === 'oracle') {
+      it('treats TO_DATE-prefixed replacement values as strings', async function () {
+        const value = "TO_DATE(CASE WHEN 1=1 THEN '2024/01/01' ELSE '2024/01/02' END,'YYYY/MM/DD')";
+
+        const [row] = await this.sequelize.query(
+          `select :value as ${queryGenerator.quoteIdentifier('result')}${fromQuery()}`,
+          {
+            replacements: { value },
+            type: this.sequelize.QueryTypes.SELECT,
+          },
+        );
+
+        expect(row.result).to.equal(value);
+      });
+    }
+
     // IBM i cannot bind parameter markers for selecting values like in theses
     // tests
     if (dialectName !== 'ibmi') {
