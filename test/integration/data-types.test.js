@@ -6,6 +6,7 @@ import _ from 'lodash';
 import moment from 'moment';
 import * as uuid from 'uuid';
 import DataTypes from '../../lib/data-types.js';
+import * as Timezone from '../../lib/utils/timezone.js';
 import BigInt from 'big-integer';
 import semver from 'semver';
 
@@ -29,10 +30,9 @@ describe(Support.getTestDialectTeaser('DataTypes'), () => {
     }));
 
     const stringify = (Sequelize.DATE.prototype.stringify = sinon.spy(function (value, options) {
-      if (!moment.isMoment(value)) {
-        value = this._applyTimezone(value, options);
-      }
-      return value.format('YYYY-MM-DD HH:mm:ss');
+      // `_sanitize` has already turned the moment handed to `create` into a Date.
+      // `_applyTimezone` reports the configured offset in minutes east of UTC.
+      return Timezone.formatWithOffset(value, this._applyTimezone(value, options)).slice(0, 19);
     }));
 
     current.refreshTypes();

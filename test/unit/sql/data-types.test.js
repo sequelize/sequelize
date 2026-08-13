@@ -167,6 +167,111 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           expect(type.validate(new Date())).to.equal(true);
         });
       });
+
+      describe('stringify', () => {
+        // [instant, options.timezone, expected]. Expectations are hardcoded rather than
+        // derived from a date library, so this suite is an independent oracle for the
+        // timezone handling in DATE._applyTimezone.
+        const cases = [
+          ['2015-01-20T00:00:00.000Z', '+00:00', '2015-01-20 00:00:00.000 +00:00'],
+          ['2015-01-20T00:00:00.000Z', '-07:00', '2015-01-19 17:00:00.000 -07:00'],
+          ['2015-01-20T00:00:00.000Z', '+05:30', '2015-01-20 05:30:00.000 +05:30'],
+          ['2015-01-20T00:00:00.000Z', '+05:45', '2015-01-20 05:45:00.000 +05:45'],
+          ['2015-01-20T01:02:03.089Z', '+00:00', '2015-01-20 01:02:03.089 +00:00'],
+
+          // Named zones, including ones whose offset is not a whole number of hours
+          ['2015-01-20T00:00:00.000Z', 'UTC', '2015-01-20 00:00:00.000 +00:00'],
+          ['2015-01-20T00:00:00.000Z', 'CET', '2015-01-20 01:00:00.000 +01:00'],
+          ['2015-01-20T00:00:00.000Z', 'Asia/Kathmandu', '2015-01-20 05:45:00.000 +05:45'],
+
+          // A named zone must track DST rather than pick one fixed offset
+          ['2015-01-20T00:00:00.000Z', 'America/New_York', '2015-01-19 19:00:00.000 -05:00'],
+          ['2015-07-20T00:00:00.000Z', 'America/New_York', '2015-07-19 20:00:00.000 -04:00'],
+          ['2015-01-20T00:00:00.000Z', 'Australia/Lord_Howe', '2015-01-20 11:00:00.000 +11:00'],
+          ['2015-07-20T00:00:00.000Z', 'Australia/Lord_Howe', '2015-07-20 10:30:00.000 +10:30'],
+
+          // Either side of a spring-forward gap and a fall-back repeated hour
+          ['2015-03-08T08:59:59.999Z', 'America/Denver', '2015-03-08 01:59:59.999 -07:00'],
+          ['2015-03-08T09:00:00.000Z', 'America/Denver', '2015-03-08 03:00:00.000 -06:00'],
+          ['2015-11-01T07:59:59.999Z', 'America/Denver', '2015-11-01 01:59:59.999 -06:00'],
+          ['2015-11-01T08:00:00.000Z', 'America/Denver', '2015-11-01 01:00:00.000 -07:00']
+        ];
+
+        for (const [instant, timezone, expected] of cases) {
+          it(`formats ${instant} in ${timezone}`, () => {
+            expect(DataTypes.DATE().stringify(new Date(instant), { timezone })).to.equal(expected);
+          });
+        }
+
+        // Catches a wall-clock that disagrees with the offset it is labelled with,
+        // including a sign flip, without depending on the machine's own timezone.
+        it('emits a wall clock and offset that round-trip to the original instant', () => {
+          for (const [instant, timezone] of cases) {
+            const stringified = DataTypes.DATE().stringify(new Date(instant), { timezone });
+            const parsed = Date.parse(stringified.replace(' ', 'T').replace(' ', ''));
+
+            expect(parsed, `${instant} in ${timezone} (${stringified})`).to.equal(Date.parse(instant));
+          }
+        });
+
+        // A where clause on a DATE column reaches stringify without passing through
+        // _sanitize, so strings and epoch numbers arrive uncoerced. A bare date must
+        // read as local midnight -- `new Date` would read it as UTC midnight and shift
+        // the query by the host's offset.
+        it('accepts values that have not been sanitized to a Date', () => {
+          const stringify = (value) => DataTypes.DATE().stringify(value, { timezone: 'America/Denver' });
+
+          expect(stringify('2000-12-16')).to.equal('2000-12-16 00:00:00.000 -07:00');
+          expect(stringify('2000-12-16T10:00:00')).to.equal('2000-12-16 10:00:00.000 -07:00');
+          expect(stringify('2000-12-16T10:00:00Z')).to.equal('2000-12-16 03:00:00.000 -07:00');
+          expect(stringify(1000000000000)).to.equal('2001-09-08 19:46:40.000 -06:00');
+        });
+
+        it('falls back to the local offset when no timezone is configured', () => {
+          const date = new Date('2015-01-20T00:00:00.000Z');
+          const stringified = DataTypes.DATE().stringify(date, {});
+          const parsed = Date.parse(stringified.replace(' ', 'T').replace(' ', ''));
+
+          expect(parsed).to.equal(date.getTime());
+          expect(stringified).to.match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} [+-]\d{2}:\d{2}$/);
+        });
+      });
+    });
+
+    describe('DATEONLY', () => {
+      describe('stringify', () => {
+        it('passes through a bare YYYY-MM-DD string unshifted', () => {
+          // `new Date('2011-10-31')` parses as UTC midnight, which renders as the
+          // previous day anywhere west of UTC. The day must survive verbatim.
+          expect(DataTypes.DATEONLY().stringify('2011-10-31')).to.equal('2011-10-31');
+        });
+
+        it('formats a Date in local time', () => {
+          expect(DataTypes.DATEONLY().stringify(new Date(2011, 9, 31))).to.equal('2011-10-31');
+          expect(DataTypes.DATEONLY().stringify(new Date(2011, 9, 31, 23, 59, 59))).to.equal('2011-10-31');
+          expect(DataTypes.DATEONLY().stringify(new Date(2011, 9, 31, 0, 0, 0))).to.equal('2011-10-31');
+        });
+
+        it('formats a datetime string in local time', () => {
+          expect(DataTypes.DATEONLY().stringify('2011-10-31T10:00:00')).to.equal('2011-10-31');
+        });
+      });
+
+      describe('sanitize', () => {
+        it('passes through a bare YYYY-MM-DD string unshifted', () => {
+          expect(DataTypes.DATEONLY()._sanitize('2011-10-31')).to.equal('2011-10-31');
+        });
+
+        it('reduces a Date to its local calendar day', () => {
+          expect(DataTypes.DATEONLY()._sanitize(new Date(2011, 9, 31, 23, 59, 59))).to.equal('2011-10-31');
+        });
+
+        it('leaves the value alone when raw', () => {
+          const date = new Date(2011, 9, 31);
+
+          expect(DataTypes.DATEONLY()._sanitize(date, { raw: true })).to.equal(date);
+        });
+      });
     });
 
     if (current.dialect.supports.HSTORE) {

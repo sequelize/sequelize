@@ -5879,7 +5879,7 @@ declare namespace sequelize {
      * used to SET TIMEZONE when connecting to the server, to ensure that the result of NOW, CURRENT_TIMESTAMP
      * and other time related functions have in the right timezone. For best cross platform performance use the
      * format
-     * +/-HH:MM. Will also accept string versions of timezones used by moment.js (e.g. 'America/Los_Angeles');
+     * +/-HH:MM. Will also accept IANA timezone names (e.g. 'America/Los_Angeles');
      * this is useful to capture daylight savings time changes.
      *
      * Defaults to '+00:00'
