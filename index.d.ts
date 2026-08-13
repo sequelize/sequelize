@@ -6155,6 +6155,19 @@ declare namespace sequelize {
   }
 
   /**
+   * The shape `Sequelize.useInflection` accepts.
+   *
+   * Declared structurally rather than against the `inflection` package so that a thin
+   * wrapper exposing only these three functions satisfies it. Sequelize itself never
+   * calls anything else on the module, and always with a single argument.
+   */
+  interface InflectionLike {
+    pluralize(str: string): string;
+    singularize(str: string): string;
+    underscore(str: string): string;
+  }
+
+  /**
    * The shape `Sequelize.useCLS` accepts.
    *
    * Declared structurally rather than against a specific implementation so that both
@@ -6256,6 +6269,17 @@ declare namespace sequelize {
     createCLSNamespace(name?: string): CLSNamespace;
 
     useCLS(namespace: CLSNamespaceLike): Sequelize;
+
+    /**
+     * Provide an alternative `inflection` implementation, used to derive table names,
+     * association aliases, foreign keys and accessor method names.
+     *
+     * Must be called before any model is defined — those names are derived once and then
+     * frozen, so a later swap applies to nothing and only emits a warning.
+     *
+     * @throws if the replacement is missing any of the three methods.
+     */
+    useInflection(inflection: InflectionLike): void;
 
     /**
      * Default export for `import Sequelize from 'sequelize';` kind of imports

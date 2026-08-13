@@ -1,4 +1,6 @@
 import * as chai from 'chai';
+import sinon from 'sinon';
+import defaultInflection from 'inflection';
 import Support from './support.js';
 import DataTypes from '../../lib/data-types.js';
 import * as Utils from '../../lib/utils.js';
@@ -277,6 +279,65 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
           default: "SUM(CAST(([foo] = 'foo' OR [bar] = 'bar') AS INT))"
         }
       );
+    });
+  });
+
+  describe('useInflection', () => {
+    const fake = {
+      pluralize: () => 'fake-plural',
+      singularize: () => 'fake-singular',
+      underscore: () => 'fake-underscore'
+    };
+
+    // Stubbed for every case, not just the two that assert on it: restoring the
+    // real module in afterEach is itself a post-use swap, so an unstubbed logger
+    // would print a (correct but irrelevant) warning after each test.
+    let warn;
+
+    beforeEach(() => {
+      warn = sinon.stub(Utils.getLogger(), 'warn');
+    });
+
+    afterEach(() => {
+      Utils.useInflection(defaultInflection);
+      sinon.restore();
+    });
+
+    it('routes pluralize, singularize and underscore through the replacement', () => {
+      Utils.useInflection(fake);
+
+      expect(Utils.pluralize('user')).to.equal('fake-plural');
+      expect(Utils.singularize('users')).to.equal('fake-singular');
+      expect(Utils.underscore('userName')).to.equal('fake-underscore');
+    });
+
+    it('throws listing every missing method', () => {
+      expect(() => Utils.useInflection({ pluralize: () => '' })).to.throw(
+        /missing: singularize, underscore/
+      );
+      expect(() => Utils.useInflection(undefined)).to.throw(
+        /missing: pluralize, singularize, underscore/
+      );
+    });
+
+    it('rejects non-function properties', () => {
+      expect(() => Utils.useInflection({ ...fake, singularize: 'nope' })).to.throw(/missing: singularize/);
+    });
+
+    it('warns when called after names have already been inflected', () => {
+      Utils.useInflection(fake);
+      Utils.pluralize('user');
+      Utils.useInflection(fake);
+
+      expect(warn.calledOnce).to.be.true;
+      expect(warn.firstCall.args[0]).to.match(/call useInflection before defining any model/);
+    });
+
+    it('does not warn when the outgoing implementation was never used', () => {
+      Utils.useInflection(fake);
+      Utils.useInflection(fake);
+
+      expect(warn.called).to.be.false;
     });
   });
 
