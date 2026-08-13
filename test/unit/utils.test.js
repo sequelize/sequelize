@@ -312,12 +312,8 @@ describe(Support.getTestDialectTeaser('Utils'), () => {
     });
 
     it('throws listing every missing method', () => {
-      expect(() => Utils.useInflection({ pluralize: () => '' })).to.throw(
-        /missing: singularize, underscore/
-      );
-      expect(() => Utils.useInflection(undefined)).to.throw(
-        /missing: pluralize, singularize, underscore/
-      );
+      expect(() => Utils.useInflection({ pluralize: () => '' })).to.throw(/missing: singularize, underscore/);
+      expect(() => Utils.useInflection(undefined)).to.throw(/missing: pluralize, singularize, underscore/);
     });
 
     it('rejects non-function properties', () => {
