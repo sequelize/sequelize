@@ -215,16 +215,29 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
 
         // A where clause on a DATE column reaches stringify without passing through
-        // _sanitize, so strings and epoch numbers arrive uncoerced. A bare date must
-        // read as local midnight -- `new Date` would read it as UTC midnight and shift
-        // the query by the host's offset.
-        it('accepts values that have not been sanitized to a Date', () => {
+        // _sanitize, so strings and epoch numbers arrive uncoerced.
+        describe('values that have not been sanitized to a Date', () => {
           const stringify = (value) => DataTypes.DATE().stringify(value, { timezone: 'America/Denver' });
 
-          expect(stringify('2000-12-16')).to.equal('2000-12-16 00:00:00.000 -07:00');
-          expect(stringify('2000-12-16T10:00:00')).to.equal('2000-12-16 10:00:00.000 -07:00');
-          expect(stringify('2000-12-16T10:00:00Z')).to.equal('2000-12-16 03:00:00.000 -07:00');
-          expect(stringify(1000000000000)).to.equal('2001-09-08 19:46:40.000 -06:00');
+          // These inputs name an absolute instant, so their rendering does not depend
+          // on the host's timezone and can be asserted literally.
+          it('accepts an instant that carries its own offset', () => {
+            expect(stringify('2000-12-16T10:00:00Z')).to.equal('2000-12-16 03:00:00.000 -07:00');
+            expect(stringify(1000000000000)).to.equal('2001-09-08 19:46:40.000 -06:00');
+          });
+
+          // These are read in local time, so a literal expectation would only hold on
+          // the timezone it was recorded in. Asserting against the equivalent locally
+          // constructed Date pins the same behaviour on any host: a bare date must mean
+          // local midnight, where `new Date` would read it as UTC midnight and shift the
+          // query by the host's offset.
+          it('reads a bare date as local midnight', () => {
+            expect(stringify('2000-12-16')).to.equal(stringify(new Date(2000, 11, 16)));
+          });
+
+          it('reads an offsetless datetime as local time', () => {
+            expect(stringify('2000-12-16T10:00:00')).to.equal(stringify(new Date(2000, 11, 16, 10, 0, 0)));
+          });
         });
 
         it('falls back to the local offset when no timezone is configured', () => {

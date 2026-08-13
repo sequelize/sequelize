@@ -97,6 +97,36 @@ describe('Utils.Timezone', () => {
     });
   });
 
+  describe('toDate', () => {
+    it('returns a Date untouched', () => {
+      const date = new Date('2000-12-16T10:00:00.000Z');
+
+      expect(Timezone.toDate(date)).to.equal(date);
+    });
+
+    it('reads a bare YYYY-MM-DD as local midnight', () => {
+      // `new Date('2000-12-16')` reads it as UTC midnight, landing on a different
+      // instant on any host west or east of UTC.
+      expect(Timezone.toDate('2000-12-16').getTime()).to.equal(new Date(2000, 11, 16).getTime());
+    });
+
+    it('reads an offsetless datetime as local time', () => {
+      expect(Timezone.toDate('2000-12-16T10:00:00').getTime()).to.equal(new Date(2000, 11, 16, 10).getTime());
+    });
+
+    it('honours an explicit offset', () => {
+      expect(Timezone.toDate('2000-12-16T10:00:00Z').getTime()).to.equal(Date.parse('2000-12-16T10:00:00Z'));
+    });
+
+    it('accepts an epoch millisecond count', () => {
+      expect(Timezone.toDate(1000000000000).getTime()).to.equal(1000000000000);
+    });
+
+    it('does not remap years 0-99 into the 1900s', () => {
+      expect(Timezone.toDate('0075-06-15').getFullYear()).to.equal(75);
+    });
+  });
+
   describe('formatDateOnly', () => {
     it('passes a bare YYYY-MM-DD string through unshifted', () => {
       expect(Timezone.formatDateOnly('2011-10-31')).to.equal('2011-10-31');
