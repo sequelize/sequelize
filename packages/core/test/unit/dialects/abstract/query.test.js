@@ -501,6 +501,20 @@ describe('[ABSTRACT]', () => {
       ]);
     });
 
+    it('restores magic property names without changing the row prototype', () => {
+      const value = { injected: true };
+      const query = new Query({}, current, {
+        aliasesMapping: new Map([['_0', '__proto__']]),
+        raw: true,
+      });
+
+      const [row] = query.handleSelectQuery([{ _0: value }]);
+
+      expect(Object.getPrototypeOf(row)).to.equal(Object.prototype);
+      expect(Object.hasOwn(row, '__proto__')).to.be.true;
+      expect(Object.getOwnPropertyDescriptor(row, '__proto__').value).to.equal(value);
+    });
+
     it('restores minified aliases before grouping joined results', () => {
       const User = current.define('AliasMappingUser', {}, { timestamps: false });
       const Task = current.define(

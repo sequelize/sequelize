@@ -50,7 +50,7 @@ const numericOptions: SupportableNumericOptions = {
 
 export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
-    maxIdentifierLength: 64,
+    maxTableAliasLength: 256,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,

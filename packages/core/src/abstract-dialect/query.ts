@@ -195,8 +195,13 @@ function remapRowFields(
     const field = fields[index];
     const name = fieldMap[field];
 
-    if (field in output && name !== field) {
-      output[name] = output[field];
+    if (Object.hasOwn(output, field) && name !== field) {
+      Object.defineProperty(output, name, {
+        configurable: true,
+        enumerable: true,
+        value: output[field],
+        writable: true,
+      });
       delete output[field];
     }
   }

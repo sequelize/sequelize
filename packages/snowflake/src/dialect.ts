@@ -101,7 +101,7 @@ export class SnowflakeDialect extends AbstractDialect<
   SnowflakeConnectionOptions
 > {
   static supports = AbstractDialect.extendSupport({
-    maxIdentifierLength: 255,
+    maxTableAliasLength: 255,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,

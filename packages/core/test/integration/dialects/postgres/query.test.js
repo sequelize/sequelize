@@ -16,6 +16,7 @@ if (dialect.startsWith('postgres')) {
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';
     const sponsorAlias = 'AnotherVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
+    const reservedAlias = '%0';
 
     const executeTest = async (options, test) => {
       const sequelize = Support.createSingleTestSequelizeInstance(options);
@@ -26,6 +27,7 @@ if (dialect.startsWith('postgres')) {
       const Task = sequelize.define('Task', { title: DataTypes.STRING });
 
       User.belongsTo(Task, { as: taskAlias, foreignKey: 'task_id' });
+      User.belongsTo(Task, { as: reservedAlias, foreignKey: 'task_id' });
       User.belongsToMany(Team, {
         as: teamAlias,
         foreignKey: 'teamId',
@@ -79,6 +81,19 @@ if (dialect.startsWith('postgres')) {
       });
     });
 
+    it('skips user-defined generated-style aliases', async function () {
+      const options = { ...this.sequelize.options, minifyAliases: true };
+
+      await executeTest(options, async (db, predicate) => {
+        const user = await db.User.findOne({
+          include: [predicate.include[0], { model: db.Task, as: reservedAlias }],
+        });
+
+        expect(user[taskAlias].title).to.equal('SuperTask');
+        expect(user[reservedAlias].title).to.equal('SuperTask');
+      });
+    });
+
     it('should quote minified include aliases when identifier quoting is disabled', async function () {
       const options = {
         ...this.sequelize.options,
@@ -87,6 +102,10 @@ if (dialect.startsWith('postgres')) {
       };
 
       await executeTest(options, async (db, predicate) => {
+        predicate.include[0].required = true;
+        predicate.include[0].on = { title: 'SuperTask' };
+        predicate.include[0].where = { title: 'SuperTask' };
+
         expect((await db.User.findOne(predicate))[taskAlias].title).to.equal('SuperTask');
       });
     });
@@ -123,6 +142,18 @@ if (dialect.startsWith('postgres')) {
 
         expect(users).to.have.length(1);
         expect(users[0][taskAlias].title).to.equal('SuperTask');
+      });
+    });
+
+    it('preserves wildcard columns for minified include aliases', async function () {
+      const options = { ...this.sequelize.options, minifyAliases: true };
+
+      await executeTest(options, async (db, predicate) => {
+        predicate.attributes = ['id'];
+        predicate.include = [{ ...predicate.include[0], attributes: [] }];
+        predicate.group = ['User.id', `${taskAlias}.*`];
+
+        expect(await db.User.findAll(predicate)).to.have.length(1);
       });
     });
 
@@ -167,8 +198,11 @@ if (dialect.startsWith('postgres')) {
       expect(result[longAlias].secondChild).to.exist;
     });
 
-    it('minifies nested include aliases in subquery filters', async () => {
-      const sequelize = Support.createSingleTestSequelizeInstance({ minifyAliases: true });
+    it('quotes minified aliases in nested subquery filters', async () => {
+      const sequelize = Support.createSingleTestSequelizeInstance({
+        minifyAliases: true,
+        quoteIdentifiers: false,
+      });
       const Root = sequelize.define('FilterRoot', {}, { timestamps: false });
       const Parent = sequelize.define('FilterParent', {}, { timestamps: false });
       const FirstChild = sequelize.define('FilterFirstChild', {}, { timestamps: false });
@@ -223,8 +257,12 @@ if (dialect.startsWith('postgres')) {
       });
     });
 
-    it('should be able to retrieve includes with nested through joins due to alias minifying', async function () {
-      const options = { ...this.sequelize.options, minifyAliases: true };
+    it('should quote minified aliases in nested through joins', async function () {
+      const options = {
+        ...this.sequelize.options,
+        minifyAliases: true,
+        quoteIdentifiers: false,
+      };
 
       await executeTest(options, async (db, predicate) => {
         predicate.include[1].required = true;
@@ -233,6 +271,8 @@ if (dialect.startsWith('postgres')) {
             model: db.Sponsor,
             as: sponsorAlias,
             required: true,
+            where: { name: 'Company' },
+            through: { where: { createdAt: { [Op.ne]: null } } },
           },
         ];
         expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.equal(

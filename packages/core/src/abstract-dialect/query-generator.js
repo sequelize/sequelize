@@ -845,6 +845,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const minifiedTableAlias = this._getTableAlias(tableAlias, options);
 
         if (minifiedTableAlias !== tableAlias) {
+          if (columnName === '*') {
+            return `${this.quoteIdentifier(minifiedTableAlias, true)}.*`;
+          }
+
           return `${this.quoteIdentifier(minifiedTableAlias, true)}.${this.quoteIdentifier(columnName)}`;
         }
       }
@@ -1085,15 +1089,32 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       options.aliasesByTable = {};
     }
 
-    if (options.minifyAliases && !options.includeAliases) {
-      options.includeAliases = new Map();
-    }
-
     // resolve table name options
     if (options.tableAs) {
       mainTable.as = options.tableAs;
     } else if (!Array.isArray(mainTable.name) && mainTable.model) {
       mainTable.as = mainTable.model.name;
+    }
+
+    if (options.minifyAliases) {
+      options.includeAliases ||= new Map();
+      options.reservedTableAliases ||= new Set(options.includeAliases.values());
+
+      if (mainTable.as) {
+        options.reservedTableAliases.add(mainTable.as);
+      }
+
+      const includes = [...(options.include ?? [])];
+
+      for (const include of includes) {
+        options.reservedTableAliases.add(include.as);
+
+        if (include.through?.as) {
+          options.reservedTableAliases.add(include.through.as);
+        }
+
+        includes.push(...(include.include ?? []));
+      }
     }
 
     mainTable.quotedAs =
@@ -1273,6 +1294,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             aliasesMapping: options.aliasesMapping,
             aliasesByTable: options.aliasesByTable,
             includeAliases: options.includeAliases,
+            reservedTableAliases: options.reservedTableAliases,
             where,
             include,
             model,
@@ -1508,7 +1530,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   escapeAttributes(attributes, options, mainTableAs) {
-    const quotedMainTableAs = mainTableAs && this.quoteIdentifier(mainTableAs);
+    const quotedMainTableAs =
+      mainTableAs && this.quoteIdentifier(mainTableAs, mainTableAs.startsWith('%'));
 
     return (
       attributes &&
@@ -1816,6 +1839,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     options.includeAliases ||= new Map();
+    options.reservedTableAliases ||= new Set(options.includeAliases.values());
 
     const minifiedAlias = this._getTableAlias(alias, options);
 
@@ -1823,12 +1847,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       return minifiedAlias;
     }
 
-    if (alias.length <= this.dialect.supports.maxIdentifierLength) {
+    if (alias.length <= this.dialect.supports.maxTableAliasLength) {
       return alias;
     }
 
-    const newAlias = `%${options.includeAliases.size}`;
+    let newAlias;
+    let aliasIndex = options.includeAliases.size;
+
+    do {
+      newAlias = `%${aliasIndex++}`;
+    } while (options.reservedTableAliases.has(newAlias));
+
     options.includeAliases.set(alias, newAlias);
+    options.reservedTableAliases.add(newAlias);
 
     return newAlias;
   }
@@ -1836,7 +1867,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   _quoteTableAlias(alias, options) {
     const minifiedAlias = this._getMinifiedTableAlias(alias, options);
 
-    return this.quoteIdentifier(minifiedAlias, minifiedAlias !== alias);
+    return this.quoteIdentifier(minifiedAlias, minifiedAlias.startsWith('%'));
   }
 
   _getAliasForField(tableName, field, options) {
@@ -2148,7 +2179,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       ? topLevelInfo.names?.quotedAs || this.quoteIdentifier(asLeft)
       : this._quoteTableAlias(asLeft, topLevelInfo.options);
     const minifiedAsRight = this._getMinifiedTableAlias(asRight, topLevelInfo.options);
-    const quotedAsRight = this.quoteIdentifier(minifiedAsRight, minifiedAsRight !== asRight);
+    const quotedAsRight = this.quoteIdentifier(minifiedAsRight, minifiedAsRight.startsWith('%'));
 
     // TODO: use whereItemsQuery to generate the entire "ON" condition.
     let joinOn = `${quotedAsLeft}.${this.quoteIdentifier(columnNameLeft)}`;
@@ -2322,11 +2353,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     );
     const quotedThroughAs = this.quoteIdentifier(
       minifiedThroughAs,
-      minifiedThroughAs !== throughAs,
+      minifiedThroughAs.startsWith('%'),
     );
     const quotedIncludeAs = this.quoteIdentifier(
       minifiedIncludeAs,
-      minifiedIncludeAs !== includeAs.internalAs,
+      minifiedIncludeAs.startsWith('%'),
     );
     const quotedParentTableName = isRootParent
       ? this.quoteIdentifier(parentTableName, parentTableName.startsWith('%'))
@@ -2595,6 +2626,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           aliasesMapping: topLevelInfo.options.aliasesMapping,
           aliasesByTable: topLevelInfo.options.aliasesByTable,
           includeAliases: topLevelInfo.options.includeAliases,
+          reservedTableAliases: topLevelInfo.options.reservedTableAliases,
         },
         topInclude.through.model,
       );
@@ -2609,7 +2641,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const minifiedTopIncludeAs = this._getMinifiedTableAlias(topInclude.as, topLevelInfo.options);
       const join = [
-        `${this.quoteIdentifier(minifiedTopIncludeAs, minifiedTopIncludeAs !== topInclude.as)}.${this.quoteIdentifier(targetField)}`,
+        `${this.quoteIdentifier(minifiedTopIncludeAs, minifiedTopIncludeAs.startsWith('%'))}.${this.quoteIdentifier(targetField)}`,
         `${this.quoteIdentifier(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
       ].join(' = ');
 
@@ -2628,6 +2660,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           aliasesMapping: topLevelInfo.options.aliasesMapping,
           aliasesByTable: topLevelInfo.options.aliasesByTable,
           includeAliases: topLevelInfo.options.includeAliases,
+          reservedTableAliases: topLevelInfo.options.reservedTableAliases,
         },
         topInclude.model,
       );

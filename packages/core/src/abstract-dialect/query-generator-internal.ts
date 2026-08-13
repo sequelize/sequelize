@@ -278,7 +278,7 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       modelDefinition?.getColumnNameLoose(piece.attributeName) ?? piece.attributeName;
 
     if (options?.mainAlias) {
-      return `${this.queryGenerator.quoteIdentifier(options.mainAlias)}.${this.queryGenerator.quoteIdentifier(columnName)}`;
+      return `${this.queryGenerator.quoteIdentifier(options.mainAlias, options.mainAlias.startsWith('%'))}.${this.queryGenerator.quoteIdentifier(columnName)}`;
     }
 
     return this.queryGenerator.quoteIdentifier(columnName);

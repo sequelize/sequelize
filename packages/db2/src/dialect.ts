@@ -38,7 +38,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<Db2ConnectionOptions>({
 
 export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2ConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
-    maxIdentifierLength: 128,
+    maxTableAliasLength: 128,
     migrations: false,
     schemas: true,
     finalTable: true,

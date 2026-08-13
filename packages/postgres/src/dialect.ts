@@ -72,7 +72,7 @@ export class PostgresDialect extends AbstractDialect<
   PostgresConnectionOptions
 > {
   static readonly supports: DialectSupports = AbstractDialect.extendSupport({
-    maxIdentifierLength: 63,
+    maxTableAliasLength: 63,
     'DEFAULT VALUES': true,
     EXCEPTION: true,
     'ON DUPLICATE KEY': false,
