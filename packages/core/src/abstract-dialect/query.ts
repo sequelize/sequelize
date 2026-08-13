@@ -807,6 +807,8 @@ export interface AbstractQueryOptions {
   type?: QueryTypes;
   /** Map from raw column name to model attribute name, or `true` to disable. */
   fieldMap?: Record<string, string> | boolean;
+  /** Map from generated column aliases to their original names. */
+  aliasesMapping?: ReadonlyMap<string, string>;
   /** If `true`, returns only the first row (or `null`). */
   plain: boolean;
   /** If `true`, returns raw objects instead of model instances. */
@@ -1065,6 +1067,11 @@ export class AbstractQuery {
   protected handleSelectQuery(results: Array<Record<string, unknown>>): unknown {
     let processedResults: Array<Record<string, unknown>> = results;
     let result: unknown = null;
+
+    if (this.options.aliasesMapping?.size) {
+      const aliasesMapping = Object.fromEntries(this.options.aliasesMapping);
+      processedResults = processedResults.map(row => remapRowFields(row, aliasesMapping));
+    }
 
     if (this.options.fieldMap && typeof this.options.fieldMap === 'object') {
       processedResults = processedResults.map(row =>

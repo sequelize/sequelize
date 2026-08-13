@@ -45,6 +45,7 @@ export interface SupportableExactDecimalOptions extends SupportableDecimalNumber
 }
 
 export type DialectSupports = {
+  maxIdentifierLength: number;
   DEFAULT: boolean;
   'DEFAULT VALUES': boolean;
   'VALUES ()': boolean;
@@ -334,6 +335,7 @@ export abstract class AbstractDialect<
    * When changing a default, ensure the implementations still properly declare which feature they support.
    */
   static readonly supports: DialectSupports = freezeDeep({
+    maxIdentifierLength: Number.POSITIVE_INFINITY,
     DEFAULT: true,
     'DEFAULT VALUES': false,
     'VALUES ()': false,

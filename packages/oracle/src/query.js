@@ -16,7 +16,6 @@ import isPlainObject from 'lodash/isPlainObject';
 import mapKeys from 'lodash/mapKeys';
 import mapValues from 'lodash/mapValues';
 import reduce from 'lodash/reduce';
-import toPairs from 'lodash/toPairs';
 import oracledb from 'oracledb';
 
 const debug = logger.debugContext('sql:oracle');
@@ -368,26 +367,6 @@ export class OracleQuery extends AbstractQuery {
       if (this.model) {
         const modelDefinition = this.model.modelDefinition;
         this._getAttributeMap(attrsMap, modelDefinition.rawAttributes);
-      }
-
-      // If aliasesmapping exists we update the attribute map
-      if (this.options.aliasesMapping) {
-        const obj = Object.fromEntries(this.options.aliasesMapping);
-        rows = rows.map(row =>
-          toPairs(row).reduce((acc, [key, value]) => {
-            const mapping = Object.values(obj).find(element => {
-              const catalogElement =
-                this.sequelize.queryInterface.queryGenerator.getCatalogName(element);
-
-              return catalogElement === key;
-            });
-            if (mapping) {
-              acc[mapping || key] = value;
-            }
-
-            return acc;
-          }, {}),
-        );
       }
 
       // Modify the keys into the format that sequelize expects

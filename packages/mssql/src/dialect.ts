@@ -37,6 +37,7 @@ const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
 
 export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
+    maxIdentifierLength: 128,
     'DEFAULT VALUES': true,
     'LIMIT ON UPDATE': true,
     migrations: false,

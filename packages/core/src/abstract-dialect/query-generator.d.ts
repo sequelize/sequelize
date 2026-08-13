@@ -77,6 +77,7 @@ export interface AddColumnQueryOptions {
 export class AbstractQueryGenerator<
   Dialect extends AbstractDialect = AbstractDialect,
 > extends AbstractQueryGeneratorTypeScript<Dialect> {
+  _quoteTableAlias(alias: string, options?: object): string;
   quoteIdentifiers(identifiers: string): string;
 
   selectQuery<M extends Model>(

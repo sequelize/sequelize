@@ -53,6 +53,7 @@ export class MariaDbDialect extends AbstractDialect<
   MariaDbConnectionOptions
 > {
   static supports = AbstractDialect.extendSupport({
+    maxIdentifierLength: 64,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,

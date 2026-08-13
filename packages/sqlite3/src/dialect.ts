@@ -41,6 +41,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SqliteConnectionOptions>
 
 export class SqliteDialect extends AbstractDialect<SqliteDialectOptions, SqliteConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
+    maxIdentifierLength: Number.POSITIVE_INFINITY,
     DEFAULT: false,
     'DEFAULT VALUES': true,
     'UNION ALL': false,

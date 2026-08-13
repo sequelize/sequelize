@@ -7,10 +7,12 @@ const Support = require('../../support');
 const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
-const { DatabaseError, DataTypes, Op } = require('@sequelize/core');
+const { DatabaseError, DataTypes, Op, sql } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES] Query', () => {
+    Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
+
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
     const teamAlias = 'Toto';
     const sponsorAlias = 'AnotherVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
@@ -77,14 +79,144 @@ if (dialect.startsWith('postgres')) {
       });
     });
 
+    it('should quote minified include aliases when identifier quoting is disabled', async function () {
+      const options = {
+        ...this.sequelize.options,
+        minifyAliases: true,
+        quoteIdentifiers: false,
+      };
+
+      await executeTest(options, async (db, predicate) => {
+        expect((await db.User.findOne(predicate))[taskAlias].title).to.equal('SuperTask');
+      });
+    });
+
+    it('uses minified include aliases in structured query clauses', async function () {
+      const options = { ...this.sequelize.options, minifyAliases: true };
+
+      await executeTest(options, async (db, predicate) => {
+        const taskReference = { model: db.Task, as: taskAlias };
+        predicate.attributes = ['id'];
+        predicate.include = [{ ...predicate.include[0], attributes: [] }];
+        predicate.where = { [`$${taskAlias}.title$`]: 'SuperTask' };
+        predicate.group = ['User.id', `${taskAlias}.id`, `${taskAlias}.title`];
+        predicate.having = sql.where(sql.fn('COUNT', sql.col(`${taskAlias}.id`)), Op.gt, 0);
+        predicate.order = [[taskReference, 'title', 'ASC']];
+
+        expect(await db.User.findAll(predicate)).to.have.length(1);
+      });
+    });
+
+    it('minifies includes in grouped limits', async function () {
+      const options = { ...this.sequelize.options, minifyAliases: true };
+
+      await executeTest(options, async (db, predicate) => {
+        const team = await db.Team.findOne();
+        const users = await db.User.findAll({
+          groupedLimit: {
+            limit: 1,
+            on: db.User.associations[teamAlias],
+            values: [team.id],
+          },
+          include: [predicate.include[0]],
+        });
+
+        expect(users).to.have.length(1);
+        expect(users[0][taskAlias].title).to.equal('SuperTask');
+      });
+    });
+
+    it('does not replace root table names that match minified include aliases', async () => {
+      const sequelize = Support.createSingleTestSequelizeInstance({ minifyAliases: true });
+      const longAlias = 'associationWithAnAliasLongEnoughToExceedThePostgresIdentifierLimit';
+      const Root = sequelize.define(
+        'AliasRoot',
+        { name: DataTypes.STRING },
+        { tableName: longAlias, timestamps: false },
+      );
+      const Parent = sequelize.define('AliasParent', {}, { timestamps: false });
+      const FirstChild = sequelize.define('AliasFirstChild', {}, { timestamps: false });
+      const SecondChild = sequelize.define('AliasSecondChild', {}, { timestamps: false });
+
+      Root.hasOne(Parent, { as: longAlias, foreignKey: 'rootId' });
+      Parent.hasOne(FirstChild, { as: 'firstChild', foreignKey: 'parentId' });
+      Parent.hasOne(SecondChild, { as: 'secondChild', foreignKey: 'parentId' });
+
+      await sequelize.sync({ force: true });
+      const root = await Root.create({ name: longAlias });
+      const parent = await Parent.create({ rootId: root.id });
+      await Promise.all([
+        FirstChild.create({ parentId: parent.id }),
+        SecondChild.create({ parentId: parent.id }),
+      ]);
+
+      const result = await Root.findOne({
+        where: { name: longAlias },
+        include: [
+          {
+            association: Root.associations[longAlias],
+            include: [
+              { association: Parent.associations.firstChild },
+              { association: Parent.associations.secondChild },
+            ],
+          },
+        ],
+      });
+
+      expect(result[longAlias].firstChild).to.exist;
+      expect(result[longAlias].secondChild).to.exist;
+    });
+
+    it('minifies nested include aliases in subquery filters', async () => {
+      const sequelize = Support.createSingleTestSequelizeInstance({ minifyAliases: true });
+      const Root = sequelize.define('FilterRoot', {}, { timestamps: false });
+      const Parent = sequelize.define('FilterParent', {}, { timestamps: false });
+      const FirstChild = sequelize.define('FilterFirstChild', {}, { timestamps: false });
+      const SecondChild = sequelize.define('FilterSecondChild', {}, { timestamps: false });
+      const prefix = 'associationWithAnAliasLongEnoughToExceedThePostgresIdentifierLimit';
+      const parentAlias = `${prefix}Parents`;
+      const firstAlias = `${prefix}First`;
+      const secondAlias = `${prefix}Second`;
+
+      Root.hasMany(Parent, { as: parentAlias, foreignKey: 'rootId' });
+      Parent.hasOne(FirstChild, { as: firstAlias, foreignKey: 'parentId' });
+      Parent.hasOne(SecondChild, { as: secondAlias, foreignKey: 'parentId' });
+
+      await sequelize.sync({ force: true });
+      const root = await Root.create();
+      const parent = await Parent.create({ rootId: root.id });
+      await Promise.all([
+        FirstChild.create({ parentId: parent.id }),
+        SecondChild.create({ parentId: parent.id }),
+      ]);
+
+      const result = await Root.findOne({
+        include: [
+          {
+            association: Root.associations[parentAlias],
+            required: true,
+            include: [
+              { association: Parent.associations[firstAlias], required: true },
+              { association: Parent.associations[secondAlias], required: true },
+            ],
+          },
+        ],
+      });
+
+      expect(result[parentAlias][0][firstAlias]).to.exist;
+      expect(result[parentAlias][0][secondAlias]).to.exist;
+    });
+
     it('should throw due to long alias on through table', async function () {
       const options = { ...this.sequelize.options, minifyAliases: false };
 
       await executeTest(options, async (db, predicate) => {
+        predicate.include[1].required = true;
         predicate.include[1].include = [
           {
             model: db.Sponsor,
             as: sponsorAlias,
+            required: true,
           },
         ];
         await expect(db.User.findOne(predicate)).to.eventually.be.rejected;
@@ -95,10 +227,12 @@ if (dialect.startsWith('postgres')) {
       const options = { ...this.sequelize.options, minifyAliases: true };
 
       await executeTest(options, async (db, predicate) => {
+        predicate.include[1].required = true;
         predicate.include[1].include = [
           {
             model: db.Sponsor,
             as: sponsorAlias,
+            required: true,
           },
         ];
         expect((await db.User.findOne(predicate))[teamAlias][0][sponsorAlias][0].name).to.equal(

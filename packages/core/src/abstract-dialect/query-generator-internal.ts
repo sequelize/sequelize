@@ -232,8 +232,8 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
     }
   }
 
-  formatAssociationPath(associationPath: AssociationPath): string {
-    return `${this.queryGenerator.quoteIdentifier(associationPath.associationPath.join('->'))}.${this.queryGenerator.quoteIdentifier(associationPath.attributeName)}`;
+  formatAssociationPath(associationPath: AssociationPath, options?: EscapeOptions): string {
+    return `${this.queryGenerator._quoteTableAlias(associationPath.associationPath.join('->'), options)}.${this.queryGenerator.quoteIdentifier(associationPath.attributeName)}`;
   }
 
   formatJsonPath(jsonPathVal: JsonPath, options?: EscapeOptions): string {
