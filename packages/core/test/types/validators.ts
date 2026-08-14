@@ -26,10 +26,6 @@ ValidatedUser.init(
   { sequelize },
 );
 
-/**
- * Test for isUUID validation - should accept number or 'all'
- * See: https://github.com/sequelize/sequelize/issues/18171
- */
 class UserWithUUID extends Model {}
 
 UserWithUUID.init(
