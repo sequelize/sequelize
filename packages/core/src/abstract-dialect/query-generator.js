@@ -2239,13 +2239,20 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           );
         }
 
+        let orderColumn = '__sequelize_tmp_order';
+        while (returnFields.includes(this.quoteIdentifier(orderColumn))) {
+          orderColumn = `_${orderColumn}`;
+        }
+
         const tmpColumns = returnFields.map((field, i) => {
           return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
         });
+        const quotedOrderColumn = this.quoteIdentifier(orderColumn);
+        tmpColumns.push(`${quotedOrderColumn} BIGINT IDENTITY(1,1)`);
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
         outputFragment += ' INTO @tmp';
-        returningFragment = '; SELECT * FROM @tmp';
+        returningFragment = `; SELECT ${returnFields.join(', ')} FROM @tmp ORDER BY ${quotedOrderColumn}`;
       }
     }
 

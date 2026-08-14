@@ -125,13 +125,13 @@ if (current.dialect.name === 'mssql') {
 
       expect(
         sql.match(
-          /DECLARE @tmp TABLE \(\[id\] INTEGER\);|OUTPUT INSERTED\.\[id\] INTO @tmp|SELECT \* FROM @tmp/g,
+          /DECLARE @tmp TABLE \(\[id\] INTEGER,\[__sequelize_tmp_order\] BIGINT IDENTITY\(1,1\)\);|OUTPUT INSERTED\.\[id\] INTO @tmp|SELECT \[id\] FROM @tmp ORDER BY \[__sequelize_tmp_order\]/g,
         ),
       ).to.deep.equal([
-        'DECLARE @tmp TABLE ([id] INTEGER);',
+        'DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1));',
         'OUTPUT INSERTED.[id] INTO @tmp',
         'OUTPUT INSERTED.[id] INTO @tmp',
-        'SELECT * FROM @tmp',
+        'SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order]',
       ]);
     });
 
