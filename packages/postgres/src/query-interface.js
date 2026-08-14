@@ -8,6 +8,40 @@ import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.i
  */
 export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   /**
+   * Override changeColumn to ensure the ENUM type exists before the ALTER TABLE.
+   * The abstract implementation converts attribute options to SQL strings before calling
+   * changeColumnQuery, losing DataType objects. We handle pgEnum here while still having them.
+   *
+   * This is needed for any ENUM with a custom name OR a custom schema: attributeToSQL emits
+   * an ENUM_NAMED() sentinel in both cases, causing changeColumnQuery to reference the type
+   * by its schema-qualified name, which must already exist.
+   *
+   * @override
+   */
+  async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
+    const normalizedAttr = this.normalizeAttribute(dataTypeOrOptions);
+    const rawType = normalizedAttr.type;
+    const enumType =
+      rawType instanceof DataTypes.ENUM
+        ? rawType
+        : rawType instanceof DataTypes.ARRAY && rawType.options.type instanceof DataTypes.ENUM
+          ? rawType.options.type
+          : null;
+
+    if (enumType && (enumType.options.name || enumType.options.schema !== undefined)) {
+      await this.sequelize.queryRaw(
+        this.queryGenerator.pgEnum(tableName, attributeName, enumType, {
+          enumName: enumType.options.name,
+          enumSchema: enumType.options.schema,
+        }),
+        { ...options, raw: true },
+      );
+    }
+
+    return super.changeColumn(tableName, attributeName, dataTypeOrOptions, options);
+  }
+
+  /**
    * Ensure enum and their values.
    *
    * @param {string} tableName  Name of table to create
@@ -33,7 +67,13 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         type instanceof DataTypes.ENUM ||
         (type instanceof DataTypes.ARRAY && type.options.type instanceof DataTypes.ENUM) // ARRAY sub type is ENUM
       ) {
-        sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], options);
+        const enumType = type instanceof DataTypes.ARRAY ? type.options.type : type;
+        const enumOptions = {
+          ...options,
+          enumName: enumType.options.name,
+          enumSchema: enumType.options.schema,
+        };
+        sql = this.queryGenerator.pgListEnums(tableName, attribute.field || keys[i], enumOptions);
         promises.push(
           this.sequelize.queryRaw(sql, {
             ...options,
@@ -56,20 +96,16 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       relativeValue,
       position = 'before',
       spliceStart = promises.length,
+      enumName,
+      enumSchema,
     ) => {
-      const valueOptions = { ...options };
-      valueOptions.before = null;
-      valueOptions.after = null;
-
-      switch (position) {
-        case 'after':
-          valueOptions.after = relativeValue;
-          break;
-        case 'before':
-        default:
-          valueOptions.before = relativeValue;
-          break;
-      }
+      const valueOptions = {
+        ...options,
+        enumName,
+        enumSchema,
+        before: position === 'before' ? relativeValue : null,
+        after: position === 'after' ? relativeValue : null,
+      };
 
       promises.splice(spliceStart, 0, () => {
         return this.sequelize.queryRaw(
@@ -89,17 +125,45 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         type instanceof DataTypes.ENUM ||
         (type instanceof DataTypes.ARRAY && enumType instanceof DataTypes.ENUM) // ARRAY sub type is ENUM
       ) {
+        const customEnumName = enumType.options.name;
+        const customEnumSchema = enumType.options.schema;
+        const enumOptions = { ...options, enumName: customEnumName, enumSchema: customEnumSchema };
+
         // If the enum type doesn't exist then create it
         if (!results[enumIdx]) {
           promises.push(() => {
             return this.sequelize.queryRaw(
-              this.queryGenerator.pgEnum(tableName, field, enumType, options),
-              { ...options, raw: true },
+              this.queryGenerator.pgEnum(tableName, field, enumType, enumOptions),
+              { ...enumOptions, raw: true },
             );
           });
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
           const vals = enumType.options.values;
+
+          if (customEnumName) {
+            // Warn when the model declares values that don't exist in the shared named type.
+            // We can only add values (PostgreSQL has no DROP VALUE), so missing values silently
+            // become a superset — which is confusing when the name was shared by mistake.
+            const missingFromDb = vals.filter(v => !enumVals.includes(v));
+            const missingFromModel = enumVals.filter(v => !vals.includes(v));
+            if (missingFromModel.length > 0) {
+              console.warn(
+                `[Sequelize] ENUM type "${customEnumName}" in the database contains values not ` +
+                  `present in the model definition: ${missingFromModel.map(v => JSON.stringify(v)).join(', ')}. ` +
+                  `This can happen when multiple models share the same named ENUM type with different value sets.`,
+              );
+            }
+
+            if (missingFromDb.length > 0) {
+              console.warn(
+                `[Sequelize] ENUM type "${customEnumName}" in the database is missing values ` +
+                  `declared in the model: ${missingFromDb.map(v => JSON.stringify(v)).join(', ')}. ` +
+                  `These values will be added. If this ENUM is shared across models, ensure all ` +
+                  `models agree on the intended value set.`,
+              );
+            }
+          }
 
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values
@@ -132,6 +196,8 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
                 lastOldEnumValue,
                 'before',
                 promisesLength,
+                customEnumName,
+                customEnumSchema,
               );
             }
 
@@ -144,7 +210,15 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
           if (lastOldEnumValue && rightestPosition < vals.length - 1) {
             const remainingEnumValues = vals.slice(rightestPosition + 1);
             for (let reverseIdx = remainingEnumValues.length - 1; reverseIdx >= 0; reverseIdx--) {
-              addEnumValue(field, remainingEnumValues[reverseIdx], lastOldEnumValue, 'after');
+              addEnumValue(
+                field,
+                remainingEnumValues[reverseIdx],
+                lastOldEnumValue,
+                'after',
+                promises.length,
+                customEnumName,
+                customEnumSchema,
+              );
             }
           }
         }
@@ -256,11 +330,66 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
     const attributes = model.modelDefinition.attributes;
 
     for (const attribute of attributes.values()) {
-      if (!(attribute.type instanceof DataTypes.ENUM)) {
+      const enumType =
+        attribute.type instanceof DataTypes.ARRAY &&
+        attribute.type.options.type instanceof DataTypes.ENUM
+          ? attribute.type.options.type
+          : attribute.type instanceof DataTypes.ENUM
+            ? attribute.type
+            : null;
+
+      if (enumType === null) {
         continue;
       }
 
-      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      let sql;
+
+      if (enumType.options.name) {
+        // A named enum may be shared with other models. Only drop it if no other
+        // registered model references the same name (and schema).
+        //
+        // Resolve the effective schema: explicit options.schema > owning model's
+        // table schema > dialect default. This prevents mismatches between
+        // undefined and 'public' (or any other default) which resolve identically.
+        const defaultSchema = this.sequelize.dialect.getDefaultSchema();
+        const resolveEnumSchema = (et, ownerModel) =>
+          et.options.schema ?? ownerModel.table.schema ?? defaultSchema;
+
+        const currentEnumSchema = resolveEnumSchema(enumType, model);
+
+        const isSharedWithOtherModel = [...this.sequelize.models].some(otherModel => {
+          if (otherModel === model) {
+            return false;
+          }
+
+          return [...otherModel.modelDefinition.attributes.values()].some(otherAttr => {
+            const otherType =
+              otherAttr.type instanceof DataTypes.ARRAY
+                ? otherAttr.type.options.type
+                : otherAttr.type;
+
+            return (
+              otherType instanceof DataTypes.ENUM &&
+              otherType.options.name === enumType.options.name &&
+              resolveEnumSchema(otherType, otherModel) === currentEnumSchema
+            );
+          });
+        });
+
+        if (isSharedWithOtherModel) {
+          continue;
+        }
+
+        const fullEnumName = this.queryGenerator.pgEnumName(
+          { tableName, schema: options?.schema },
+          attribute.attributeName,
+          { enumName: enumType.options.name, enumSchema: currentEnumSchema },
+        );
+        sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
+      } else {
+        sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      }
+
       promises.push(
         this.sequelize.queryRaw(sql, {
           ...options,

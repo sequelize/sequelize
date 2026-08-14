@@ -2220,10 +2220,28 @@ type EnumValues<Member extends string> = readonly Member[] | Record<Member, Memb
 
 export interface EnumOptions<Member extends string> {
   values: EnumValues<Member>;
+  /**
+   * A custom name for the enum type in the database.
+   * Currently only supported by PostgreSQL, where enum types are named objects.
+   * When set, this name is used instead of the auto-generated `enum_<table>_<column>` name,
+   * allowing the same enum type to be shared across multiple columns or models.
+   */
+  name?: string;
+  /**
+   * The schema that the enum type belongs to.
+   * Currently only supported by PostgreSQL.
+   * When set, this schema is used for the enum type instead of the table's schema.
+   * This is useful when an enum type lives in a shared schema that is different from
+   * the table's schema.
+   * Can be set without {@link name} to place the auto-generated enum type name in a specific schema.
+   */
+  schema?: string;
 }
 
 export interface NormalizedEnumOptions<Member extends string> {
   values: readonly Member[];
+  name?: string;
+  schema?: string;
 }
 
 /**
@@ -2263,7 +2281,7 @@ export class ENUM<Member extends string> extends AbstractDataType<Member> {
   constructor(...args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]]) {
     super();
 
-    const values: readonly Member[] = this.#getEnumValues(args);
+    const { values, options } = this._getEnumValues(args);
 
     if (values.length === 0) {
       throw new TypeError(
@@ -2301,22 +2319,38 @@ sequelize.define('MyModel', {
       }
     }
 
-    this.options = {
-      values,
-    };
+    const opts: NormalizedEnumOptions<Member> = { values };
+
+    if (options?.name !== undefined) {
+      if (!isString(options.name) || options.name.length === 0) {
+        throw new TypeError('DataTypes.ENUM option "name" must be a non-empty string.');
+      }
+
+      opts.name = options.name;
+    }
+
+    if (options?.schema !== undefined) {
+      opts.schema = options.schema;
+
+      if (!isString(options.schema) || options.schema.length === 0) {
+        throw new TypeError('DataTypes.ENUM option "schema" must be a non-empty string.');
+      }
+    }
+
+    this.options = opts;
   }
 
-  #getEnumValues(
+  protected _getEnumValues(
     args: [EnumValues<Member> | Member | EnumOptions<Member>, ...Member[]],
-  ): readonly Member[] {
+  ): { values: readonly Member[]; options: EnumOptions<Member> | null } {
     if (args.length === 0) {
-      return EMPTY_ARRAY;
+      return { values: EMPTY_ARRAY, options: null };
     }
 
     const [first, ...rest] = args;
 
     if (isString(first)) {
-      return [first, ...rest];
+      return { values: [first, ...rest], options: null };
     }
 
     if (rest.length > 0) {
@@ -2325,9 +2359,11 @@ sequelize.define('MyModel', {
       );
     }
 
+    let options: EnumOptions<Member> | null = null;
     let enumOrArray: EnumValues<Member>;
     if (!Array.isArray(first) && 'values' in first && typeof first.values !== 'string') {
       // This is the option bag
+      options = first as EnumOptions<Member>;
       // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
       enumOrArray = first.values;
     } else {
@@ -2336,7 +2372,7 @@ sequelize.define('MyModel', {
     }
 
     if (Array.isArray(enumOrArray)) {
-      return [...enumOrArray];
+      return { values: [...enumOrArray], options };
     }
 
     // @ts-expect-error -- Array.isArray does not narrow correctly when the array is readonly
@@ -2350,7 +2386,7 @@ sequelize.define('MyModel', {
       }
     }
 
-    return enumKeys;
+    return { values: enumKeys, options };
   }
 
   validate(value: any): asserts value is Member {
