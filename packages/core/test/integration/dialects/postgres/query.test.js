@@ -10,7 +10,7 @@ const dialect = Support.getTestDialect();
 const { DatabaseError, DataTypes, Op, sql } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
-  describe('[POSTGRES] Query', () => {
+  describe(Support.getTestDialectTeaser('Query'), () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
 
     const taskAlias = 'AnActualVeryLongAliasThatShouldBreakthePostgresLimitOfSixtyFourCharacters';
