@@ -1,5 +1,7 @@
 'use strict';
 
+const { expect } = require('chai');
+
 const Support = require('../../../support');
 
 const expectsql = Support.expectsql;
@@ -102,6 +104,35 @@ if (current.dialect.name === 'mssql') {
       expectsql(this.queryGenerator.bulkInsertQuery('myTable', [{ id: null }], {}, attributes), {
         mssql: 'INSERT INTO [myTable] DEFAULT VALUES;',
       });
+    });
+
+    it('bulkInsertQuery returns trigger output across row-limit chunks', function () {
+      const model = this.sequelize.define(
+        'trigger_return_values',
+        {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+        },
+        { timestamps: false },
+      );
+      const attributes = Object.fromEntries(model.modelDefinition.attributes);
+
+      const sql = this.queryGenerator.bulkInsertQuery(
+        'myTable',
+        Array.from({ length: 1001 }, (_, id) => ({ id })),
+        { hasTrigger: true, returning: true },
+        attributes,
+      );
+
+      expect(
+        sql.match(
+          /DECLARE @tmp TABLE \(\[id\] INTEGER\);|OUTPUT INSERTED\.\[id\] INTO @tmp|SELECT \* FROM @tmp/g,
+        ),
+      ).to.deep.equal([
+        'DECLARE @tmp TABLE ([id] INTEGER);',
+        'OUTPUT INSERTED.[id] INTO @tmp',
+        'OUTPUT INSERTED.[id] INTO @tmp',
+        'SELECT * FROM @tmp',
+      ]);
     });
 
     it('addColumnQuery', function () {

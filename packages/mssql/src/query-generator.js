@@ -229,11 +229,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     let needIdentityInsertWrapper = false;
     let outputFragment = '';
+    let returningFragment = '';
+    let tmpTable = '';
 
     if (options.returning) {
       const returnValues = this.generateReturnValues(attributes, options);
 
       outputFragment = returnValues.outputFragment;
+      returningFragment = returnValues.returningFragment;
+      tmpTable = returnValues.tmpTable;
     }
 
     const emptyQuery = `INSERT INTO ${quotedTable}${outputFragment} DEFAULT VALUES`;
@@ -306,7 +310,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       offset += 1000;
     }
 
-    return `${commands.join(';')};`;
+    return `${tmpTable}${commands.join(';')}${returningFragment};`;
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
