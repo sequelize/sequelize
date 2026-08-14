@@ -4105,11 +4105,10 @@ declare namespace sequelize {
      * With `raw: true` the affected rows are plain objects instead of instances, and hold only the attributes
      * named by `returning`.
      */
-    update(
+    update<TUpdateOptions extends UpdateOptions>(
       values: Partial<TAttributes>,
-      options: UpdateOptions & { raw: true; returning: true | string[] },
-    ): Promise<[number, Partial<TAttributes>[]]>;
-    update(values: Partial<TAttributes>, options?: UpdateOptions): Promise<[number, TInstance[]]>;
+      options?: TUpdateOptions
+    ): Promise<[number, TUpdateOptions extends { raw: true } ? Partial<TAttributes>[] : TInstance[]]>;
 
     /**
      * Increment the value of one or more columns. This is done in the database, which means it does not use
