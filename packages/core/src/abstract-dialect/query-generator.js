@@ -32,7 +32,6 @@ import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
 import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
-import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
@@ -2182,7 +2181,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returnTypes = [];
     let outputFragment = '';
     let returningFragment = '';
-    let tmpTable = '';
 
     const returnValuesType = this.dialect.supports.returnValues;
 
@@ -2230,33 +2228,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returningFragment = ` RETURNING ${returnFields.join(', ')} INTO `;
     } else if (returnValuesType === 'output') {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(', ')}`;
-
-      // To capture output rows when there is a trigger on MSSQL DB
-      if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
-        if (returnTypes.includes(undefined)) {
-          throw new Error(
-            'MSSQL bulk inserts with triggers require returning column names that match model attributes.',
-          );
-        }
-
-        let orderColumn = '__sequelize_tmp_order';
-        while (returnFields.includes(this.quoteIdentifier(orderColumn))) {
-          orderColumn = `_${orderColumn}`;
-        }
-
-        const tmpColumns = returnFields.map((field, i) => {
-          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
-        });
-        const quotedOrderColumn = this.quoteIdentifier(orderColumn);
-        tmpColumns.push(`${quotedOrderColumn} BIGINT IDENTITY(1,1)`);
-
-        tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
-        outputFragment += ' INTO @tmp';
-        returningFragment = `; SELECT ${returnFields.join(', ')} FROM @tmp ORDER BY ${quotedOrderColumn}`;
-      }
     }
 
-    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
+    return { outputFragment, returnFields, returnTypes, returningFragment };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
