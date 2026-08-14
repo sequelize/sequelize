@@ -6,6 +6,7 @@ import type {
   StrictRequiredBy,
 } from '@sequelize/utils';
 import type { SetRequired } from 'type-fest';
+import type { UUIDVersion } from 'validator';
 import type { AbstractConnection } from './abstract-dialect/connection-manager.js';
 import type { DataType, NormalizedDataType } from './abstract-dialect/data-types.js';
 import type { IndexField, IndexOptions, TableName } from './abstract-dialect/query-interface';
@@ -1625,9 +1626,9 @@ export interface ColumnValidateOptions {
   len?: readonly [number, number] | { msg: string; args: readonly [number, number] };
 
   /**
-   * only allow uuids
+   * only allow UUIDs of a specific version
    */
-  isUUID?: number | { msg: string; args: number };
+  isUUID?: UUIDVersion | { msg: string; args: UUIDVersion };
 
   /**
    * only allow date strings

@@ -4,7 +4,7 @@ import { MySqlDialect } from '@sequelize/mysql';
 const sequelize = new Sequelize({ dialect: MySqlDialect });
 
 /**
- * Test for isIn/notIn validation - should accept any[]
+ * Tests for isIn/notIn and isUUID validation types.
  */
 class ValidatedUser extends Model {}
 
@@ -20,6 +20,18 @@ ValidatedUser.init(
       type: DataTypes.STRING,
       validate: {
         notIn: [['second', 2, null]],
+      },
+    },
+    uuid: {
+      type: DataTypes.UUID,
+      validate: {
+        isUUID: 'all',
+      },
+    },
+    uuidWithMessage: {
+      type: DataTypes.UUID,
+      validate: {
+        isUUID: { msg: 'must be a UUID', args: 'all' },
       },
     },
   },
