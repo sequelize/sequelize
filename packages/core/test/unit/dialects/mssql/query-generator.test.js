@@ -1,7 +1,5 @@
 'use strict';
 
-const { expect } = require('chai');
-
 const Support = require('../../../support');
 
 const expectsql = Support.expectsql;
@@ -116,23 +114,21 @@ if (current.dialect.name === 'mssql') {
       );
       const attributes = Object.fromEntries(model.modelDefinition.attributes);
 
+      const records = Array.from({ length: 1001 }, (_, id) => ({ id }));
       const sql = this.queryGenerator.bulkInsertQuery(
         'myTable',
-        Array.from({ length: 1001 }, (_, id) => ({ id })),
+        records,
         { hasTrigger: true, returning: ['id'] },
         attributes,
       );
 
-      expect(
-        sql.match(
-          /DECLARE @tmp TABLE \(\[id\] INTEGER,\[__sequelize_tmp_order\] BIGINT IDENTITY\(1,1\)\);|OUTPUT INSERTED\.\[id\] INTO @tmp|SELECT \[id\] FROM @tmp ORDER BY \[__sequelize_tmp_order\]/g,
-        ),
-      ).to.deep.equal([
-        'DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1));',
-        'OUTPUT INSERTED.[id] INTO @tmp',
-        'OUTPUT INSERTED.[id] INTO @tmp',
-        'SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order]',
-      ]);
+      const values = records.map(record => `(${record.id})`);
+      expectsql(sql, {
+        mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1)); ${[
+          `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${values.slice(0, 1000).join(',')}`,
+          `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${values.slice(1000).join(',')}`,
+        ].join(';')}; SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order];`,
+      });
     });
 
     it('addColumnQuery', function () {
