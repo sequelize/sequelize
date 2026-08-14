@@ -229,6 +229,7 @@ export type DialectSupports = {
     unquoted: boolean;
     quoted: boolean;
   };
+  tmpTableTrigger: boolean;
   indexHints: boolean;
   tableHints: boolean;
   searchPath: boolean;
@@ -477,6 +478,7 @@ export abstract class AbstractDialect<
     },
     REGEXP: false,
     IREGEXP: false,
+    tmpTableTrigger: false,
     indexHints: false,
     tableHints: false,
     searchPath: false,
