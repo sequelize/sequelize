@@ -119,7 +119,7 @@ if (current.dialect.name === 'mssql') {
       const sql = this.queryGenerator.bulkInsertQuery(
         'myTable',
         Array.from({ length: 1001 }, (_, id) => ({ id })),
-        { hasTrigger: true, returning: true },
+        { hasTrigger: true, returning: ['id'] },
         attributes,
       );
 

@@ -65,7 +65,7 @@ if (current.dialect.supports.tmpTableTrigger) {
       });
 
       it('should return output rows after bulk insert', async () => {
-        const [user] = await User.bulkCreate([{ username: 'triggertest' }]);
+        const [user] = await User.bulkCreate([{ username: 'triggertest' }], { returning: ['id'] });
 
         expect(user.id).to.be.a('number');
       });
