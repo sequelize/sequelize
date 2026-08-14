@@ -2185,30 +2185,37 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returnValuesType = this.dialect.supports.returnValues;
 
     if (Array.isArray(options.returning)) {
-      for (const field of options.returning) {
-        if (typeof field === 'string') {
-          returnFields.push(this.quoteIdentifier(field));
-          returnTypes.push(modelAttributes?.[field]?.type);
-        } else if (field instanceof Literal) {
-          // Due to how the mssql query is built, using a literal would never result in a properly formed query.
-          // It's better to warn early.
-          if (returnValuesType === 'output') {
-            throw new Error(
-              `literal() cannot be used in the "returning" option array in ${this.dialect.name}. Use col(), or a string instead.`,
-            );
+      returnFields.push(
+        ...options.returning.map(field => {
+          if (typeof field === 'string') {
+            returnTypes.push(modelAttributes?.[field]?.type);
+
+            return this.quoteIdentifier(field);
+          } else if (field instanceof Literal) {
+            // Due to how the mssql query is built, using a literal would never result in a properly formed query.
+            // It's better to warn early.
+            if (returnValuesType === 'output') {
+              throw new Error(
+                `literal() cannot be used in the "returning" option array in ${this.dialect.name}. Use col(), or a string instead.`,
+              );
+            }
+
+            const returnField = this.formatSqlExpression(field);
+            returnTypes.push(undefined);
+
+            return returnField;
+          } else if (field instanceof Col) {
+            const returnField = this.formatSqlExpression(field);
+            returnTypes.push(undefined);
+
+            return returnField;
           }
 
-          returnFields.push(this.formatSqlExpression(field));
-          returnTypes.push(undefined);
-        } else if (field instanceof Col) {
-          returnFields.push(this.formatSqlExpression(field));
-          returnTypes.push(undefined);
-        } else {
           throw new Error(
             `Unsupported value in "returning" option: ${NodeUtil.inspect(field)}. This option only accepts true, false, or an array of strings, col() or literal().`,
           );
-        }
-      }
+        }),
+      );
     } else if (modelAttributes) {
       each(modelAttributes, attribute => {
         if (!(attribute.type instanceof DataTypes.VIRTUAL)) {
