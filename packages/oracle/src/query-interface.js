@@ -2,9 +2,8 @@
 
 import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
-
-const intersection = require('lodash/intersection');
-const uniq = require('lodash/uniq');
+import intersection from 'lodash/intersection.js';
+import uniq from 'lodash/uniq.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
   async upsert(tableName, insertValues, updateValues, where, options) {

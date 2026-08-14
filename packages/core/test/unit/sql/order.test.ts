@@ -1,34 +1,13 @@
-'use strict';
+import { DataTypes, sql } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import { expect } from 'chai';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const {
-  _validateIncludedElements,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
-const { beforeAll2 } = require('../../support');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
-const sql = current.dialect.queryGenerator;
-
-// Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
+const queryGenerator = sequelize.queryGenerator;
 
 describe('QueryGenerator#selectQuery with "order"', () => {
-  function expectSelect(options, expectation) {
-    const model = options.model;
-
-    return expectsql(
-      sql.selectQuery(options.table || (model && model.table), options, options.model),
-      expectation,
-    );
-  }
-
   const vars = beforeAll2(() => {
-    // models
-    const User = Support.sequelize.define(
+    const User = sequelize.define(
       'User',
       {
         id: {
@@ -43,9 +22,11 @@ describe('QueryGenerator#selectQuery with "order"', () => {
           allowNull: false,
         },
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         updatedAt: {
+          type: DataTypes.DATE,
           field: 'updated_at',
         },
       },
@@ -55,7 +36,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
       },
     );
 
-    const Project = Support.sequelize.define(
+    const Project = sequelize.define(
       'Project',
       {
         id: {
@@ -70,9 +51,11 @@ describe('QueryGenerator#selectQuery with "order"', () => {
           allowNull: false,
         },
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         updatedAt: {
+          type: DataTypes.DATE,
           field: 'updated_at',
         },
       },
@@ -82,7 +65,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
       },
     );
 
-    const ProjectUser = Support.sequelize.define(
+    const ProjectUser = sequelize.define(
       'ProjectUser',
       {
         id: {
@@ -102,9 +85,11 @@ describe('QueryGenerator#selectQuery with "order"', () => {
           allowNull: false,
         },
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         updatedAt: {
+          type: DataTypes.DATE,
           field: 'updated_at',
         },
       },
@@ -114,7 +99,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
       },
     );
 
-    const Task = Support.sequelize.define(
+    const Task = sequelize.define(
       'Task',
       {
         id: {
@@ -134,9 +119,11 @@ describe('QueryGenerator#selectQuery with "order"', () => {
           allowNull: false,
         },
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         updatedAt: {
+          type: DataTypes.DATE,
           field: 'updated_at',
         },
       },
@@ -146,7 +133,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
       },
     );
 
-    const Subtask = Support.sequelize.define(
+    const Subtask = sequelize.define(
       'Subtask',
       {
         id: {
@@ -166,9 +153,11 @@ describe('QueryGenerator#selectQuery with "order"', () => {
           allowNull: false,
         },
         createdAt: {
+          type: DataTypes.DATE,
           field: 'created_at',
         },
         updatedAt: {
+          type: DataTypes.DATE,
           field: 'updated_at',
         },
       },
@@ -227,110 +216,115 @@ describe('QueryGenerator#selectQuery with "order"', () => {
   it('supports "order"', () => {
     const { Project, Subtask, Task } = vars;
 
-    expectSelect(
-      {
-        model: Subtask,
-        attributes: ['id', 'name', 'createdAt'],
-        include: _validateIncludedElements({
-          include: [
-            {
-              association: Subtask.associations.Task,
-              required: true,
-              attributes: ['id', 'name', 'createdAt'],
-              include: [
-                {
-                  association: Task.associations.Project,
-                  required: true,
-                  attributes: ['id', 'name', 'createdAt'],
-                },
-              ],
-            },
-          ],
+    expectsql(
+      queryGenerator.selectQuery(
+        Subtask.table,
+        {
           model: Subtask,
-        }).include,
-        order: [
-          // order with multiple simple association syntax with direction
-          [
-            {
-              model: Task,
-              as: 'Task',
-            },
-            {
-              model: Project,
-              as: 'Project',
-            },
+          // @ts-expect-error -- no access to attribute typing, as models are defined using sequelize.define
+          attributes: ['id', 'name', 'createdAt'],
+          include: _validateIncludedElements({
+            include: [
+              {
+                association: Subtask.associations.Task,
+                required: true,
+                attributes: ['id', 'name', 'createdAt'],
+                include: [
+                  {
+                    association: Task.associations.Project,
+                    required: true,
+                    attributes: ['id', 'name', 'createdAt'],
+                  },
+                ],
+              },
+            ],
+            model: Subtask,
+          }).include,
+          order: [
+            // order with multiple simple association syntax with direction
+            [
+              {
+                model: Task,
+                as: 'Task',
+              },
+              {
+                model: Project,
+                as: 'Project',
+              },
+              'createdAt',
+              'ASC',
+            ],
+            // order with multiple simple association syntax without direction
+            [
+              {
+                model: Task,
+                as: 'Task',
+              },
+              {
+                model: Project,
+                as: 'Project',
+              },
+              'createdAt',
+            ],
+
+            // order with simple association syntax with direction
+            [
+              {
+                model: Task,
+                as: 'Task',
+              },
+              'createdAt',
+              'ASC',
+            ],
+            // order with simple association syntax without direction
+            [
+              {
+                model: Task,
+                as: 'Task',
+              },
+              'createdAt',
+            ],
+
+            // through model object as array with direction
+            [Task, Project, 'createdAt', 'ASC'],
+            // through model object as array without direction
+            [Task, Project, 'createdAt'],
+
+            // model object as array with direction
+            [Task, 'createdAt', 'ASC'],
+            // model object as array without direction
+            [Task, 'createdAt'],
+
+            // through association object as array with direction
+            [Subtask.associations.Task, Task.associations.Project, 'createdAt', 'ASC'],
+            // through association object as array without direction
+            [Subtask.associations.Task, Task.associations.Project, 'createdAt'],
+
+            // association object as array with direction
+            [Subtask.associations.Task, 'createdAt', 'ASC'],
+            // association object as array without direction
+            [Subtask.associations.Task, 'createdAt'],
+
+            // through association name order as array with direction
+            ['Task', 'Project', 'createdAt', 'ASC'],
+            // through association name as array without direction
+            ['Task', 'Project', 'createdAt'],
+
+            // association name as array with direction
+            ['Task', 'createdAt', 'ASC'],
+            // association name as array without direction
+            ['Task', 'createdAt'],
+
+            // main order as array with direction
+            ['createdAt', 'ASC'],
+            // main order as array without direction
+            ['createdAt'],
+            // main order as string
             'createdAt',
-            'ASC',
           ],
-          // order with multiple simple association syntax without direction
-          [
-            {
-              model: Task,
-              as: 'Task',
-            },
-            {
-              model: Project,
-              as: 'Project',
-            },
-            'createdAt',
-          ],
-
-          // order with simple association syntax with direction
-          [
-            {
-              model: Task,
-              as: 'Task',
-            },
-            'createdAt',
-            'ASC',
-          ],
-          // order with simple association syntax without direction
-          [
-            {
-              model: Task,
-              as: 'Task',
-            },
-            'createdAt',
-          ],
-
-          // through model object as array with direction
-          [Task, Project, 'createdAt', 'ASC'],
-          // through model object as array without direction
-          [Task, Project, 'createdAt'],
-
-          // model object as array with direction
-          [Task, 'createdAt', 'ASC'],
-          // model object as array without direction
-          [Task, 'createdAt'],
-
-          // through association object as array with direction
-          [Subtask.associations.Task, Task.associations.Project, 'createdAt', 'ASC'],
-          // through association object as array without direction
-          [Subtask.associations.Task, Task.associations.Project, 'createdAt'],
-
-          // association object as array with direction
-          [Subtask.associations.Task, 'createdAt', 'ASC'],
-          // association object as array without direction
-          [Subtask.associations.Task, 'createdAt'],
-
-          // through association name order as array with direction
-          ['Task', 'Project', 'createdAt', 'ASC'],
-          // through association name as array without direction
-          ['Task', 'Project', 'createdAt'],
-
-          // association name as array with direction
-          ['Task', 'createdAt', 'ASC'],
-          // association name as array without direction
-          ['Task', 'createdAt'],
-
-          // main order as array with direction
-          ['createdAt', 'ASC'],
-          // main order as array without direction
-          ['createdAt'],
-          // main order as string
-          'createdAt',
-        ],
-      },
+        },
+        Subtask,
+      ),
       {
         default:
           'SELECT [Subtask].[id], [Subtask].[name], [Subtask].[createdAt], [Task].[id] AS [Task.id], [Task].[name] AS [Task.name], [Task].[created_at] AS [Task.createdAt], [Task->Project].[id] AS [Task.Project.id], [Task->Project].[name] AS [Task.Project.name], [Task->Project].[created_at] AS [Task.Project.createdAt] FROM [subtask] AS [Subtask] INNER JOIN [task] AS [Task] ON [Subtask].[task_id] = [Task].[id] INNER JOIN [project] AS [Task->Project] ON [Task].[project_id] = [Task->Project].[id] ORDER BY [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Task->Project].[created_at] ASC, [Task->Project].[created_at], [Task].[created_at] ASC, [Task].[created_at], [Subtask].[created_at] ASC, [Subtask].[created_at], [Subtask].[created_at];',
@@ -344,12 +338,17 @@ describe('QueryGenerator#selectQuery with "order"', () => {
   it('supports random ordering', () => {
     const { Subtask } = vars;
 
-    expectSelect(
-      {
-        model: Subtask,
-        attributes: ['id', 'name'],
-        order: [Support.sequelize.random()],
-      },
+    expectsql(
+      queryGenerator.selectQuery(
+        Subtask.table,
+        {
+          model: Subtask,
+          // @ts-expect-error -- no access to attribute typing, as models are defined using sequelize.define
+          attributes: ['id', 'name'],
+          order: [sql.random],
+        },
+        Subtask,
+      ),
       {
         ibmi: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND()',
         mssql: 'SELECT [id], [name] FROM [subtask] AS [Subtask] ORDER BY RAND();',
@@ -358,8 +357,9 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         mysql: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RAND();',
         postgres: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
         snowflake: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RANDOM();',
-        sqlite3: 'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY RANDOM();',
-        oracle: `SELECT "id", "name" FROM "subtask" "Subtask" ORDER BY RAND();`,
+        sqlite3:
+          'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY ((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0);',
+        oracle: `SELECT "id", "name" FROM "subtask" "Subtask" ORDER BY DBMS_RANDOM.VALUE();`,
       },
     );
   });
@@ -393,6 +393,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
 
       return expect(
         Subtask.findAll({
+          // @ts-expect-error -- broken by design for the test
           order: 'i am a silly string',
         }),
       ).to.eventually.be.rejectedWith(
@@ -408,6 +409,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         Subtask.findAll({
           order: [
             {
+              // @ts-expect-error -- broken by design for the test
               raw: 'this should throw an error',
             },
           ],
@@ -426,6 +428,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
           order: [
             [
               {
+                // @ts-expect-error -- no longer allowed, use sql.literal
                 raw: 'this should throw an error',
               },
             ],

@@ -140,3 +140,8 @@ export const noGetDialect = deprecate(
   'Do not use sequelize.getDialect(). Use sequelize.dialect.name instead.',
   'SEQUELIZE0031',
 );
+export const noSequelizeRandom = deprecate(
+  noop,
+  'Do not use sequelize.random(). Use sql.random instead, as it can be used without needing a reference to sequelize.',
+  'SEQUELIZE0032',
+);

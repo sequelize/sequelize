@@ -53,7 +53,7 @@ export function mergeDefaults<T>(a: T, b: Partial<T>): T {
  * @param args
  */
 export function merge(...args: object[]): object {
-  const result: { [key: string]: any } = Object.create(null);
+  const result = pojo<{ [key: string]: any }>();
 
   for (const obj of args) {
     forOwn(obj, (value, key) => {
@@ -131,7 +131,7 @@ export function flattenObjectDeep<T extends {}>(value: T): T extends object ? Fl
     return value as any;
   }
 
-  const flattenedObj: { [key: string]: any } = Object.create(null);
+  const flattenedObj = pojo<{ [key: string]: any }>();
 
   function flattenObject(obj: { [key: string]: any }, subPath?: string) {
     for (const key of Object.keys(obj)) {
@@ -227,10 +227,10 @@ export function removeNullish<T extends {}>(val: T): NoNullishField<T> {
 export function getObjectFromMap<K extends PropertyKey, V>(
   aMap: Map<K, V> | ReadonlyMapLike<K, V>,
 ): Record<K, V> {
-  const record = Object.create(null);
+  const record = pojo<Record<K, V>>();
 
   for (const key of aMap.keys()) {
-    record[key] = aMap.get(key);
+    record[key] = aMap.get(key)!;
   }
 
   return record;

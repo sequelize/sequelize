@@ -14,6 +14,7 @@ import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-ri
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { pojo } from '@sequelize/utils';
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
@@ -545,7 +546,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributesToSQL(attributes, options) {
-    const result = Object.create(null);
+    const result = pojo();
     const existingConstraints = [];
 
     for (const key of Object.keys(attributes)) {

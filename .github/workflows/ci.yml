@@ -38,7 +38,7 @@ jobs:
         run: yarn nx reset
       - name: Compress artifact
         run: tar -cf install-build-node-${{ matrix.node-version }}.tar ./packages/*/lib ./node_modules ./packages/*/node_modules
-      - uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
           path: install-build-node-${{ matrix.node-version }}.tar
@@ -82,8 +82,6 @@ jobs:
         run: yarn test-unit-esm
       - name: Unit tests (validator.js)
         run: yarn lerna run test-unit --scope=@sequelize/validator.js
-      - name: Unit tests (cli)
-        run: yarn lerna run test-unit --scope=@sequelize/cli
       - name: Unit tests (utils)
         run: yarn lerna run test-unit --scope=@sequelize/utils
       - name: Unit tests (core - mariadb)
@@ -114,6 +112,8 @@ jobs:
         run: yarn lerna run test-unit-oracle --scope=@sequelize/core
       - name: Unit tests (oracle package)
         run: yarn lerna run test-unit --scope=@sequelize/oracle
+      - name: Unit tests (cli)
+        run: yarn lerna run test-unit --scope=@sequelize/cli
       - name: SQLite SSCCE
         run: yarn sscce-sqlite3
   test-win:

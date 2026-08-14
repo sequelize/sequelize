@@ -27,8 +27,10 @@ function isMoment(value: any): boolean {
 export class STRING extends BaseTypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
     super._checkOptionSupport(dialect);
-    // @ts-expect-error -- Object is possibly 'null'.
-    if (this.options.length > 4000 || (this.options.binary && this.options.length > 2000)) {
+
+    const length = this.options.length ?? 255;
+
+    if (length > 4000 || (this.options.binary && length > 2000)) {
       dialect.warnDataTypeIssue(
         `Oracle supports length up to 32764 bytes or characters; Be sure that your administrator has extended the MAX_STRING_SIZE parameter. Check https://docs.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-7B72E154-677A-4342-A1EA-C74C1EA928E6`,
       );
@@ -153,17 +155,16 @@ export class DATE extends BaseTypes.DATE {
     return { type: oracledb.DB_TYPE_TIMESTAMP_LTZ };
   }
 
-  toBindableValue(date: AcceptedDate) {
-    const format = 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM';
-    date = this._applyTimezone(date);
+  escape(value: AcceptedDate): string {
+    const dialect = this._getDialect();
+    const date = this.toBindableValue(value);
+    const format = dialect.escapeString('YYYY-MM-DD HH24:MI:SS.FFTZH:TZM');
 
-    const formatedDate = date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
-
-    return `TO_TIMESTAMP_TZ('${formatedDate}', '${format}')`;
+    return `TO_TIMESTAMP_TZ(${dialect.escapeString(date)}, ${format})`;
   }
 
   /**
-   * avoids appending TO_TIMESTAMP_TZ in toBindableValue()
+   * Uses native temporal binds instead of the inline TO_TIMESTAMP_TZ wrapper.
    *
    * @override
    */
@@ -382,14 +383,12 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 }
 
 export class DATEONLY extends BaseTypes.DATEONLY {
-  toBindableValue(date: AcceptedDate) {
-    if (date) {
-      const format = 'YYYY/MM/DD';
+  escape(value: AcceptedDate): string {
+    const dialect = this._getDialect();
+    const date = this.toBindableValue(value).replaceAll('-', '/');
+    const format = dialect.escapeString('YYYY/MM/DD');
 
-      return this.escape(`TO_DATE('${date}','${format}')`);
-    }
-
-    return this.escape(date);
+    return `TO_DATE(${dialect.escapeString(date)}, ${format})`;
   }
 
   parseDatabaseValue(value: any) {
@@ -405,7 +404,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
   }
 
   /**
-   * avoids appending TO_DATE in toBindableValue()
+   * Uses native temporal binds instead of the inline TO_DATE wrapper.
    *
    * @override
    */

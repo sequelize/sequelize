@@ -55,12 +55,15 @@ import {
   noSequelizeDataType,
   noSequelizeIsDefined,
   noSequelizeModel,
+  noSequelizeRandom,
 } from './utils/deprecations';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import { injectReplacements, mapBindParameters } from './utils/sql';
 import { withSqliteForeignKeysOff } from './utils/sql.js';
 import { useInflection } from './utils/string';
-import { validator as Validator } from './utils/validator-extras';
+import { Validator } from './utils/validator-extras';
+
+const MYSQL_MARIADB_USER_VARIABLE_NAME = /^[a-zA-Z0-9_$.\u0080-\uFFFF]{1,64}$/;
 
 /**
  * This is the main class, the entry point to sequelize.
@@ -69,6 +72,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the specified dialect.
    *
+   * @deprecated use sequelize.dialect.name.
    * @returns {string} The specified dialect.
    */
   getDialect() {
@@ -80,6 +84,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns the database name.
    *
+   * @deprecated use sequelize.options.replication.write
    * @returns {string} The database name.
    */
   getDatabaseName() {
@@ -91,6 +96,7 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Returns an instance of AbstractQueryInterface.
    *
+   * @deprecated use {@link Sequelize#queryInterface}.
    * @returns {AbstractQueryInterface} An instance (singleton) of AbstractQueryInterface.
    */
   getQueryInterface() {
@@ -151,8 +157,8 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Fetch a Model which is already defined
    *
+   * @deprecated use sequelize.models.getOrThrow instead.
    * @param {string} modelName The name of a model defined with Sequelize.define
-   *
    * @throws Will throw an error if the model is not defined (that is, if sequelize#isDefined returns false)
    * @returns {Model} Specified model
    */
@@ -165,8 +171,8 @@ export class Sequelize extends SequelizeTypeScript {
   /**
    * Checks whether a model with the given name is defined
    *
+   * @deprecated use sequelize.models.hasByName instead.
    * @param {string} modelName The name of a model defined with Sequelize.define
-   *
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
@@ -427,10 +433,21 @@ Use Sequelize#query if you wish to use replacements.`);
     options.type = 'SET';
 
     // Generate SQL Query
-    const query = `SET ${map(
-      variables,
-      (v, k) => `@${k} := ${typeof v === 'string' ? `"${v}"` : v}`,
-    ).join(', ')}`;
+    const query = `SET ${map(variables, (value, key) => {
+      if (!MYSQL_MARIADB_USER_VARIABLE_NAME.test(key)) {
+        throw new TypeError(
+          `Invalid session variable name "${key}". Use a 1-64 character unquoted user-variable name.`,
+        );
+      }
+
+      if (value instanceof BaseSqlExpression || (isPlainObject(value) && Op.col in value)) {
+        throw new TypeError(
+          'sequelize.setSessionVariables does not accept SQL expressions as variable values',
+        );
+      }
+
+      return `@${key} := ${this.escape(value)}`;
+    }).join(', ')}`;
 
     return await this.query(query, options);
   }
@@ -599,24 +616,24 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    await this.query(
-      `SELECT 1+1 AS result${this.dialect.name === 'ibmi' ? ' FROM SYSIBM.SYSDUMMY1' : this.dialect.name === 'oracle' ? ' FROM DUAL' : ''}`,
-      options,
-    );
+    const dummyTableName = this.dialect.supports.select.dummyTable;
+    const fromClause = dummyTableName
+      ? ` FROM ${this.queryGenerator.quoteIdentifier(dummyTableName)}`
+      : '';
+
+    await this.query(`SELECT 1+1 AS result${fromClause}`, options);
   }
 
   /**
    * Get the fn for random based on the dialect
    *
-   * @returns {Fn}
+   * @deprecated use {@link sql.random} instead, as it can be used without needing a reference to sequelize.
+   * @returns {Random}
    */
-  // TODO: replace with sql.random
   random() {
-    if (['postgres', 'sqlite3', 'snowflake'].includes(this.dialect.name)) {
-      return fn('RANDOM');
-    }
+    noSequelizeRandom();
 
-    return fn('RAND');
+    return sql.random;
   }
 
   // Global exports

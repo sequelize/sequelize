@@ -132,7 +132,7 @@ module.exports = {
     },
     {
       // Disable slow rules that are not important in tests (perf)
-      files: ['packages/*/test/**/*', '*.test.{ts,js}'],
+      files: ['packages/*/test/**/*', '**/*.test.{ts,js}'],
       rules: {
         'import/no-extraneous-dependencies': 'off',
         // no need to check jsdoc in tests & docs
@@ -151,6 +151,10 @@ module.exports = {
 
         // because of Chai
         '@typescript-eslint/no-unused-expressions': 'off',
+
+        // Allow regular functions (needed for this.timeout() in Mocha describe blocks)
+        'func-names': 'off',
+        '@typescript-eslint/no-invalid-this': 'off',
       },
       env: {
         mocha: true,

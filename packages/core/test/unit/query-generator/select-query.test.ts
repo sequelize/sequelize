@@ -8,7 +8,13 @@ import { DataTypes, IndexHints, Op, TableHints, or, sql as sqlTag } from '@seque
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expect } from 'chai';
-import { beforeAll2, expectsql, getTestDialect, sequelize } from '../../support';
+import {
+  beforeAll2,
+  createSequelizeInstance,
+  expectsql,
+  getTestDialect,
+  sequelize,
+} from '../../support';
 
 const { attribute, col, cast, where, fn, literal } = sqlTag;
 const dialectName = getTestDialect();
@@ -889,6 +895,1247 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
       expectsql(sql, {
         default: `SELECT *, YEAR([createdAt]) AS [creationYear] FROM [Users] AS [User] GROUP BY [creationYear], [title] HAVING [User].[creationYear] > 2002;`,
         oracle: `SELECT *, YEAR("createdAt") AS "creationYear" FROM "Users" "User" GROUP BY "creationYear", "title" HAVING "User"."creationYear" > 2002;`,
+      });
+    });
+  });
+
+  describe('include with a globally set schema', () => {
+    const schemaVars = beforeAll2(() => {
+      const schemaSequelize = createSequelizeInstance({ schema: 'mySchema' });
+
+      interface TUser extends Model<InferAttributes<TUser>, InferCreationAttributes<TUser>> {
+        id: CreationOptional<number>;
+        uuid: string;
+      }
+
+      const User = schemaSequelize.define<TUser>(
+        'User',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+          uuid: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+        },
+        { timestamps: false },
+      );
+
+      interface TProject
+        extends Model<InferAttributes<TProject>, InferCreationAttributes<TProject>> {
+        id: CreationOptional<number>;
+      }
+
+      const Project = schemaSequelize.define<TProject>(
+        'Project',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+        },
+        { timestamps: false },
+      );
+
+      interface TTag extends Model<InferAttributes<TTag>, InferCreationAttributes<TTag>> {
+        id: CreationOptional<number>;
+      }
+
+      const Tag = schemaSequelize.define<TTag>(
+        'Tag',
+        {
+          id: {
+            type: DataTypes.INTEGER,
+            autoIncrement: true,
+            primaryKey: true,
+          },
+        },
+        { timestamps: false },
+      );
+
+      User.hasMany(Project, { as: 'projects' });
+      Project.belongsTo(User, { as: 'owner' });
+      User.belongsToMany(Tag, { through: 'UserTags', as: 'tags' });
+      User.belongsToMany(Tag, {
+        through: 'UserUuidTags',
+        as: 'uuidTags',
+        sourceKey: 'uuid',
+        inverse: { as: 'uuidUsers' },
+      });
+      Project.belongsToMany(Tag, { through: 'ProjectTags', as: 'tags' });
+      User.belongsTo(Project, { as: 'mainProject' });
+
+      return { schemaQueryGenerator: schemaSequelize.queryGenerator, User, Project, Tag };
+    });
+
+    it('does not schema-qualify the table alias in the generated JOIN condition', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            include: [{ association: User.associations.projects, attributes: ['id'] }],
+          }).include,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT [User].[id], [projects].[id] AS [projects.id]
+          FROM [mySchema].[Users] AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [projects]
+            ON [User].[id] = [projects].[userId];
+        `,
+        sqlite3: `
+          SELECT \`User\`.\`id\`, \`projects\`.\`id\` AS \`projects.id\`
+          FROM \`mySchema.Users\` AS \`User\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`projects\`
+            ON \`User\`.\`id\` = \`projects\`.\`userId\`;
+        `,
+        oracle: `
+          SELECT "User"."id", "projects"."id" AS "projects.id"
+          FROM "mySchema"."Users" "User"
+          LEFT OUTER JOIN "mySchema"."Projects" "projects"
+            ON "User"."id" = "projects"."userId";
+        `,
+      });
+    });
+
+    it('does not schema-qualify nested table aliases in the generated JOIN condition', () => {
+      const { schemaQueryGenerator, User, Project } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            include: [
+              {
+                association: User.associations.projects,
+                attributes: ['id'],
+                include: [
+                  {
+                    association: Project.associations.owner,
+                    attributes: ['id'],
+                    include: [{ association: User.associations.projects, attributes: ['id'] }],
+                  },
+                ],
+              },
+            ],
+          }).include,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].[id],
+            [projects].[id] AS [projects.id],
+            [projects->owner].[id] AS [projects.owner.id],
+            [projects->owner->projects].[id] AS [projects.owner.projects.id]
+          FROM [mySchema].[Users] AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [projects]
+            ON [User].[id] = [projects].[userId]
+          LEFT OUTER JOIN [mySchema].[Users] AS [projects->owner]
+            ON [projects].[ownerId] = [projects->owner].[id]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [projects->owner->projects]
+            ON [projects->owner].[id] = [projects->owner->projects].[userId];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.\`id\`,
+            \`projects\`.\`id\` AS \`projects.id\`,
+            \`projects->owner\`.\`id\` AS \`projects.owner.id\`,
+            \`projects->owner->projects\`.\`id\` AS \`projects.owner.projects.id\`
+          FROM \`mySchema.Users\` AS \`User\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`projects\`
+            ON \`User\`.\`id\` = \`projects\`.\`userId\`
+          LEFT OUTER JOIN \`mySchema.Users\` AS \`projects->owner\`
+            ON \`projects\`.\`ownerId\` = \`projects->owner\`.\`id\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`projects->owner->projects\`
+            ON \`projects->owner\`.\`id\` = \`projects->owner->projects\`.\`userId\`;
+        `,
+        oracle: `
+          SELECT
+            "User"."id",
+            "projects"."id" AS "projects.id",
+            "projects->owner"."id" AS "projects.owner.id",
+            "projects->owner->projects"."id" AS "projects.owner.projects.id"
+          FROM "mySchema"."Users" "User"
+          LEFT OUTER JOIN "mySchema"."Projects" "projects"
+            ON "User"."id" = "projects"."userId"
+          LEFT OUTER JOIN "mySchema"."Users" "projects->owner"
+            ON "projects"."ownerId" = "projects->owner"."id"
+          LEFT OUTER JOIN "mySchema"."Projects" "projects->owner->projects"
+            ON "projects->owner"."id" = "projects->owner->projects"."userId";
+        `,
+      });
+    });
+
+    it('does not schema-qualify the source table alias in a belongsToMany JOIN condition', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            include: [{ association: User.associations.tags, attributes: ['id'] }],
+          }).include,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].[id],
+            [tags].[id] AS [tags.id],
+            [tags->UserTags].[createdAt] AS [tags.UserTags.createdAt],
+            [tags->UserTags].[updatedAt] AS [tags.UserTags.updatedAt],
+            [tags->UserTags].[tagId] AS [tags.UserTags.tagId],
+            [tags->UserTags].[userId] AS [tags.UserTags.userId]
+          FROM [mySchema].[Users] AS [User]
+          LEFT OUTER JOIN (
+            [mySchema].[UserTags] AS [tags->UserTags]
+            INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+          )
+            ON [User].[id] = [tags->UserTags].[userId];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.\`id\`,
+            \`tags\`.\`id\` AS \`tags.id\`,
+            \`tags->UserTags\`.\`createdAt\` AS \`tags.UserTags.createdAt\`,
+            \`tags->UserTags\`.\`updatedAt\` AS \`tags.UserTags.updatedAt\`,
+            \`tags->UserTags\`.\`tagId\` AS \`tags.UserTags.tagId\`,
+            \`tags->UserTags\`.\`userId\` AS \`tags.UserTags.userId\`
+          FROM \`mySchema.Users\` AS \`User\`
+          LEFT OUTER JOIN (
+            \`mySchema.UserTags\` AS \`tags->UserTags\`
+            INNER JOIN \`mySchema.Tags\` AS \`tags\` ON \`tags\`.\`id\` = \`tags->UserTags\`.\`tagId\`
+          )
+            ON \`User\`.\`id\` = \`tags->UserTags\`.\`userId\`;
+        `,
+        oracle: `
+          SELECT
+            "User"."id",
+            "tags"."id" AS "tags.id",
+            "tags->UserTags"."createdAt" AS "tags.UserTags.createdAt",
+            "tags->UserTags"."updatedAt" AS "tags.UserTags.updatedAt",
+            "tags->UserTags"."tagId" AS "tags.UserTags.tagId",
+            "tags->UserTags"."userId" AS "tags.UserTags.userId"
+          FROM "mySchema"."Users" "User"
+          LEFT OUTER JOIN (
+            "mySchema"."UserTags" "tags->UserTags"
+            INNER JOIN "mySchema"."Tags" "tags" ON "tags"."id" = "tags->UserTags"."tagId"
+          )
+            ON "User"."id" = "tags->UserTags"."userId";
+        `,
+      });
+    });
+
+    it('does not schema-qualify the main table alias in a subquery JOIN condition', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [
+              {
+                association: User.associations.projects,
+                attributes: ['id'],
+                required: true,
+                subQuery: true,
+              },
+              { association: User.associations.mainProject, attributes: ['id'] },
+            ],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT [User].*, [mainProject].[id] AS [mainProject.id]
+          FROM (
+            SELECT [User].[id], [projects].[id] AS [projects.id], [User].[mainProjectId]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [projects] ON [User].[id] = [projects].[userId]
+            WHERE EXISTS (
+              SELECT [userId] FROM [mySchema].[Projects] AS [projects]
+              WHERE [projects].[userId] = [User].[id]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [mainProject]
+            ON [User].[mainProjectId] = [mainProject].[id];
+        `,
+        sqlite3: `
+          SELECT \`User\`.*, \`mainProject\`.\`id\` AS \`mainProject.id\`
+          FROM (
+            SELECT \`User\`.\`id\`, \`projects\`.\`id\` AS \`projects.id\`, \`User\`.\`mainProjectId\`
+            FROM \`mySchema.Users\` AS \`User\`
+            INNER JOIN \`mySchema.Projects\` AS \`projects\` ON \`User\`.\`id\` = \`projects\`.\`userId\`
+            WHERE EXISTS (
+              SELECT \`userId\` FROM \`mySchema.Projects\` AS \`projects\`
+              WHERE \`projects\`.\`userId\` = \`User\`.\`id\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`
+          LEFT OUTER JOIN \`mySchema.Projects\` AS \`mainProject\`
+            ON \`User\`.\`mainProjectId\` = \`mainProject\`.\`id\`;
+        `,
+        mssql: `
+          SELECT [User].*, [mainProject].[id] AS [mainProject.id]
+          FROM (
+            SELECT [User].[id], [projects].[id] AS [projects.id], [User].[mainProjectId]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [projects] ON [User].[id] = [projects].[userId]
+            WHERE EXISTS (
+              SELECT [userId] FROM [mySchema].[Projects] AS [projects]
+              WHERE [projects].[userId] = [User].[id]
+            )
+            ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [mainProject]
+            ON [User].[mainProjectId] = [mainProject].[id];
+        `,
+        'db2 ibmi': `
+          SELECT [User].*, [mainProject].[id] AS [mainProject.id]
+          FROM (
+            SELECT [User].[id], [projects].[id] AS [projects.id], [User].[mainProjectId]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [projects] ON [User].[id] = [projects].[userId]
+            WHERE EXISTS (
+              SELECT [userId] FROM [mySchema].[Projects] AS [projects]
+              WHERE [projects].[userId] = [User].[id]
+            )
+            ORDER BY [User].[id] FETCH NEXT 5 ROWS ONLY
+          ) AS [User]
+          LEFT OUTER JOIN [mySchema].[Projects] AS [mainProject]
+            ON [User].[mainProjectId] = [mainProject].[id];
+        `,
+        oracle: `
+          SELECT "User".*, "mainProject"."id" AS "mainProject.id"
+          FROM (
+            SELECT "User"."id", "projects"."id" AS "projects.id", "User"."mainProjectId"
+            FROM "mySchema"."Users" "User"
+            INNER JOIN "mySchema"."Projects" "projects" ON "User"."id" = "projects"."userId"
+            WHERE EXISTS (
+              SELECT "userId" FROM "mySchema"."Projects" "projects"
+              WHERE "projects"."userId" = "User"."id"
+            )
+            ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) "User"
+          LEFT OUTER JOIN "mySchema"."Projects" "mainProject"
+            ON "User"."mainProjectId" = "mainProject"."id";
+        `,
+      });
+    });
+
+    it('does not schema-qualify the parent table alias in a subquery filter', () => {
+      const { schemaQueryGenerator, User, Project } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [
+              {
+                association: User.associations.projects,
+                attributes: ['id'],
+                required: true,
+                subQuery: true,
+                include: [
+                  { association: Project.associations.owner, attributes: ['id'], required: true },
+                ],
+              },
+            ],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT [User].*
+          FROM (
+            SELECT
+              [User].[id],
+              [projects].[id] AS [projects.id],
+              [projects->owner].[id] AS [projects.owner.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [projects] ON [User].[id] = [projects].[userId]
+            INNER JOIN [mySchema].[Users] AS [projects->owner] ON [projects].[ownerId] = [projects->owner].[id]
+            WHERE EXISTS (
+              SELECT [projects].[userId]
+              FROM [mySchema].[Projects] AS [projects]
+              INNER JOIN [mySchema].[Users] AS [owner] ON [projects].[ownerId] = [owner].[id]
+              WHERE [projects].[userId] = [User].[id]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User];
+        `,
+        sqlite3: `
+          SELECT \`User\`.*
+          FROM (
+            SELECT
+              \`User\`.\`id\`,
+              \`projects\`.\`id\` AS \`projects.id\`,
+              \`projects->owner\`.\`id\` AS \`projects.owner.id\`
+            FROM \`mySchema.Users\` AS \`User\`
+            INNER JOIN \`mySchema.Projects\` AS \`projects\` ON \`User\`.\`id\` = \`projects\`.\`userId\`
+            INNER JOIN \`mySchema.Users\` AS \`projects->owner\` ON \`projects\`.\`ownerId\` = \`projects->owner\`.\`id\`
+            WHERE EXISTS (
+              SELECT \`projects\`.\`userId\`
+              FROM \`mySchema.Projects\` AS \`projects\`
+              INNER JOIN \`mySchema.Users\` AS \`owner\` ON \`projects\`.\`ownerId\` = \`owner\`.\`id\`
+              WHERE \`projects\`.\`userId\` = \`User\`.\`id\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`;
+        `,
+        mssql: `
+          SELECT [User].*
+          FROM (
+            SELECT
+              [User].[id],
+              [projects].[id] AS [projects.id],
+              [projects->owner].[id] AS [projects.owner.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [projects] ON [User].[id] = [projects].[userId]
+            INNER JOIN [mySchema].[Users] AS [projects->owner] ON [projects].[ownerId] = [projects->owner].[id]
+            WHERE EXISTS (
+              SELECT [projects].[userId]
+              FROM [mySchema].[Projects] AS [projects]
+              INNER JOIN [mySchema].[Users] AS [owner] ON [projects].[ownerId] = [owner].[id]
+              WHERE [projects].[userId] = [User].[id]
+            )
+            ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) AS [User];
+        `,
+        'db2 ibmi': `
+          SELECT [User].*
+          FROM (
+            SELECT
+              [User].[id],
+              [projects].[id] AS [projects.id],
+              [projects->owner].[id] AS [projects.owner.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [projects] ON [User].[id] = [projects].[userId]
+            INNER JOIN [mySchema].[Users] AS [projects->owner] ON [projects].[ownerId] = [projects->owner].[id]
+            WHERE EXISTS (
+              SELECT [projects].[userId]
+              FROM [mySchema].[Projects] AS [projects]
+              INNER JOIN [mySchema].[Users] AS [owner] ON [projects].[ownerId] = [owner].[id]
+              WHERE [projects].[userId] = [User].[id]
+            )
+            ORDER BY [User].[id] FETCH NEXT 5 ROWS ONLY
+          ) AS [User];
+        `,
+        oracle: `
+          SELECT "User".*
+          FROM (
+            SELECT
+              "User"."id",
+              "projects"."id" AS "projects.id",
+              "projects->owner"."id" AS "projects.owner.id"
+            FROM "mySchema"."Users" "User"
+            INNER JOIN "mySchema"."Projects" "projects" ON "User"."id" = "projects"."userId"
+            INNER JOIN "mySchema"."Users" "projects->owner" ON "projects"."ownerId" = "projects->owner"."id"
+            WHERE EXISTS (
+              SELECT "projects"."userId"
+              FROM "mySchema"."Projects" "projects"
+              INNER JOIN "mySchema"."Users" "owner" ON "projects"."ownerId" = "owner"."id"
+              WHERE "projects"."userId" = "User"."id"
+            )
+            ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) "User";
+        `,
+      });
+    });
+
+    it('does not schema-qualify the parent table alias in a belongsToMany subquery filter', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [
+              {
+                association: User.associations.tags,
+                attributes: ['id'],
+                required: true,
+                subQuery: true,
+              },
+            ],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [tags->UserTags].[createdAt] AS [tags.UserTags.createdAt],
+            [tags->UserTags].[updatedAt] AS [tags.UserTags.updatedAt],
+            [tags->UserTags].[tagId] AS [tags.UserTags.tagId],
+            [tags->UserTags].[userId] AS [tags.UserTags.userId]
+          FROM (
+            SELECT [User].[id], [tags].[id] AS [tags.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN (
+              [mySchema].[UserTags] AS [tags->UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+            )
+              ON [User].[id] = [tags->UserTags].[userId]
+            WHERE EXISTS (
+              SELECT [UserTags].[tagId]
+              FROM [mySchema].[UserTags] AS [UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tag] ON [UserTags].[tagId] = [tag].[id]
+              WHERE [User].[id] = [UserTags].[userId]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.*,
+            \`tags->UserTags\`.\`createdAt\` AS \`tags.UserTags.createdAt\`,
+            \`tags->UserTags\`.\`updatedAt\` AS \`tags.UserTags.updatedAt\`,
+            \`tags->UserTags\`.\`tagId\` AS \`tags.UserTags.tagId\`,
+            \`tags->UserTags\`.\`userId\` AS \`tags.UserTags.userId\`
+          FROM (
+            SELECT \`User\`.\`id\`, \`tags\`.\`id\` AS \`tags.id\`
+            FROM \`mySchema.Users\` AS \`User\`
+            INNER JOIN (
+              \`mySchema.UserTags\` AS \`tags->UserTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`tags\` ON \`tags\`.\`id\` = \`tags->UserTags\`.\`tagId\`
+            )
+              ON \`User\`.\`id\` = \`tags->UserTags\`.\`userId\`
+            WHERE EXISTS (
+              SELECT \`UserTags\`.\`tagId\`
+              FROM \`mySchema.UserTags\` AS \`UserTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`tag\` ON \`UserTags\`.\`tagId\` = \`tag\`.\`id\`
+              WHERE \`User\`.\`id\` = \`UserTags\`.\`userId\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`;
+        `,
+        mssql: `
+          SELECT
+            [User].*,
+            [tags->UserTags].[createdAt] AS [tags.UserTags.createdAt],
+            [tags->UserTags].[updatedAt] AS [tags.UserTags.updatedAt],
+            [tags->UserTags].[tagId] AS [tags.UserTags.tagId],
+            [tags->UserTags].[userId] AS [tags.UserTags.userId]
+          FROM (
+            SELECT [User].[id], [tags].[id] AS [tags.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN (
+              [mySchema].[UserTags] AS [tags->UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+            )
+              ON [User].[id] = [tags->UserTags].[userId]
+            WHERE EXISTS (
+              SELECT [UserTags].[tagId]
+              FROM [mySchema].[UserTags] AS [UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tag] ON [UserTags].[tagId] = [tag].[id]
+              WHERE [User].[id] = [UserTags].[userId]
+            )
+            ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) AS [User];
+        `,
+        'db2 ibmi': `
+          SELECT
+            [User].*,
+            [tags->UserTags].[createdAt] AS [tags.UserTags.createdAt],
+            [tags->UserTags].[updatedAt] AS [tags.UserTags.updatedAt],
+            [tags->UserTags].[tagId] AS [tags.UserTags.tagId],
+            [tags->UserTags].[userId] AS [tags.UserTags.userId]
+          FROM (
+            SELECT [User].[id], [tags].[id] AS [tags.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN (
+              [mySchema].[UserTags] AS [tags->UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+            )
+              ON [User].[id] = [tags->UserTags].[userId]
+            WHERE EXISTS (
+              SELECT [UserTags].[tagId]
+              FROM [mySchema].[UserTags] AS [UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tag] ON [UserTags].[tagId] = [tag].[id]
+              WHERE [User].[id] = [UserTags].[userId]
+            )
+            ORDER BY [User].[id] FETCH NEXT 5 ROWS ONLY
+          ) AS [User];
+        `,
+        oracle: `
+          SELECT
+            "User".*,
+            "tags->UserTags"."createdAt" AS "tags.UserTags.createdAt",
+            "tags->UserTags"."updatedAt" AS "tags.UserTags.updatedAt",
+            "tags->UserTags"."tagId" AS "tags.UserTags.tagId",
+            "tags->UserTags"."userId" AS "tags.UserTags.userId"
+          FROM (
+            SELECT "User"."id", "tags"."id" AS "tags.id"
+            FROM "mySchema"."Users" "User"
+            INNER JOIN (
+              "mySchema"."UserTags" "tags->UserTags"
+              INNER JOIN "mySchema"."Tags" "tags" ON "tags"."id" = "tags->UserTags"."tagId"
+            )
+              ON "User"."id" = "tags->UserTags"."userId"
+            WHERE EXISTS (
+              SELECT "UserTags"."tagId"
+              FROM "mySchema"."UserTags" "UserTags"
+              INNER JOIN "mySchema"."Tags" "tag" ON "UserTags"."tagId" = "tag"."id"
+              WHERE "User"."id" = "UserTags"."userId"
+            )
+            ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) "User";
+        `,
+      });
+    });
+
+    it('uses the association sourceKey in a belongsToMany subquery filter', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [
+              {
+                association: User.associations.uuidTags,
+                attributes: ['id'],
+                required: true,
+                subQuery: true,
+              },
+            ],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [uuidTags->UserUuidTags].[createdAt] AS [uuidTags.UserUuidTags.createdAt],
+            [uuidTags->UserUuidTags].[updatedAt] AS [uuidTags.UserUuidTags.updatedAt],
+            [uuidTags->UserUuidTags].[tagId] AS [uuidTags.UserUuidTags.tagId],
+            [uuidTags->UserUuidTags].[userUuid] AS [uuidTags.UserUuidTags.userUuid]
+          FROM (
+            SELECT [User].[id], [uuidTags].[id] AS [uuidTags.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN (
+              [mySchema].[UserUuidTags] AS [uuidTags->UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTags] ON [uuidTags].[id] = [uuidTags->UserUuidTags].[tagId]
+            )
+              ON [User].[uuid] = [uuidTags->UserUuidTags].[userUuid]
+            WHERE EXISTS (
+              SELECT [UserUuidTags].[tagId]
+              FROM [mySchema].[UserUuidTags] AS [UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTag] ON [UserUuidTags].[tagId] = [uuidTag].[id]
+              WHERE [User].[uuid] = [UserUuidTags].[userUuid]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.*,
+            \`uuidTags->UserUuidTags\`.\`createdAt\` AS \`uuidTags.UserUuidTags.createdAt\`,
+            \`uuidTags->UserUuidTags\`.\`updatedAt\` AS \`uuidTags.UserUuidTags.updatedAt\`,
+            \`uuidTags->UserUuidTags\`.\`tagId\` AS \`uuidTags.UserUuidTags.tagId\`,
+            \`uuidTags->UserUuidTags\`.\`userUuid\` AS \`uuidTags.UserUuidTags.userUuid\`
+          FROM (
+            SELECT \`User\`.\`id\`, \`uuidTags\`.\`id\` AS \`uuidTags.id\`
+            FROM \`mySchema.Users\` AS \`User\`
+            INNER JOIN (
+              \`mySchema.UserUuidTags\` AS \`uuidTags->UserUuidTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`uuidTags\` ON \`uuidTags\`.\`id\` = \`uuidTags->UserUuidTags\`.\`tagId\`
+            )
+              ON \`User\`.\`uuid\` = \`uuidTags->UserUuidTags\`.\`userUuid\`
+            WHERE EXISTS (
+              SELECT \`UserUuidTags\`.\`tagId\`
+              FROM \`mySchema.UserUuidTags\` AS \`UserUuidTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`uuidTag\` ON \`UserUuidTags\`.\`tagId\` = \`uuidTag\`.\`id\`
+              WHERE \`User\`.\`uuid\` = \`UserUuidTags\`.\`userUuid\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`;
+        `,
+        mssql: `
+          SELECT
+            [User].*,
+            [uuidTags->UserUuidTags].[createdAt] AS [uuidTags.UserUuidTags.createdAt],
+            [uuidTags->UserUuidTags].[updatedAt] AS [uuidTags.UserUuidTags.updatedAt],
+            [uuidTags->UserUuidTags].[tagId] AS [uuidTags.UserUuidTags.tagId],
+            [uuidTags->UserUuidTags].[userUuid] AS [uuidTags.UserUuidTags.userUuid]
+          FROM (
+            SELECT [User].[id], [uuidTags].[id] AS [uuidTags.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN (
+              [mySchema].[UserUuidTags] AS [uuidTags->UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTags] ON [uuidTags].[id] = [uuidTags->UserUuidTags].[tagId]
+            )
+              ON [User].[uuid] = [uuidTags->UserUuidTags].[userUuid]
+            WHERE EXISTS (
+              SELECT [UserUuidTags].[tagId]
+              FROM [mySchema].[UserUuidTags] AS [UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTag] ON [UserUuidTags].[tagId] = [uuidTag].[id]
+              WHERE [User].[uuid] = [UserUuidTags].[userUuid]
+            )
+            ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) AS [User];
+        `,
+        'db2 ibmi': `
+          SELECT
+            [User].*,
+            [uuidTags->UserUuidTags].[createdAt] AS [uuidTags.UserUuidTags.createdAt],
+            [uuidTags->UserUuidTags].[updatedAt] AS [uuidTags.UserUuidTags.updatedAt],
+            [uuidTags->UserUuidTags].[tagId] AS [uuidTags.UserUuidTags.tagId],
+            [uuidTags->UserUuidTags].[userUuid] AS [uuidTags.UserUuidTags.userUuid]
+          FROM (
+            SELECT [User].[id], [uuidTags].[id] AS [uuidTags.id]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN (
+              [mySchema].[UserUuidTags] AS [uuidTags->UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTags] ON [uuidTags].[id] = [uuidTags->UserUuidTags].[tagId]
+            )
+              ON [User].[uuid] = [uuidTags->UserUuidTags].[userUuid]
+            WHERE EXISTS (
+              SELECT [UserUuidTags].[tagId]
+              FROM [mySchema].[UserUuidTags] AS [UserUuidTags]
+              INNER JOIN [mySchema].[Tags] AS [uuidTag] ON [UserUuidTags].[tagId] = [uuidTag].[id]
+              WHERE [User].[uuid] = [UserUuidTags].[userUuid]
+            )
+            ORDER BY [User].[id] FETCH NEXT 5 ROWS ONLY
+          ) AS [User];
+        `,
+        oracle: `
+          SELECT
+            "User".*,
+            "uuidTags->UserUuidTags"."createdAt" AS "uuidTags.UserUuidTags.createdAt",
+            "uuidTags->UserUuidTags"."updatedAt" AS "uuidTags.UserUuidTags.updatedAt",
+            "uuidTags->UserUuidTags"."tagId" AS "uuidTags.UserUuidTags.tagId",
+            "uuidTags->UserUuidTags"."userUuid" AS "uuidTags.UserUuidTags.userUuid"
+          FROM (
+            SELECT "User"."id", "uuidTags"."id" AS "uuidTags.id"
+            FROM "mySchema"."Users" "User"
+            INNER JOIN (
+              "mySchema"."UserUuidTags" "uuidTags->UserUuidTags"
+              INNER JOIN "mySchema"."Tags" "uuidTags" ON "uuidTags"."id" = "uuidTags->UserUuidTags"."tagId"
+            )
+              ON "User"."uuid" = "uuidTags->UserUuidTags"."userUuid"
+            WHERE EXISTS (
+              SELECT "UserUuidTags"."tagId"
+              FROM "mySchema"."UserUuidTags" "UserUuidTags"
+              INNER JOIN "mySchema"."Tags" "uuidTag" ON "UserUuidTags"."tagId" = "uuidTag"."id"
+              WHERE "User"."uuid" = "UserUuidTags"."userUuid"
+            )
+            ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) "User";
+        `,
+      });
+    });
+
+    it('does not schema-qualify table aliases in a belongsToMany JOIN condition with minified aliases', () => {
+      const { schemaQueryGenerator, User } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [{ association: User.associations.tags, attributes: ['id'], required: true }],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+          minifyAliases: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [tags].[id] AS [_0],
+            [tags->UserTags].[createdAt] AS [_1],
+            [tags->UserTags].[updatedAt] AS [_2],
+            [tags->UserTags].[tagId] AS [_3],
+            [tags->UserTags].[userId] AS [_4]
+          FROM (
+            SELECT [User].[id]
+            FROM [mySchema].[Users] AS [User]
+            WHERE EXISTS (
+              SELECT [UserTags].[tagId]
+              FROM [mySchema].[UserTags] AS [UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tag] ON [UserTags].[tagId] = [tag].[id]
+              WHERE [User].[id] = [UserTags].[userId]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[UserTags] AS [tags->UserTags]
+            INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+          )
+            ON [User].[id] = [tags->UserTags].[userId];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.*,
+            \`tags\`.\`id\` AS \`_0\`,
+            \`tags->UserTags\`.\`createdAt\` AS \`_1\`,
+            \`tags->UserTags\`.\`updatedAt\` AS \`_2\`,
+            \`tags->UserTags\`.\`tagId\` AS \`_3\`,
+            \`tags->UserTags\`.\`userId\` AS \`_4\`
+          FROM (
+            SELECT \`User\`.\`id\`
+            FROM \`mySchema.Users\` AS \`User\`
+            WHERE EXISTS (
+              SELECT \`UserTags\`.\`tagId\`
+              FROM \`mySchema.UserTags\` AS \`UserTags\`
+              INNER JOIN \`mySchema.Tags\` AS \`tag\` ON \`UserTags\`.\`tagId\` = \`tag\`.\`id\`
+              WHERE \`User\`.\`id\` = \`UserTags\`.\`userId\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`
+          INNER JOIN (
+            \`mySchema.UserTags\` AS \`tags->UserTags\`
+            INNER JOIN \`mySchema.Tags\` AS \`tags\` ON \`tags\`.\`id\` = \`tags->UserTags\`.\`tagId\`
+          )
+            ON \`User\`.\`id\` = \`tags->UserTags\`.\`userId\`;
+        `,
+        mssql: `
+          SELECT
+            [User].*,
+            [tags].[id] AS [_0],
+            [tags->UserTags].[createdAt] AS [_1],
+            [tags->UserTags].[updatedAt] AS [_2],
+            [tags->UserTags].[tagId] AS [_3],
+            [tags->UserTags].[userId] AS [_4]
+          FROM (
+            SELECT [User].[id]
+            FROM [mySchema].[Users] AS [User]
+            WHERE EXISTS (
+              SELECT [UserTags].[tagId]
+              FROM [mySchema].[UserTags] AS [UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tag] ON [UserTags].[tagId] = [tag].[id]
+              WHERE [User].[id] = [UserTags].[userId]
+            )
+            ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[UserTags] AS [tags->UserTags]
+            INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+          )
+            ON [User].[id] = [tags->UserTags].[userId];
+        `,
+        'db2 ibmi': `
+          SELECT
+            [User].*,
+            [tags].[id] AS [_0],
+            [tags->UserTags].[createdAt] AS [_1],
+            [tags->UserTags].[updatedAt] AS [_2],
+            [tags->UserTags].[tagId] AS [_3],
+            [tags->UserTags].[userId] AS [_4]
+          FROM (
+            SELECT [User].[id]
+            FROM [mySchema].[Users] AS [User]
+            WHERE EXISTS (
+              SELECT [UserTags].[tagId]
+              FROM [mySchema].[UserTags] AS [UserTags]
+              INNER JOIN [mySchema].[Tags] AS [tag] ON [UserTags].[tagId] = [tag].[id]
+              WHERE [User].[id] = [UserTags].[userId]
+            )
+            ORDER BY [User].[id] FETCH NEXT 5 ROWS ONLY
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[UserTags] AS [tags->UserTags]
+            INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->UserTags].[tagId]
+          )
+            ON [User].[id] = [tags->UserTags].[userId];
+        `,
+        oracle: `
+          SELECT
+            "User".*,
+            "tags"."id" AS "_0",
+            "tags->UserTags"."createdAt" AS "_1",
+            "tags->UserTags"."updatedAt" AS "_2",
+            "tags->UserTags"."tagId" AS "_3",
+            "tags->UserTags"."userId" AS "_4"
+          FROM (
+            SELECT "User"."id"
+            FROM "mySchema"."Users" "User"
+            WHERE EXISTS (
+              SELECT "UserTags"."tagId"
+              FROM "mySchema"."UserTags" "UserTags"
+              INNER JOIN "mySchema"."Tags" "tag" ON "UserTags"."tagId" = "tag"."id"
+              WHERE "User"."id" = "UserTags"."userId"
+            )
+            ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) "User"
+          INNER JOIN (
+            "mySchema"."UserTags" "tags->UserTags"
+            INNER JOIN "mySchema"."Tags" "tags" ON "tags"."id" = "tags->UserTags"."tagId"
+          )
+            ON "User"."id" = "tags->UserTags"."userId";
+        `,
+      });
+    });
+
+    it('does not schema-qualify the projected source column of a nested belongsToMany JOIN with minified aliases', () => {
+      const { schemaQueryGenerator, User, Project } = schemaVars;
+
+      const sql = schemaQueryGenerator.selectQuery(
+        User.table,
+        {
+          model: User,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: User,
+            limit: 5,
+            include: [
+              {
+                association: User.associations.mainProject,
+                attributes: [],
+                required: true,
+                include: [
+                  {
+                    association: Project.associations.tags,
+                    attributes: ['id'],
+                    required: true,
+                  },
+                ],
+              },
+            ],
+          }).include,
+          limit: 5,
+          offset: 0,
+          subQuery: true,
+          minifyAliases: true,
+        },
+        User,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [User].*,
+            [mainProject->tags].[id] AS [_0],
+            [mainProject->tags->ProjectTags].[createdAt] AS [_1],
+            [mainProject->tags->ProjectTags].[updatedAt] AS [_2],
+            [mainProject->tags->ProjectTags].[tagId] AS [_3],
+            [mainProject->tags->ProjectTags].[projectId] AS [_4]
+          FROM (
+            SELECT [User].[id], [mainProject].[id] AS [_5]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [mainProject]
+              ON [User].[mainProjectId] = [mainProject].[id]
+            WHERE EXISTS (
+              SELECT [mainProject].[id]
+              FROM [mySchema].[Projects] AS [mainProject]
+              INNER JOIN (
+                [mySchema].[ProjectTags] AS [tags->ProjectTags]
+                INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->ProjectTags].[tagId]
+              )
+                ON [mainProject].[id] = [tags->ProjectTags].[projectId]
+              WHERE [mainProject].[id] = [User].[mainProjectId]
+            )
+            ORDER BY [User].[id] LIMIT 5
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[ProjectTags] AS [mainProject->tags->ProjectTags]
+            INNER JOIN [mySchema].[Tags] AS [mainProject->tags] ON [mainProject->tags].[id] = [mainProject->tags->ProjectTags].[tagId]
+          )
+            ON [_5] = [mainProject->tags->ProjectTags].[projectId];
+        `,
+        sqlite3: `
+          SELECT
+            \`User\`.*,
+            \`mainProject->tags\`.\`id\` AS \`_0\`,
+            \`mainProject->tags->ProjectTags\`.\`createdAt\` AS \`_1\`,
+            \`mainProject->tags->ProjectTags\`.\`updatedAt\` AS \`_2\`,
+            \`mainProject->tags->ProjectTags\`.\`tagId\` AS \`_3\`,
+            \`mainProject->tags->ProjectTags\`.\`projectId\` AS \`_4\`
+          FROM (
+            SELECT \`User\`.\`id\`, \`mainProject\`.\`id\` AS \`_5\`
+            FROM \`mySchema.Users\` AS \`User\`
+            INNER JOIN \`mySchema.Projects\` AS \`mainProject\`
+              ON \`User\`.\`mainProjectId\` = \`mainProject\`.\`id\`
+            WHERE EXISTS (
+              SELECT \`mainProject\`.\`id\`
+              FROM \`mySchema.Projects\` AS \`mainProject\`
+              INNER JOIN (
+                \`mySchema.ProjectTags\` AS \`tags->ProjectTags\`
+                INNER JOIN \`mySchema.Tags\` AS \`tags\` ON \`tags\`.\`id\` = \`tags->ProjectTags\`.\`tagId\`
+              )
+                ON \`mainProject\`.\`id\` = \`tags->ProjectTags\`.\`projectId\`
+              WHERE \`mainProject\`.\`id\` = \`User\`.\`mainProjectId\`
+            )
+            ORDER BY \`User\`.\`id\` LIMIT 5
+          ) AS \`User\`
+          INNER JOIN (
+            \`mySchema.ProjectTags\` AS \`mainProject->tags->ProjectTags\`
+            INNER JOIN \`mySchema.Tags\` AS \`mainProject->tags\` ON \`mainProject->tags\`.\`id\` = \`mainProject->tags->ProjectTags\`.\`tagId\`
+          )
+            ON \`_5\` = \`mainProject->tags->ProjectTags\`.\`projectId\`;
+        `,
+        mssql: `
+          SELECT
+            [User].*,
+            [mainProject->tags].[id] AS [_0],
+            [mainProject->tags->ProjectTags].[createdAt] AS [_1],
+            [mainProject->tags->ProjectTags].[updatedAt] AS [_2],
+            [mainProject->tags->ProjectTags].[tagId] AS [_3],
+            [mainProject->tags->ProjectTags].[projectId] AS [_4]
+          FROM (
+            SELECT [User].[id], [mainProject].[id] AS [_5]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [mainProject]
+              ON [User].[mainProjectId] = [mainProject].[id]
+            WHERE EXISTS (
+              SELECT [mainProject].[id]
+              FROM [mySchema].[Projects] AS [mainProject]
+              INNER JOIN (
+                [mySchema].[ProjectTags] AS [tags->ProjectTags]
+                INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->ProjectTags].[tagId]
+              )
+                ON [mainProject].[id] = [tags->ProjectTags].[projectId]
+              WHERE [mainProject].[id] = [User].[mainProjectId]
+            )
+            ORDER BY [User].[id] OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[ProjectTags] AS [mainProject->tags->ProjectTags]
+            INNER JOIN [mySchema].[Tags] AS [mainProject->tags] ON [mainProject->tags].[id] = [mainProject->tags->ProjectTags].[tagId]
+          )
+            ON [_5] = [mainProject->tags->ProjectTags].[projectId];
+        `,
+        'db2 ibmi': `
+          SELECT
+            [User].*,
+            [mainProject->tags].[id] AS [_0],
+            [mainProject->tags->ProjectTags].[createdAt] AS [_1],
+            [mainProject->tags->ProjectTags].[updatedAt] AS [_2],
+            [mainProject->tags->ProjectTags].[tagId] AS [_3],
+            [mainProject->tags->ProjectTags].[projectId] AS [_4]
+          FROM (
+            SELECT [User].[id], [mainProject].[id] AS [_5]
+            FROM [mySchema].[Users] AS [User]
+            INNER JOIN [mySchema].[Projects] AS [mainProject]
+              ON [User].[mainProjectId] = [mainProject].[id]
+            WHERE EXISTS (
+              SELECT [mainProject].[id]
+              FROM [mySchema].[Projects] AS [mainProject]
+              INNER JOIN (
+                [mySchema].[ProjectTags] AS [tags->ProjectTags]
+                INNER JOIN [mySchema].[Tags] AS [tags] ON [tags].[id] = [tags->ProjectTags].[tagId]
+              )
+                ON [mainProject].[id] = [tags->ProjectTags].[projectId]
+              WHERE [mainProject].[id] = [User].[mainProjectId]
+            )
+            ORDER BY [User].[id] FETCH NEXT 5 ROWS ONLY
+          ) AS [User]
+          INNER JOIN (
+            [mySchema].[ProjectTags] AS [mainProject->tags->ProjectTags]
+            INNER JOIN [mySchema].[Tags] AS [mainProject->tags] ON [mainProject->tags].[id] = [mainProject->tags->ProjectTags].[tagId]
+          )
+            ON [_5] = [mainProject->tags->ProjectTags].[projectId];
+        `,
+        oracle: `
+          SELECT
+            "User".*,
+            "mainProject->tags"."id" AS "_0",
+            "mainProject->tags->ProjectTags"."createdAt" AS "_1",
+            "mainProject->tags->ProjectTags"."updatedAt" AS "_2",
+            "mainProject->tags->ProjectTags"."tagId" AS "_3",
+            "mainProject->tags->ProjectTags"."projectId" AS "_4"
+          FROM (
+            SELECT "User"."id", "mainProject"."id" AS "_5"
+            FROM "mySchema"."Users" "User"
+            INNER JOIN "mySchema"."Projects" "mainProject"
+              ON "User"."mainProjectId" = "mainProject"."id"
+            WHERE EXISTS (
+              SELECT "mainProject"."id"
+              FROM "mySchema"."Projects" "mainProject"
+              INNER JOIN (
+                "mySchema"."ProjectTags" "tags->ProjectTags"
+                INNER JOIN "mySchema"."Tags" "tags" ON "tags"."id" = "tags->ProjectTags"."tagId"
+              )
+                ON "mainProject"."id" = "tags->ProjectTags"."projectId"
+              WHERE "mainProject"."id" = "User"."mainProjectId"
+            )
+            ORDER BY "User"."id" OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY
+          ) "User"
+          INNER JOIN (
+            "mySchema"."ProjectTags" "mainProject->tags->ProjectTags"
+            INNER JOIN "mySchema"."Tags" "mainProject->tags" ON "mainProject->tags"."id" = "mainProject->tags->ProjectTags"."tagId"
+          )
+            ON "_5" = "mainProject->tags->ProjectTags"."projectId";
+        `,
+      });
+    });
+
+    it('does not schema-qualify aliases in a belongsToMany nested under a required hasMany with minified aliases', () => {
+      const nestedSequelize = createSequelizeInstance({ schema: 'mySchema' });
+
+      interface NFoo extends Model<InferAttributes<NFoo>, InferCreationAttributes<NFoo>> {
+        id: CreationOptional<number>;
+      }
+      const Foo = nestedSequelize.define<NFoo>(
+        'SippieFoo',
+        { id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true } },
+        { timestamps: false },
+      );
+
+      interface NBar extends Model<InferAttributes<NBar>, InferCreationAttributes<NBar>> {
+        id: CreationOptional<number>;
+      }
+      const Bar = nestedSequelize.define<NBar>(
+        'SippieBar',
+        { id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true } },
+        { timestamps: false },
+      );
+
+      interface NYeet extends Model<InferAttributes<NYeet>, InferCreationAttributes<NYeet>> {
+        id: CreationOptional<number>;
+      }
+      const Yeet = nestedSequelize.define<NYeet>(
+        'SippieYeet',
+        { id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true } },
+        { timestamps: false },
+      );
+
+      Foo.hasMany(Bar, { as: 'bars' });
+      Bar.belongsToMany(Yeet, { through: 'BarYeets', as: 'yeets' });
+
+      const sql = nestedSequelize.queryGenerator.selectQuery(
+        Foo.table,
+        {
+          model: Foo,
+          attributes: ['id'],
+          include: _validateIncludedElements({
+            model: Foo,
+            include: [
+              {
+                association: Foo.associations.bars,
+                attributes: ['id'],
+                required: true,
+                include: [{ association: Bar.associations.yeets, attributes: ['id'] }],
+              },
+            ],
+          }).include,
+          minifyAliases: true,
+        },
+        Foo,
+      );
+
+      expectsql(sql, {
+        default: `
+          SELECT
+            [SippieFoo].[id],
+            [bars].[id] AS [_0],
+            [bars->yeets].[id] AS [_1],
+            [bars->yeets->BarYeets].[createdAt] AS [_2],
+            [bars->yeets->BarYeets].[updatedAt] AS [_3],
+            [bars->yeets->BarYeets].[sippieYeetId] AS [_4],
+            [bars->yeets->BarYeets].[sippieBarId] AS [_5]
+          FROM [mySchema].[SippieFoos] AS [SippieFoo]
+          INNER JOIN [mySchema].[SippieBars] AS [bars] ON [SippieFoo].[id] = [bars].[sippieFooId]
+          LEFT OUTER JOIN (
+            [mySchema].[BarYeets] AS [bars->yeets->BarYeets]
+            INNER JOIN [mySchema].[SippieYeets] AS [bars->yeets] ON [bars->yeets].[id] = [bars->yeets->BarYeets].[sippieYeetId]
+          )
+            ON [bars].[id] = [bars->yeets->BarYeets].[sippieBarId];
+        `,
+        sqlite3: `
+          SELECT
+            \`SippieFoo\`.\`id\`,
+            \`bars\`.\`id\` AS \`_0\`,
+            \`bars->yeets\`.\`id\` AS \`_1\`,
+            \`bars->yeets->BarYeets\`.\`createdAt\` AS \`_2\`,
+            \`bars->yeets->BarYeets\`.\`updatedAt\` AS \`_3\`,
+            \`bars->yeets->BarYeets\`.\`sippieYeetId\` AS \`_4\`,
+            \`bars->yeets->BarYeets\`.\`sippieBarId\` AS \`_5\`
+          FROM \`mySchema.SippieFoos\` AS \`SippieFoo\`
+          INNER JOIN \`mySchema.SippieBars\` AS \`bars\` ON \`SippieFoo\`.\`id\` = \`bars\`.\`sippieFooId\`
+          LEFT OUTER JOIN (
+            \`mySchema.BarYeets\` AS \`bars->yeets->BarYeets\`
+            INNER JOIN \`mySchema.SippieYeets\` AS \`bars->yeets\` ON \`bars->yeets\`.\`id\` = \`bars->yeets->BarYeets\`.\`sippieYeetId\`
+          )
+            ON \`bars\`.\`id\` = \`bars->yeets->BarYeets\`.\`sippieBarId\`;
+        `,
+        oracle: `
+          SELECT
+            "SippieFoo"."id",
+            "bars"."id" AS "_0",
+            "bars->yeets"."id" AS "_1",
+            "bars->yeets->BarYeets"."createdAt" AS "_2",
+            "bars->yeets->BarYeets"."updatedAt" AS "_3",
+            "bars->yeets->BarYeets"."sippieYeetId" AS "_4",
+            "bars->yeets->BarYeets"."sippieBarId" AS "_5"
+          FROM "mySchema"."SippieFoos" "SippieFoo"
+          INNER JOIN "mySchema"."SippieBars" "bars" ON "SippieFoo"."id" = "bars"."sippieFooId"
+          LEFT OUTER JOIN (
+            "mySchema"."BarYeets" "bars->yeets->BarYeets"
+            INNER JOIN "mySchema"."SippieYeets" "bars->yeets" ON "bars->yeets"."id" = "bars->yeets->BarYeets"."sippieYeetId"
+          )
+            ON "bars"."id" = "bars->yeets->BarYeets"."sippieBarId";
+        `,
       });
     });
   });

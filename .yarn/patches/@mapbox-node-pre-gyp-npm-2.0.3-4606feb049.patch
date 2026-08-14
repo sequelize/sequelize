@@ -1,0 +1,159 @@
+diff --git a/lib/install.js b/lib/install.js
+index 51839cc88eb07eaf57b484f52032f65abe0a50f9..a798cf29b1255c8e14fa2e284ed1558d71b442e7 100644
+--- a/lib/install.js
++++ b/lib/install.js
+@@ -11,7 +11,6 @@ const existsAsync = fs.exists || path.exists;
+ const versioning = require('./util/versioning.js');
+ const napi = require('./util/napi.js');
+ const s3_setup = require('./util/s3_setup.js');
+-const url = require('url');
+ // for fetching binaries
+ const fetch = require('node-fetch');
+ const tar = require('tar');
+@@ -25,6 +24,10 @@ try {
+   // do nothing
+ }
+ 
++function joinS3Key(prefix, packageName) {
++  return prefix ? `${prefix.replace(/\/+$/, '')}/${packageName}` : packageName;
++}
++
+ function place_binary_authenticated(opts, targetDir, callback) {
+   log.info('install', 'Attempting authenticated S3 download');
+ 
+@@ -38,7 +41,7 @@ function place_binary_authenticated(opts, targetDir, callback) {
+   try {
+     const config = s3_setup.detect(opts);
+     const s3 = s3_setup.get_s3(config);
+-    const key_name = url.resolve(config.prefix, opts.package_name);
++    const key_name = joinS3Key(config.prefix, opts.package_name);
+ 
+     log.info('install', 'Downloading from S3:', config.bucket, key_name);
+ 
+diff --git a/lib/publish.js b/lib/publish.js
+index 97067ce48903229cd33fb2f37c950c4e809dfea6..2b4a400656e924a14bf9602f385a4f54c614d028 100644
+--- a/lib/publish.js
++++ b/lib/publish.js
+@@ -11,7 +11,10 @@ const versioning = require('./util/versioning.js');
+ const napi = require('./util/napi.js');
+ const s3_setup = require('./util/s3_setup.js');
+ const existsAsync = fs.exists || path.exists;
+-const url = require('url');
++
++function joinS3Key(prefix, packageName) {
++  return prefix ? `${prefix.replace(/\/+$/, '')}/${packageName}` : packageName;
++}
+ 
+ function publish(gyp, argv, callback) {
+   const package_json = gyp.package_json;
+@@ -27,7 +30,7 @@ function publish(gyp, argv, callback) {
+     const config = s3_setup.detect(opts);
+     const s3 = s3_setup.get_s3(config);
+ 
+-    const key_name = url.resolve(config.prefix, opts.package_name);
++    const key_name = joinS3Key(config.prefix, opts.package_name);
+     const s3_opts = {
+       Bucket: config.bucket,
+       Key: key_name
+diff --git a/lib/unpublish.js b/lib/unpublish.js
+index b8e1b550d5a852db917174adb487a8ae55f641a1..e0e56361f526dc65755e1e5003469dd9bfa6389c 100644
+--- a/lib/unpublish.js
++++ b/lib/unpublish.js
+@@ -8,7 +8,10 @@ const log = require('./util/log.js');
+ const versioning = require('./util/versioning.js');
+ const napi = require('./util/napi.js');
+ const s3_setup = require('./util/s3_setup.js');
+-const url = require('url');
++
++function joinS3Key(prefix, packageName) {
++  return prefix ? `${prefix.replace(/\/+$/, '')}/${packageName}` : packageName;
++}
+ 
+ function unpublish(gyp, argv, callback) {
+   const package_json = gyp.package_json;
+@@ -16,7 +19,7 @@ function unpublish(gyp, argv, callback) {
+   const opts = versioning.evaluate(package_json, gyp.opts, napi_build_version);
+   const config = s3_setup.detect(opts);
+   const s3 = s3_setup.get_s3(config);
+-  const key_name = url.resolve(config.prefix, opts.package_name);
++  const key_name = joinS3Key(config.prefix, opts.package_name);
+   const s3_opts = {
+     Bucket: config.bucket,
+     Key: key_name
+diff --git a/lib/util/s3_setup.js b/lib/util/s3_setup.js
+index 6fd3c924fb2c3f85c601b3d14926d61b14076890..74c7e7756ecb69575ff14140accfd1fbc22f0b0c 100644
+--- a/lib/util/s3_setup.js
++++ b/lib/util/s3_setup.js
+@@ -2,13 +2,11 @@
+ 
+ module.exports = exports;
+ 
+-const url = require('url');
+-
+ module.exports.detect = function(opts) {
+   const config = {};
+ 
+   const to = opts.hosted_path;
+-  const uri = url.parse(to);
++  const uri = new URL(to);
+ 
+   if (opts.bucket && opts.region) {
+     // use user defined settings for host, region, bucket
+diff --git a/lib/util/versioning.js b/lib/util/versioning.js
+index b69b367e1e42e152f27890b0516517f5618adf75..bde7f5535cac9c4a8b8397153b711a4c147379e6 100644
+--- a/lib/util/versioning.js
++++ b/lib/util/versioning.js
+@@ -4,7 +4,6 @@ module.exports = exports;
+ 
+ const path = require('path');
+ const semver = require('semver');
+-const url = require('url');
+ const detect_libc = require('detect-libc');
+ const napi = require('./napi.js');
+ 
+@@ -221,7 +220,7 @@ function validate_config(package_json, opts) {
+   }
+   if (o) {
+     // enforce https over http
+-    const protocol = url.parse(o.host).protocol;
++    const protocol = new URL(o.host).protocol;
+     if (protocol === 'http:') {
+       throw new Error("'host' protocol (" + protocol + ") is invalid - only 'https:' is accepted");
+     }
+@@ -241,7 +240,7 @@ function eval_template(template, opts) {
+   return template;
+ }
+ 
+-// url.resolve needs single trailing slash
++// URL resolution needs a single trailing slash
+ // to behave correctly, otherwise a double slash
+ // may end up in the url which breaks requests
+ // and a lacking slash may not lead to proper joining
+@@ -252,6 +251,10 @@ function fix_slashes(pathname) {
+   return pathname;
+ }
+ 
++function resolveUrl(from, to) {
++  return new URL(to, fix_slashes(from)).toString();
++}
++
+ // remove double slashes
+ // note: path.normalize will not work because
+ // it will convert forward to back slashes
+@@ -333,10 +336,13 @@ module.exports.evaluate = function(package_json, options, napi_build_version) {
+   // when using s3ForcePathStyle the bucket is part of the http object path
+   // add it
+   if (opts.s3ForcePathStyle) {
+-    opts.hosted_path = url.resolve(opts.host, drop_double_slashes(`${opts.bucket}/${opts.remote_path}`));
++    opts.hosted_path = resolveUrl(
++      opts.host,
++      drop_double_slashes(`${opts.bucket}/${opts.remote_path}`),
++    );
+   } else {
+-    opts.hosted_path = url.resolve(opts.host, opts.remote_path);
++    opts.hosted_path = resolveUrl(opts.host, opts.remote_path);
+   }
+-  opts.hosted_tarball = url.resolve(opts.hosted_path, opts.package_name);
++  opts.hosted_tarball = resolveUrl(opts.hosted_path, opts.package_name);
+   return opts;
+ };

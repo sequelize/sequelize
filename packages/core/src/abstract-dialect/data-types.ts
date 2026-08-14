@@ -20,7 +20,7 @@ import { makeBufferFromTypedArray } from '../utils/buffer.js';
 import { isValidTimeZone } from '../utils/dayjs.js';
 import { doNotUseRealDataType } from '../utils/deprecations.js';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
-import { validator as Validator } from '../utils/validator-extras';
+import { Validator } from '../utils/validator-extras';
 import {
   attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,

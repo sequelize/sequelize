@@ -1,5 +1,6 @@
 'use strict';
 
+import { inspect, pojo } from '@sequelize/utils';
 import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
@@ -11,16 +12,20 @@ import isPlainObject from 'lodash/isPlainObject';
 import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
+import crypto from 'node:crypto';
 import NodeUtil from 'node:util';
 import { Association } from '../associations/base';
 import { BelongsToAssociation } from '../associations/belongs-to';
 import { BelongsToManyAssociation } from '../associations/belongs-to-many';
 import { HasManyAssociation } from '../associations/has-many';
+import * as DataTypes from '../data-types';
 import { ParameterStyle } from '../enums.js';
+import * as sequelizeError from '../errors';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import { Col } from '../expression-builders/col.js';
 import { Literal } from '../expression-builders/literal.js';
-import { conformIndex } from '../model-internals';
+import { _validateIncludedElements, conformIndex } from '../model-internals';
+import { Op } from '../operators';
 import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
@@ -31,14 +36,6 @@ import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
-
-const util = require('node:util');
-const crypto = require('node:crypto');
-
-const DataTypes = require('../data-types');
-const { Op } = require('../operators');
-const sequelizeError = require('../errors');
-const { _validateIncludedElements } = require('../model-internals');
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
@@ -105,7 +102,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returningModelAttributes = [];
     const returnTypes = [];
     const returnAttributes = [];
-    const values = Object.create(null);
+    const values = pojo();
     const quotedTable = this.quoteTable(table);
     let bind;
     let bindParam;
@@ -161,8 +158,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind =
-        this.dialect.supports.returnIntoValues && options.bind ? options.bind : Object.create(null);
+      bind = this.dialect.supports.returnIntoValues && options.bind ? options.bind : pojo();
       bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
@@ -496,7 +492,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (parameterStyle === ParameterStyle.BIND) {
-      bind = Object.create(null);
+      bind = pojo();
       bindParam = createBindParamGenerator(bind);
     }
 
@@ -710,7 +706,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       if (!field.name) {
-        throw new Error(`The following index field has no name: ${util.inspect(field)}`);
+        throw new Error(`The following index field has no name: ${inspect(field)}`);
       }
 
       result += this.quoteIdentifier(field.name);
@@ -1002,7 +998,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       );
     }
 
-    throw new Error(`Unknown structure passed to order / group: ${util.inspect(collection)}`);
+    throw new Error(`Unknown structure passed to order / group: ${NodeUtil.inspect(collection)}`);
   }
 
   /**
@@ -2096,7 +2092,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // TODO: use whereItemsQuery to generate the entire "ON" condition.
-    let joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
+    let joinOn = `${this.quoteIdentifier(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
     const subqueryAttributes = [];
 
     if (
@@ -2106,7 +2102,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       if (parentIsTop) {
         // The main model attributes is not aliased to a prefix
         const tableName = parent.as || parent.model.name;
-        const quotedTableName = this.quoteTable(tableName);
+        const quotedTableName = this.quoteIdentifier(tableName);
 
         // Check for potential aliased JOIN condition
         joinOn =
@@ -2369,13 +2365,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const joinColumn = association.sourceKeyField || attrSource || identSource;
 
         if (isRootParent) {
-          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+          sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
         } else {
           const aliasBase = `${dottedTableSource}.${joinColumn}`;
 
           aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
 
-          const projection = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+          const projection = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
 
           if (!attributes.subQuery.includes(projection)) {
             attributes.subQuery.push(projection);
@@ -2415,7 +2411,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
     } else {
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+      sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
     }
 
     sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
@@ -2524,7 +2520,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             [Op.and]: [
               new Literal(
                 [
-                  `${this.quoteTable(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
+                  `${this.quoteIdentifier(topParent.model.name)}.${this.quoteIdentifier(topAssociation.sourceKeyField || topParent.model.primaryKeyField)}`,
                   `${this.quoteIdentifier(topInclude.through.model.name)}.${this.quoteIdentifier(topAssociation.identifierField)}`,
                 ].join(' = '),
               ),
@@ -2546,7 +2542,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       const join = [
         `${this.quoteIdentifier(topInclude.as)}.${this.quoteIdentifier(targetField)}`,
-        `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
+        `${this.quoteIdentifier(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
       ].join(' = ');
 
       query = this.selectQuery(
