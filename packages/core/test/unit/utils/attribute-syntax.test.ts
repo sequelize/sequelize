@@ -1,12 +1,16 @@
 import { AssociationPath, Attribute, sql } from '@sequelize/core';
 import { Unquote } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/dialect-aware-fn.js';
 import {
+  ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE,
   parseAttributeSyntax,
   parseNestedJsonKeySyntax,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/attribute-syntax.js';
 import { expect } from 'chai';
 
 describe('parseAttributeSyntax', () => {
+  beforeEach(() => parseAttributeSyntax.cache.clear());
+  afterEach(() => parseAttributeSyntax.cache.clear());
+
   it('parses simple attributes', () => {
     expect(parseAttributeSyntax('foo')).to.deep.eq(new Attribute('foo'));
   });
@@ -100,9 +104,34 @@ textAttr:json.property
       sql.jsonPath(new Attribute('foo'), ['abc', 0, 'def', 1]),
     );
   });
+
+  it('keeps recently used attributes cached within a fixed bound', () => {
+    const syntaxes = Array.from(
+      { length: ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE },
+      (_, index) => `field${index}`,
+    );
+
+    for (const syntax of syntaxes) {
+      parseAttributeSyntax(syntax);
+    }
+
+    const firstSyntax = syntaxes[0];
+    const secondSyntax = syntaxes[1];
+    const firstResult = parseAttributeSyntax(firstSyntax);
+
+    parseAttributeSyntax('nextField');
+
+    expect(parseAttributeSyntax.cache.size).to.equal(ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE);
+    expect(parseAttributeSyntax.cache.has(firstSyntax)).to.be.true;
+    expect(parseAttributeSyntax.cache.has(secondSyntax)).to.be.false;
+    expect(parseAttributeSyntax(firstSyntax)).to.equal(firstResult);
+  });
 });
 
 describe('parseNestedJsonKeySyntax', () => {
+  beforeEach(() => parseNestedJsonKeySyntax.cache.clear());
+  afterEach(() => parseNestedJsonKeySyntax.cache.clear());
+
   it('parses JSON paths', () => {
     expect(parseNestedJsonKeySyntax('foo.bar')).to.deep.eq({
       pathSegments: ['foo', 'bar'],
@@ -130,5 +159,27 @@ describe('parseNestedJsonKeySyntax', () => {
       pathSegments: [0],
       castsAndModifiers: [Unquote, 'text', Unquote, 'text'],
     });
+  });
+
+  it('keeps recently used JSON keys cached within a fixed bound', () => {
+    const syntaxes = Array.from(
+      { length: ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE },
+      (_, index) => `property${index}`,
+    );
+
+    for (const syntax of syntaxes) {
+      parseNestedJsonKeySyntax(syntax);
+    }
+
+    const firstSyntax = syntaxes[0];
+    const secondSyntax = syntaxes[1];
+    const firstResult = parseNestedJsonKeySyntax(firstSyntax);
+
+    parseNestedJsonKeySyntax('nextProperty');
+
+    expect(parseNestedJsonKeySyntax.cache.size).to.equal(ATTRIBUTE_SYNTAX_CACHE_MAX_SIZE);
+    expect(parseNestedJsonKeySyntax.cache.has(firstSyntax)).to.be.true;
+    expect(parseNestedJsonKeySyntax.cache.has(secondSyntax)).to.be.false;
+    expect(parseNestedJsonKeySyntax(firstSyntax)).to.equal(firstResult);
   });
 });
