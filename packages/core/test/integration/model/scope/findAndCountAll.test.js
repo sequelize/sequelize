@@ -42,6 +42,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
         );
 
+        this.Team = this.sequelize.define('Team', {
+          name: DataTypes.STRING,
+        });
+
+        this.Player = this.sequelize.define('Player', {
+          name: DataTypes.STRING,
+        }, {
+          scopes: {
+            includeTeam: {
+              include: [{ model: this.Team }],
+            },
+          },
+        });
+
+        this.Team.hasMany(this.Player);
+        this.Player.belongsTo(this.Team);
+
         await this.sequelize.sync({ force: true });
         const records = [
           { username: 'tony', email: 'tony@sequelizejs.com', access_level: 3, other_value: 7 },
@@ -49,6 +66,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           { username: 'dan', email: 'dan@sequelizejs.com', access_level: 5, other_value: 10 },
           { username: 'fred', email: 'fred@foobar.com', access_level: 3, other_value: 7 },
         ];
+
+        const teamRed = await this.Team.create({ name: 'Team Red' });
+        const teamBlue = await this.Team.create({ name: 'Team Blue' });
+
+        const bubby = await this.Player.create({ name: 'bubby' });
+        const lisa = await this.Player.create({ name: 'lisa' });
+        const anna = await this.Player.create({ name: 'anna' });
+        const riko = await this.Player.create({ name: 'riko' });
+
+        await bubby.setTeam(teamBlue);
+        await lisa.setTeam(teamBlue);
+        await anna.setTeam(teamRed);
+        await riko.setTeam(teamRed);
 
         await this.ScopeMe.bulkCreate(records);
       });
@@ -94,6 +124,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       it('should ignore the order option if it is found within the scope', async function () {
         const result = await this.ScopeMe.withScope('withOrder').findAndCountAll();
+        expect(result.count).to.equal(4);
+      });
+
+      it('should include table that is defined as include within a scope', async function () {
+        const result = await this.Player.scope('includeTeam').findAndCountAll({ distinct: true });
         expect(result.count).to.equal(4);
       });
     });
