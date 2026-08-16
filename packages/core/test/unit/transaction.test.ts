@@ -87,14 +87,11 @@ describe('Transaction', () => {
     }
   });
 
-  // https://github.com/sequelize/sequelize/issues/18207
   it('uses a unique name for each nested savepoint', async function () {
     if (!sequelize.dialect.supports.savepoints) {
       return this.skip();
     }
 
-    // Hand out a distinct id on every call so the savepoint names can only
-    // collide if they are derived from something other than a fresh id.
     let counter = 0;
     vars.stubTransactionId.callsFake(() => `txn-${counter++}`);
 
@@ -120,8 +117,6 @@ describe('Transaction', () => {
       .filter(isSavepointCreation);
 
     expect(savepointCreations).to.have.lengthOf(2);
-    // Both nested savepoints previously resolved to the same name (e.g.
-    // `<id>-sp-0`), so a rollback could target the wrong savepoint.
     expect(new Set(savepointCreations).size).to.equal(2);
   });
 });
