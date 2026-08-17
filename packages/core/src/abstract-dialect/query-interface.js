@@ -582,12 +582,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
   async union(sqls, options) {
     options = { ...options, type: QueryTypes.SELECT };
+
     const sql = this.queryGenerator.unionQuery(sqls, options);
 
-    const queryRawOptions = { ...options };
-    delete queryRawOptions.replacements;
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
 
-    return await this.sequelize.queryRaw(sql, queryRawOptions);
+    return await this.sequelize.queryRaw(sql, options);
   }
 
   async increment(

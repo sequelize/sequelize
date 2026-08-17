@@ -21,6 +21,7 @@ import type {
   RemoveIndexQueryOptions,
   TableOrModel,
   UnionOptions,
+  UnionRow,
 } from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription } from './query-interface.types.js';
@@ -388,12 +389,16 @@ export class AbstractQueryInterface<
   ): Promise<object[]>;
 
   /**
-   * Run a union query
+   * Combines the results of already-generated `SELECT` queries into a single result set, using the
+   * SQL `UNION` operator.
    *
-   * @param sqls SQL queries to union.
-   * @param options Options for the union query.
+   * Prefer {@link Sequelize#union}, which validates that the member queries can be unioned before
+   * reaching the database.
+   *
+   * @param sqls The SQL of the queries to union.
+   * @param options Options that apply to the combined result set.
    */
-  union(sqls: string[], options?: UnionOptions): Promise<any>;
+  union(sqls: string[], options?: UnionOptions): Promise<UnionRow[]>;
 
   /**
    * Increments a row value

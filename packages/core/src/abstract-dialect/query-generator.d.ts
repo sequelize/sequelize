@@ -22,7 +22,7 @@ import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
-type SelectOptions<M extends Model> = FindOptions<M> & {
+export type SelectOptions<M extends Model> = FindOptions<M> & {
   model: ModelStatic<M>;
 };
 

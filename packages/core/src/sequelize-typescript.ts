@@ -20,11 +20,12 @@ import type {
   DataType,
   DataTypeClassOrInstance,
   DestroyOptions,
-  FindOptions,
   Model,
   ModelAttributes,
   ModelOptions,
   ModelStatic,
+  ModelStaticWithInternals,
+  NormalizedAttributeOptions,
   QiListSchemasOptions,
   QueryOptions,
   RawConnectionOptions,
@@ -39,9 +40,14 @@ import { normalizeDataType, validateDataType } from './abstract-dialect/data-typ
 import type { AbstractDataType } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
+import type { SelectOptions } from './abstract-dialect/query-generator.js';
 import type {
   UnionColumnDescriptor,
   UnionOptions,
+  UnionOrderItem,
+  UnionQuery,
+  UnionQueryOptions,
+  UnionRow,
 } from './abstract-dialect/query-generator.types.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
 import type { AbstractQuery } from './abstract-dialect/query.js';
@@ -50,6 +56,7 @@ import { ReplicationPool } from './abstract-dialect/replication-pool.js';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import { ConnectionAcquireTimeoutError } from './errors/connection/connection-acquire-timeout-error.js';
+import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
 import {
   legacyBuildAddAnyHook,
   legacyBuildAddHook,
@@ -80,7 +87,9 @@ import { getIntersection } from './utils/array.js';
 import { normalizeReplicationConfig } from './utils/connection-options.js';
 import * as Deprecations from './utils/deprecations.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
-import { removeUndefined, untypedMultiSplitObject } from './utils/object.js';
+import type { FinderAttribute } from './utils/format.js';
+import { mapFinderOptions } from './utils/format.js';
+import { cloneDeep, removeUndefined, untypedMultiSplitObject } from './utils/object.js';
 
 export interface SequelizeHooks<Dialect extends AbstractDialect> extends ModelHooks {
   /**
@@ -1206,107 +1215,316 @@ Connection options can be used at the root of the option bag, in the "replicatio
     return normalizeDataType(Type, this.dialect);
   }
 
-  async union<T extends Model>(
-    queries: Array<{ model: ModelStatic<T>; options?: Omit<FindOptions<T>, 'include'> }>,
+  /**
+   * Combines the results of multiple queries into a single result set, using the SQL `UNION`
+   * operator.
+   *
+   * Every member query must select the same number of columns, and the columns at the same position
+   * must have compatible types. As required by SQL, the result columns are named after the *first*
+   * member query.
+   *
+   * **Note:** the rows returned by this method are plain objects, not model instances. A UNION can
+   * combine rows coming from different models, so no single model could faithfully represent every
+   * row. Getters, virtual attributes and instance methods such as `toJSON()` are therefore
+   * unavailable on them, exactly like the rows returned by {@link Sequelize#query}.
+   *
+   * Member queries accept the same options as {@link Model.findAll}, except for `include`, `limit`,
+   * `offset` and `order` (see {@link UnionQueryOptions}). Model scopes and paranoid (soft-delete)
+   * filtering *are* applied, but `beforeFind` and `afterFind` hooks are *not* run, because this
+   * method does not go through {@link Model.findAll}.
+   *
+   * @example
+   * ```ts
+   * const results = await sequelize.union(
+   *   [
+   *     { model: Car, options: { attributes: ['name', ['topSpeed', 'velocity']] } },
+   *     { model: Plane, options: { attributes: ['name', ['maxAirSpeed', 'velocity']] } },
+   *   ],
+   *   { order: [['velocity', 'DESC']], limit: 10 },
+   * );
+   * ```
+   *
+   * @param queries The member queries to combine. At least one query is required.
+   * @param options Options that apply to the combined result set.
+   */
+  async union<M extends Model>(
+    queries: readonly [UnionQuery<M>, ...Array<UnionQuery<any>>],
+    options?: UnionOptions,
+  ): Promise<Array<UnionRow<M>>>;
+  async union(queries: ReadonlyArray<UnionQuery<any>>, options?: UnionOptions): Promise<UnionRow[]>;
+  async union(
+    queries: ReadonlyArray<UnionQuery<any>>,
     options: UnionOptions = {},
-  ): Promise<T[]> {
+  ): Promise<UnionRow[]> {
     if (!Array.isArray(queries) || queries.length === 0) {
-      throw new TypeError('Sequelize#union requires an array of at least one query parameter.');
+      throw new TypeError('Sequelize#union requires an array of at least one query.');
     }
 
-    for (const q of queries) {
-      if (!q || !q.model) {
+    for (const [i, query] of queries.entries()) {
+      if (!query?.model) {
         throw new TypeError(
-          'Each query passed to Sequelize#union must be an object with a valid "model" property.',
+          `Sequelize#union: query ${i} must be an object with a valid "model" property.`,
         );
       }
     }
 
-    const queryContexts = await Promise.all(
-      queries.map(async q => {
-        const model = q.model as any;
-        const queryOptions: any = {
-          minifyAliases: options.minifyAliases ?? (this as any).options.minifyAliases,
-          ...q.options,
-        };
-        queryOptions.model = model;
+    // `supports['UNION ALL']` is deliberately not consulted: it is only false for sqlite3, where it
+    // means ORDER BY and LIMIT may not appear inside a compound SELECT. Member queries may not use
+    // those options, so plain `UNION ALL` is valid everywhere this method can reach.
+    if (!this.dialect.supports.UNION) {
+      throw new Error(`Sequelize#union is not supported by the "${this.dialect.name}" dialect.`);
+    }
 
-        model._injectScope(queryOptions);
+    options = { ...options };
 
-        if (queryOptions.include) {
-          throw new TypeError('Sequelize.union: eager-loading via `include` is not supported');
-        }
+    // @ts-expect-error -- will be fixed once this class has been merged back with the Sequelize class
+    setTransactionFromCls(options, this);
 
-        model._conformIncludes(queryOptions, model);
-        model._expandAttributes(queryOptions);
-        model._expandIncludeAll(queryOptions, model);
-
-        if (
-          queryOptions.attributes &&
-          !queryOptions.raw &&
-          model.primaryKeyAttribute &&
-          !queryOptions.attributes.includes(model.primaryKeyAttribute) &&
-          (!queryOptions.group ||
-            !queryOptions.hasSingleAssociation ||
-            queryOptions.hasMultiAssociation)
-        ) {
-          queryOptions.attributes = [model.primaryKeyAttribute, ...queryOptions.attributes];
-        }
-
-        if (!queryOptions.attributes) {
-          queryOptions.attributes = [...model.modelDefinition.attributes.keys()];
-          queryOptions.originalAttributes = model._injectDependentVirtualAttributes(
-            queryOptions.attributes,
-          );
-        }
-
-        const attrMap = model.modelDefinition.attributes;
-        const columns: UnionColumnDescriptor[] = [];
-
-        for (const attr of queryOptions.attributes) {
-          const attrName = Array.isArray(attr) ? attr[0] : attr;
-          const def = attrMap.get(attrName);
-
-          columns.push({ name: attrName, dataType: def?.type ?? null });
-        }
-
-        return { model, queryOptions, columns };
-      }),
+    const queryContexts = queries.map((query, queryIndex) =>
+      this.#prepareUnionMember(query, queryIndex),
     );
 
     const referenceColumns = queryContexts[0].columns;
-    for (let i = 1; i < queryContexts.length; i++) {
-      const { columns } = queryContexts[i];
+    for (const [queryIndex, { columns }] of queryContexts.entries()) {
+      if (queryIndex === 0) {
+        continue;
+      }
 
       if (columns.length !== referenceColumns.length) {
         throw new TypeError(
-          `Sequelize#union: query ${i} returns ${columns.length} column(s), ` +
+          `Sequelize#union: query ${queryIndex} returns ${columns.length} column(s), ` +
             `but query 0 returns ${referenceColumns.length} column(s). ` +
             `All queries in a UNION must return the same number of columns.`,
         );
       }
 
-      assertColumnsCompatible(referenceColumns, columns, i);
+      assertColumnsCompatible(referenceColumns, columns, queryIndex, this.dialect.name, options);
     }
 
-    const rawSqls = queryContexts.map(({ model, queryOptions }) => {
-      return (this as any).queryInterface.queryGenerator.selectQuery(
-        model.table,
-        queryOptions,
-        model,
-      );
-    });
+    const order = normalizeUnionOrder(options.order, referenceColumns);
 
-    const unionOptions = {
-      minifyAliases: options.minifyAliases ?? (this as any).options.minifyAliases,
-      aliasesMapping: queryContexts[0]?.queryOptions?.aliasesMapping,
-      ...options,
-    };
+    // LIMIT/OFFSET on an unordered result set is not deterministic, and MSSQL and Oracle reject it
+    // outright, so fall back to the first result column the way selectQuery falls back to the pk.
+    if (order.length === 0 && (options.limit != null || options.offset != null)) {
+      order.push(referenceColumns[0].name);
+    }
 
-    return (this as any).queryInterface.union(rawSqls, unionOptions);
+    const rawSqls = queryContexts.map(({ model, queryOptions }) =>
+      // `SelectOptions` does not describe the `[columnName, attributeName]` form of `attributes`
+      // that `mapFinderOptions` produces. See the stub notice at the top of query-generator.d.ts.
+      this.queryGenerator.selectQuery(model.table, queryOptions as SelectOptions<Model>, model),
+    );
+
+    return this.queryInterface.union(rawSqls, { ...options, order });
+  }
+
+  /**
+   * Normalizes the options of a single member query of {@link Sequelize#union}, following the same
+   * preparation steps as {@link Model.findAll}, and describes the columns it will return.
+   *
+   * @param query The member query.
+   * @param queryIndex The position of the member query, used in error messages.
+   */
+  #prepareUnionMember(query: UnionQuery<any>, queryIndex: number) {
+    const model = query.model as ModelStaticWithInternals;
+
+    // `_injectScope`, `_expandAttributes` and `mapFinderOptions` all mutate their input, so the
+    // caller's options must not be handed to them directly.
+    const rawOptions: RawUnionMemberQueryOptions = cloneDeep(query.options) ?? {};
+    rawOptions.model = model;
+    // Alias minification only exists to work around the identifier length limit that nested
+    // `include` paths can reach. Member queries cannot use `include`, and minifying each member
+    // separately could desynchronize their result column names.
+    rawOptions.minifyAliases = false;
+
+    assertUnionMemberOptionsSupported(rawOptions, queryIndex, false);
+
+    model._injectScope(rawOptions);
+
+    // A scope may inject any of the unsupported options, so they must be checked again.
+    assertUnionMemberOptionsSupported(rawOptions, queryIndex, true);
+
+    // After this, `attributes` is a plain list, which is what the cast below assumes.
+    model._expandAttributes(rawOptions);
+    const queryOptions = rawOptions as UnionMemberQueryOptions;
+
+    if (!queryOptions.attributes) {
+      queryOptions.attributes = [...model.modelDefinition.attributes.keys()];
+    }
+
+    // Must run before the columns are described: it rewrites renamed attributes and drops virtual
+    // ones.
+    mapFinderOptions(queryOptions, model);
+
+    const columns = describeUnionColumns(model, queryOptions.attributes);
+
+    return { model, queryOptions: model._paranoidClause(model, queryOptions), columns };
   }
 }
 
+/**
+ * The options of a member query of {@link Sequelize#union}, as they are received from the caller.
+ */
+type RawUnionMemberQueryOptions = UnionQueryOptions<any> & {
+  model?: ModelStatic;
+  minifyAliases?: boolean;
+};
+
+/**
+ * The options of a member query of {@link Sequelize#union}, once `_expandAttributes` has normalized
+ * `attributes` into a plain list.
+ */
+interface UnionMemberQueryOptions extends Omit<RawUnionMemberQueryOptions, 'attributes' | 'model'> {
+  model: ModelStatic;
+  attributes?: FinderAttribute[];
+}
+
+const UNSUPPORTED_UNION_MEMBER_OPTIONS = ['include', 'limit', 'offset', 'order'] as const;
+
+/**
+ * Rejects the {@link Model.findAll} options that cannot be used by a member query of a UNION.
+ *
+ * @param queryOptions The options of the member query.
+ * @param queryIndex The position of the member query, used in error messages.
+ * @param injectedByScope Whether the options have already gone through `_injectScope`, which lets
+ * the error point at the scope rather than at the caller.
+ */
+function assertUnionMemberOptionsSupported(
+  queryOptions: RawUnionMemberQueryOptions,
+  queryIndex: number,
+  injectedByScope: boolean,
+): void {
+  for (const optionName of UNSUPPORTED_UNION_MEMBER_OPTIONS) {
+    if (queryOptions[optionName] == null) {
+      continue;
+    }
+
+    const source = injectedByScope
+      ? `the scope applied to query ${queryIndex}`
+      : `query ${queryIndex}`;
+
+    if (optionName === 'include') {
+      throw new TypeError(
+        `Sequelize#union: ${source} uses the "include" option, but eager-loading is not supported in a UNION: ` +
+          `it changes which columns the query selects, which would break the column alignment a UNION requires.`,
+      );
+    }
+
+    throw new TypeError(
+      `Sequelize#union: ${source} uses the "${optionName}" option, which is not supported on an individual member of a UNION: ` +
+        `SQLite does not accept that clause inside a compound SELECT, and MySQL requires the member to be parenthesized. ` +
+        `Pass "${optionName}" in the options of Sequelize#union instead, to apply it to the combined result set.`,
+    );
+  }
+}
+
+/**
+ * Returns the data type of an attribute, or `null` when it has none that can be compared across the
+ * members of a UNION: the attribute does not exist, or was declared with a raw SQL type.
+ *
+ * @param attribute The attribute.
+ */
+function getComparableDataType(
+  attribute: NormalizedAttributeOptions | undefined,
+): AbstractDataType<any> | null {
+  return typeof attribute?.type === 'object' ? attribute.type : null;
+}
+
+/**
+ * Describes the columns a member query of a UNION will return.
+ *
+ * @param model The model of the member query.
+ * @param attributes The attributes the member query selects, as normalized by `mapFinderOptions`.
+ */
+function describeUnionColumns(
+  model: ModelStatic,
+  attributes: readonly FinderAttribute[],
+): UnionColumnDescriptor[] {
+  const { attributes: modelAttributes, columns } = model.modelDefinition;
+
+  return attributes.map(attribute => {
+    if (!Array.isArray(attribute)) {
+      return { name: attribute, dataType: getComparableDataType(modelAttributes.get(attribute)) };
+    }
+
+    const [source, alias] = attribute;
+
+    if (typeof source !== 'string') {
+      return { name: alias, dataType: null };
+    }
+
+    // `mapFinderOptions` produces `[columnName, attributeName]`, users write `[attributeName,
+    // alias]`. Looking the column up first tells the two apart when a name is used for both.
+    return {
+      name: alias,
+      dataType: getComparableDataType(columns.get(source) ?? modelAttributes.get(source)),
+    };
+  });
+}
+
+/**
+ * Validates the `order` option of a UNION against the columns the UNION actually returns.
+ *
+ * A UNION's result set only contains the columns selected by its member queries, so ordering by
+ * anything else (an association path, a column of a model that is not the first member) cannot
+ * work. {@link BaseSqlExpression} entries are passed through untouched as an escape hatch.
+ *
+ * @param order The `order` option.
+ * @param columns The columns returned by the UNION.
+ */
+function normalizeUnionOrder(
+  order: UnionOptions['order'],
+  columns: readonly UnionColumnDescriptor[],
+): UnionOrderItem[] {
+  if (order == null) {
+    return [];
+  }
+
+  if (!Array.isArray(order)) {
+    throw new TypeError(
+      `Sequelize#union: the "order" option must be an array, but ${inspect(order)} was received.`,
+    );
+  }
+
+  const columnNames = new Set(columns.map(column => column.name));
+
+  for (const orderItem of order) {
+    if (orderItem instanceof BaseSqlExpression) {
+      continue;
+    }
+
+    const columnName = Array.isArray(orderItem) ? orderItem[0] : orderItem;
+
+    if (typeof columnName !== 'string' || !columnNames.has(columnName)) {
+      throw new TypeError(
+        `Sequelize#union: cannot order by ${inspect(columnName)}, because it is not one of the columns returned by the union ` +
+          `(${join(
+            map(columnNames, name => `"${name}"`),
+            ', ',
+          )}). ` +
+          `Use "sql.literal" if you need to order by an expression.`,
+      );
+    }
+  }
+
+  return [...order];
+}
+
+/**
+ * Dialects that store `TEXT` as a LOB/CLOB, which may neither be compared to another data type nor
+ * deduplicated by a plain `UNION`.
+ */
+const LOB_TEXT_DIALECTS = new Set(['oracle', 'db2']);
+
+/**
+ * Returns the name of the group of data types a data type may safely be unioned with.
+ *
+ * Databases coerce related types (e.g. an `INTEGER` and a `BIGINT`) to a common type in a UNION, so
+ * requiring the exact same data type in every member query would reject queries that are perfectly
+ * valid.
+ *
+ * @param DataTypeClass The constructor of the data type.
+ */
 function getTypeCompatibilityGroup(DataTypeClass: Function): string {
   const name = DataTypeClass.name;
   if (
@@ -1330,31 +1548,60 @@ function getTypeCompatibilityGroup(DataTypeClass: Function): string {
   return name;
 }
 
+/**
+ * Checks that the columns of a member query of a UNION line up with those of the first member query.
+ *
+ * @param referenceColumns The columns returned by the first member query.
+ * @param columns The columns returned by the member query being checked.
+ * @param queryIndex The position of the member query being checked, used in error messages.
+ * @param dialectName The name of the dialect, used for the dialect-specific LOB/CLOB restrictions.
+ * @param options The options of the UNION.
+ */
 function assertColumnsCompatible(
-  referenceColumns: UnionColumnDescriptor[],
-  columns: UnionColumnDescriptor[],
+  referenceColumns: readonly UnionColumnDescriptor[],
+  columns: readonly UnionColumnDescriptor[],
   queryIndex: number,
-) {
-  for (const [j, ref] of referenceColumns.entries()) {
-    const cur = columns[j];
+  dialectName: string,
+  options: UnionOptions,
+): void {
+  const isLobTextDialect = LOB_TEXT_DIALECTS.has(dialectName);
 
-    if (ref.dataType && cur.dataType) {
-      const refConstructor = ref.dataType.constructor;
-      const curConstructor = cur.dataType.constructor;
+  for (const [position, reference] of referenceColumns.entries()) {
+    const column = columns[position];
 
-      if (refConstructor !== curConstructor) {
-        const refGroup = getTypeCompatibilityGroup(refConstructor);
-        const curGroup = getTypeCompatibilityGroup(curConstructor);
+    // A column of unknown type cannot be checked; the database will report any mismatch.
+    if (!reference.dataType || !column.dataType) {
+      continue;
+    }
 
-        if (!refGroup || refGroup !== curGroup) {
-          throw new TypeError(
-            `Sequelize#union: column at position ${j} has incompatible types: ` +
-              `"${refConstructor.name}" (query 0, column "${ref.name}") vs ` +
-              `"${curConstructor.name}" (query ${queryIndex}, column "${cur.name}"). ` +
-              `Columns at the same position must have compatible types across all UNION queries.`,
-          );
-        }
+    const referenceType = reference.dataType.constructor;
+    const columnType = column.dataType.constructor;
+    const involvesText = referenceType.name === 'TEXT' || columnType.name === 'TEXT';
+    const describeColumns =
+      `"${referenceType.name}" (query 0, column "${reference.name}") vs ` +
+      `"${columnType.name}" (query ${queryIndex}, column "${column.name}")`;
+
+    if (referenceType !== columnType) {
+      if (isLobTextDialect && involvesText) {
+        throw new TypeError(
+          `Sequelize#union: column at position ${position} has incompatible types for dialect "${dialectName}": ` +
+            `${describeColumns}. LOB/CLOB (TEXT) columns cannot be unioned with other data types in ${dialectName}.`,
+        );
       }
+
+      if (getTypeCompatibilityGroup(referenceType) !== getTypeCompatibilityGroup(columnType)) {
+        throw new TypeError(
+          `Sequelize#union: column at position ${position} has incompatible types: ${describeColumns}. ` +
+            `Columns at the same position must have compatible types across all UNION queries.`,
+        );
+      }
+    }
+
+    if (isLobTextDialect && involvesText && !options.unionAll) {
+      throw new TypeError(
+        `Sequelize#union: column at position ${position} has type "TEXT" (LOB/CLOB), which is not supported in ` +
+          `standard duplicate-eliminating UNION queries in "${dialectName}". Use "unionAll: true" to perform a UNION ALL query instead.`,
+      );
     }
   }
 }
