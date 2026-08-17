@@ -1631,7 +1631,28 @@ Caused by: "undefined" cannot be escaped`),
       testSql(
         { intAttr1: { [Op.in]: [] } },
         {
-          default: '[intAttr1] IN (NULL)',
+          default: '0 = 1',
+        },
+      );
+
+      testSql(
+        { [Op.or]: [{ intAttr1: { [Op.in]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '0 = 1 OR [intAttr2] = 5',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { intAttr1: { [Op.in]: [] } } },
+        {
+          default: 'NOT (0 = 1)',
+        },
+      );
+
+      testSql(
+        { [Op.and]: [{ intAttr1: { [Op.in]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '0 = 1 AND [intAttr2] = 5',
         },
       );
     });

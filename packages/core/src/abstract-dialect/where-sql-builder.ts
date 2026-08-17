@@ -373,10 +373,10 @@ export class WhereSqlBuilder {
           return '1 = 1';
         }
 
-        rightSql = '(NULL)';
-      } else {
-        rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
+        return '0 = 1';
       }
+
+      rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
     } else {
       throw new TypeError(
         'Operators Op.in and Op.notIn must be called with an array of values, or a literal',
