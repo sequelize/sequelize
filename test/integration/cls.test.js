@@ -142,6 +142,39 @@ for (const [implementation, createNamespace] of implementations) {
           });
       });
 
+      it('does not leak variables to the following promise chain when the transaction rolls back', function () {
+        return expect(
+          this.sequelize.transaction(() => {
+            expect(this.ns.get('transaction')).to.be.ok;
+
+            return Promise.reject(new Error('rollback the transaction'));
+          })
+        )
+          .to.be.rejectedWith('rollback the transaction')
+          .then(() => {
+            expect(this.ns.get('transaction')).not.to.be.ok;
+          });
+      });
+
+      it('does not leave a rolled back transaction ambient for later queries', function () {
+        return expect(
+          this.sequelize.transaction(async () => {
+            await this.User.create({ name: 'discarded' });
+
+            throw new Error('rollback the transaction');
+          })
+        )
+          .to.be.rejectedWith('rollback the transaction')
+          .then(() => {
+            // If the context leaked, this would run on the rolled back transaction and its
+            // already released connection rather than on a fresh one.
+            return this.User.create({ name: 'kept' });
+          })
+          .then(() => {
+            return expect(this.User.findAll()).to.eventually.have.length(1);
+          });
+      });
+
       it('does not leak outside findOrCreate', function () {
         const self = this;
 
