@@ -21,6 +21,9 @@ const debug = logger.debugContext('sql:db2');
  * statements after CREATE TABLE; split them so each one is prepared
  * separately.
  *
+ * Semicolon delimiters inside quoted literals are ignored, so a comment
+ * value such as `'Foo; COMMENT ON COLUMN Bar'` does not split the statement.
+ *
  * @param {string} sql
  * @returns {string[]}
  */
@@ -29,11 +32,54 @@ function splitFollowUpCommentStatements(sql) {
     return [sql];
   }
 
-  return sql
-    .split(/;\s*(?=COMMENT ON COLUMN )/i)
-    .map(part => part.trim())
-    .filter(part => part.length > 0)
-    .map(part => (part.endsWith(';') ? part : `${part};`));
+  const statements = [];
+  let start = 0;
+  let inSingleQuote = false;
+
+  for (let i = 0; i < sql.length; i++) {
+    const char = sql[i];
+
+    if (inSingleQuote) {
+      if (char === "'") {
+        // SQL escaped quote: ''
+        if (sql[i + 1] === "'") {
+          i += 1;
+        } else {
+          inSingleQuote = false;
+        }
+      }
+
+      continue;
+    }
+
+    if (char === "'") {
+      inSingleQuote = true;
+      continue;
+    }
+
+    if (char !== ';') {
+      continue;
+    }
+
+    const rest = sql.slice(i + 1);
+    if (!/^\s*COMMENT ON COLUMN /i.test(rest)) {
+      continue;
+    }
+
+    const part = sql.slice(start, i + 1).trim();
+    if (part.length > 0) {
+      statements.push(part);
+    }
+
+    start = i + 1;
+  }
+
+  const last = sql.slice(start).trim();
+  if (last.length > 0) {
+    statements.push(last.endsWith(';') ? last : `${last};`);
+  }
+
+  return statements.length > 0 ? statements : [sql];
 }
 
 export class Db2Query extends AbstractQuery {
