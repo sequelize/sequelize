@@ -24,7 +24,7 @@ const debug = logger.debugContext('sql:db2');
  * @param {string} sql
  * @returns {string[]}
  */
-export function splitFollowUpCommentStatements(sql) {
+function splitFollowUpCommentStatements(sql) {
   if (!/;\s*COMMENT ON COLUMN /i.test(sql)) {
     return [sql];
   }
