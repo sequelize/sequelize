@@ -544,5 +544,18 @@ if (dialect === 'db2') {
         }
       });
     });
+
+    describe('createTableQuery column comments', () => {
+      it('emits COMMENT ON COLUMN instead of a discarded -- comment', () => {
+        const sequelize = createSequelizeInstance();
+        const sql = sequelize.dialect.queryGenerator.createTableQuery('myTable', {
+          myColumn: 'DATE COMMENT Foo',
+        });
+
+        expect(sql).to.equal(
+          `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+        );
+      });
+    });
   });
 }
