@@ -537,6 +537,39 @@ for (const [implementation, createNamespace] of implementations) {
       });
     });
 
+    // The namespace lives on the `Sequelize` class, so a process with more than one instance shares
+    // one ambient transaction between them. A transaction owns a connection from the pool of the
+    // instance that opened it, so a second instance must ignore it rather than run its own queries
+    // on that connection and read rows the transaction has not committed.
+    describe('a second Sequelize instance', () => {
+      beforeEach(function () {
+        this.other = Support.createSequelizeInstance();
+        this.OtherUser = this.other.define('user', { name: Sequelize.STRING });
+      });
+
+      afterEach(function () {
+        return this.other.close();
+      });
+
+      it('does not run its queries in a transaction opened on the first instance', function () {
+        return this.sequelize.transaction(async () => {
+          await this.User.create({ name: 'bob' });
+
+          expect(await this.User.count()).to.equal(1);
+          expect(await this.OtherUser.count()).to.equal(0);
+        });
+      });
+
+      it('does not take a transaction on the first instance as the parent of its own', function () {
+        return this.sequelize.transaction(async (outer) => {
+          await this.other.transaction(async (inner) => {
+            expect(inner.parent).to.be.undefined;
+            expect(inner.id).to.not.equal(outer.id);
+          });
+        });
+      });
+    });
+
     it('CLS namespace is stored in Sequelize._cls', function () {
       expect(Sequelize._cls).to.equal(this.ns);
     });
