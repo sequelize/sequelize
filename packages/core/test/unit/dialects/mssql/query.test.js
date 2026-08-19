@@ -108,6 +108,27 @@ if (dialect === 'mssql') {
           value: 2.5e-15,
         });
       });
+
+      it('should not compute an inflated scale for values with floating-point noise (#16463)', () => {
+        // 31.958508000000002 has 15 significant decimal digits; the previous getScale
+        // implementation computed 19 for it because it detected the noise introduced by its own
+        // repeated multiplication instead of the value's actual decimal digits.
+        expect(query.getSQLTypeFromJsType(31.958_508_000_000_002, TYPES)).to.eql({
+          type: TYPES.Numeric,
+          typeOptions: { precision: 30, scale: 15 },
+          value: 31.958_508_000_000_002,
+        });
+
+        // 20.95 - 20 === 0.9499999999999993 has 16 significant decimal digits; the previous
+        // implementation computed a scale of 20, which tedious cannot encode without overflowing,
+        // corrupting the value that ends up stored.
+        const value = 20.95 - 20;
+        expect(query.getSQLTypeFromJsType(value, TYPES)).to.eql({
+          type: TYPES.Numeric,
+          typeOptions: { precision: 30, scale: 16 },
+          value,
+        });
+      });
     });
   });
 }

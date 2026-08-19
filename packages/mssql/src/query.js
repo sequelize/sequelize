@@ -26,12 +26,44 @@ function getScale(aNum) {
     return 0;
   }
 
-  let e = 1;
-  while (Math.round(aNum * e) / e !== aNum) {
-    e *= 10;
+  // `Number#toString` produces the shortest decimal string that round-trips back to the exact
+  // same double (see the ECMA-262 `Number::toString` algorithm), so counting its digits gives the
+  // true number of decimal places `aNum` actually has. The previous implementation instead
+  // multiplied `aNum` by increasing powers of ten until `Math.round` stopped changing it — but
+  // that multiplication is itself imprecise floating-point math, so for many everyday values
+  // (e.g. `20.95 - 20` or `31.958508000000002`) it overshoots by several digits before it
+  // "settles", returning a scale far higher than the value actually needs. When that inflated
+  // scale reaches a dialect that encodes NUMERIC values as a fixed-size integer (e.g. MSSQL via
+  // tedious), the value can silently overflow and get corrupted. See #16463.
+  const str = Math.abs(aNum).toString();
+  const exponentIndex = str.indexOf('e');
+
+  if (exponentIndex === -1) {
+    const decimalIndex = str.indexOf('.');
+
+    return decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
   }
 
-  return Math.log10(e);
+  // `Number#toString` switches to exponential notation for magnitudes < 1e-6 or >= 1e21. For the
+  // (common) small-magnitude case, the true number of decimal places is derivable directly from
+  // the significand's own decimals plus the (negative) exponent. Large-magnitude values that
+  // still have a fractional part are rare enough, and already imprecise enough, that we fall back
+  // to the legacy approach rather than reason about their scale.
+  const exponent = Number(str.slice(exponentIndex + 1));
+  if (exponent >= 0) {
+    let e = 1;
+    while (Math.round(aNum * e) / e !== aNum) {
+      e *= 10;
+    }
+
+    return Math.log10(e);
+  }
+
+  const significand = str.slice(0, exponentIndex);
+  const decimalIndex = significand.indexOf('.');
+  const significandDecimals = decimalIndex === -1 ? 0 : significand.length - decimalIndex - 1;
+
+  return significandDecimals - exponent;
 }
 
 export class MsSqlQuery extends AbstractQuery {
