@@ -20,6 +20,9 @@ const debug = logger.debugContext('sql:db2');
  * (ibmdb/node-ibm_db#319). createTableQuery appends COMMENT ON COLUMN
  * statements after CREATE TABLE; split them so each one is prepared
  * separately.
+ *
+ * @param {string} sql
+ * @returns {string[]}
  */
 export function splitFollowUpCommentStatements(sql) {
   if (!/;\s*COMMENT ON COLUMN /i.test(sql)) {
