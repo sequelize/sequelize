@@ -545,7 +545,7 @@ if (dialect === 'db2') {
       });
     });
 
-    describe('createTableQuery column comments', () => {
+    describe(Support.getTestDialectTeaser('createTableQuery column comments'), () => {
       it('emits COMMENT ON COLUMN instead of a discarded -- comment', () => {
         const sequelize = createSequelizeInstance();
         const sql = sequelize.dialect.queryGenerator.createTableQuery('myTable', {
