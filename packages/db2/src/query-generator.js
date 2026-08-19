@@ -56,7 +56,10 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const primaryKeys = [];
     const foreignKeys = {};
     const attrStr = [];
-    const commentTemplate = ` -- <%= comment %>, TableName = <%= table %>, ColumnName = <%= column %>;`;
+    // node-ibm_db's prepare() runs only the first statement, so these must be
+    // real COMMENT ON COLUMN statements (not `--` line comments) and Query
+    // executes them one by one. See https://github.com/sequelize/sequelize/issues/18289
+    const commentTemplate = ` COMMENT ON COLUMN <%= table %>.<%= column %> IS <%= comment %>;`;
 
     let commentStr = '';
 

@@ -15,6 +15,24 @@ import assert from 'node:assert';
 
 const debug = logger.debugContext('sql:db2');
 
+/**
+ * node-ibm_db prepare() executes only the first statement in a string
+ * (ibmdb/node-ibm_db#319). createTableQuery appends COMMENT ON COLUMN
+ * statements after CREATE TABLE; split them so each one is prepared
+ * separately.
+ */
+export function splitFollowUpCommentStatements(sql) {
+  if (!/;\s*COMMENT ON COLUMN /i.test(sql)) {
+    return [sql];
+  }
+
+  return sql
+    .split(/;\s*(?=COMMENT ON COLUMN )/i)
+    .map(part => part.trim())
+    .filter(part => part.length > 0)
+    .map(part => (part.endsWith(';') ? part : `${part};`));
+}
+
 export class Db2Query extends AbstractQuery {
   getInsertIdField() {
     return 'id';
@@ -35,6 +53,18 @@ export class Db2Query extends AbstractQuery {
 
   async _run(connection, sql, parameters) {
     assert(typeof sql === 'string', `sql parameter must be a string`);
+
+    if (!parameters) {
+      const statements = splitFollowUpCommentStatements(sql);
+      if (statements.length > 1) {
+        let last;
+        for (const statement of statements) {
+          last = await this._run(connection, statement, parameters);
+        }
+
+        return last;
+      }
+    }
 
     this.sql = sql;
 
