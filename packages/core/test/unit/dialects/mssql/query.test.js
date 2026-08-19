@@ -129,6 +129,23 @@ if (dialect === 'mssql') {
           value,
         });
       });
+
+      it('computes the scale of the exponential-notation branch correctly', () => {
+        // No decimal point in the significand ('1'): scale is just the exponent's magnitude.
+        expect(query.getSQLTypeFromJsType(1e-7, TYPES)).to.eql({
+          type: TYPES.Numeric,
+          typeOptions: { precision: 30, scale: 7 },
+          value: 1e-7,
+        });
+
+        // Decimal point in the significand ('1.23', 2 decimals): scale adds those on top of the
+        // exponent's magnitude.
+        expect(query.getSQLTypeFromJsType(1.23e-7, TYPES)).to.eql({
+          type: TYPES.Numeric,
+          typeOptions: { precision: 30, scale: 9 },
+          value: 1.23e-7,
+        });
+      });
     });
   });
 }
