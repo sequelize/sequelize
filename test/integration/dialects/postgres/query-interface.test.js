@@ -1,4 +1,3 @@
-import { inspectFulfilled, inspectRejected } from '../../../../lib/utils/promise-helpers.js';
 import * as chai from 'chai';
 import DataTypes from '../../../../lib/data-types.js';
 import _ from 'lodash';
@@ -14,7 +13,7 @@ describe('[POSTGRES Specific] QueryInterface', () => {
   describe('createSchema', () => {
     beforeEach(function () {
       // make sure we don't have a pre-existing schema called testSchema.
-      return this.queryInterface.dropSchema('testschema').then(inspectFulfilled, inspectRejected);
+      return this.queryInterface.dropSchema('testschema').catch(() => {});
     });
 
     it('creates a schema', function () {
@@ -72,9 +71,9 @@ describe('[POSTGRES Specific] QueryInterface', () => {
       // then setup our function to rename
       return this.queryInterface
         .dropFunction('rftest1', [])
-        .then(inspectFulfilled, inspectRejected)
+        .catch(() => {})
         .then(() => this.queryInterface.dropFunction('rftest2', []))
-        .then(inspectFulfilled, inspectRejected)
+        .catch(() => {})
         .then(() =>
           this.queryInterface.createFunction('rftest1', [], 'varchar', 'plpgsql', "return 'testreturn';", {})
         );
@@ -99,7 +98,7 @@ describe('[POSTGRES Specific] QueryInterface', () => {
         this.queryInterface
           .dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
           // suppress errors here. if create_job doesn't exist thats ok.
-          .then(inspectFulfilled, inspectRejected)
+          .catch(() => {})
       );
     });
 
@@ -109,7 +108,7 @@ describe('[POSTGRES Specific] QueryInterface', () => {
         this.queryInterface
           .dropFunction('create_job', [{ type: 'varchar', name: 'test' }])
           // suppress errors here. if create_job doesn't exist thats ok.
-          .then(inspectFulfilled, inspectRejected)
+          .catch(() => {})
       );
     });
 
@@ -220,7 +219,7 @@ describe('[POSTGRES Specific] QueryInterface', () => {
         this.queryInterface
           .createFunction('droptest', [{ type: 'varchar', name: 'test' }], 'varchar', 'plpgsql', body, options)
           // suppress errors.. this could fail if the function is already there.. thats ok.
-          .then(inspectFulfilled, inspectRejected)
+          .catch(() => {})
       );
     });
 
