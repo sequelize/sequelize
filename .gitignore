@@ -15,7 +15,6 @@ sscce.js
 coverage
 .vscode/
 *.sublime*
-esdoc
 package-lock.json
 yarn.lock
 *.code-workspace

@@ -87,7 +87,6 @@
     "big-integer": "1.6.52",
     "chai": "6.2.2",
     "chai-as-promised": "8.0.2",
-    "cheerio": "1.2.0",
     "cls-hooked": "4.2.2",
     "cross-env": "10.1.0",
     "env-cmd": "11.0.0",
