@@ -39,7 +39,7 @@ importers:
         specifier: ^14.0.1
         version: 14.0.1
       validator:
-        specifier: ^13.7.0
+        specifier: ^13.15.26
         version: 13.15.35
       wkx:
         specifier: ^0.5.0
