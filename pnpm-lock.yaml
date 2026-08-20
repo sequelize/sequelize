@@ -30,7 +30,7 @@ importers:
         specifier: ^7.1.0
         version: 7.1.1
       semver:
-        specifier: ^7.0.0
+        specifier: ^7.5.2
         version: 7.8.5
       toposort-class:
         specifier: ^1.0.1

@@ -73,7 +73,7 @@
     "inflection": "^3.0.2",
     "lodash": "^4.18.1",
     "retry-as-promised": "^7.1.0",
-    "semver": "^7.0.0",
+    "semver": "^7.5.2",
     "toposort-class": "^1.0.1",
     "uuid": "^14.0.1",
     "validator": "^13.15.26",
