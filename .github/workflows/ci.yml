@@ -165,7 +165,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn global add node-gyp --ignore-engines
       - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add pg-native --ignore-engines
+      - run: yarn add pg-native@3.7.0 --ignore-engines
         if: matrix.native
       - name: Unit Tests
         run: yarn test-unit
