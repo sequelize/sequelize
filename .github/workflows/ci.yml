@@ -165,7 +165,10 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn global add node-gyp --ignore-engines
       - run: yarn install --frozen-lockfile --ignore-engines
-      - run: yarn add pg-native --ignore-engines
+      # pg-native 3.8.0 and later use nullish coalescing, which Node 10 cannot
+      # parse, so the module throws at load time. Pin it while the matrix still
+      # covers Node 10. See #18312.
+      - run: yarn add pg-native@3.7.0 --ignore-engines
         if: matrix.native
       - name: Unit Tests
         run: yarn test-unit
