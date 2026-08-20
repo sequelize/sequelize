@@ -91,7 +91,6 @@
     "cls-hooked": "4.2.2",
     "cross-env": "10.1.0",
     "env-cmd": "11.0.0",
-    "hints": "1.1.0",
     "mocha": "11.8.0",
     "moment": "2.30.1",
     "oxfmt": "0.64.0",

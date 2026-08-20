@@ -2,7 +2,6 @@ import _ from 'lodash';
 import Sequelize from '../index.js';
 import DataTypes from '../lib/data-types.js';
 import Config from './config/config.js';
-import supportShim from './supportShim.js';
 import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import PostgresQueryGenerator from '../lib/dialects/postgres/query-generator.js';
@@ -24,12 +23,6 @@ process.on('unhandledRejection', (e) => {
   console.error('An unhandled rejection occured:');
   throw e;
 });
-
-// shim all Sequelize methods for testing for correct `options.logging` passing
-// and no modification of `options` objects
-if (!process.env.COVERAGE && process.env.SHIM) {
-  supportShim(Sequelize);
-}
 
 const Support = {
   Sequelize,

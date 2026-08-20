@@ -78,9 +78,6 @@ importers:
       env-cmd:
         specifier: 11.0.0
         version: 11.0.0
-      hints:
-        specifier: 1.1.0
-        version: 1.1.0
       mocha:
         specifier: 11.8.0
         version: 11.8.0
@@ -513,11 +510,6 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  acorn@3.3.0:
-    resolution: {integrity: sha512-OLUyIIZ7mF5oaAUT1w0TFqQS81q3saT46x8t7ukpPjMNk+nbs4ZHhs7ToV8EWnLYLepjETXd4XaCE4uxkMeqUw==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
-
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
@@ -725,10 +717,6 @@ packages:
   he@1.2.0:
     resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
     hasBin: true
-
-  hints@1.1.0:
-    resolution: {integrity: sha512-RxmMtJRI7XZtY4vOZ2HvEYd3ggBRBLEMw8Ik1k13Q5Baiw/8Z/P+a9LCWeApOxfbHtUIem4HwN5NKGg2Y/ppAg==}
-    engines: {node: '>=0.10.0'}
 
   htmlparser2@10.1.0:
     resolution: {integrity: sha512-VTZkM9GWRAtEpveh7MSF6SjjrpNVNNVJfFup7xTY3UpFtm67foy9HDVXneLtFVt4pMz5kZtgNcvCniNFb1hlEQ==}
@@ -1297,8 +1285,6 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  acorn@3.3.0: {}
-
   ansi-regex@5.0.1: {}
 
   ansi-styles@4.3.0:
@@ -1496,11 +1482,6 @@ snapshots:
   has-flag@4.0.0: {}
 
   he@1.2.0: {}
-
-  hints@1.1.0:
-    dependencies:
-      acorn: 3.3.0
-      lodash: 4.18.1
 
   htmlparser2@10.1.0:
     dependencies:
