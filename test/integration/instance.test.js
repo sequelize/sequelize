@@ -4,7 +4,7 @@ import Support from './support.js';
 import DataTypes from '../../lib/data-types.js';
 import config from '../config/config.js';
 import sinon from 'sinon';
-import validateUUID from 'uuid-validate';
+import { validate as validateUUID, version as uuidVersion } from 'uuid';
 
 const expect = chai.expect;
 
@@ -823,8 +823,8 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       it('should store a valid uuid in uuidv1 and uuidv4 that conforms to the UUID v1 and v4 specifications', function () {
         const user = this.User.build({ username: 'a user' });
-        expect(validateUUID(user.uuidv1, 1)).to.be.true;
-        expect(validateUUID(user.uuidv4, 4)).to.be.true;
+        expect(validateUUID(user.uuidv1) && uuidVersion(user.uuidv1) === 1).to.be.true;
+        expect(validateUUID(user.uuidv4) && uuidVersion(user.uuidv4) === 4).to.be.true;
       });
 
       it('should store a valid uuid if the field is a primary key named id', function () {
