@@ -252,15 +252,17 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         }
 
         let orderColumn = '__sequelize_tmp_order';
-        while (returnValues.returnFields.includes(this.quoteIdentifier(orderColumn))) {
+        let quotedOrderColumn = this.quoteIdentifier(orderColumn);
+        while (returnValues.returnFields.includes(quotedOrderColumn)) {
           orderColumn = `_${orderColumn}`;
+          quotedOrderColumn = this.quoteIdentifier(orderColumn);
         }
 
-        const quotedOrderColumn = this.quoteIdentifier(orderColumn);
         const tmpColumns = returnValues.returnFields.map((field, i) => {
-          return `${field} ${attributeTypeToSql(returnValues.returnTypes[i], {
-            dialect: this.dialect,
-          })}`;
+          const returnType = returnValues.returnTypes[i];
+          const columnType = attributeTypeToSql(returnType, { dialect: this.dialect });
+
+          return `${field} ${columnType}`;
         });
         tmpColumns.push(`${quotedOrderColumn} BIGINT IDENTITY(1,1)`);
 
@@ -342,7 +344,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       offset += 1000;
     }
 
-    return `${tmpTable}${commands.join(';')}${returningFragment};`;
+    const commandList = commands.join(';');
+
+    return `${tmpTable}${commandList}${returningFragment};`;
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
