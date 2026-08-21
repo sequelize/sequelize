@@ -123,10 +123,12 @@ if (current.dialect.name === 'mssql') {
       );
 
       const values = records.map(record => `(${record.id})`);
+      const firstChunkValues = values.slice(0, 1000).join(',');
+      const secondChunkValues = values.slice(1000).join(',');
       expectsql(sql, {
         mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1)); ${[
-          `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${values.slice(0, 1000).join(',')}`,
-          `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${values.slice(1000).join(',')}`,
+          `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${firstChunkValues}`,
+          `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${secondChunkValues}`,
         ].join(';')}; SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order];`,
       });
     });
