@@ -102,6 +102,18 @@ if (current.dialect.name === 'mssql') {
       expectsql(this.queryGenerator.bulkInsertQuery('myTable', [{ id: null }], {}, attributes), {
         mssql: 'INSERT INTO [myTable] DEFAULT VALUES;',
       });
+
+      expectsql(
+        this.queryGenerator.bulkInsertQuery(
+          'myTable',
+          [{ id: null }],
+          { hasTrigger: true },
+          attributes,
+        ),
+        {
+          mssql: 'INSERT INTO [myTable] DEFAULT VALUES;',
+        },
+      );
     });
 
     it('bulkInsertQuery returns trigger output across row-limit chunks', function () {
@@ -122,15 +134,80 @@ if (current.dialect.name === 'mssql') {
         attributes,
       );
 
-      const values = records.map(record => `(${record.id})`);
-      const firstChunkValues = values.slice(0, 1000).join(',');
-      const secondChunkValues = values.slice(1000).join(',');
+      const sourceValues = records.map((record, index) => `(${record.id},${index})`);
+      const firstChunkValues = sourceValues.slice(0, 1000).join(',');
+      const secondChunkValues = sourceValues.slice(1000).join(',');
       expectsql(sql, {
-        mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1));
-          INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${firstChunkValues};
-          INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${secondChunkValues};
+        mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT);
+          MERGE INTO [myTable] AS [target] USING (VALUES ${firstChunkValues}) AS [source] ([id],[__sequelize_tmp_order]) ON 1 = 0 WHEN NOT MATCHED THEN INSERT ([id]) VALUES ([source].[id]) OUTPUT INSERTED.[id], [source].[__sequelize_tmp_order] INTO @tmp;
+          MERGE INTO [myTable] AS [target] USING (VALUES ${secondChunkValues}) AS [source] ([id],[__sequelize_tmp_order]) ON 1 = 0 WHEN NOT MATCHED THEN INSERT ([id]) VALUES ([source].[id]) OUTPUT INSERTED.[id], [source].[__sequelize_tmp_order] INTO @tmp;
           SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order];`,
       });
+    });
+
+    it('bulkInsertQuery emits default rows once across row-limit chunks', function () {
+      const model = this.sequelize.define(
+        'trigger_return_values',
+        {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: { type: DataTypes.STRING },
+        },
+        { timestamps: false },
+      );
+      const attributes = Object.fromEntries(model.modelDefinition.attributes);
+      const records = [
+        { id: null },
+        ...Array.from({ length: 1001 }, (_, index) => ({ name: `row ${index}` })),
+      ];
+
+      const sql = this.queryGenerator.bulkInsertQuery(
+        'myTable',
+        records,
+        { hasTrigger: true, returning: ['id'] },
+        attributes,
+      );
+
+      const sourceValues = records
+        .slice(1)
+        .map((record, index) => `(N'${record.name}',${index + 1})`);
+      const firstChunkValues = sourceValues.slice(0, 1000).join(',');
+      const secondChunkValues = sourceValues.slice(1000).join(',');
+      expectsql(sql, {
+        mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT);
+          INSERT INTO [myTable] OUTPUT INSERTED.[id], 0 INTO @tmp DEFAULT VALUES;
+          MERGE INTO [myTable] AS [target] USING (VALUES ${firstChunkValues}) AS [source] ([name],[__sequelize_tmp_order]) ON 1 = 0 WHEN NOT MATCHED THEN INSERT ([name]) VALUES ([source].[name]) OUTPUT INSERTED.[id], [source].[__sequelize_tmp_order] INTO @tmp;
+          MERGE INTO [myTable] AS [target] USING (VALUES ${secondChunkValues}) AS [source] ([name],[__sequelize_tmp_order]) ON 1 = 0 WHEN NOT MATCHED THEN INSERT ([name]) VALUES ([source].[name]) OUTPUT INSERTED.[id], [source].[__sequelize_tmp_order] INTO @tmp;
+          SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order];`,
+      });
+    });
+
+    it('bulkInsertQuery avoids case-insensitive temporary column collisions', function () {
+      const model = this.sequelize.define(
+        'trigger_return_values',
+        {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          __SEQUELIZE_TMP_ORDER: { type: DataTypes.INTEGER },
+        },
+        { timestamps: false },
+      );
+      const attributes = Object.fromEntries(model.modelDefinition.attributes);
+
+      expectsql(
+        this.queryGenerator.bulkInsertQuery(
+          'myTable',
+          [
+            { id: 1, __SEQUELIZE_TMP_ORDER: 10 },
+            { id: 2, __SEQUELIZE_TMP_ORDER: 20 },
+          ],
+          { hasTrigger: true, returning: ['id'] },
+          attributes,
+        ),
+        {
+          mssql: `DECLARE @tmp TABLE ([id] INTEGER,[___sequelize_tmp_order] BIGINT);
+            MERGE INTO [myTable] AS [target] USING (VALUES (1,10,0),(2,20,1)) AS [source] ([id],[__SEQUELIZE_TMP_ORDER],[___sequelize_tmp_order]) ON 1 = 0 WHEN NOT MATCHED THEN INSERT ([id],[__SEQUELIZE_TMP_ORDER]) VALUES ([source].[id],[source].[__SEQUELIZE_TMP_ORDER]) OUTPUT INSERTED.[id], [source].[___sequelize_tmp_order] INTO @tmp;
+            SELECT [id] FROM @tmp ORDER BY [___sequelize_tmp_order];`,
+        },
+      );
     });
 
     it('addColumnQuery', function () {

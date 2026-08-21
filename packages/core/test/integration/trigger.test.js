@@ -65,12 +65,22 @@ if (current.dialect.supports.tmpTableTrigger) {
       });
 
       if (dialect === 'mssql') {
-        it('should return output rows after bulk insert', async () => {
-          const [user] = await User.bulkCreate([{ username: 'triggertest' }], {
-            returning: ['id'],
-          });
+        it('should map bulk insert output despite trigger result sets', async () => {
+          await current.query('DROP TRIGGER User_ChangeTracking');
+          await current.query(
+            'CREATE TRIGGER User_ChangeTracking ON [users] AFTER INSERT AS BEGIN SET NOCOUNT ON; SELECT COUNT(*) AS trigger_count FROM inserted; END',
+          );
 
-          expect(user.id).to.be.a('number');
+          const users = await User.bulkCreate([{ username: 'second' }, { username: 'first' }], {
+            returning: ['id', 'username'],
+          });
+          const persistedUsers = await User.findAll();
+          const idsByUsername = new Map(persistedUsers.map(user => [user.username, user.id]));
+
+          expect(users.map(user => user.id)).to.deep.equal([
+            idsByUsername.get('second'),
+            idsByUsername.get('first'),
+          ]);
         });
       }
 
