@@ -264,9 +264,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         });
         tmpColumns.push(`${quotedOrderColumn} BIGINT IDENTITY(1,1)`);
 
-        tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
+        const tmpColumnDefinitions = tmpColumns.join(',');
+        tmpTable = `DECLARE @tmp TABLE (${tmpColumnDefinitions}); `;
         outputFragment += ' INTO @tmp';
-        returningFragment = `; SELECT ${returnValues.returnFields.join(', ')} FROM @tmp ORDER BY ${quotedOrderColumn}`;
+        const returnFieldList = returnValues.returnFields.join(', ');
+        returningFragment = `; SELECT ${returnFieldList} FROM @tmp ORDER BY ${quotedOrderColumn}`;
       }
     }
 
