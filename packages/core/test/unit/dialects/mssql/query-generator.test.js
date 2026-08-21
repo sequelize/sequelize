@@ -125,12 +125,11 @@ if (current.dialect.name === 'mssql') {
       const values = records.map(record => `(${record.id})`);
       const firstChunkValues = values.slice(0, 1000).join(',');
       const secondChunkValues = values.slice(1000).join(',');
-      const chunkInsertQueries = [
-        `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${firstChunkValues}`,
-        `INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${secondChunkValues}`,
-      ].join(';');
       expectsql(sql, {
-        mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1)); ${chunkInsertQueries}; SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order];`,
+        mssql: `DECLARE @tmp TABLE ([id] INTEGER,[__sequelize_tmp_order] BIGINT IDENTITY(1,1));
+          INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${firstChunkValues};
+          INSERT INTO [myTable] ([id]) OUTPUT INSERTED.[id] INTO @tmp VALUES ${secondChunkValues};
+          SELECT [id] FROM @tmp ORDER BY [__sequelize_tmp_order];`,
       });
     });
 

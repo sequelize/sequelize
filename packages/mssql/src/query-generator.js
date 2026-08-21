@@ -344,7 +344,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       offset += 1000;
     }
 
-    const commandList = commands.join(';');
+    const commandList = commands.join('; ');
 
     return `${tmpTable}${commandList}${returningFragment};`;
   }
