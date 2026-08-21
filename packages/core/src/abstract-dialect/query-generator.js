@@ -32,6 +32,7 @@ import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
 import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
+import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
@@ -2181,6 +2182,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returnTypes = [];
     let outputFragment = '';
     let returningFragment = '';
+    let tmpTable = '';
 
     const returnValuesType = this.dialect.supports.returnValues;
 
@@ -2200,15 +2202,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
               );
             }
 
-            const returnField = this.formatSqlExpression(field);
-            returnTypes.push(undefined);
-
-            return returnField;
+            return this.formatSqlExpression(field);
           } else if (field instanceof Col) {
-            const returnField = this.formatSqlExpression(field);
-            returnTypes.push(undefined);
-
-            return returnField;
+            return this.formatSqlExpression(field);
           }
 
           throw new Error(
@@ -2235,9 +2231,20 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returningFragment = ` RETURNING ${returnFields.join(', ')} INTO `;
     } else if (returnValuesType === 'output') {
       outputFragment = ` OUTPUT ${returnFields.map(field => `INSERTED.${field}`).join(', ')}`;
+
+      // To capture output rows when there is a trigger on MSSQL DB
+      if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
+        const tmpColumns = returnFields.map((field, i) => {
+          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+        });
+
+        tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
+        outputFragment += ' INTO @tmp';
+        returningFragment = '; SELECT * FROM @tmp';
+      }
     }
 
-    return { outputFragment, returnFields, returnTypes, returningFragment };
+    return { outputFragment, returnFields, returnTypes, returningFragment, tmpTable };
   }
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {

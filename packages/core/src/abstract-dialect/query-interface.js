@@ -480,10 +480,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @returns {Promise}
    */
   async bulkInsert(tableName, records, options, attributes) {
-    const modelDefinition = options?.model?.modelDefinition;
-
     options = { ...options, type: QueryTypes.INSERT };
-    options.hasTrigger = modelDefinition?.options.hasTrigger;
+    options.hasTrigger = options.model?.modelDefinition?.options.hasTrigger;
+
     const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw

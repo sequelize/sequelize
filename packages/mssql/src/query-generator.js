@@ -218,40 +218,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     ]);
   }
 
-  generateReturnValues(modelAttributes, options) {
-    const returnValues = super.generateReturnValues(modelAttributes, options);
-
-    if (!options.hasTrigger) {
-      return returnValues;
-    }
-
-    if (returnValues.returnTypes.includes(undefined)) {
-      throw new Error(
-        'MSSQL bulk inserts with triggers require returning column names that match model attributes.',
-      );
-    }
-
-    let orderColumn = '__sequelize_tmp_order';
-    while (returnValues.returnFields.includes(this.quoteIdentifier(orderColumn))) {
-      orderColumn = `_${orderColumn}`;
-    }
-
-    const quotedOrderColumn = this.quoteIdentifier(orderColumn);
-    const tmpColumns = returnValues.returnFields.map((field, i) => {
-      return `${field} ${attributeTypeToSql(returnValues.returnTypes[i], {
-        dialect: this.dialect,
-      })}`;
-    });
-    tmpColumns.push(`${quotedOrderColumn} BIGINT IDENTITY(1,1)`);
-
-    return {
-      ...returnValues,
-      outputFragment: `${returnValues.outputFragment} INTO @tmp`,
-      returningFragment: `; SELECT ${returnValues.returnFields.join(', ')} FROM @tmp ORDER BY ${quotedOrderColumn}`,
-      tmpTable: `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `,
-    };
-  }
-
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
     const quotedTable = this.quoteTable(tableName);
     options ||= {};
@@ -267,11 +233,41 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     let tmpTable = '';
 
     if (options.returning) {
-      const returnValues = this.generateReturnValues(attributes, options);
+      const returnValues = super.generateReturnValues(attributes, {
+        ...options,
+        hasTrigger: false,
+      });
 
       outputFragment = returnValues.outputFragment;
       returningFragment = returnValues.returningFragment;
-      tmpTable = returnValues.tmpTable ?? '';
+
+      if (options.hasTrigger) {
+        if (
+          returnValues.returnTypes.length !== returnValues.returnFields.length ||
+          returnValues.returnTypes.includes(undefined)
+        ) {
+          throw new Error(
+            'MSSQL bulk inserts with triggers require returning column names that match model attributes.',
+          );
+        }
+
+        let orderColumn = '__sequelize_tmp_order';
+        while (returnValues.returnFields.includes(this.quoteIdentifier(orderColumn))) {
+          orderColumn = `_${orderColumn}`;
+        }
+
+        const quotedOrderColumn = this.quoteIdentifier(orderColumn);
+        const tmpColumns = returnValues.returnFields.map((field, i) => {
+          return `${field} ${attributeTypeToSql(returnValues.returnTypes[i], {
+            dialect: this.dialect,
+          })}`;
+        });
+        tmpColumns.push(`${quotedOrderColumn} BIGINT IDENTITY(1,1)`);
+
+        tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
+        outputFragment += ' INTO @tmp';
+        returningFragment = `; SELECT ${returnValues.returnFields.join(', ')} FROM @tmp ORDER BY ${quotedOrderColumn}`;
+      }
     }
 
     const emptyQuery = `INSERT INTO ${quotedTable}${outputFragment} DEFAULT VALUES`;

@@ -64,11 +64,15 @@ if (current.dialect.supports.tmpTableTrigger) {
           .which.equals('triggertest');
       });
 
-      it('should return output rows after bulk insert', async () => {
-        const [user] = await User.bulkCreate([{ username: 'triggertest' }], { returning: ['id'] });
+      if (dialect === 'mssql') {
+        it('should return output rows after bulk insert', async () => {
+          const [user] = await User.bulkCreate([{ username: 'triggertest' }], {
+            returning: ['id'],
+          });
 
-        expect(user.id).to.be.a('number');
-      });
+          expect(user.id).to.be.a('number');
+        });
+      }
 
       it('should return output rows after instance update', async () => {
         const user = await User.create({
