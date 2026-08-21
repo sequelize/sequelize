@@ -2190,7 +2190,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returnFields.push(
         ...options.returning.map(field => {
           if (typeof field === 'string') {
-            returnTypes.push(modelAttributes?.[field]?.type);
+            const attribute = modelAttributes?.[field];
+            returnTypes.push(attribute?.type);
 
             return this.quoteIdentifier(field);
           } else if (field instanceof Literal) {
