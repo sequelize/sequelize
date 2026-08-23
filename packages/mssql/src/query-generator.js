@@ -223,40 +223,23 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     options ||= {};
     attributes ||= {};
 
+    if (options.hasTrigger && options.returning) {
+      return this.#bulkInsertQueryWithTrigger(tableName, attrValueHashes, options, attributes);
+    }
+
     const tuples = [];
     const allAttributes = [];
     const allQueries = [];
-    const defaultQueries = [];
-
     let needIdentityInsertWrapper = false;
     let outputFragment = '';
-    let returningFragment = '';
-    let tmpTable = '';
-    let returnValues;
 
     if (options.returning) {
-      returnValues = super.generateReturnValues(attributes, {
-        ...options,
-        hasTrigger: false,
-      });
-
+      const returnValues = super.generateReturnValues(attributes, options);
       outputFragment = returnValues.outputFragment;
-      returningFragment = returnValues.returningFragment;
-
-      if (
-        options.hasTrigger &&
-        (returnValues.returnTypes.length !== returnValues.returnFields.length ||
-          returnValues.returnTypes.includes(undefined))
-      ) {
-        throw new Error(
-          'MSSQL bulk inserts with triggers require returning column names that match model attributes.',
-        );
-      }
     }
 
-    const defaultValueRowIndexes = [];
-    const normalRows = [];
-    for (const [rowIndex, attrValueHash] of attrValueHashes.entries()) {
+    const emptyQuery = `INSERT INTO ${quotedTable}${outputFragment} DEFAULT VALUES`;
+    for (const attrValueHash of attrValueHashes) {
       // special case for empty objects with primary keys
       const fields = Object.keys(attrValueHash);
       const firstAttr = attributes[fields[0]];
@@ -266,11 +249,9 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         firstAttr.autoIncrement &&
         attrValueHash[fields[0]] === null
       ) {
-        defaultValueRowIndexes.push(rowIndex);
+        allQueries.push(emptyQuery);
         continue;
       }
-
-      normalRows.push([rowIndex, attrValueHash]);
 
       // normal case
       forOwn(attrValueHash, (value, key) => {
@@ -288,102 +269,37 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       });
     }
 
-    let quotedOrderColumn;
-    if (options.hasTrigger && returnValues) {
-      let orderColumn = '__sequelize_tmp_order';
-      quotedOrderColumn = this.quoteIdentifier(orderColumn);
-
-      const usedColumns = new Set(
-        [
-          ...returnValues.returnFields,
-          ...allAttributes.map(attribute => this.quoteIdentifier(attribute)),
-        ].map(column => column.toLowerCase()),
-      );
-      while (usedColumns.has(quotedOrderColumn.toLowerCase())) {
-        orderColumn = `_${orderColumn}`;
-        quotedOrderColumn = this.quoteIdentifier(orderColumn);
-      }
-
-      const tmpColumns = returnValues.returnFields.map((field, index) => {
-        const returnType = returnValues.returnTypes[index];
-        const columnType = attributeTypeToSql(returnType, { dialect: this.dialect });
-
-        return `${field} ${columnType}`;
-      });
-      tmpColumns.push(`${quotedOrderColumn} BIGINT`);
-
-      const tmpColumnDefinitions = tmpColumns.join(',');
-      tmpTable = `DECLARE @tmp TABLE (${tmpColumnDefinitions}); `;
-
-      const returnFieldList = returnValues.returnFields.join(', ');
-      returningFragment = `; SELECT ${returnFieldList} FROM @tmp ORDER BY ${quotedOrderColumn}`;
-    }
-
-    const usesTriggerReturn = Boolean(options.hasTrigger && returnValues);
-
-    for (const rowIndex of defaultValueRowIndexes) {
-      const emptyOutputFragment = usesTriggerReturn
-        ? `${outputFragment}, ${rowIndex} INTO @tmp`
-        : outputFragment;
-      const emptyQuery = `INSERT INTO ${quotedTable}${emptyOutputFragment} DEFAULT VALUES`;
-      if (usesTriggerReturn) {
-        defaultQueries.push(emptyQuery);
-      } else {
-        allQueries.push(emptyQuery);
-      }
-    }
-
     if (allAttributes.length > 0) {
-      const rowsForTuples = usesTriggerReturn ? normalRows : attrValueHashes.entries();
-      for (const [rowIndex, attrValueHash] of rowsForTuples) {
-        const values = allAttributes.map(key => {
-          // TODO: bindParam
-          // TODO: pass "model"
-          return this.escape(attrValueHash[key] ?? null, {
-            type: attributes[key]?.type,
-            replacements: options.replacements,
-          });
-        });
-        if (usesTriggerReturn) {
-          values.push(rowIndex);
-        }
-
-        tuples.push(`(${values.join(',')})`);
+      for (const attrValueHash of attrValueHashes) {
+        tuples.push(
+          `(${allAttributes
+            .map(key => {
+              // TODO: bindParam
+              // TODO: pass "model"
+              return this.escape(attrValueHash[key] ?? null, {
+                type: attributes[key]?.type,
+                replacements: options.replacements,
+              });
+            })
+            .join(',')})`,
+        );
       }
 
-      const quotedAttributeList = allAttributes
-        .map(attribute => this.quoteIdentifier(attribute))
-        .join(',');
-      if (usesTriggerReturn) {
-        const sourceAlias = this.quoteIdentifier('source');
-        const targetAlias = this.quoteIdentifier('target');
-        const sourceColumnList = `${quotedAttributeList},${quotedOrderColumn}`;
-        const sourceValueList = allAttributes
-          .map(attribute => `${sourceAlias}.${this.quoteIdentifier(attribute)}`)
-          .join(',');
-        const mergeOutputFragment = `${outputFragment}, ${sourceAlias}.${quotedOrderColumn} INTO @tmp`;
-
-        allQueries.push(tupleList => {
-          return `MERGE INTO ${quotedTable} AS ${targetAlias} USING (VALUES ${tupleList}) AS ${sourceAlias} (${sourceColumnList}) ON 1 = 0 WHEN NOT MATCHED THEN INSERT (${quotedAttributeList}) VALUES (${sourceValueList})${mergeOutputFragment}`;
-        });
-      } else {
-        allQueries.push(tupleList => {
-          return `INSERT INTO ${quotedTable} (${quotedAttributeList})${outputFragment} VALUES ${tupleList}`;
-        });
-      }
+      const quotedAttributes = allAttributes.map(attr => this.quoteIdentifier(attr)).join(',');
+      allQueries.push(
+        tupleList =>
+          `INSERT INTO ${quotedTable} (${quotedAttributes})${outputFragment} VALUES ${tupleList}`,
+      );
     }
 
-    const commands = usesTriggerReturn ? [...defaultQueries] : [];
+    const commands = [];
     let offset = 0;
-    const tupleLimit = usesTriggerReturn ? tuples.length : Math.max(tuples.length, 1);
-    while (offset < tupleLimit) {
+    while (offset < Math.max(tuples.length, 1)) {
       // SQL Server can insert a maximum of 1000 rows at a time,
       // This splits the insert in multiple statements to respect that limit
-      const tupleStr = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
+      const tupleList = tuples.slice(offset, Math.min(tuples.length, offset + 1000));
       let generatedQuery = allQueries
-        .map(query => {
-          return typeof query === 'string' ? query : query(tupleStr);
-        })
+        .map(value => (typeof value === 'string' ? value : value(tupleList)))
         .join(';');
       if (needIdentityInsertWrapper) {
         generatedQuery = `SET IDENTITY_INSERT ${quotedTable} ON; ${generatedQuery}; SET IDENTITY_INSERT ${quotedTable} OFF`;
@@ -393,10 +309,160 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       offset += 1000;
     }
 
-    const commandSeparator = usesTriggerReturn ? '; ' : ';';
-    const commandList = commands.join(commandSeparator);
+    return `${commands.join(';')};`;
+  }
+
+  #bulkInsertQueryWithTrigger(tableName, attrValueHashes, options, attributes) {
+    const quotedTable = this.quoteTable(tableName);
+    const returnValues = super.generateReturnValues(attributes, {
+      ...options,
+      hasTrigger: false,
+    });
+
+    if (returnValues.returnTypes.length !== returnValues.returnFields.length) {
+      throw new Error(
+        'MSSQL bulk inserts with triggers require returning column names that match model attributes.',
+      );
+    }
+
+    if (returnValues.returnTypes.includes(undefined)) {
+      throw new Error(
+        'MSSQL bulk inserts with triggers require returning column names that match model attributes.',
+      );
+    }
+
+    const defaultRows = [];
+    const normalRows = [];
+    const allAttributes = [];
+    let needIdentityInsertWrapper = false;
+
+    for (const [rowIndex, attrValueHash] of attrValueHashes.entries()) {
+      const fields = Object.keys(attrValueHash);
+      const firstAttr = attributes[fields[0]];
+      if (
+        fields.length === 1 &&
+        firstAttr &&
+        firstAttr.autoIncrement &&
+        attrValueHash[fields[0]] === null
+      ) {
+        defaultRows.push(rowIndex);
+        continue;
+      }
+
+      normalRows.push([rowIndex, attrValueHash]);
+
+      forOwn(attrValueHash, (value, key) => {
+        if (value !== null && attributes[key] && attributes[key].autoIncrement) {
+          needIdentityInsertWrapper = true;
+        }
+
+        if (!allAttributes.includes(key)) {
+          if (value === null && attributes[key] && attributes[key].autoIncrement) {
+            return;
+          }
+
+          allAttributes.push(key);
+        }
+      });
+    }
+
+    const quotedOrderColumn = this.#getTriggerOrderColumn(returnValues.returnFields, allAttributes);
+    const tmpColumns = returnValues.returnFields.map((field, index) => {
+      const returnType = returnValues.returnTypes[index];
+      const columnType = attributeTypeToSql(returnType, { dialect: this.dialect });
+
+      return `${field} ${columnType}`;
+    });
+    tmpColumns.push(`${quotedOrderColumn} BIGINT`);
+
+    const tmpColumnDefinitions = tmpColumns.join(',');
+    const tmpTable = `DECLARE @tmp TABLE (${tmpColumnDefinitions}); `;
+    const outputFragment = returnValues.outputFragment;
+    const defaultQueries = defaultRows.map(rowIndex => {
+      return `INSERT INTO ${quotedTable}${outputFragment}, ${rowIndex} INTO @tmp DEFAULT VALUES`;
+    });
+    const normalQueries = this.#buildTriggerMergeQueries(
+      quotedTable,
+      allAttributes,
+      normalRows,
+      attributes,
+      options.replacements,
+      outputFragment,
+      quotedOrderColumn,
+      needIdentityInsertWrapper,
+    );
+    const returnFieldList = returnValues.returnFields.join(', ');
+    const returningFragment = `; SELECT ${returnFieldList} FROM @tmp ORDER BY ${quotedOrderColumn}`;
+    const commandList = [...defaultQueries, ...normalQueries].join('; ');
 
     return `${tmpTable}${commandList}${returningFragment};`;
+  }
+
+  #getTriggerOrderColumn(returnFields, allAttributes) {
+    const usedColumns = new Set(
+      [...returnFields, ...allAttributes.map(attribute => this.quoteIdentifier(attribute))].map(
+        column => column.toLowerCase(),
+      ),
+    );
+
+    let orderColumn = '__sequelize_tmp_order';
+    let quotedOrderColumn = this.quoteIdentifier(orderColumn);
+    while (usedColumns.has(quotedOrderColumn.toLowerCase())) {
+      orderColumn = `_${orderColumn}`;
+      quotedOrderColumn = this.quoteIdentifier(orderColumn);
+    }
+
+    return quotedOrderColumn;
+  }
+
+  #buildTriggerMergeQueries(
+    quotedTable,
+    allAttributes,
+    normalRows,
+    attributes,
+    replacements,
+    outputFragment,
+    quotedOrderColumn,
+    needIdentityInsertWrapper,
+  ) {
+    if (allAttributes.length === 0) {
+      return [];
+    }
+
+    const sourceRows = normalRows.map(([rowIndex, attrValueHash]) => {
+      const values = allAttributes.map(attribute => {
+        return this.escape(attrValueHash[attribute] ?? null, {
+          type: attributes[attribute]?.type,
+          replacements,
+        });
+      });
+      values.push(rowIndex);
+
+      return `(${values.join(',')})`;
+    });
+    const quotedAttributes = allAttributes
+      .map(attribute => this.quoteIdentifier(attribute))
+      .join(',');
+    const sourceAlias = this.quoteIdentifier('source');
+    const targetAlias = this.quoteIdentifier('target');
+    const sourceColumns = `${quotedAttributes},${quotedOrderColumn}`;
+    const sourceValues = allAttributes
+      .map(attribute => `${sourceAlias}.${this.quoteIdentifier(attribute)}`)
+      .join(',');
+    const output = `${outputFragment}, ${sourceAlias}.${quotedOrderColumn} INTO @tmp`;
+    const queries = [];
+
+    for (let offset = 0; offset < sourceRows.length; offset += 1000) {
+      const sourceRowsChunk = sourceRows.slice(offset, offset + 1000).join(',');
+      let query = `MERGE INTO ${quotedTable} AS ${targetAlias} USING (VALUES ${sourceRowsChunk}) AS ${sourceAlias} (${sourceColumns}) ON 1 = 0 WHEN NOT MATCHED THEN INSERT (${quotedAttributes}) VALUES (${sourceValues})${output}`;
+      if (needIdentityInsertWrapper) {
+        query = `SET IDENTITY_INSERT ${quotedTable} ON; ${query}; SET IDENTITY_INSERT ${quotedTable} OFF`;
+      }
+
+      queries.push(query);
+    }
+
+    return queries;
   }
 
   updateQuery(tableName, attrValueHash, where, options = {}, attributes) {
