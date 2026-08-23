@@ -80,10 +80,20 @@ if (current.dialect.supports.tmpTableTrigger) {
           // Assert
           const persistedUsers = await User.findAll();
           const idsByUsername = new Map(persistedUsers.map(user => [user.username, user.id]));
-          expect(users.map(user => user.id)).to.deep.equal([
-            idsByUsername.get('second'),
-            idsByUsername.get('first'),
-          ]);
+          const expectedUsers = [
+            {
+              id: idsByUsername.get('second'),
+              username: 'second',
+            },
+            {
+              id: idsByUsername.get('first'),
+              username: 'first',
+            },
+          ];
+
+          expect(users.map(user => ({ id: user.id, username: user.username }))).to.deep.equal(
+            expectedUsers,
+          );
         });
       }
 
