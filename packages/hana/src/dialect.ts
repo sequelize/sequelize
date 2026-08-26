@@ -114,10 +114,6 @@ export class HanaDialect extends AbstractDialect<HanaDialectOptions, HanaConnect
     return this.sequelize.options.replication.write.user?.toUpperCase() ?? '';
   }
 
-  static getDefaultPort() {
-    return 443;
-  }
-
   parseConnectionUrl(url: string): HanaConnectionOptions {
     return parseCommonConnectionUrlOptions<HanaConnectionOptions>({
       url: new URL(url),
