@@ -34,7 +34,7 @@ import type {
   GetConnectionOptions,
 } from './abstract-dialect/connection-manager.js';
 import { normalizeDataType, validateDataType } from './abstract-dialect/data-types-utils.js';
-import type { AbstractDataType } from './abstract-dialect/data-types.js';
+import type { AbstractDataType, VectorValue } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type { EscapeOptions } from './abstract-dialect/query-generator-typescript.js';
 import type { QiDropAllSchemasOptions } from './abstract-dialect/query-interface.types.js';
@@ -44,6 +44,8 @@ import { ReplicationPool } from './abstract-dialect/replication-pool.js';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
 import { ConnectionAcquireTimeoutError } from './errors/connection/connection-acquire-timeout-error.js';
+import type { Fn } from './expression-builders/fn.js';
+import { fn } from './expression-builders/fn.js';
 import {
   legacyBuildAddAnyHook,
   legacyBuildAddHook,
@@ -1139,6 +1141,38 @@ Connection options can be used at the root of the option bag, in the "replicatio
 
   getDatabaseVersionIfExist(): string | null {
     return this.#databaseVersion || null;
+  }
+
+  cosineDistance(column: string, value: VectorValue): Fn {
+    return this.#vectorSimilarityFn('COSINE_DISTANCE', column, value);
+  }
+
+  innerProduct(column: string, value: VectorValue): Fn {
+    return this.#vectorSimilarityFn('INNER_PRODUCT', column, value);
+  }
+
+  l1Distance(column: string, value: VectorValue): Fn {
+    return this.#vectorSimilarityFn('L1_DISTANCE', column, value);
+  }
+
+  l2Distance(column: string, value: VectorValue): Fn {
+    return this.#vectorSimilarityFn('L2_DISTANCE', column, value);
+  }
+
+  vectorDistance(column: string, value: VectorValue): Fn {
+    return this.#vectorSimilarityFn('VECTOR_DISTANCE', column, value);
+  }
+
+  #vectorSimilarityFn(fnName: string, column: string, value: VectorValue): Fn {
+    // Dialects that advertise VECTOR support can translate these generic helper names in their
+    // query generator. Oracle is the primary implementation; other dialects may follow this pattern.
+    if (!this.dialect.supports?.dataTypes?.VECTOR) {
+      throw new Error(
+        `${fnName.toLowerCase()} for dialect "${this.dialect.name}" is not implemented`,
+      );
+    }
+
+    return fn(fnName, column, value);
   }
 
   setDatabaseVersion(version: string) {
