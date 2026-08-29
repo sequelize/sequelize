@@ -45,7 +45,6 @@ export interface SupportableExactDecimalOptions extends SupportableDecimalNumber
 }
 
 export type DialectSupports = {
-  /** Maximum length of a table alias. */
   maxTableAliasLength: number;
   DEFAULT: boolean;
   'DEFAULT VALUES': boolean;
