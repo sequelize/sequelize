@@ -335,7 +335,7 @@ export abstract class AbstractDialect<
    * When changing a default, ensure the implementations still properly declare which feature they support.
    */
   static readonly supports: DialectSupports = freezeDeep({
-    maxTableAliasLength: Number.POSITIVE_INFINITY,
+    maxTableAliasLength: Number.MAX_SAFE_INTEGER,
     DEFAULT: true,
     'DEFAULT VALUES': false,
     'VALUES ()': false,
