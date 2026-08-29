@@ -104,6 +104,10 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
     startTransaction: {
       readOnly: true,
     },
+    generatedColumns: {
+      stored: true,
+      virtual: true,
+    },
   });
 
   readonly connectionManager: MySqlConnectionManager;

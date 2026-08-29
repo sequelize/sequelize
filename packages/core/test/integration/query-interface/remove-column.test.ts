@@ -211,7 +211,7 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
             constraintCatalog: 'sequelize_test',
           }),
           constraintSchema: defaultSchema,
-          constraintName: dialectName === 'sqlite3' ? 'FOREIGN' : 'actors_level_id_fkey',
+          constraintName: 'actors_level_id_fkey',
           constraintType: 'FOREIGN KEY',
           ...(['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,

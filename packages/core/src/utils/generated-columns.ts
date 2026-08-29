@@ -1,0 +1,987 @@
+import semver from 'semver';
+import type { AbstractDialect } from '../abstract-dialect/dialect.js';
+import { ARRAY, VIRTUAL } from '../data-types.js';
+import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
+
+const POSTGRES_USER_DEFINED_TYPE_IDS = new Set([
+  'CITEXT',
+  'ENUM',
+  'GEOGRAPHY',
+  'GEOMETRY',
+  'HSTORE',
+]);
+
+interface GeneratedColumnOptions {
+  autoIncrement?: boolean | undefined;
+  defaultValue?: unknown;
+  generatedAs?: unknown;
+  generatedColumn?: unknown;
+  index?: unknown;
+  onDelete?: string | undefined;
+  onUpdate?: string | undefined;
+  primaryKey?: boolean | undefined;
+  references?: unknown;
+  type?: unknown;
+  unique?: unknown;
+  columnName?: unknown;
+  field?: unknown;
+}
+
+/**
+ * Validates the options shared by model attributes and QueryInterface column definitions.
+ *
+ * @param attribute The attribute definition to validate.
+ * @param dialect The dialect the attribute will be used with.
+ * @param attributeDescription A human-readable attribute identifier for errors.
+ */
+export function validateGeneratedColumnOptions(
+  attribute: GeneratedColumnOptions,
+  dialect: AbstractDialect,
+  attributeDescription: string,
+): void {
+  if (attribute.generatedColumn !== undefined && attribute.generatedAs === undefined) {
+    throw new Error(
+      `${attributeDescription}: "generatedColumn" requires "generatedAs" to be specified.`,
+    );
+  }
+
+  if (attribute.generatedAs === undefined) {
+    return;
+  }
+
+  if (!(attribute.generatedAs instanceof BaseSqlExpression)) {
+    throw new TypeError(
+      `${attributeDescription}: "generatedAs" must be a Sequelize SQL expression (for example, one created with the sql template tag or sql.fn).`,
+    );
+  }
+
+  if (attribute.type instanceof VIRTUAL) {
+    throw new TypeError(
+      `${attributeDescription}: A generated column cannot use DataTypes.VIRTUAL because generated columns are physical database columns.`,
+    );
+  }
+
+  const mode = attribute.generatedColumn ?? 'STORED';
+  if (mode !== 'STORED' && mode !== 'VIRTUAL') {
+    throw new Error(
+      `${attributeDescription}: "generatedColumn" must be either "STORED" or "VIRTUAL".`,
+    );
+  }
+
+  if (Object.hasOwn(attribute, 'defaultValue')) {
+    throw new Error(`${attributeDescription}: A generated column cannot have a defaultValue.`);
+  }
+
+  if (attribute.autoIncrement) {
+    throw new Error(`${attributeDescription}: A generated column cannot be autoIncrement.`);
+  }
+
+  if (attribute.references) {
+    const onDelete = attribute.onDelete?.toUpperCase();
+    if (onDelete === 'SET NULL' || onDelete === 'SET DEFAULT') {
+      throw new Error(
+        `${attributeDescription}: A generated foreign key cannot use ON DELETE ${onDelete} because generated columns cannot be updated directly.`,
+      );
+    }
+
+    const onUpdate = attribute.onUpdate?.toUpperCase();
+    if (onUpdate && onUpdate !== 'RESTRICT' && onUpdate !== 'NO ACTION') {
+      throw new Error(
+        `${attributeDescription}: A generated foreign key cannot use ON UPDATE ${onUpdate} because generated columns cannot be updated directly.`,
+      );
+    }
+  }
+
+  const supports = dialect.supports.generatedColumns;
+  const minimumVersion = mode === 'STORED' ? supports.storedMinVersion : supports.virtualMinVersion;
+  const databaseVersion = dialect.sequelize.getDatabaseVersionIfExist();
+  const validDatabaseVersion = databaseVersion && semver.valid(databaseVersion);
+  if (minimumVersion && validDatabaseVersion && semver.lt(validDatabaseVersion, minimumVersion)) {
+    const databaseName = dialect.name === 'postgres' ? 'PostgreSQL' : dialect.name;
+    throw new Error(
+      `${attributeDescription}: ${databaseName} ${minimumVersion} or newer is required for ${mode} generated columns, but the configured database version is ${databaseVersion}.`,
+    );
+  }
+
+  if (!supports.stored && !supports.virtual) {
+    throw new Error(
+      `${attributeDescription}: The ${dialect.name} dialect does not support generated columns.`,
+    );
+  }
+
+  if (mode === 'STORED' && !supports.stored) {
+    throw new Error(
+      `${attributeDescription}: The ${dialect.name} dialect does not support STORED generated columns.`,
+    );
+  }
+
+  if (mode === 'VIRTUAL' && !supports.virtual) {
+    throw new Error(
+      `${attributeDescription}: The ${dialect.name} dialect does not support VIRTUAL generated columns.`,
+    );
+  }
+
+  if (dialect.name === 'mariadb') {
+    if (attribute.primaryKey) {
+      throw new Error(
+        `${attributeDescription}: MariaDB does not support generated columns as primary keys.`,
+      );
+    }
+
+    if (mode === 'VIRTUAL' && attribute.references) {
+      throw new Error(
+        `${attributeDescription}: MariaDB only supports foreign keys on STORED generated columns.`,
+      );
+    }
+  }
+
+  if (dialect.name === 'postgres' && mode === 'VIRTUAL') {
+    const userDefinedTypeId = findPostgresUserDefinedTypeId(attribute.type);
+    if (userDefinedTypeId) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL VIRTUAL generated columns cannot use the ${userDefinedTypeId} user-defined data type.`,
+      );
+    }
+
+    if (attribute.primaryKey) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL does not support primary keys on VIRTUAL generated columns.`,
+      );
+    }
+
+    if (attribute.unique) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL does not support unique constraints on VIRTUAL generated columns.`,
+      );
+    }
+
+    if (attribute.references) {
+      throw new Error(
+        `${attributeDescription}: PostgreSQL does not support foreign key constraints on VIRTUAL generated columns.`,
+      );
+    }
+
+    if (attribute.index) {
+      validateGeneratedColumnIndex(attribute, dialect, attributeDescription);
+    }
+  }
+}
+
+/**
+ * Validates PostgreSQL VIRTUAL generated expressions against user-defined source column types.
+ *
+ * PostgreSQL 18 does not allow user-defined types anywhere in a VIRTUAL generation expression,
+ * including through a referenced source column whose value is cast to a built-in result type.
+ *
+ * @param attributes All attributes that will be part of the table.
+ * @param dialect The dialect the attributes will be used with.
+ * @param formatExpression Formats a generated expression using the caller's model context.
+ * @internal
+ */
+export function validateGeneratedColumnExpressionReferences(
+  attributes: Iterable<readonly [string, GeneratedColumnOptions]>,
+  dialect: AbstractDialect,
+  formatExpression: (expression: BaseSqlExpression) => string,
+): void {
+  if (dialect.name !== 'postgres') {
+    return;
+  }
+
+  const attributeEntries = [...attributes];
+  const userDefinedSourceColumns: Array<{
+    attributeName: string;
+    columnName: string;
+    typeId: string;
+  }> = [];
+
+  for (const [attributeName, attribute] of attributeEntries) {
+    const typeId = findPostgresUserDefinedTypeId(attribute.type);
+    if (!typeId) {
+      continue;
+    }
+
+    const columnName =
+      typeof attribute.columnName === 'string'
+        ? attribute.columnName
+        : typeof attribute.field === 'string'
+          ? attribute.field
+          : attributeName;
+    userDefinedSourceColumns.push({ attributeName, columnName, typeId });
+  }
+
+  if (userDefinedSourceColumns.length === 0) {
+    return;
+  }
+
+  for (const [attributeName, attribute] of attributeEntries) {
+    if (
+      attribute.generatedColumn !== 'VIRTUAL' ||
+      !(attribute.generatedAs instanceof BaseSqlExpression)
+    ) {
+      continue;
+    }
+
+    const expressionSql = formatExpression(attribute.generatedAs);
+    for (const source of userDefinedSourceColumns) {
+      if (!sqlFragmentReferencesIdentifier(expressionSql, [source.columnName], dialect)) {
+        continue;
+      }
+
+      throw new Error(
+        `Attribute "${attributeName}": PostgreSQL VIRTUAL generated column expressions cannot reference attribute "${source.attributeName}" because it uses the ${source.typeId} user-defined data type.`,
+      );
+    }
+  }
+}
+
+/**
+ * Validates an index that directly targets a generated column.
+ *
+ * @param attribute The indexed attribute.
+ * @param dialect The dialect the attribute will be used with.
+ * @param attributeDescription A human-readable attribute identifier for errors.
+ */
+export function validateGeneratedColumnIndex(
+  attribute: GeneratedColumnOptions,
+  dialect: AbstractDialect,
+  attributeDescription: string,
+): void {
+  if (
+    dialect.name === 'postgres' &&
+    attribute.generatedAs !== undefined &&
+    attribute.generatedColumn === 'VIRTUAL'
+  ) {
+    throw new Error(
+      `${attributeDescription}: PostgreSQL does not support indexes on VIRTUAL generated columns.`,
+    );
+  }
+}
+
+/**
+ * Returns whether a SQL fragment references one of the provided identifiers outside of string
+ * literals and comments.
+ *
+ * @param sql The SQL fragment to inspect.
+ * @param identifiers Database column names to find.
+ * @param dialect The dialect whose identifier and string quoting rules should be used.
+ * @internal
+ */
+export function sqlFragmentReferencesIdentifier(
+  sql: string,
+  identifiers: Iterable<string>,
+  dialect: AbstractDialect,
+): boolean {
+  const quotedIdentifiers = new Set(identifiers);
+  const unquotedIdentifiers = new Set(
+    [...quotedIdentifiers]
+      .filter(isUnquotedSqlIdentifier)
+      .map(identifier => identifier.toLowerCase()),
+  );
+  let quotedIdentifier: string | undefined;
+  let quotedIdentifierStart = -1;
+  let inString = false;
+  let stringIsBackslashEscapable = false;
+  let dollarQuoteTag: string | undefined;
+  let alternativeQuoteEnd: string | undefined;
+  let inLineComment = false;
+  let blockCommentDepth = 0;
+
+  for (let index = 0; index < sql.length; index++) {
+    const char = sql[index];
+
+    if (quotedIdentifier !== undefined) {
+      if (char !== dialect.TICK_CHAR_RIGHT) {
+        quotedIdentifier += char;
+        continue;
+      }
+
+      if (sql[index + 1] === dialect.TICK_CHAR_RIGHT) {
+        quotedIdentifier += dialect.TICK_CHAR_RIGHT;
+        index++;
+        continue;
+      }
+
+      if (
+        quotedIdentifiers.has(quotedIdentifier) &&
+        isSqlIdentifierReference(sql, quotedIdentifierStart, index + 1, dialect)
+      ) {
+        return true;
+      }
+
+      quotedIdentifier = undefined;
+      quotedIdentifierStart = -1;
+      continue;
+    }
+
+    if (inString) {
+      if (char === "'" && (!stringIsBackslashEscapable || !isBackslashEscaped(sql, index - 1))) {
+        if (sql[index + 1] === "'") {
+          index++;
+        } else {
+          inString = false;
+          stringIsBackslashEscapable = false;
+        }
+      }
+
+      continue;
+    }
+
+    if (dollarQuoteTag !== undefined) {
+      if (sql.startsWith(dollarQuoteTag, index)) {
+        index += dollarQuoteTag.length - 1;
+        dollarQuoteTag = undefined;
+      }
+
+      continue;
+    }
+
+    if (alternativeQuoteEnd !== undefined) {
+      if (char === alternativeQuoteEnd && sql[index + 1] === "'") {
+        index++;
+        alternativeQuoteEnd = undefined;
+      }
+
+      continue;
+    }
+
+    if (inLineComment) {
+      if (char === '\n' || char === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (blockCommentDepth > 0) {
+      if (char === '/' && sql[index + 1] === '*') {
+        blockCommentDepth++;
+        index++;
+      } else if (char === '*' && sql[index + 1] === '/') {
+        blockCommentDepth--;
+        index++;
+      }
+
+      continue;
+    }
+
+    if (char === dialect.TICK_CHAR_LEFT) {
+      quotedIdentifier = '';
+      quotedIdentifierStart = index;
+      continue;
+    }
+
+    if (char === "'") {
+      inString = true;
+      stringIsBackslashEscapable =
+        dialect.canBackslashEscape() ||
+        (dialect.supports.escapeStringConstants &&
+          (sql[index - 1] === 'E' || sql[index - 1] === 'e') &&
+          isTokenBoundary(sql[index - 2]));
+      continue;
+    }
+
+    if ((char === 'q' || char === 'Q') && sql[index + 1] === "'" && sql[index + 2]) {
+      const quoteStart = sql[index + 2];
+      alternativeQuoteEnd =
+        quoteStart === '['
+          ? ']'
+          : quoteStart === '{'
+            ? '}'
+            : quoteStart === '('
+              ? ')'
+              : quoteStart === '<'
+                ? '>'
+                : quoteStart;
+      index += 2;
+      continue;
+    }
+
+    const lineCommentStartLength = getLineCommentStartLength(sql, index, dialect);
+    if (lineCommentStartLength > 0) {
+      inLineComment = true;
+      index += lineCommentStartLength - 1;
+      continue;
+    }
+
+    if (char === '/' && sql[index + 1] === '*') {
+      blockCommentDepth = 1;
+      index++;
+      continue;
+    }
+
+    if (char === '$' && isTokenBoundary(sql[index - 1])) {
+      const dollarQuoteMatch = sql.slice(index).match(/^\$(?:[a-z_][0-9a-z_]*)?\$/i);
+      if (dollarQuoteMatch) {
+        dollarQuoteTag = dollarQuoteMatch[0];
+        index += dollarQuoteTag.length - 1;
+        continue;
+      }
+    }
+
+    const identifierStart = getSqlIdentifierCharacter(sql, index);
+    if (identifierStart && isSqlIdentifierStart(identifierStart)) {
+      let tokenEnd = index + identifierStart.length;
+      while (tokenEnd < sql.length) {
+        const identifierPart = getSqlIdentifierCharacter(sql, tokenEnd);
+        if (!identifierPart || !isSqlIdentifierPart(identifierPart)) {
+          break;
+        }
+
+        tokenEnd += identifierPart.length;
+      }
+
+      if (
+        unquotedIdentifiers.has(sql.slice(index, tokenEnd).toLowerCase()) &&
+        isSqlIdentifierReference(sql, index, tokenEnd, dialect)
+      ) {
+        return true;
+      }
+
+      index = tokenEnd - 1;
+    }
+  }
+
+  return false;
+}
+
+function isSqlIdentifierReference(
+  sql: string,
+  identifierStart: number,
+  nextIndex: number,
+  dialect: AbstractDialect,
+): boolean {
+  while (nextIndex < sql.length && /\s/.test(sql[nextIndex])) {
+    nextIndex++;
+  }
+
+  if (sql[nextIndex] === '(' || sql[nextIndex] === '.') {
+    return false;
+  }
+
+  if (dialect.name !== 'postgres') {
+    return true;
+  }
+
+  if (
+    sql.startsWith('=>', nextIndex) ||
+    sql.startsWith(':=', nextIndex) ||
+    sql[nextIndex] === "'" ||
+    matchesSqlKeywordAt(sql, nextIndex, 'FROM')
+  ) {
+    return false;
+  }
+
+  return !isPostgresCastTypeIdentifier(sql, identifierStart, dialect);
+}
+
+/**
+ * Finds a SQL keyword that is outside of parentheses, quoted values, quoted identifiers, and
+ * comments. Column definitions use top-level keywords to separate their data type from constraints,
+ * but generated column expressions can contain the same keywords.
+ *
+ * @param sql The SQL fragment to search.
+ * @param keyword The keyword to find.
+ * @param dialect The dialect whose identifier and string quoting rules should be used.
+ * @internal
+ */
+export function findTopLevelSqlKeyword(
+  sql: string,
+  keyword: string,
+  dialect: AbstractDialect,
+): number {
+  const normalizedKeyword = keyword.toUpperCase();
+  let parenthesesDepth = 0;
+  let quotedIdentifierEnd: string | undefined;
+  let quotedRegionIsBackslashEscapable = false;
+  let inString = false;
+  let stringIsBackslashEscapable = false;
+  let dollarQuoteTag: string | undefined;
+  let alternativeQuoteEnd: string | undefined;
+  let inLineComment = false;
+  let blockCommentDepth = 0;
+
+  for (let index = 0; index < sql.length; index++) {
+    const char = sql[index];
+
+    if (quotedIdentifierEnd !== undefined) {
+      if (
+        char === quotedIdentifierEnd &&
+        (!quotedRegionIsBackslashEscapable || !isBackslashEscaped(sql, index - 1))
+      ) {
+        if (sql[index + 1] === quotedIdentifierEnd) {
+          index++;
+        } else {
+          quotedIdentifierEnd = undefined;
+          quotedRegionIsBackslashEscapable = false;
+        }
+      }
+
+      continue;
+    }
+
+    if (inString) {
+      if (char === "'" && (!stringIsBackslashEscapable || !isBackslashEscaped(sql, index - 1))) {
+        if (sql[index + 1] === "'") {
+          index++;
+        } else {
+          inString = false;
+          stringIsBackslashEscapable = false;
+        }
+      }
+
+      continue;
+    }
+
+    if (dollarQuoteTag !== undefined) {
+      if (sql.startsWith(dollarQuoteTag, index)) {
+        index += dollarQuoteTag.length - 1;
+        dollarQuoteTag = undefined;
+      }
+
+      continue;
+    }
+
+    if (alternativeQuoteEnd !== undefined) {
+      if (char === alternativeQuoteEnd && sql[index + 1] === "'") {
+        index++;
+        alternativeQuoteEnd = undefined;
+      }
+
+      continue;
+    }
+
+    if (inLineComment) {
+      if (char === '\n' || char === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (blockCommentDepth > 0) {
+      if (char === '/' && sql[index + 1] === '*') {
+        blockCommentDepth++;
+        index++;
+      } else if (char === '*' && sql[index + 1] === '/') {
+        blockCommentDepth--;
+        index++;
+      }
+
+      continue;
+    }
+
+    if (char === dialect.TICK_CHAR_LEFT) {
+      quotedIdentifierEnd = dialect.TICK_CHAR_RIGHT;
+      continue;
+    }
+
+    if (char === '"' && supportsAlternativeDoubleQuotedRegions(dialect)) {
+      quotedIdentifierEnd = '"';
+      quotedRegionIsBackslashEscapable = dialect.canBackslashEscape();
+      continue;
+    }
+
+    if (char === '[' && dialect.name === 'sqlite3') {
+      quotedIdentifierEnd = ']';
+      continue;
+    }
+
+    if (char === "'") {
+      inString = true;
+      stringIsBackslashEscapable =
+        dialect.canBackslashEscape() ||
+        (dialect.supports.escapeStringConstants &&
+          (sql[index - 1] === 'E' || sql[index - 1] === 'e') &&
+          isTokenBoundary(sql[index - 2]));
+      continue;
+    }
+
+    if ((char === 'q' || char === 'Q') && sql[index + 1] === "'" && sql[index + 2]) {
+      const quoteStart = sql[index + 2];
+      alternativeQuoteEnd =
+        quoteStart === '['
+          ? ']'
+          : quoteStart === '{'
+            ? '}'
+            : quoteStart === '('
+              ? ')'
+              : quoteStart === '<'
+                ? '>'
+                : quoteStart;
+      index += 2;
+      continue;
+    }
+
+    const lineCommentStartLength = getLineCommentStartLength(sql, index, dialect);
+    if (lineCommentStartLength > 0) {
+      inLineComment = true;
+      index += lineCommentStartLength - 1;
+      continue;
+    }
+
+    if (char === '/' && sql[index + 1] === '*') {
+      blockCommentDepth = 1;
+      index++;
+      continue;
+    }
+
+    if (char === '$' && isTokenBoundary(sql[index - 1])) {
+      const dollarQuoteMatch = sql.slice(index).match(/^\$(?:[a-z_][0-9a-z_]*)?\$/i);
+      if (dollarQuoteMatch) {
+        dollarQuoteTag = dollarQuoteMatch[0];
+        index += dollarQuoteTag.length - 1;
+        continue;
+      }
+    }
+
+    if (char === '(') {
+      parenthesesDepth++;
+      continue;
+    }
+
+    if (char === ')') {
+      parenthesesDepth = Math.max(0, parenthesesDepth - 1);
+      continue;
+    }
+
+    if (
+      parenthesesDepth === 0 &&
+      isTokenBoundary(sql[index - 1]) &&
+      sql.slice(index, index + keyword.length).toUpperCase() === normalizedKeyword &&
+      isTokenBoundary(sql[index + keyword.length])
+    ) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * @param sql The SQL fragment to edit.
+ * @param keyword The top-level keyword to remove.
+ * @param dialect The dialect whose SQL quoting rules should be used.
+ * @internal
+ */
+export function removeTopLevelSqlKeyword(
+  sql: string,
+  keyword: string,
+  dialect: AbstractDialect,
+): string {
+  const index = findTopLevelSqlKeyword(sql, keyword, dialect);
+
+  return index === -1 ? sql : `${sql.slice(0, index)}${sql.slice(index + keyword.length)}`;
+}
+
+/**
+ * @param sql The SQL fragment to split.
+ * @param keyword The top-level keyword at which to split.
+ * @param dialect The dialect whose SQL quoting rules should be used.
+ * @internal
+ */
+export function splitSqlAtTopLevelKeyword(
+  sql: string,
+  keyword: string,
+  dialect: AbstractDialect,
+): [beforeKeyword: string, keywordAndAfter: string] | undefined {
+  const index = findTopLevelSqlKeyword(sql, keyword, dialect);
+
+  if (index === -1) {
+    return undefined;
+  }
+
+  return [sql.slice(0, index).trimEnd(), sql.slice(index)];
+}
+
+/**
+ * @param sql The SQL fragment to split.
+ * @param keyword The last top-level keyword at which to split.
+ * @param dialect The dialect whose SQL quoting rules should be used.
+ * @internal
+ */
+export function splitSqlAtLastTopLevelKeyword(
+  sql: string,
+  keyword: string,
+  dialect: AbstractDialect,
+): [beforeKeyword: string, keywordAndAfter: string] | undefined {
+  let lastKeywordIndex = -1;
+  let searchStart = 0;
+
+  while (searchStart < sql.length) {
+    const relativeIndex = findTopLevelSqlKeyword(sql.slice(searchStart), keyword, dialect);
+    if (relativeIndex === -1) {
+      break;
+    }
+
+    lastKeywordIndex = searchStart + relativeIndex;
+    searchStart = lastKeywordIndex + keyword.length;
+  }
+
+  if (lastKeywordIndex === -1) {
+    return undefined;
+  }
+
+  return [sql.slice(0, lastKeywordIndex).trimEnd(), sql.slice(lastKeywordIndex)];
+}
+
+function isTokenBoundary(char: string | undefined): boolean {
+  return char === undefined || !isSqlIdentifierPart(char);
+}
+
+function findPostgresUserDefinedTypeId(type: unknown): string | undefined {
+  if (typeof type === 'string') {
+    const normalizedType = extractRawDataTypeName(type);
+
+    return POSTGRES_USER_DEFINED_TYPE_IDS.has(normalizedType) ? normalizedType : undefined;
+  }
+
+  if ((typeof type !== 'object' || type === null) && typeof type !== 'function') {
+    return undefined;
+  }
+
+  const getDataTypeId = (type as { getDataTypeId?(): string }).getDataTypeId;
+  const typeId = typeof getDataTypeId === 'function' ? getDataTypeId.call(type) : undefined;
+  if (typeId && POSTGRES_USER_DEFINED_TYPE_IDS.has(typeId)) {
+    return typeId;
+  }
+
+  if (type instanceof ARRAY) {
+    return findPostgresUserDefinedTypeId(type.options.type);
+  }
+
+  return undefined;
+}
+
+function extractRawDataTypeName(type: string): string {
+  let typeWithoutArrays = type.trim();
+  while (/\[\s*\d*\s*\]\s*$/.test(typeWithoutArrays)) {
+    typeWithoutArrays = typeWithoutArrays.replace(/\[\s*\d*\s*\]\s*$/, '').trimEnd();
+  }
+
+  let inQuotedIdentifier = false;
+  let lastQualifierIndex = -1;
+  let typeModifierIndex = typeWithoutArrays.length;
+
+  for (let index = 0; index < typeWithoutArrays.length; index++) {
+    const char = typeWithoutArrays[index];
+    if (char === '"') {
+      if (inQuotedIdentifier && typeWithoutArrays[index + 1] === '"') {
+        index++;
+        continue;
+      }
+
+      inQuotedIdentifier = !inQuotedIdentifier;
+      continue;
+    }
+
+    if (inQuotedIdentifier) {
+      continue;
+    }
+
+    if (char === '.') {
+      lastQualifierIndex = index;
+    } else if (char === '(' || char === '[') {
+      typeModifierIndex = index;
+      break;
+    } else if (/\s/.test(char)) {
+      let nextIndex = index + 1;
+      while (nextIndex < typeWithoutArrays.length && /\s/.test(typeWithoutArrays[nextIndex])) {
+        nextIndex++;
+      }
+
+      let previousIndex = index - 1;
+      while (previousIndex >= 0 && /\s/.test(typeWithoutArrays[previousIndex])) {
+        previousIndex--;
+      }
+
+      if (typeWithoutArrays[nextIndex] !== '.' && typeWithoutArrays[previousIndex] !== '.') {
+        typeModifierIndex = index;
+        break;
+      }
+    }
+  }
+
+  let typeName = typeWithoutArrays.slice(lastQualifierIndex + 1, typeModifierIndex).trim();
+  if (typeName.startsWith('"') && typeName.endsWith('"')) {
+    typeName = typeName.slice(1, -1).replaceAll('""', '"');
+  }
+
+  return typeName.toUpperCase();
+}
+
+function getLineCommentStartLength(sql: string, index: number, dialect: AbstractDialect): number {
+  const char = sql[index];
+  const isMySqlFamily = dialect.name === 'mysql' || dialect.name === 'mariadb';
+
+  if (isMySqlFamily && char === '#') {
+    return 1;
+  }
+
+  if (char !== '-' || sql[index + 1] !== '-') {
+    return 0;
+  }
+
+  if (!isMySqlFamily) {
+    return 2;
+  }
+
+  const followingCharacter = sql[index + 2];
+  if (followingCharacter === undefined) {
+    return 0;
+  }
+
+  const codePoint = followingCharacter.codePointAt(0)!;
+
+  return codePoint <= 0x20 || codePoint === 0x7f ? 2 : 0;
+}
+
+function supportsAlternativeDoubleQuotedRegions(dialect: AbstractDialect): boolean {
+  return (
+    dialect.name === 'mysql' ||
+    dialect.name === 'mariadb' ||
+    dialect.name === 'mssql' ||
+    dialect.name === 'sqlite3'
+  );
+}
+
+function getSqlIdentifierCharacter(value: string, index: number): string | undefined {
+  const codePoint = value.codePointAt(index);
+
+  return codePoint === undefined ? undefined : String.fromCodePoint(codePoint);
+}
+
+function isSqlIdentifierStart(char: string): boolean {
+  return char === '_' || /\p{L}/u.test(char);
+}
+
+function isSqlIdentifierPart(char: string): boolean {
+  return char === '_' || char === '$' || /[\p{L}\p{N}\p{M}]/u.test(char);
+}
+
+function isUnquotedSqlIdentifier(identifier: string): boolean {
+  let isFirst = true;
+
+  for (const char of identifier) {
+    if (isFirst ? !isSqlIdentifierStart(char) : !isSqlIdentifierPart(char)) {
+      return false;
+    }
+
+    isFirst = false;
+  }
+
+  return !isFirst;
+}
+
+function matchesSqlKeywordAt(sql: string, index: number, keyword: string): boolean {
+  return (
+    sql.slice(index, index + keyword.length).toUpperCase() === keyword &&
+    isTokenBoundary(sql[index + keyword.length])
+  );
+}
+
+function isPostgresCastTypeIdentifier(
+  sql: string,
+  identifierStart: number,
+  dialect: AbstractDialect,
+): boolean {
+  let index = identifierStart - 1;
+
+  while (index >= 0) {
+    while (index >= 0 && /\s/.test(sql[index])) {
+      index--;
+    }
+
+    if (sql[index] === ':' && sql[index - 1] === ':') {
+      return true;
+    }
+
+    if (sql[index] === '.') {
+      index--;
+      while (index >= 0 && /\s/.test(sql[index])) {
+        index--;
+      }
+
+      const qualifierStart = findPreviousQualifierStart(sql, index, dialect);
+      if (qualifierStart === undefined) {
+        return false;
+      }
+
+      index = qualifierStart;
+      continue;
+    }
+
+    const tokenEnd = index + 1;
+    while (index >= 0 && isSqlIdentifierPart(sql[index])) {
+      index--;
+    }
+
+    if (tokenEnd === index + 1) {
+      return false;
+    }
+
+    const previousToken = sql.slice(index + 1, tokenEnd);
+    if (previousToken.toUpperCase() === 'AS') {
+      return true;
+    }
+
+    if (!POSTGRES_MULTIWORD_TYPE_PREFIXES.has(previousToken.toUpperCase())) {
+      return false;
+    }
+  }
+
+  return false;
+}
+
+const POSTGRES_MULTIWORD_TYPE_PREFIXES = new Set([
+  'BIT',
+  'CHAR',
+  'CHARACTER',
+  'DOUBLE',
+  'NATIONAL',
+  'TIME',
+  'TIMESTAMP',
+  'WITH',
+  'WITHOUT',
+]);
+
+function findPreviousQualifierStart(
+  sql: string,
+  qualifierEnd: number,
+  dialect: AbstractDialect,
+): number | undefined {
+  let index = qualifierEnd;
+  if (sql[index] !== dialect.TICK_CHAR_RIGHT) {
+    while (index >= 0 && isSqlIdentifierPart(sql[index])) {
+      index--;
+    }
+
+    return index === qualifierEnd ? undefined : index;
+  }
+
+  index--;
+  while (index >= 0) {
+    if (sql[index] !== dialect.TICK_CHAR_LEFT) {
+      index--;
+      continue;
+    }
+
+    if (sql[index - 1] === dialect.TICK_CHAR_LEFT) {
+      index -= 2;
+      continue;
+    }
+
+    return index - 1;
+  }
+
+  return undefined;
+}
+
+function isBackslashEscaped(value: string, index: number): boolean {
+  let escaped = false;
+
+  for (let position = index; position >= 0 && value[position] === '\\'; position--) {
+    escaped = !escaped;
+  }
+
+  return escaped;
+}

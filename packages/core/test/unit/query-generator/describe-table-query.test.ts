@@ -13,8 +13,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.column_name as "Field",
         c.column_default as "Default",
         c.is_nullable as "Null",
-        (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
-        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
+        (CASE WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name WHEN c.data_type = 'ARRAY' AND c.udt_name IN ('_citext', '_geography', '_geometry', '_hstore') THEN substring(c.udt_name FROM 2) || '[]' ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
+        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name OR t.typarray=(SELECT oid FROM pg_catalog.pg_type WHERE typname=c.udt_name)) AS "special",
         (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
@@ -57,7 +57,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite3: 'PRAGMA TABLE_INFO(`myTable`)',
+      sqlite3: 'PRAGMA TABLE_XINFO(`myTable`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -92,8 +92,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.column_name as "Field",
         c.column_default as "Default",
         c.is_nullable as "Null",
-        (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
-        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
+        (CASE WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name WHEN c.data_type = 'ARRAY' AND c.udt_name IN ('_citext', '_geography', '_geometry', '_hstore') THEN substring(c.udt_name FROM 2) || '[]' ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
+        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name OR t.typarray=(SELECT oid FROM pg_catalog.pg_type WHERE typname=c.udt_name)) AS "special",
         (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
@@ -136,7 +136,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'MyModels' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite3: 'PRAGMA TABLE_INFO(`MyModels`)',
+      sqlite3: 'PRAGMA TABLE_XINFO(`MyModels`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -172,8 +172,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.column_name as "Field",
         c.column_default as "Default",
         c.is_nullable as "Null",
-        (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
-        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
+        (CASE WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name WHEN c.data_type = 'ARRAY' AND c.udt_name IN ('_citext', '_geography', '_geometry', '_hstore') THEN substring(c.udt_name FROM 2) || '[]' ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
+        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name OR t.typarray=(SELECT oid FROM pg_catalog.pg_type WHERE typname=c.udt_name)) AS "special",
         (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
@@ -216,7 +216,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'MyModels' AND t.TABLE_SCHEMA = N'dbo'`,
-      sqlite3: 'PRAGMA TABLE_INFO(`MyModels`)',
+      sqlite3: 'PRAGMA TABLE_XINFO(`MyModels`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -252,8 +252,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.column_name as "Field",
         c.column_default as "Default",
         c.is_nullable as "Null",
-        (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
-        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
+        (CASE WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name WHEN c.data_type = 'ARRAY' AND c.udt_name IN ('_citext', '_geography', '_geometry', '_hstore') THEN substring(c.udt_name FROM 2) || '[]' ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
+        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name OR t.typarray=(SELECT oid FROM pg_catalog.pg_type WHERE typname=c.udt_name)) AS "special",
         (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
@@ -294,7 +294,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-        sqlite3: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+        sqlite3: 'PRAGMA TABLE_XINFO(`mySchema.myTable`)',
         db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -334,8 +334,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.column_name as "Field",
         c.column_default as "Default",
         c.is_nullable as "Null",
-        (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
-        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
+        (CASE WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name WHEN c.data_type = 'ARRAY' AND c.udt_name IN ('_citext', '_geography', '_geometry', '_hstore') THEN substring(c.udt_name FROM 2) || '[]' ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
+        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name OR t.typarray=(SELECT oid FROM pg_catalog.pg_type WHERE typname=c.udt_name)) AS "special",
         (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
@@ -377,7 +377,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'dbo'`,
-        sqlite3: 'PRAGMA TABLE_INFO(`myTable`)',
+        sqlite3: 'PRAGMA TABLE_XINFO(`myTable`)',
         db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -414,8 +414,8 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.column_name as "Field",
         c.column_default as "Default",
         c.is_nullable as "Null",
-        (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
-        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
+        (CASE WHEN c.data_type = 'USER-DEFINED' THEN c.udt_name WHEN c.data_type = 'ARRAY' AND c.udt_name IN ('_citext', '_geography', '_geometry', '_hstore') THEN substring(c.udt_name FROM 2) || '[]' ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
+        (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name OR t.typarray=(SELECT oid FROM pg_catalog.pg_type WHERE typname=c.udt_name)) AS "special",
         (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
@@ -458,7 +458,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         AND prop.minor_id = sc.column_id
         AND prop.name = 'MS_Description'
         WHERE t.TABLE_NAME = N'myTable' AND t.TABLE_SCHEMA = N'mySchema'`,
-      sqlite3: 'PRAGMA TABLE_INFO(`mySchema.myTable`)',
+      sqlite3: 'PRAGMA TABLE_XINFO(`mySchema.myTable`)',
       db2: `SELECT COLNAME AS "Name", TABNAME AS "Table", TABSCHEMA AS "Schema",
         TYPENAME AS "Type", LENGTH AS "Length", SCALE AS "Scale", NULLS AS "IsNull",
         DEFAULT AS "Default", COLNO AS "Colno", IDENTITY AS "IsIdentity", KEYSEQ AS "KeySeq",
@@ -497,7 +497,7 @@ describe('QueryGenerator#describeTableQuery', () => {
           delimiter: 'custom',
         }),
       {
-        sqlite3: 'PRAGMA TABLE_INFO(`mySchemacustommyTable`)',
+        sqlite3: 'PRAGMA TABLE_XINFO(`mySchemacustommyTable`)',
       },
     );
   });

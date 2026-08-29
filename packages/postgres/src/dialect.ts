@@ -165,6 +165,12 @@ export class PostgresDialect extends AbstractDialect<
     delete: {
       limit: false,
     },
+    generatedColumns: {
+      stored: true,
+      storedMinVersion: '12.0.0',
+      virtual: true,
+      virtualMinVersion: '18.0.0',
+    },
   });
 
   readonly connectionManager: PostgresConnectionManager;

@@ -10,6 +10,11 @@ import {
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
@@ -49,36 +54,36 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     for (const attr in attributes) {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
-        let match;
 
-        if (dataType.includes('COMMENT ')) {
-          const commentMatch = dataType.match(/^(.+) (COMMENT.*)$/);
-          const commentText = commentMatch[2].replace('COMMENT', '').trim();
+        const commentParts = splitSqlAtTopLevelKeyword(dataType, 'COMMENT', this.dialect);
+        if (commentParts) {
+          const commentText = commentParts[1].slice('COMMENT'.length).trim();
           commentStr += this.commentTemplate(commentText, tableName, attr);
           // remove comment related substring from dataType
-          dataType = commentMatch[1];
+          dataType = commentParts[0];
         }
 
-        if (dataType.includes('PRIMARY KEY')) {
+        const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
+        const hasPrimaryKey = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1;
+
+        if (hasPrimaryKey) {
           primaryKeys.push(attr);
 
-          if (dataType.includes('REFERENCES')) {
+          if (referenceParts) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
-            match = dataType.match(/^(.+) (REFERENCES.*)$/);
             attributesClauseParts.push(
-              `${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`,
+              `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(referenceParts[0], 'PRIMARY KEY', this.dialect)}`,
             );
-            foreignKeys[attr] = match[2];
+            foreignKeys[attr] = referenceParts[1];
           } else {
             attributesClauseParts.push(
-              `${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`,
+              `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect)}`,
             );
           }
-        } else if (dataType.includes('REFERENCES')) {
+        } else if (referenceParts) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
-          foreignKeys[attr] = match[2];
+          attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${referenceParts[0]}`);
+          foreignKeys[attr] = referenceParts[1];
         } else {
           attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${dataType}`);
         }
@@ -179,6 +184,13 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     for (const attributeName in attributes) {
       const quotedAttrName = this.quoteIdentifier(attributeName);
       let definition = attributes[attributeName];
+
+      if (/^AS\s*\(/i.test(definition)) {
+        throw new Error(
+          `Changing the expression of generated column ${attributeName} is not supported by the mssql dialect. Remove and re-add the column instead.`,
+        );
+      }
+
       if (definition.includes('COMMENT ')) {
         const commentMatch = definition.match(/^(.+) (COMMENT.*)$/);
         const commentText = commentMatch[2].replace('COMMENT', '').trim();
@@ -483,6 +495,66 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         .join(', ')}))`;
 
       return template;
+    }
+
+    if (attribute.generatedAs !== undefined) {
+      const expr = this.escape(attribute.generatedAs, { model: options?.model });
+      const generatedType = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+      const mode = attribute.generatedColumn ?? 'STORED';
+      const persisted = mode === 'STORED' ? ' PERSISTED' : '';
+      let result = `AS (CAST(${expr} AS ${generatedType}))${persisted}`;
+
+      if (attribute.allowNull === false) {
+        if (mode === 'VIRTUAL') {
+          throw new Error('mssql only supports NOT NULL on PERSISTED generated columns.');
+        }
+
+        result += ' NOT NULL';
+      }
+
+      if (
+        attribute.unique === true &&
+        (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
+      ) {
+        result += ' UNIQUE';
+      }
+
+      if (attribute.primaryKey) {
+        result += ' PRIMARY KEY';
+      }
+
+      if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
+        if (mode === 'VIRTUAL') {
+          throw new Error('mssql only supports foreign keys on PERSISTED generated columns.');
+        }
+
+        const onDelete = attribute.onDelete?.toUpperCase();
+        const onUpdate = attribute.onUpdate?.toUpperCase();
+        if (onDelete && !['NO ACTION', 'CASCADE'].includes(onDelete)) {
+          throw new Error(`mssql does not support ON DELETE ${onDelete} on generated columns.`);
+        }
+
+        if (onUpdate && onUpdate !== 'NO ACTION') {
+          throw new Error(`mssql does not support ON UPDATE ${onUpdate} on generated columns.`);
+        }
+
+        result += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+        result += ` (${this.quoteIdentifier(attribute.references.key ?? 'id')})`;
+
+        if (onDelete) {
+          result += ` ON DELETE ${onDelete}`;
+        }
+
+        if (onUpdate) {
+          result += ` ON UPDATE ${onUpdate}`;
+        }
+      }
+
+      if (attribute.comment && typeof attribute.comment === 'string') {
+        result += ` COMMENT ${attribute.comment}`;
+      }
+
+      return result;
     }
 
     template = attributeTypeToSql(attribute.type, { dialect: this.dialect });

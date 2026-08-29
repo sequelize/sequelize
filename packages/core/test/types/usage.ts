@@ -1,5 +1,10 @@
 import { Group, User } from './models/user';
 
+User.sequelize.queryGenerator.attributesToSQL(
+  {},
+  { context: 'createTable', model: User, table: 'users' },
+);
+
 async function test(): Promise<void> {
   let user = await User.findOne({ include: [Group] });
   if (!user) {

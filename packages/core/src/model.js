@@ -127,6 +127,41 @@ const nonCascadingOptions = [
  */
 const CONSTRUCTOR_SECRET = Symbol('model-constructor-secret');
 
+function assertEagerLoadedThroughForeignKeysAreWritable(
+  instances,
+  includes,
+  currentModelHooksHaveRun = true,
+) {
+  if (!includes || includes.length === 0) {
+    return;
+  }
+
+  for (const include of includes) {
+    const includedInstances = [];
+    for (const instance of instances) {
+      const included = instance.get(include.as);
+      if (Array.isArray(included)) {
+        includedInstances.push(...included);
+      } else if (included) {
+        includedInstances.push(included);
+      }
+    }
+
+    if (
+      include.association instanceof BelongsToManyAssociation &&
+      (includedInstances.length > 0 || !currentModelHooksHaveRun)
+    ) {
+      include.association.assertThroughForeignKeysAreWritable(include.association.accessors.create);
+    }
+
+    if (includedInstances.length === 0) {
+      continue;
+    }
+
+    assertEagerLoadedThroughForeignKeysAreWritable(includedInstances, include.include, false);
+  }
+}
+
 /**
  * A Model represents a table in the database. Instances of this class represent a database row.
  *
@@ -923,6 +958,70 @@ ${associationOwner._getAssociationDebugList()}`);
           if (!currentAttribute) {
             await this.queryInterface.removeColumn(tableName, columnName, options);
             continue;
+          }
+
+          const databaseAttribute = columns[columnName];
+
+          if (currentAttribute.generatedAs !== undefined) {
+            const dialectCanInspectGeneratedColumns =
+              this.sequelize.dialect.name === 'sqlite3' ||
+              databaseAttribute.generatedAs !== undefined;
+
+            if (!dialectCanInspectGeneratedColumns) {
+              throw new Error(
+                `Generated column "${this.name}.${columnName}" cannot be verified by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to verify or change this column.`,
+              );
+            }
+
+            const expectedExpression = this.sequelize.queryGenerator.escape(
+              currentAttribute.generatedAs,
+              { model: this },
+            );
+            const actualExpression =
+              databaseAttribute.generatedAs === undefined
+                ? undefined
+                : this.sequelize.queryGenerator.escape(databaseAttribute.generatedAs, {
+                    model: this,
+                  });
+            const generatedDefinitionMatches =
+              actualExpression === expectedExpression &&
+              databaseAttribute.generatedColumn === currentAttribute.generatedColumn;
+
+            if (generatedDefinitionMatches) {
+              continue;
+            }
+
+            if (this.sequelize.dialect.name === 'sqlite3') {
+              await this.queryInterface.changeColumn(
+                tableName,
+                columnName,
+                currentAttribute,
+                options,
+              );
+
+              continue;
+            }
+
+            throw new Error(
+              `Generated column "${this.name}.${columnName}" differs from the model definition and cannot be changed safely by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to recreate this column.`,
+            );
+          }
+
+          if (databaseAttribute.generatedAs !== undefined) {
+            if (this.sequelize.dialect.name === 'sqlite3') {
+              await this.queryInterface.changeColumn(
+                tableName,
+                columnName,
+                currentAttribute,
+                options,
+              );
+
+              continue;
+            }
+
+            throw new Error(
+              `Column "${this.name}.${columnName}" is generated in the database but not in the model definition, and cannot be changed safely by sync({ alter: true }) on the ${this.sequelize.dialect.name} dialect. A migration is required to recreate this column.`,
+            );
           }
 
           if (currentAttribute.primaryKey) {
@@ -2335,10 +2434,19 @@ ${associationOwner._getAssociationDebugList()}`);
 
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
-          options.updateOnDuplicate = intersection(
+          const requestedUpdateAttributes = intersection(
             without(Object.keys(model.tableAttributes), createdAtAttr),
             options.updateOnDuplicate,
           );
+          options.updateOnDuplicate = requestedUpdateAttributes.filter(
+            attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
+          );
+
+          if (options.updateOnDuplicate.length === 0) {
+            throw new Error(
+              'updateOnDuplicate must contain at least one writable attribute. Generated columns are recomputed by the database and cannot be updated explicitly.',
+            );
+          }
         } else {
           throw new Error('updateOnDuplicate option only supports non-empty array.');
         }
@@ -2348,6 +2456,8 @@ ${associationOwner._getAssociationDebugList()}`);
       if (options.hooks) {
         await model.hooks.runAsync('beforeBulkCreate', instances, options);
       }
+
+      assertEagerLoadedThroughForeignKeysAreWritable(instances, options.include);
 
       // Validate
       if (options.validate) {
@@ -2467,7 +2577,16 @@ ${associationOwner._getAssociationDebugList()}`);
 
         // Map updateOnDuplicate attributes to fields
         if (options.updateOnDuplicate) {
-          options.updateOnDuplicate = options.updateOnDuplicate.map(attrName => {
+          const writableUpdateAttributes = options.updateOnDuplicate.filter(
+            attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
+          );
+          if (writableUpdateAttributes.length === 0) {
+            throw new Error(
+              'updateOnDuplicate must contain at least one writable attribute. Generated columns are recomputed by the database and cannot be updated explicitly.',
+            );
+          }
+
+          options.updateOnDuplicate = writableUpdateAttributes.map(attrName => {
             return modelDefinition.getColumnName(attrName);
           });
 
@@ -2499,12 +2618,74 @@ ${associationOwner._getAssociationDebugList()}`);
           );
         }
 
-        const results = await model.queryInterface.bulkInsert(
-          model.table,
-          records,
-          options,
-          fieldMappedAttributes,
-        );
+        let results;
+        if (records.some(record => isEmpty(record))) {
+          if (records.length > 1 && options.connection && !options.transaction) {
+            throw new Error(
+              'bulkCreate cannot atomically insert empty rows when a connection is provided without a transaction. Pass a transaction for this operation.',
+            );
+          }
+
+          const insertRecordsIndividually = async transaction => {
+            const insertOptions =
+              transaction === options.transaction
+                ? options
+                : {
+                    ...options,
+                    transaction,
+                    connection: transaction.getConnectionIfExists(),
+                  };
+            const individualResults = [];
+            for (const [index, record] of records.entries()) {
+              const [insertedRecord] = await model.queryInterface.insert(
+                instances[index],
+                model.table,
+                record,
+                insertOptions,
+              );
+
+              individualResults.push(insertedRecord?.dataValues ?? insertedRecord);
+            }
+
+            return individualResults;
+          };
+
+          if (records.length === 1 || options.transaction) {
+            results = await insertRecordsIndividually(options.transaction);
+          } else {
+            const instanceSnapshots = instances.map(instance => ({
+              changed: new Set(instance._changed),
+              dataValues: { ...instance.dataValues },
+              isNewRecord: instance.isNewRecord,
+              previousDataValues: { ...instance._previousDataValues },
+            }));
+
+            try {
+              results = await model.sequelize.transaction(
+                { logging: options.logging, transaction: null },
+                insertRecordsIndividually,
+              );
+            } catch (error) {
+              for (const [index, instance] of instances.entries()) {
+                const snapshot = instanceSnapshots[index];
+                instance._changed = snapshot.changed;
+                instance.dataValues = snapshot.dataValues;
+                instance.isNewRecord = snapshot.isNewRecord;
+                instance._previousDataValues = snapshot.previousDataValues;
+              }
+
+              throw error;
+            }
+          }
+        } else {
+          results = await model.queryInterface.bulkInsert(
+            model.table,
+            records,
+            options,
+            fieldMappedAttributes,
+          );
+        }
+
         if (Array.isArray(results)) {
           for (const [i, result] of results.entries()) {
             const instance = instances[i];
@@ -2957,6 +3138,16 @@ ${associationOwner._getAssociationDebugList()}`);
       }
     }
 
+    for (const attributeName of Object.keys(values)) {
+      if (modelDefinition.isGeneratedAttribute(attributeName)) {
+        delete values[attributeName];
+      }
+    }
+
+    options.fields = options.fields.filter(
+      attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
+    );
+
     if (updatedAtAttrName && !options.silent) {
       values[updatedAtAttrName] = this._getDefaultTimestamp(updatedAtAttrName) || new Date();
     }
@@ -3071,6 +3262,16 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
     }
+
+    for (const attributeName of Object.keys(valuesUse)) {
+      if (modelDefinition.isGeneratedAttribute(attributeName)) {
+        delete valuesUse[attributeName];
+      }
+    }
+
+    options.fields = options.fields.filter(
+      attributeName => !modelDefinition.isGeneratedAttribute(attributeName),
+    );
 
     let result;
     if (updateDoneRowByRow) {
@@ -3266,6 +3467,18 @@ Instead of specifying a Model, either:
 
     const modelDefinition = this.modelDefinition;
     const attributeDefs = modelDefinition.attributes;
+
+    // Validate that none of the fields are generated columns
+    const fieldsToCheck = Array.isArray(fields) ? fields : Object.keys(fields);
+    for (const fieldName of fieldsToCheck) {
+      const attribute =
+        modelDefinition.attributes.get(fieldName) ?? modelDefinition.columns.get(fieldName);
+      if (attribute && modelDefinition.generatedAttributeNames.has(attribute.attributeName)) {
+        throw new Error(
+          `Cannot increment/decrement "${attribute.attributeName}" because it is a generated column.`,
+        );
+      }
+    }
 
     if (Array.isArray(fields)) {
       fields = fields.map(attributeName => {
@@ -3648,6 +3861,10 @@ Instead of specifying a Model, either:
 
     const attributeDefinition = modelDefinition.attributes.get(key);
 
+    if (!options.raw && modelDefinition.generatedAttributeNames.has(key)) {
+      return this;
+    }
+
     // If not raw, and there's a custom setter
     if (!options.raw && attributeDefinition?.set) {
       attributeDefinition.set.call(this, value, key);
@@ -3694,7 +3911,7 @@ Instead of specifying a Model, either:
         // TODO: throw an error when trying to set a read only attribute with to a different value
         // If attempting to set read only attributes, return
         const readOnlyAttributeNames = modelDefinition.readOnlyAttributeNames;
-        if (!this.isNewRecord && readOnlyAttributeNames.has(key)) {
+        if (readOnlyAttributeNames.has(key) && !this.isNewRecord) {
           return this;
         }
       }
@@ -4026,6 +4243,10 @@ Instead of specifying a Model, either:
       }
     }
 
+    if (this.isNewRecord) {
+      assertEagerLoadedThroughForeignKeysAreWritable([this], this._options.include);
+    }
+
     if (
       options.fields.length > 0 &&
       this.isNewRecord &&
@@ -4059,9 +4280,11 @@ Instead of specifying a Model, either:
     }
 
     const realFields = options.fields.filter(
-      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
+      attributeName =>
+        !modelDefinition.virtualAttributeNames.has(attributeName) &&
+        !modelDefinition.isGeneratedAttribute(attributeName),
     );
-    if (realFields.length === 0) {
+    if (realFields.length === 0 && !this.isNewRecord) {
       return this;
     }
 

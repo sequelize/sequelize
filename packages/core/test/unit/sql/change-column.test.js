@@ -1,8 +1,9 @@
 'use strict';
 
 const sinon = require('sinon');
+const { expect } = require('chai');
 const { beforeAll2, expectsql, sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 describe('QueryInterface#changeColumn', () => {
   if (sequelize.dialect.name === 'sqlite3') {
@@ -94,4 +95,18 @@ describe('QueryInterface#changeColumn', () => {
           EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE'; END;`,
     });
   });
+
+  if (['db2', 'ibmi', 'mssql', 'postgres'].includes(sequelize.dialect.name)) {
+    it('rejects changing generated column expressions', async () => {
+      const { User } = vars;
+
+      await expect(
+        sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+          type: DataTypes.INTEGER,
+          generatedAs: sql.literal('1 + 1'),
+          generatedColumn: 'STORED',
+        }),
+      ).to.be.rejectedWith(/Changing the expression of generated column level_id is not supported/);
+    });
+  }
 });

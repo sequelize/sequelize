@@ -20,6 +20,7 @@ import { Association } from './base';
 import { BelongsToAssociation } from './belongs-to.js';
 import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 import {
+  assertAssociationForeignKeyIsWritable,
   defineAssociation,
   mixinMethods,
   normalizeBaseAssociationOptions,
@@ -282,6 +283,8 @@ If having two associations does not make sense (for instance a "spouse" associat
     associatedInstanceOrPk: T | T[TargetPrimaryKey] | null,
     options?: HasOneSetAssociationMixinOptions<T>,
   ): Promise<T | null> {
+    assertAssociationForeignKeyIsWritable(this.target, this.foreignKey, this.accessors.set);
+
     options = { ...options, scope: false };
 
     // @ts-expect-error -- .save isn't listed in the options because it's not supported, but we'll still warn users if they use it.
@@ -375,6 +378,8 @@ This option is only available in BelongsTo associations.`);
     values: CreationAttributes<T> = {},
     options: HasOneCreateAssociationMixinOptions<T> = {},
   ): Promise<T> {
+    assertAssociationForeignKeyIsWritable(this.target, this.foreignKey, this.accessors.create);
+
     if (this.scope) {
       for (const attribute of Object.keys(this.scope)) {
         // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}

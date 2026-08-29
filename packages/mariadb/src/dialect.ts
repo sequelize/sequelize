@@ -111,6 +111,10 @@ export class MariaDbDialect extends AbstractDialect<
     startTransaction: {
       readOnly: true,
     },
+    generatedColumns: {
+      stored: true,
+      virtual: true,
+    },
   });
 
   readonly queryGenerator: MariaDbQueryGenerator;

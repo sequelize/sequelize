@@ -48,6 +48,7 @@ import { HasOneAssociation } from './has-one.js';
 import type { AssociationStatic, MaybeForwardedModelStatic } from './helpers';
 import {
   AssociationSecret,
+  assertAssociationForeignKeyIsWritable,
   defineAssociation,
   isThroughOptions,
   mixinMethods,
@@ -659,6 +660,9 @@ Add your own primary key to the through model, on different attributes than the 
     const otherKey = this.otherKey;
 
     const newInstances = this.toInstanceArray(newInstancesOrPrimaryKeys);
+    if (newInstances.length > 0) {
+      this.assertThroughForeignKeysAreWritable(this.accessors.set);
+    }
 
     const where: WhereOptions = {
       [foreignKey]: sourceInstance.get(sourceKey),
@@ -729,6 +733,8 @@ Add your own primary key to the through model, on different attributes than the 
     if (newInstances.length === 0) {
       return;
     }
+
+    this.assertThroughForeignKeysAreWritable(this.accessors.addMultiple);
 
     const where: WhereOptions = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
@@ -888,6 +894,8 @@ Add your own primary key to the through model, on different attributes than the 
       | BelongsToManyCreateAssociationMixinOptions<TargetModel>
       | BelongsToManyCreateAssociationMixinOptions<TargetModel>['fields'] = {},
   ): Promise<TargetModel> {
+    this.assertThroughForeignKeysAreWritable(this.accessors.create);
+
     if (Array.isArray(options)) {
       options = {
         fields: options,
@@ -907,6 +915,17 @@ Add your own primary key to the through model, on different attributes than the 
     await this.add(sourceInstance, newAssociatedObject, omit(options, ['fields']));
 
     return newAssociatedObject;
+  }
+
+  /**
+   * Throws if associating through this model would require writing a generated foreign key.
+   *
+   * @param accessor Name of the association mutator being checked.
+   * @internal
+   */
+  assertThroughForeignKeysAreWritable(accessor: string): void {
+    assertAssociationForeignKeyIsWritable(this.through.model, this.foreignKey, accessor);
+    assertAssociationForeignKeyIsWritable(this.through.model, this.otherKey, accessor);
   }
 }
 

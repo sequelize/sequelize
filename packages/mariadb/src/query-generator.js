@@ -4,6 +4,11 @@ import {
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import {
+  findTopLevelSqlKeyword,
+  removeTopLevelSqlKeyword,
+  splitSqlAtTopLevelKeyword,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
@@ -31,24 +36,27 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       }
 
       const dataType = attributes[attr];
-      let match;
+      const referenceParts = splitSqlAtTopLevelKeyword(dataType, 'REFERENCES', this.dialect);
+      const hasPrimaryKey = findTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect) !== -1;
 
-      if (dataType.includes('PRIMARY KEY')) {
+      if (hasPrimaryKey) {
         primaryKeys.push(attr);
 
-        if (dataType.includes('REFERENCES')) {
+        if (referenceParts) {
           // MariaDB doesn't support inline REFERENCES declarations: move to the end
-          match = dataType.match(/^(.+) (REFERENCES.*)$/);
-          attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
-          foreignKeys[attr] = match[2];
+          attrStr.push(
+            `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(referenceParts[0], 'PRIMARY KEY', this.dialect)}`,
+          );
+          foreignKeys[attr] = referenceParts[1];
         } else {
-          attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
+          attrStr.push(
+            `${this.quoteIdentifier(attr)} ${removeTopLevelSqlKeyword(dataType, 'PRIMARY KEY', this.dialect)}`,
+          );
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (referenceParts) {
         // MariaDB doesn't support inline REFERENCES declarations: move to the end
-        match = dataType.match(/^(.+) (REFERENCES.*)$/);
-        attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
-        foreignKeys[attr] = match[2];
+        attrStr.push(`${this.quoteIdentifier(attr)} ${referenceParts[0]}`);
+        foreignKeys[attr] = referenceParts[1];
       } else {
         attrStr.push(`${this.quoteIdentifier(attr)} ${dataType}`);
       }
@@ -173,8 +181,75 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     });
     let template = attributeString;
 
-    if (attribute.allowNull === false) {
+    if (attribute.generatedAs === undefined && attribute.allowNull === false) {
       template += ' NOT NULL';
+    }
+
+    if (attribute.generatedAs !== undefined) {
+      const expr = this.escape(attribute.generatedAs, { model: options?.model });
+      const mode = attribute.generatedColumn === 'VIRTUAL' ? 'VIRTUAL' : 'STORED';
+      template += ` GENERATED ALWAYS AS (${expr}) ${mode}`;
+
+      if (attribute.allowNull === false) {
+        throw new Error('mariadb does not support NOT NULL on generated columns.');
+      }
+
+      if (attribute.unique === true) {
+        template += ' UNIQUE';
+      }
+
+      if (attribute.primaryKey) {
+        throw new Error('mariadb does not support generated columns as primary keys.');
+      }
+
+      if (attribute.comment) {
+        template += ` COMMENT ${this.escape(attribute.comment)}`;
+      }
+
+      if (attribute.first) {
+        template += ' FIRST';
+      }
+
+      if (attribute.after) {
+        template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
+      }
+
+      if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
+        if (mode === 'VIRTUAL') {
+          throw new Error('mariadb only supports foreign keys on STORED generated columns.');
+        }
+
+        const onDelete = attribute.onDelete?.toUpperCase();
+        const onUpdate = attribute.onUpdate?.toUpperCase();
+        if (['SET NULL', 'SET DEFAULT'].includes(onDelete)) {
+          throw new Error(`mariadb does not support ON DELETE ${onDelete} on generated columns.`);
+        }
+
+        if (['CASCADE', 'SET NULL', 'SET DEFAULT'].includes(onUpdate)) {
+          throw new Error(`mariadb does not support ON UPDATE ${onUpdate} on generated columns.`);
+        }
+
+        if (options?.context === 'addColumn' && options.foreignKey) {
+          const fkName = this.quoteIdentifier(
+            `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+          );
+
+          template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
+        }
+
+        template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+        template += ` (${this.quoteIdentifier(attribute.references.key ?? 'id')})`;
+
+        if (onDelete) {
+          template += ` ON DELETE ${onDelete}`;
+        }
+
+        if (onUpdate) {
+          template += ` ON UPDATE ${onUpdate}`;
+        }
+      }
+
+      return template;
     }
 
     if (attribute.autoIncrement) {

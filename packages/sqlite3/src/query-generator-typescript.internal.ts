@@ -25,11 +25,237 @@ import { randomBytes } from 'node:crypto';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryGeneratorInternal } from './query-generator.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
+import {
+  findSqlClosingParenthesis,
+  findSqlOpeningParenthesis,
+  findSqlTokenOpeningParenthesis,
+  getSqlColumnName,
+  getSqlIdentifier,
+  hasAmbiguousSqlIdentifierUsage,
+  replaceSqlIdentifier,
+  skipSqlWhitespaceAndComments,
+} from './sqlite-schema-parser.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
 const TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set<keyof TruncateTableQueryOptions>([
   'restartIdentity',
 ]);
+
+export interface SqliteAutoincrementSequence {
+  schemaName: 'main' | 'temp';
+  value: string;
+}
+
+function isTableConstraintDefinition(definition: string): boolean {
+  const start = skipSqlWhitespaceAndComments(definition);
+  const keyword = getSqlIdentifier(definition, start)?.name.toUpperCase();
+  if (keyword === 'CONSTRAINT') {
+    return true;
+  }
+
+  if (keyword === 'UNIQUE' || keyword === 'CHECK') {
+    return findSqlTokenOpeningParenthesis(definition, keyword) !== -1;
+  }
+
+  if (keyword !== 'PRIMARY' && keyword !== 'FOREIGN') {
+    return false;
+  }
+
+  return findSqlTokenOpeningParenthesis(definition, 'KEY') !== -1;
+}
+
+function replaceIdentifierInParentheses(
+  sql: string,
+  openingParenthesis: number,
+  identifier: string,
+  replacement: string,
+): string {
+  if (openingParenthesis === -1) {
+    return sql;
+  }
+
+  const closingParenthesis = findSqlClosingParenthesis(sql, openingParenthesis);
+  if (closingParenthesis === -1) {
+    throw new Error(`Could not parse SQL expression: ${sql}`);
+  }
+
+  const expression = sql.slice(openingParenthesis + 1, closingParenthesis);
+  if (hasAmbiguousSqlIdentifierUsage(expression, identifier)) {
+    throw new Error(
+      `SQLite cannot safely rename column ${identifier} because its name is ambiguous with a SQL type, collation, or function in expression: ${expression}`,
+    );
+  }
+
+  return `${sql.slice(0, openingParenthesis + 1)}${replaceSqlIdentifier(expression, identifier, replacement)}${sql.slice(closingParenthesis)}`;
+}
+
+function renameColumnInCreateTableSql(
+  createTableSql: string,
+  oldColumnName: string,
+  newColumnName: string,
+  quoteIdentifier: (identifier: string) => string,
+): string {
+  const { closingParenthesis, definitions, openingParenthesis } =
+    splitColumnDefinitions(createTableSql);
+  const renamedDefinitions = definitions.map(definition => {
+    let renamedDefinition = definition;
+    if (!isTableConstraintDefinition(definition)) {
+      const columnIdentifier = getSqlIdentifier(definition);
+      if (columnIdentifier?.name.toLowerCase() === oldColumnName.toLowerCase()) {
+        renamedDefinition = `${definition.slice(0, columnIdentifier.start)}${quoteIdentifier(newColumnName)}${definition.slice(columnIdentifier.end)}`;
+      }
+
+      for (const token of ['AS', 'CHECK']) {
+        const expressionStart = findSqlTokenOpeningParenthesis(renamedDefinition, token);
+        renamedDefinition = replaceIdentifierInParentheses(
+          renamedDefinition,
+          expressionStart,
+          oldColumnName,
+          newColumnName,
+        );
+      }
+
+      return renamedDefinition;
+    }
+
+    const constraintStart = skipSqlWhitespaceAndComments(renamedDefinition);
+    const firstKeyword = getSqlIdentifier(renamedDefinition, constraintStart)?.name.toUpperCase();
+    let constraintType = firstKeyword;
+    if (firstKeyword === 'CONSTRAINT') {
+      const constraintKeyword = getSqlIdentifier(renamedDefinition, constraintStart);
+      const constraintName = constraintKeyword
+        ? getSqlIdentifier(renamedDefinition, constraintKeyword.end)
+        : undefined;
+      constraintType = constraintName
+        ? getSqlIdentifier(renamedDefinition, constraintName.end)?.name.toUpperCase()
+        : undefined;
+    }
+
+    const token =
+      constraintType === 'CHECK' ? 'CHECK' : constraintType === 'UNIQUE' ? 'UNIQUE' : 'KEY';
+
+    return replaceIdentifierInParentheses(
+      renamedDefinition,
+      findSqlTokenOpeningParenthesis(renamedDefinition, token),
+      oldColumnName,
+      newColumnName,
+    );
+  });
+
+  return `${createTableSql.slice(0, openingParenthesis + 1)}${renamedDefinitions.join(', ')}${createTableSql.slice(closingParenthesis)}`;
+}
+
+function replaceCreateTableName(createTableSql: string, replacement: string): string {
+  const tableName =
+    /^(\s*CREATE\s+(?:(?:TEMP|TEMPORARY)\s+)?TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?)(?:"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[(?:[^\]]|\]\])*\]|[^\s(]+)/i.exec(
+      createTableSql,
+    );
+
+  if (!tableName) {
+    throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+  }
+
+  return `${tableName[1]}${replacement}${createTableSql.slice(tableName[0].length)}`;
+}
+
+function splitColumnDefinitions(createTableSql: string): {
+  closingParenthesis: number;
+  definitions: string[];
+  openingParenthesis: number;
+} {
+  const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
+  const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
+  if (openingParenthesis === -1 || closingParenthesis === -1) {
+    throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+  }
+
+  const definitions: string[] = [];
+  let definitionStart = openingParenthesis + 1;
+  let depth = 0;
+  let closingQuote: string | undefined;
+  let inLineComment = false;
+  let inBlockComment = false;
+
+  for (let index = definitionStart; index < closingParenthesis; index++) {
+    const character = createTableSql[index];
+
+    if (inLineComment) {
+      if (character === '\n' || character === '\r') {
+        inLineComment = false;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (character === '*' && createTableSql[index + 1] === '/') {
+        inBlockComment = false;
+        index++;
+      }
+
+      continue;
+    }
+
+    if (closingQuote) {
+      if (character === closingQuote) {
+        if (createTableSql[index + 1] === closingQuote) {
+          index++;
+        } else {
+          closingQuote = undefined;
+        }
+      }
+
+      continue;
+    }
+
+    if (character === '-' && createTableSql[index + 1] === '-') {
+      inLineComment = true;
+      index++;
+    } else if (character === '/' && createTableSql[index + 1] === '*') {
+      inBlockComment = true;
+      index++;
+    } else if (character === "'" || character === '"' || character === '`') {
+      closingQuote = character;
+    } else if (character === '[') {
+      closingQuote = ']';
+    } else if (character === '(') {
+      depth++;
+    } else if (character === ')') {
+      depth--;
+    } else if (character === ',' && depth === 0) {
+      definitions.push(createTableSql.slice(definitionStart, index).trim());
+      definitionStart = index + 1;
+    }
+  }
+
+  definitions.push(createTableSql.slice(definitionStart, closingParenthesis).trim());
+
+  return { closingParenthesis, definitions, openingParenthesis };
+}
+
+function replaceColumnDefinitions(
+  createTableSql: string,
+  replacements: ReadonlyMap<string, string | undefined>,
+): string {
+  const { closingParenthesis, definitions, openingParenthesis } =
+    splitColumnDefinitions(createTableSql);
+  const replacedDefinitions = definitions.flatMap(definition => {
+    if (isTableConstraintDefinition(definition)) {
+      return [definition];
+    }
+
+    const columnName = getSqlColumnName(definition)?.toLowerCase();
+    if (!columnName || !replacements.has(columnName)) {
+      return [definition];
+    }
+
+    const replacement = replacements.get(columnName);
+
+    return replacement === undefined ? [] : [replacement];
+  });
+
+  return `${createTableSql.slice(0, openingParenthesis + 1)}${replacedDefinitions.join(', ')}${createTableSql.slice(closingParenthesis)}`;
+}
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -47,11 +273,19 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
+    const pragma =
+      this.dialect.supports.generatedColumns.stored ||
+      this.dialect.supports.generatedColumns.virtual
+        ? 'TABLE_XINFO'
+        : 'TABLE_INFO';
+
+    return `PRAGMA ${pragma}(${this.quoteTable(tableName)})`;
   }
 
   describeCreateTableQuery(tableName: TableOrModel) {
-    return `SELECT sql FROM sqlite_master WHERE tbl_name = ${this.escapeTable(tableName)};`;
+    const escapedTableName = this.escapeTable(tableName);
+
+    return `SELECT sql FROM sqlite_temp_master WHERE tbl_name = ${escapedTableName} UNION ALL SELECT sql FROM sqlite_master WHERE tbl_name = ${escapedTableName};`;
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
@@ -105,12 +339,12 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   renameColumnQuery(
-    _tableName: TableOrModel,
-    _attrNameBefore: string,
-    _attrNameAfter: string,
+    tableName: TableOrModel,
+    attrNameBefore: string,
+    attrNameAfter: string,
     _attributes: SqliteColumnsDescription,
   ): string {
-    throw new Error(`renameColumnQuery is not supported in ${this.dialect.name}.`);
+    return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${this.quoteIdentifier(attrNameBefore)} TO ${this.quoteIdentifier(attrNameAfter)}`;
   }
 
   removeColumnQuery(
@@ -167,14 +401,17 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTable);
 
     const tableAttributes = this.attributesToSQL(attributes);
-    const attributeNamesImport = Object.keys(tableAttributes)
+    const copiedAttributes = Object.keys(tableAttributes).filter(
+      attributeName => attributes[attributeName].generatedAs === undefined,
+    );
+    const attributeNamesImport = copiedAttributes
       .map(attr => {
         return attrNameAfter === attr
           ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}`
           : this.quoteIdentifier(attr);
       })
       .join(', ');
-    const attributeNamesExport = Object.keys(tableAttributes)
+    const attributeNamesExport = copiedAttributes
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
@@ -194,6 +431,11 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     tableName: TableOrModel,
     attributes: SqliteColumnsDescription,
     createTableSql?: string,
+    replacedColumnNames: readonly string[] = [],
+    autoincrementSequence?: SqliteAutoincrementSequence,
+    views: ReadonlyArray<{ name: string; schemaName: 'main' | 'temp'; sql: string }> = [],
+    viewTriggerSql: readonly string[] = [],
+    renamedColumns: ReadonlyMap<string, string> = new Map(),
   ) {
     const table = this.extractTableDetails(tableName);
     const backupTable = this.extractTableDetails(
@@ -204,20 +446,125 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTable);
 
     const tableAttributes = this.attributesToSQL(attributes);
-    const attributeNames = Object.keys(tableAttributes)
-      .map(attr => this.quoteIdentifier(attr))
+    // Generated columns cannot be inserted into explicitly. SQLite recomputes both
+    // VIRTUAL and STORED columns while the ordinary columns are copied.
+    const copiedAttributeNames = Object.keys(tableAttributes).filter(
+      attributeName => attributes[attributeName].generatedAs === undefined,
+    );
+    const attributeNames = copiedAttributeNames.map(attr => this.quoteIdentifier(attr)).join(', ');
+    const sourceAttributeNames = copiedAttributeNames
+      .map(attr => this.quoteIdentifier(renamedColumns.get(attr) ?? attr))
       .join(', ');
 
-    const backupTableSql = createTableSql
-      ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
+    let replacementTableSql = createTableSql;
+    if (replacementTableSql) {
+      for (const [newColumnName, oldColumnName] of renamedColumns) {
+        replacementTableSql = renameColumnInCreateTableSql(
+          replacementTableSql,
+          oldColumnName,
+          newColumnName,
+          identifier => this.quoteIdentifier(identifier),
+        );
+      }
+    }
+
+    if (replacementTableSql && replacedColumnNames.length > 0) {
+      const replacements = new Map<string, string | undefined>();
+      for (const columnName of replacedColumnNames) {
+        const attributeName = Object.keys(tableAttributes).find(
+          name => name.toLowerCase() === columnName.toLowerCase(),
+        );
+        replacements.set(
+          columnName.toLowerCase(),
+          attributeName
+            ? `${this.quoteIdentifier(attributeName)} ${tableAttributes[attributeName]}`
+            : undefined,
+        );
+      }
+
+      replacementTableSql = replaceColumnDefinitions(replacementTableSql, replacements);
+    }
+
+    const backupTableSql = replacementTableSql
+      ? replaceCreateTableName(replacementTableSql, quotedBackupTableName)
       : this.createTableQuery(backupTable, tableAttributes);
 
-    return [
+    const queries = [
       backupTableSql,
-      `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
+      `INSERT INTO ${quotedBackupTableName} (${attributeNames}) SELECT ${sourceAttributeNames} FROM ${quotedTableName};`,
+      ...views.map(
+        view =>
+          `DROP VIEW ${this.quoteIdentifier(view.schemaName)}.${this.quoteIdentifier(view.name)};`,
+      ),
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
+      ...views.map(view => view.sql),
+      ...viewTriggerSql,
     ];
+
+    if (autoincrementSequence) {
+      const sequenceTable = `${this.quoteIdentifier(autoincrementSequence.schemaName)}.${this.quoteIdentifier('sqlite_sequence')}`;
+      const sequenceValue = `CAST(${this.escape(autoincrementSequence.value)} AS INTEGER)`;
+      queries.push(
+        `UPDATE ${sequenceTable} SET seq = MAX(seq, ${sequenceValue}) WHERE name = ${this.escape(table.tableName)};`,
+      );
+    }
+
+    return queries;
+  }
+
+  _addColumnToTableQuery(
+    tableName: TableOrModel,
+    createTableSql: string,
+    columnName: string,
+    columnDefinition: string,
+    copiedColumnNames: readonly string[],
+    schemaObjectSql: readonly string[],
+    views: ReadonlyArray<{ name: string; schemaName: 'main' | 'temp'; sql: string }>,
+    viewTriggerSql: readonly string[],
+    autoincrementSequence?: SqliteAutoincrementSequence,
+  ) {
+    const table = this.extractTableDetails(tableName);
+    const backupTable = this.extractTableDetails(
+      `${table.tableName}_${randomBytes(8).toString('hex')}`,
+      table,
+    );
+    const quotedTableName = this.quoteTable(table);
+    const quotedBackupTableName = this.quoteTable(backupTable);
+    const openingParenthesis = findSqlOpeningParenthesis(createTableSql);
+    const closingParenthesis = findSqlClosingParenthesis(createTableSql, openingParenthesis);
+
+    if (openingParenthesis === -1 || closingParenthesis === -1) {
+      throw new Error(`Could not parse CREATE TABLE statement: ${createTableSql}`);
+    }
+
+    const tableSqlWithColumn = `${createTableSql.slice(0, closingParenthesis)}, ${this.quoteIdentifier(columnName)} ${columnDefinition}${createTableSql.slice(closingParenthesis)}`;
+    const backupTableSql = replaceCreateTableName(tableSqlWithColumn, quotedBackupTableName);
+    const copiedColumns = copiedColumnNames.map(name => this.quoteIdentifier(name)).join(', ');
+    const queries = [
+      backupTableSql,
+      `INSERT INTO ${quotedBackupTableName} (${copiedColumns}) SELECT ${copiedColumns} FROM ${quotedTableName};`,
+      ...views.map(
+        view =>
+          `DROP VIEW ${this.quoteIdentifier(view.schemaName)}.${this.quoteIdentifier(view.name)};`,
+      ),
+      `DROP TABLE ${quotedTableName};`,
+      `ALTER TABLE ${quotedBackupTableName} RENAME TO ${this.quoteIdentifier(table.tableName)};`,
+      ...views.map(view => view.sql),
+      ...viewTriggerSql,
+      ...schemaObjectSql,
+    ];
+
+    if (autoincrementSequence) {
+      const sequenceTable = `${this.quoteIdentifier(autoincrementSequence.schemaName)}.${this.quoteIdentifier('sqlite_sequence')}`;
+      const sequenceValue = `CAST(${this.escape(autoincrementSequence.value)} AS INTEGER)`;
+      queries.push(
+        `INSERT INTO ${sequenceTable} (name, seq) SELECT ${this.escape(table.tableName)}, ${sequenceValue} WHERE NOT EXISTS (SELECT 1 FROM ${sequenceTable} WHERE name = ${this.escape(table.tableName)});`,
+        `UPDATE ${sequenceTable} SET seq = MAX(seq, ${sequenceValue}) WHERE name = ${this.escape(table.tableName)};`,
+      );
+    }
+
+    return queries;
   }
 
   private escapeTable(tableName: TableOrModel): string {

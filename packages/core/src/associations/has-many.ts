@@ -33,6 +33,7 @@ import { MultiAssociation } from './base';
 import { BelongsToAssociation } from './belongs-to.js';
 import type { AssociationStatic, NormalizeBaseAssociationOptions } from './helpers';
 import {
+  assertAssociationForeignKeyIsWritable,
   defineAssociation,
   mixinMethods,
   normalizeBaseAssociationOptions,
@@ -413,6 +414,8 @@ export class HasManyAssociation<
     targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
     options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
+    assertAssociationForeignKeyIsWritable(this.target, this.foreignKey, this.accessors.set);
+
     const normalizedTargets = this.toInstanceArray(targets);
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
@@ -478,6 +481,8 @@ export class HasManyAssociation<
     rawTargetInstances: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
+    assertAssociationForeignKeyIsWritable(this.target, this.foreignKey, this.accessors.addMultiple);
+
     const targetInstances = this.toInstanceArray(rawTargetInstances);
 
     if (targetInstances.length === 0) {
@@ -512,6 +517,12 @@ export class HasManyAssociation<
     targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
     options: HasManyRemoveAssociationsMixinOptions<T> = {},
   ): Promise<void> {
+    assertAssociationForeignKeyIsWritable(
+      this.target,
+      this.foreignKey,
+      this.accessors.removeMultiple,
+    );
+
     if (targets == null) {
       return;
     }
@@ -577,6 +588,8 @@ export class HasManyAssociation<
       | HasManyCreateAssociationMixinOptions<T>
       | HasManyCreateAssociationMixinOptions<T>['fields'] = {},
   ): Promise<T> {
+    assertAssociationForeignKeyIsWritable(this.target, this.foreignKey, this.accessors.create);
+
     if (Array.isArray(options)) {
       options = {
         fields: options,

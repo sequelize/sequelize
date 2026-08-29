@@ -1,6 +1,7 @@
 import { EMPTY_OBJECT, freezeDeep, getImmutablePojo, isFunction, isString } from '@sequelize/utils';
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
+import semver from 'semver';
 import type { Class } from 'type-fest';
 import type { Sequelize } from '../sequelize.js';
 import { logger } from '../utils/logger.js';
@@ -293,6 +294,12 @@ export type DialectSupports = {
   delete: {
     limit: boolean;
   };
+  generatedColumns: {
+    stored: boolean;
+    storedMinVersion?: string;
+    virtual: boolean;
+    virtualMinVersion?: string;
+  };
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -525,6 +532,10 @@ export abstract class AbstractDialect<
     delete: {
       limit: true,
     },
+    generatedColumns: {
+      stored: false,
+      virtual: false,
+    },
   });
 
   protected static extendSupport(supportsOverwrite: DeepPartial<DialectSupports>): DialectSupports {
@@ -573,8 +584,36 @@ export abstract class AbstractDialect<
 
   get supports(): DialectSupports {
     const Dialect = this.constructor as typeof AbstractDialect;
+    const supports = Dialect.supports;
+    const databaseVersion = this.sequelize.getDatabaseVersionIfExist();
+    if (!databaseVersion) {
+      return supports;
+    }
 
-    return Dialect.supports;
+    const validDatabaseVersion = semver.valid(databaseVersion);
+    if (!validDatabaseVersion) {
+      return supports;
+    }
+
+    const generatedColumns = supports.generatedColumns;
+    if (!generatedColumns.storedMinVersion && !generatedColumns.virtualMinVersion) {
+      return supports;
+    }
+
+    return freezeDeep({
+      ...supports,
+      generatedColumns: {
+        ...generatedColumns,
+        stored:
+          generatedColumns.stored &&
+          (!generatedColumns.storedMinVersion ||
+            semver.gte(validDatabaseVersion, generatedColumns.storedMinVersion)),
+        virtual:
+          generatedColumns.virtual &&
+          (!generatedColumns.virtualMinVersion ||
+            semver.gte(validDatabaseVersion, generatedColumns.virtualMinVersion)),
+      },
+    });
   }
 
   constructor(params: AbstractDialectParams<Options>) {
