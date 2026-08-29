@@ -19,6 +19,12 @@ import type { AddLimitOffsetOptions } from './query-generator.internal-types.js'
 import type { GetConstraintSnippetQueryOptions, TableOrModel } from './query-generator.types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 
+interface TableAliasOptions extends EscapeOptions {
+  minifyAliases?: boolean;
+  includeAliases?: Map<string, string>;
+  reservedTableAliases?: Set<string>;
+}
+
 export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = AbstractDialect> {
   readonly dialect: Dialect;
   readonly whereSqlBuilder: WhereSqlBuilder;
@@ -233,7 +239,56 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
   }
 
   formatAssociationPath(associationPath: AssociationPath, options?: EscapeOptions): string {
-    return `${this.queryGenerator._quoteTableAlias(associationPath.associationPath.join('->'), options)}.${this.queryGenerator.quoteIdentifier(associationPath.attributeName)}`;
+    return `${this.quoteTableAlias(associationPath.associationPath.join('->'), options)}.${this.queryGenerator.quoteIdentifier(associationPath.attributeName)}`;
+  }
+
+  getTableAlias(alias: string, options?: TableAliasOptions): string {
+    if (!options?.minifyAliases || !options.includeAliases) {
+      return alias;
+    }
+
+    return (
+      options.includeAliases.get(alias) ||
+      options.includeAliases.get(alias.replaceAll('.', '->')) ||
+      alias
+    );
+  }
+
+  getMinifiedTableAlias(alias: string, options?: TableAliasOptions): string {
+    if (!options?.minifyAliases) {
+      return alias;
+    }
+
+    options.includeAliases ||= new Map();
+    options.reservedTableAliases ||= new Set(options.includeAliases.values());
+
+    const minifiedAlias = this.getTableAlias(alias, options);
+
+    if (minifiedAlias !== alias) {
+      return minifiedAlias;
+    }
+
+    if (alias.length <= this.dialect.supports.maxTableAliasLength) {
+      return alias;
+    }
+
+    let newAlias;
+    let aliasIndex = options.includeAliases.size;
+
+    do {
+      newAlias = `%${aliasIndex++}`;
+    } while (options.reservedTableAliases.has(newAlias));
+
+    options.includeAliases.set(alias, newAlias);
+    options.reservedTableAliases.add(newAlias);
+
+    return newAlias;
+  }
+
+  quoteTableAlias(alias: string, options?: TableAliasOptions): string {
+    const minifiedAlias = this.getMinifiedTableAlias(alias, options);
+
+    return this.queryGenerator.quoteIdentifier(minifiedAlias, minifiedAlias.startsWith('%'));
   }
 
   formatJsonPath(jsonPathVal: JsonPath, options?: EscapeOptions): string {
