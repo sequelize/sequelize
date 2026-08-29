@@ -2180,6 +2180,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         replacements: options?.replacements,
         minifyAliases: topLevelInfo.options.minifyAliases,
         includeAliases: topLevelInfo.options.includeAliases,
+        reservedTableAliases: topLevelInfo.options.reservedTableAliases,
       });
     }
 
@@ -2190,6 +2191,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         replacements: options?.replacements,
         minifyAliases: topLevelInfo.options.minifyAliases,
         includeAliases: topLevelInfo.options.includeAliases,
+        reservedTableAliases: topLevelInfo.options.reservedTableAliases,
       });
       if (joinWhere) {
         joinOn = joinWithLogicalOperator([joinOn, joinWhere], include.or ? Op.or : Op.and);
