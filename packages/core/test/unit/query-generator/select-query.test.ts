@@ -2268,7 +2268,6 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         Project.table,
         {
           model: Project,
-          attributes: ['id'],
           include: _validateIncludedElements({
             model: Project,
             include: [{ association: Project.associations[as], attributes: [] }],
