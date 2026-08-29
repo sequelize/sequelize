@@ -2247,7 +2247,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
   generateThroughJoin(include, includeAs, parentTableName, topLevelInfo, options) {
     const isRootParent =
-      !include.parent.association && include.parent.model.name === topLevelInfo.options.model.name;
+      !include.parent.association && include.parent.model.name === topLevelInfo.names.model.name;
     const isMinified = topLevelInfo.options.minifyAliases;
 
     const through = include.through;
@@ -2318,13 +2318,24 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       attrSource = association.sourceKeyField;
     }
 
-    if (
-      topLevelInfo.subQuery &&
-      !include.subQuery &&
-      !include.parent.subQuery &&
-      include.parent.model !== topLevelInfo.options.mainModel
-    ) {
+    if (topLevelInfo.subQuery && !include.subQuery && !include.parent.subQuery && !isRootParent) {
       attrSource = association.sourceKeyField;
+    }
+
+    if (topLevelInfo.subQuery && !include.subQuery && isRootParent) {
+      const sourceKeyAttribute = this._getAliasForFieldFromQueryOptions(
+        association.sourceKeyField,
+        topLevelInfo.options,
+      );
+
+      if (sourceKeyAttribute) {
+        attrSource = sourceKeyAttribute[1];
+      } else {
+        attrSource = association.sourceKeyField;
+        attributes.subQuery.push(
+          `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(attrSource)}`,
+        );
+      }
     }
 
     // Build source side of the JOIN predicate for the through association.
@@ -2365,7 +2376,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const joinColumn = association.sourceKeyField || attrSource || identSource;
 
         if (isRootParent) {
-          sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+          sourceJoinOn = `${this.quoteIdentifier(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
         } else {
           const aliasBase = `${dottedTableSource}.${joinColumn}`;
 
