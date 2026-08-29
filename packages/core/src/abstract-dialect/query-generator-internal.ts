@@ -268,7 +268,7 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
       return minifiedAlias;
     }
 
-    if (alias.length <= this.dialect.supports.maxTableAliasLength) {
+    if (Buffer.byteLength(alias, 'utf8') <= this.dialect.supports.maxTableAliasLength) {
       return alias;
     }
 
