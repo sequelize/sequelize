@@ -395,6 +395,37 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(result[0].name).to.equal('charlie');
     });
 
+    it('supports optional many-to-many association with nested required association', async function () {
+      await this.sequelize.sync({ force: true });
+
+      const [posts, tags, colors] = await Promise.all([
+        this.Post.bulkCreate(build('alpha', 'bravo')),
+        this.Tag.bulkCreate(build('atag')),
+        this.Color.bulkCreate(build('red')),
+      ]);
+
+      await Promise.all([posts[0].addTag(tags[0]), tags[0].setColor(colors[0])]);
+
+      const result = await this.Post.findAll({
+        include: [
+          {
+            model: this.Tag,
+            required: false,
+            include: [
+              {
+                model: this.Color,
+                required: true,
+              },
+            ],
+          },
+        ],
+        order: ['name'],
+        limit: 10,
+      });
+
+      expect(result.map(post => post.name)).to.deep.equal(['alpha', 'bravo']);
+    });
+
     it('supports 2 required many-to-many association', async function () {
       await this.sequelize.sync({ force: true });
 
