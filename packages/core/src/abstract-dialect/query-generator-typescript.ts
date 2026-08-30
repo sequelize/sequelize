@@ -658,7 +658,8 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (options?.alias) {
-      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      const alias = options.alias === true ? tableName.tableName : options.alias;
+      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(alias, alias.startsWith('%'))}`;
     }
 
     if (options?.indexHints) {
@@ -785,7 +786,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (piece instanceof AssociationPath) {
-      return this.#internals.formatAssociationPath(piece);
+      return this.#internals.formatAssociationPath(piece, options);
     }
 
     if (piece instanceof DialectAwareFn) {
