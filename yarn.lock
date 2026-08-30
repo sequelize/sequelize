@@ -2719,12 +2719,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^6.2.38, @oclif/plugin-help@npm:^6.2.53":
-  version: 6.2.53
-  resolution: "@oclif/plugin-help@npm:6.2.53"
+"@oclif/plugin-help@npm:^6.2.38, @oclif/plugin-help@npm:^6.2.55":
+  version: 6.2.55
+  resolution: "@oclif/plugin-help@npm:6.2.55"
   dependencies:
     "@oclif/core": "npm:^4"
-  checksum: 10c0/eb36f48a6a93dbff2d3048e903fc0b9b12fece9ef8adee43e69df45c9bb359920d65ef14e71c48a5f8e252cb2edd495f4ff5350d1fab4f9107c0f9fe54408d9a
+  checksum: 10c0/ee2e496b600a31e2e19d695ff697362f4c427398587cb386a67f8b96e2e0ac22ef346235022ba15e504de3a1401d6e3a817203a090bb8b00e0540f144af3439f
   languageName: node
   linkType: hard
 
@@ -2754,15 +2754,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:4.1.18":
-  version: 4.1.18
-  resolution: "@oclif/test@npm:4.1.18"
+"@oclif/test@npm:4.1.22":
+  version: 4.1.22
+  resolution: "@oclif/test@npm:4.1.22"
   dependencies:
     ansis: "npm:^3.17.0"
     debug: "npm:^4.4.3"
   peerDependencies:
     "@oclif/core": ">= 3.0.0"
-  checksum: 10c0/c8e8d91f2aad2d5945b0b6de2a579d903ba42f9b9d7d50768bb11c9164be04ac94dcb749cdf52855f309d8125df7c5f247b99d10ae575b52691f30d0047090bd
+  checksum: 10c0/c1ee0fbf1122a4f85edca0ef525f41b07d5584a6f173a5ec839b3db981ebc3c82a49a0fce3ac6159ca60ca081090f98b6ccb93a02a519fb6ba117c16dcb605cc
   languageName: node
   linkType: hard
 
@@ -3003,8 +3003,8 @@ __metadata:
     "@inquirer/input": "npm:^4.3.1"
     "@inquirer/select": "npm:^4.4.2"
     "@oclif/core": "npm:^4.10.5"
-    "@oclif/plugin-help": "npm:^6.2.53"
-    "@oclif/test": "npm:4.1.18"
+    "@oclif/plugin-help": "npm:^6.2.55"
+    "@oclif/test": "npm:4.1.22"
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
     "@sequelize/utils": "workspace:*"

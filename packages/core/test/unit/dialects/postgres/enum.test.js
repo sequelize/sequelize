@@ -93,11 +93,11 @@ describe('PostgresQueryGenerator', () => {
       const { FooUser } = vars;
 
       expectsql(queryGenerator.pgListEnums(FooUser.table, 'mood'), {
-        postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+        postgres: `SELECT t.typname enum_name, COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value
                    FROM pg_type t
-                          JOIN pg_enum e ON t.oid = e.enumtypid
+                          LEFT JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-                   WHERE n.nspname = 'foo'
+                   WHERE n.nspname = 'foo' AND t.typtype = 'e'
                      AND t.typname='enum_users_mood'
                    GROUP BY 1`,
       });
@@ -105,11 +105,11 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses the default schema if no options given', () => {
       expectsql(queryGenerator.pgListEnums(), {
-        postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+        postgres: `SELECT t.typname enum_name, COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value
                    FROM pg_type t
-                          JOIN pg_enum e ON t.oid = e.enumtypid
+                          LEFT JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-                   WHERE n.nspname = 'public'
+                   WHERE n.nspname = 'public' AND t.typtype = 'e'
                    GROUP BY 1`,
       });
     });
@@ -118,11 +118,11 @@ describe('PostgresQueryGenerator', () => {
       expectsql(
         queryGenerator.pgListEnums({ tableName: `ta'"ble`, schema: `sche'"ma` }, `attri'"bute`),
         {
-          postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+          postgres: `SELECT t.typname enum_name, COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value
                    FROM pg_type t
-                          JOIN pg_enum e ON t.oid = e.enumtypid
+                          LEFT JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-                   WHERE n.nspname = 'sche''"ma'
+                   WHERE n.nspname = 'sche''"ma' AND t.typtype = 'e'
                      AND t.typname='enum_ta''"ble_attri''"bute'
                    GROUP BY 1`,
         },
