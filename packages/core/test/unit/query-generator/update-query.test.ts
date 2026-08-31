@@ -66,6 +66,36 @@ describe('QueryGenerator#updateQuery', () => {
     });
   });
 
+  it('still binds conditions that follow an Op.is/Op.isNot comparison in the same WHERE clause', async () => {
+    const { User } = vars;
+
+    // Regression test: Op.is/Op.isNot ("IS NULL"/"IS TRUE"/...) cannot use a bind parameter,
+    // since Postgres (and other dialects) only accept a literal on that side of "IS". The
+    // WhereSqlBuilder used to strip `bindParam` from the *shared* options object it was given
+    // instead of a local copy, which meant every WHERE condition evaluated *after* an Op.is
+    // comparison silently lost bind-parameter support too, and fell back to being escaped as a
+    // literal instead -- even though nothing about those other conditions required that.
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      {
+        firstName: 'John',
+      },
+      {
+        lastName: null,
+        username: 'jd',
+      },
+    );
+
+    expectsql(query, {
+      default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [lastName] IS NULL AND [username] = $sequelize_2`,
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "lastName" IS NULL AND "username" = $sequelize_2);`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'jd',
+    });
+  });
+
   it('throws an error if the bindParam option is used', () => {
     const { User } = vars;
 
