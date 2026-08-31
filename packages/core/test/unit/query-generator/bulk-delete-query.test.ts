@@ -1,4 +1,5 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, Op, literal, sql } from '@sequelize/core';
+import { expect } from 'chai';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
@@ -39,7 +40,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
         "DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = 'barry' LIMIT 10)",
       'db2 ibmi': `DELETE FROM "MyModels" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
       'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE "name" = 'barry' ORDER BY "id" LIMIT 10)`,
-      oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= 10 AND "name" = 'barry')`,
+      oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= 10 AND ("name" = 'barry'))`,
     });
   });
 
@@ -56,7 +57,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
           "DELETE FROM `MyModels` WHERE rowid IN (SELECT rowid FROM `MyModels` WHERE `name` = 'barry' LIMIT 10)",
         'db2 ibmi': `DELETE FROM "MyModels" WHERE "name" = 'barry' FETCH NEXT 10 ROWS ONLY`,
         'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE "name" = 'barry' ORDER BY "id" LIMIT 10)`,
-        oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= 10 AND "name" = 'barry')`,
+        oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= 10 AND ("name" = 'barry'))`,
       },
     );
   });
@@ -80,7 +81,7 @@ describe('QueryGenerator#bulkDeleteQuery', () => {
       sqlite3: `DELETE FROM \`MyModels\` WHERE rowid IN (SELECT rowid FROM \`MyModels\` WHERE name = 'Zoe' LIMIT 1)`,
       'db2 ibmi': `DELETE FROM "MyModels" WHERE name = 'Zoe' FETCH NEXT 1 ROWS ONLY`,
       'postgres snowflake': `DELETE FROM "MyModels" WHERE "id" IN (SELECT "id" FROM "MyModels" WHERE name = 'Zoe' ORDER BY "id" LIMIT 1)`,
-      oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= :limit AND name = 'Zoe')`,
+      oracle: `DELETE FROM "MyModels" WHERE rowid IN (SELECT rowid FROM "MyModels" WHERE rownum <= :limit AND (name = 'Zoe'))`,
     });
   });
 
@@ -146,6 +147,63 @@ Caused by: "undefined" cannot be escaped`),
       mssql: `DELETE FROM [mySchema].[myTable] WHERE [name] = N'barry'; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
       sqlite3: "DELETE FROM `mySchema.myTable` WHERE `name` = 'barry'",
     });
+  });
+
+  it('refuses a where derived to be true for every row when rejectAlwaysTrueWhere is set', () => {
+    expect(() =>
+      queryGenerator.bulkDeleteQuery('myTable', {
+        where: { id: { [Op.notIn]: [] } },
+        rejectAlwaysTrueWhere: 'DELETE',
+      }),
+    ).to.throw(/is true for every row/);
+
+    expect(() =>
+      queryGenerator.bulkDeleteQuery('myTable', {
+        where: { [Op.not]: { id: { [Op.in]: [] } } },
+        rejectAlwaysTrueWhere: 'DELETE',
+      }),
+    ).to.throw(/is true for every row/);
+
+    expectsql(queryGenerator.bulkDeleteQuery('myTable', { where: { id: { [Op.notIn]: [] } } }), {
+      default: `DELETE FROM [myTable] WHERE 1 = 1`,
+      mssql: `DELETE FROM [myTable] WHERE 1 = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+    });
+  });
+
+  it('accepts a where the caller wrote to be true for every row', () => {
+    expectsql(
+      queryGenerator.bulkDeleteQuery('myTable', {
+        where: sql`1 = 1`,
+        rejectAlwaysTrueWhere: 'DELETE',
+      }),
+      {
+        default: `DELETE FROM [myTable] WHERE 1 = 1`,
+        mssql: `DELETE FROM [myTable] WHERE 1 = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      },
+    );
+  });
+
+  it('accepts an empty where', () => {
+    expectsql(
+      queryGenerator.bulkDeleteQuery('myTable', { where: {}, rejectAlwaysTrueWhere: 'DELETE' }),
+      {
+        default: `DELETE FROM [myTable]`,
+        mssql: `DELETE FROM [myTable]; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      },
+    );
+  });
+
+  it('still emits an unsatisfiable where instead of rejecting it', () => {
+    expectsql(
+      queryGenerator.bulkDeleteQuery('myTable', {
+        where: { id: { [Op.in]: [] } },
+        rejectAlwaysTrueWhere: 'DELETE',
+      }),
+      {
+        default: `DELETE FROM [myTable] WHERE 0 = 1`,
+        mssql: `DELETE FROM [myTable] WHERE 0 = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;`,
+      },
+    );
   });
 
   it('produces a delete query with schema and custom delimiter argument', () => {

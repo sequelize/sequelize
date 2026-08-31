@@ -35,7 +35,7 @@ import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
-import { joinWithLogicalOperator } from './where-sql-builder';
+import { joinWithLogicalOperator, renderWhereFragment } from './where-sql-builder';
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
@@ -603,7 +603,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // TODO: add attribute DataType
     // TODO: add model
-    const escapeOptions = pick(options, ['replacements', 'model']);
+    const escapeOptions = pick(options, ['replacements', 'model', 'rejectAlwaysTrueWhere']);
 
     extraAttributesToBeUpdated = removeNullishValuesFromHash(
       extraAttributesToBeUpdated,
@@ -2194,7 +2194,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         reservedTableAliases: topLevelInfo.options.reservedTableAliases,
       });
       if (joinWhere) {
-        joinOn = joinWithLogicalOperator([joinOn, joinWhere], include.or ? Op.or : Op.and);
+        joinOn = renderWhereFragment(
+          joinWithLogicalOperator([joinOn, joinWhere], include.or ? Op.or : Op.and),
+        );
       }
     }
 
@@ -2485,7 +2487,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     // Generate a wrapped join so that the through table join can be dependent on the target join
     joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: minifiedThroughAs })} INNER JOIN ${this.quoteTable(include.model.table, { ...topLevelInfo.options, ...include, alias: minifiedIncludeAs })} ON ${targetJoinOn}`;
     if (throughWhere) {
-      joinBody += ` AND ${throughWhere}`;
+      joinBody += ` AND (${throughWhere})`;
     }
 
     joinBody += ')';
@@ -2498,7 +2500,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         mainAlias: minifiedIncludeAs,
       });
       if (targetWhere) {
-        joinCondition += ` AND ${targetWhere}`;
+        joinCondition += ` AND (${targetWhere})`;
       }
     }
 
