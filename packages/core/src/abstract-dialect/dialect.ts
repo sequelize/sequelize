@@ -45,6 +45,7 @@ export interface SupportableExactDecimalOptions extends SupportableDecimalNumber
 }
 
 export type DialectSupports = {
+  maxTableAliasLength: number;
   DEFAULT: boolean;
   'DEFAULT VALUES': boolean;
   'VALUES ()': boolean;
@@ -335,6 +336,7 @@ export abstract class AbstractDialect<
    * When changing a default, ensure the implementations still properly declare which feature they support.
    */
   static readonly supports: DialectSupports = freezeDeep({
+    maxTableAliasLength: Number.MAX_SAFE_INTEGER,
     DEFAULT: true,
     'DEFAULT VALUES': false,
     'VALUES ()': false,
