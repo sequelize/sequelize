@@ -408,9 +408,6 @@ export class WhereSqlBuilder {
 
     // "IS" operator does not accept bind parameters, only literals
     if (options.bindParam) {
-      // Do not mutate the caller's options object: it's shared across every attribute in the
-      // same WHERE clause, and deleting the property in place would silently disable bind
-      // parameters for every other condition processed afterwards.
       const { bindParam: ignoreBindParam, ...optionsWithoutBindParam } = options;
       options = optionsWithoutBindParam;
     }
