@@ -124,9 +124,11 @@ export class OracleQuery extends AbstractQuery {
       } else if (this.isRawQuery()) {
         this.bindParameters = parameters;
       } else {
-        Object.values(parameters).forEach(value => {
-          bindParameters.push(value);
-        });
+        let matcher = new RegExp(/(:)(([^\d])\w+)/gm)
+        let result = null;
+        while (( result = matcher.exec(this.sql) )) {
+          bindParameters.push(parameters[result[2]])
+        }        
         bindParameters.push(...outParameters);
         Object.assign(this.bindParameters, bindParameters);
       }
