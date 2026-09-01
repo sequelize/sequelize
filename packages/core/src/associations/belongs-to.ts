@@ -45,8 +45,8 @@ import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from
 export class BelongsToAssociation<
   S extends Model = Model,
   T extends Model = Model,
-  SourceKey extends AttributeNames<S> = any,
-  TargetKey extends AttributeNames<T> = any,
+  SourceKey extends AttributeNames<S> = AttributeNames<S>,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
 > extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
   readonly accessors: SingleAssociationAccessors;
 

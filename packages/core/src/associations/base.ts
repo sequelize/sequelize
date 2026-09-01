@@ -202,7 +202,7 @@ export abstract class MultiAssociation<
   S extends Model = Model,
   T extends Model = Model,
   ForeignKey extends string = string,
-  TargetKey extends AttributeNames<T> = any,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
   Opts extends NormalizedAssociationOptions<ForeignKey> = NormalizedAssociationOptions<ForeignKey>,
 > extends Association<S, T, ForeignKey, Opts> {
   static get isMultiAssociation() {
