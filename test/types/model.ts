@@ -328,3 +328,16 @@ expectTypeOf(resultDerived).toEqualTypeOf<FilmNoNameToJson>()
 
 const resultOverrideToJson = filmOverrideToJson.toJSON();
 expectTypeOf(resultOverrideToJson).toEqualTypeOf<FilmNoNameToJson>();
+
+/**
+ * Tests for export Model from function
+ * https://github.com/sequelize/sequelize/issues/15898
+ */
+export function createTestModel() {
+  class TestModel extends Model {
+    declare id: string;
+  };
+  return TestModel;
+}
+export type TStatic = ReturnType<typeof createTestModel>;
+export type TInstance = InstanceType<TStatic>;

@@ -3341,9 +3341,9 @@ export type NonAttribute<T> =
 /**
  * Dummy Symbol used as branding by {@link ForeignKey}.
  *
- * Do not export, Do not use.
+ * Do not use.
  */
-declare const ForeignKeyBrand: unique symbol;
+export declare const ForeignKeyBrand: unique symbol;
 
 /**
  * This is a Branded Type.
