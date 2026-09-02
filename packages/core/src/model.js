@@ -683,6 +683,9 @@ ${associationOwner._getAssociationDebugList()}`);
     // list (not running getters whose dependencies the scope excluded) while an unscoped include falls
     // back to the full attribute list, virtuals included.
     if (include.originalAttributes === undefined && !options.raw) {
+      // A scope may supply `attributes` in the `{ include, exclude }` object form; expand it first so
+      // `originalAttributes` is always a list, which is what `_setInclude` expects.
+      include.model._expandAttributes(include);
       include.originalAttributes = include.model._injectDependentVirtualAttributes(
         include.attributes ?? Array.from(include.model.modelDefinition.attributes.keys()),
       );

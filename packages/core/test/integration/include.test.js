@@ -167,6 +167,42 @@ Instead of specifying a Model, either:
       expect(user.toJSON().avatar).to.not.have.property('url');
     });
 
+    it('hydrates an included model whose scope excludes attributes with an object (#18059)', async function () {
+      const File = this.sequelize.define(
+        'File',
+        {
+          name: { type: DataTypes.STRING, allowNull: false },
+          path: { type: DataTypes.STRING, allowNull: false },
+          secret: DataTypes.STRING,
+          url: {
+            type: DataTypes.VIRTUAL(DataTypes.STRING, ['name', 'path']),
+            get() {
+              return `${this.path}/${this.name}`;
+            },
+          },
+        },
+        {
+          // The object form of `attributes` must be expanded before it is recorded as the included
+          // instance's attribute list, otherwise the association is not hydrated at all.
+          defaultScope: { attributes: { exclude: ['secret'] } },
+        },
+      );
+      const User = this.sequelize.define('User', {});
+      User.belongsTo(File, { as: 'avatar', foreignKey: 'avatarFileId' });
+
+      await this.sequelize.sync({ force: true });
+
+      const file = await File.withoutScope().create({ name: 'a.png', path: '/img', secret: 's' });
+      await User.create({ avatarFileId: file.id });
+
+      const user = await User.findOne({ include: ['avatar'] });
+
+      expect(user.avatar).to.be.ok;
+      expect(user.avatar.get('secret')).to.be.undefined;
+      expect(user.avatar.get('url')).to.equal('/img/a.png');
+      expect(user.toJSON().avatar.url).to.equal('/img/a.png');
+    });
+
     it('should support to use associations with Sequelize.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
