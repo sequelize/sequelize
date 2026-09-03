@@ -164,6 +164,34 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     await sequelize.sync({ alter: true });
   });
 
+  it('does not duplicate foreign keys when altering tables in a non-default schema #12961', async () => {
+    // When a model lives in a non-default schema, its foreign-key reference is
+    // an object rather than a plain table name. The alter-sync path used to
+    // compare that object against the referenced table name string, so the
+    // existing constraint was never matched and got recreated on every sync,
+    // duplicating the foreign key.
+    if (!sequelize.dialect.supports.schemas) {
+      return;
+    }
+
+    const schema = 'fk_alter_schema';
+    await sequelize.createSchema(schema);
+
+    const Country = sequelize.define('Country', { name: DataTypes.STRING }, { schema });
+    const City = sequelize.define('City', { name: DataTypes.STRING }, { schema });
+
+    City.belongsTo(Country);
+
+    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: true });
+
+    const cityForeignKeys = await sequelize.queryInterface.showConstraints(City, {
+      constraintType: 'FOREIGN KEY',
+    });
+
+    expect(cityForeignKeys.length).to.eq(1);
+  });
+
   it('creates one unique index for unique:true column', async () => {
     const User = sequelize.define('testSync', {
       email: {
