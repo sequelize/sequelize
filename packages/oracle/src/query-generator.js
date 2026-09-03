@@ -9,7 +9,7 @@ import isPlainObject from 'lodash/isPlainObject';
 import toPath from 'lodash/toPath';
 import oracledb from 'oracledb';
 
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, ParameterStyle } from '@sequelize/core';
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -672,6 +672,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    */
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     options = options || {};
+
+    if (options.parameterStyle === ParameterStyle.REPLACEMENT) {
+      throw new Error(
+        'The Oracle dialect does not support ParameterStyle.REPLACEMENT for bulk inserts.',
+      );
+    }
+
     options.executeMany = true;
     fieldMappedAttributes = fieldMappedAttributes || {};
 
@@ -816,15 +823,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ]);
     }
 
-    // Binding the bind variable to result
-    const result = query;
-    // Binding the bindParam to result
-    // Tuple has each row for the insert query
-    options.bind = tuples;
     // Setting options.inbindAttribute
     options.inbindAttributes = inBindBindDefMap;
 
-    return result;
+    return {
+      query,
+      bind: tuples,
+    };
   }
 
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {

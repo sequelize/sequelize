@@ -6,6 +6,29 @@ import intersection from 'lodash/intersection.js';
 import uniq from 'lodash/uniq.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
+  async bulkInsert(tableName, records, options, attributes) {
+    if (options?.bind) {
+      assertNoReservedBind(options.bind);
+    }
+
+    options = { ...options, type: QueryTypes.INSERT };
+
+    const { bind, query } = this.queryGenerator.bulkInsertQuery(
+      tableName,
+      records,
+      options,
+      attributes,
+    );
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete options.replacements;
+    options.bind = bind;
+
+    const results = await this.sequelize.queryRaw(query, options);
+
+    return results[0];
+  }
+
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
