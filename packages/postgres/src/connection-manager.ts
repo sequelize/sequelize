@@ -13,7 +13,7 @@ import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-ris
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import type { ClientConfig } from 'pg';
 import * as Pg from 'pg';
-import type { TypeId, TypeParser } from 'pg-types';
+import type { TypeParser as PgTypeParser } from 'pg-types';
 import { parse as parseArray } from 'postgres-array';
 import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
@@ -21,6 +21,8 @@ import type { PostgresDialect } from './dialect.js';
 const debug = logger.debugContext('connection:pg');
 
 type TypeFormat = 'text' | 'binary';
+type TextTypeParser = PgTypeParser<string, unknown>;
+type BinaryTypeParser = PgTypeParser<Buffer, unknown>;
 
 interface TypeOids {
   oid: number;
@@ -83,7 +85,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 > {
   readonly #lib: PgModule;
   readonly #oidMap = new Map<number, TypeOids>();
-  readonly #oidParserCache = new Map<number, TypeParser<any, any>>();
+  readonly #oidParserCache = new Map<number, TextTypeParser | BinaryTypeParser>();
 
   constructor(dialect: PostgresDialect) {
     super(dialect);
@@ -110,7 +112,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       port: 5432,
       ...config,
       types: {
-        getTypeParser: (oid: TypeId, format?: TypeFormat) => this.getTypeParser(oid, format),
+        getTypeParser: (oid, format) => {
+          return format === 'binary'
+            ? this.getTypeParser(oid, format)
+            : this.getTypeParser(oid, 'text');
+        },
       },
     };
 
@@ -152,42 +158,36 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
       if (!this.dialect.options.native) {
         // Receive various server parameters for further configuration
-        // @ts-expect-error -- undeclared type
         connection.connection.on('parameterStatus', parameterHandler);
       }
 
-      connection.connect(err => {
+      connection.connect((err: Error | null) => {
         responded = true;
 
         if (!this.dialect.options.native) {
           // remove parameter handler
-          // @ts-expect-error -- undeclared type
           connection.connection.removeListener('parameterStatus', parameterHandler);
         }
 
         if (err) {
-          // @ts-expect-error -- undeclared type
-          if (err.code) {
-            // @ts-expect-error -- undeclared type
-            switch (err.code) {
-              case 'ECONNREFUSED':
-                reject(new ConnectionRefusedError(err));
-                break;
-              case 'ENOTFOUND':
-                reject(new HostNotFoundError(err));
-                break;
-              case 'EHOSTUNREACH':
-                reject(new HostNotReachableError(err));
-                break;
-              case 'EINVAL':
-                reject(new InvalidConnectionError(err));
-                break;
-              default:
-                reject(new ConnectionError(err));
-                break;
-            }
-          } else {
-            reject(new ConnectionError(err));
+          const connectionError = err as NodeJS.ErrnoException;
+
+          switch (connectionError.code) {
+            case 'ECONNREFUSED':
+              reject(new ConnectionRefusedError(err));
+              break;
+            case 'ENOTFOUND':
+              reject(new HostNotFoundError(err));
+              break;
+            case 'EHOSTUNREACH':
+              reject(new HostNotReachableError(err));
+              break;
+            case 'EINVAL':
+              reject(new InvalidConnectionError(err));
+              break;
+            default:
+              reject(new ConnectionError(err));
+              break;
           }
         } else {
           debug('connection acquired');
@@ -333,13 +333,21 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  #buildArrayParser(subTypeParser: (value: string) => unknown): (source: string) => unknown[] {
+  #buildArrayParser(subTypeParser: TextTypeParser | BinaryTypeParser): TextTypeParser {
     return (source: string) => {
-      return parseArray(source, subTypeParser);
+      return parseArray(source, subTypeParser as TextTypeParser);
     };
   }
 
-  getTypeParser(oid: TypeId, format?: TypeFormat): TypeParser<any, any> {
+  #getSubTypeParser(oid: number, format?: TypeFormat): TextTypeParser | BinaryTypeParser {
+    return format === 'binary'
+      ? this.getTypeParser(oid, 'binary')
+      : this.getTypeParser(oid, 'text');
+  }
+
+  getTypeParser(oid: number, format?: 'text'): TextTypeParser;
+  getTypeParser(oid: number, format: 'binary'): BinaryTypeParser;
+  getTypeParser(oid: number, format?: TypeFormat): TextTypeParser | BinaryTypeParser {
     const cachedParser = this.#oidParserCache.get(oid);
 
     if (cachedParser) {
@@ -366,7 +374,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  #getCustomTypeParser(oid: TypeId, format?: TypeFormat): TypeParser<any, any> | null {
+  #getCustomTypeParser(oid: number, format?: TypeFormat): TextTypeParser | null {
     const typeData = this.#oidMap.get(oid);
 
     if (!typeData) {
@@ -374,11 +382,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
 
     if (typeData.type === 'range-array') {
-      return this.#buildArrayParser(this.getTypeParser(typeData.rangeOid!, format));
+      return this.#buildArrayParser(this.#getSubTypeParser(typeData.rangeOid!, format));
     }
 
     if (typeData.type === 'array') {
-      return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, format));
+      return this.#buildArrayParser(this.#getSubTypeParser(typeData.baseOid!, format));
     }
 
     const parser = this.dialect.getParserForDatabaseDataType(typeData.typeName);

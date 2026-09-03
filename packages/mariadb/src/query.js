@@ -193,7 +193,7 @@ export class MariaDbQuery extends AbstractQuery {
           if (
             row[modelField.fieldName] &&
             typeof row[modelField.fieldName] === 'string' &&
-            (!meta[i] || meta[i].dataTypeFormat !== 'json')
+            !meta[i]?.isDataTypeFormatJson()
           ) {
             row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
           }
