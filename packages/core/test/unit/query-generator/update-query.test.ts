@@ -4,6 +4,7 @@ import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+  const dialect = sequelize.dialect;
 
   const vars = beforeAll2(() => {
     const User = sequelize.define(
@@ -14,7 +15,16 @@ describe('QueryGenerator#updateQuery', () => {
       { timestamps: false },
     );
 
-    return { User };
+    const JsonUser = sequelize.define(
+      'JsonUser',
+      {
+        name: DataTypes.STRING,
+        data: DataTypes.JSON,
+      },
+      { timestamps: false },
+    );
+
+    return { User, JsonUser };
   });
 
   // you'll find more replacement tests in query-generator tests
@@ -87,6 +97,42 @@ describe('QueryGenerator#updateQuery', () => {
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
       sequelize_2: 'jd',
+    });
+  });
+
+  it('binds a scalar compared against a JSON path extraction as a plain value, not as a JSON document', () => {
+    // Oracle's JSON_VALUE (used to extract a value at a JSON path) returns a plain SQL scalar, unlike
+    // dialects whose extraction function returns a re-encoded JSON value. This is a regression test for
+    // https://github.com/sequelize/sequelize/pull/18322, which corrected the WHERE builder to no longer
+    // disable bind params for conditions that follow an Op.is comparison (such as the "deletedAt IS NULL"
+    // condition paranoid destroy() always prepends) -- doing so uncovered this Oracle-specific bug, since
+    // this condition was previously always inlined as a literal instead of being bound.
+    if (dialect.name !== 'oracle') {
+      return;
+    }
+
+    const { JsonUser } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      JsonUser.table,
+      {
+        name: 'John',
+      },
+      {
+        data: {
+          field: {
+            deep: true,
+          },
+        },
+      },
+    );
+
+    expectsql(query, {
+      oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."field"."deep"') = $sequelize_2`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'true',
     });
   });
 

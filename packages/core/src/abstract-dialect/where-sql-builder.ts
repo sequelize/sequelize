@@ -744,7 +744,11 @@ export class WhereSqlBuilder {
     });
     const rightSql =
       this.#formatOpAnyAll(right, rightDataType ?? leftDataType) ||
-      this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
+      this.#queryGenerator.escape(right, {
+        ...options,
+        type: rightDataType ?? leftDataType,
+        comparedAgainstJsonPathExtraction: left instanceof JsonPath,
+      });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }

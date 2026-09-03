@@ -128,6 +128,17 @@ export const TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof TruncateTa
  */
 export interface EscapeOptions extends FormatWhereOptions {
   readonly type?: DataType | undefined;
+
+  /**
+   * True when this value is being compared against the result of a JSON path extraction (e.g. `data.field`
+   * in a WHERE clause), rather than directly against a raw JSON/JSONB column.
+   *
+   * Dialects whose JSON path extraction function returns the SQL-native representation of the value (e.g.
+   * Oracle's `JSON_VALUE`, which returns a plain scalar) rather than a re-encoded JSON value (e.g. MySQL's
+   * `JSON_EXTRACT`) can use this flag to avoid applying JSON-column-specific bind encoding to values that
+   * are actually being compared against that scalar.
+   */
+  readonly comparedAgainstJsonPathExtraction?: boolean | undefined;
 }
 
 export interface FormatWhereOptions extends Partial<BindParamOptions>, ParameterOptions {
