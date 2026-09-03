@@ -230,11 +230,23 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       }
     }
 
-    if (query) {
-      await connection.query(query);
-    }
+    try {
+      if (query) {
+        await connection.query(query);
+      }
 
-    await this.#refreshOidMap(connection);
+      await this.#refreshOidMap(connection);
+    } catch (error) {
+      // The connection is already open here. Make a best-effort attempt to close it before
+      // propagating the original setup error so failed connects do not leak sockets.
+      try {
+        await connection.end();
+      } catch {
+        // ignore teardown failures
+      }
+
+      throw error;
+    }
 
     return connection;
   }
