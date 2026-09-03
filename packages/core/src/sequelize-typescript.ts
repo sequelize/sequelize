@@ -661,7 +661,10 @@ Connection options can be used at the root of the option bag, in the "replicatio
         maxUses: Infinity,
         ...(options.pool ? removeUndefined(options.pool) : undefined),
       },
-      connect: async (connectOptions: ConnectionOptions<Dialect>): Promise<Connection<Dialect>> => {
+      connect: async (
+        connectOptions: ConnectionOptions<Dialect>,
+        register: (connection: Connection<Dialect>) => void,
+      ): Promise<Connection<Dialect>> => {
         if (this.isClosed()) {
           throw new Error(
             'sequelize.close was called, new connections cannot be established. If you did not mean for the Sequelize instance to be closed permanently, prefer using sequelize.pool.destroyAllNow instead.',
@@ -672,6 +675,10 @@ Connection options can be used at the root of the option bag, in the "replicatio
         await this.hooks.runAsync('beforeConnect', clonedConnectOptions);
 
         const connection = await this.dialect.connectionManager.connect(clonedConnectOptions);
+
+        register(connection);
+
+        await this.dialect.connectionManager.afterConnect?.(connection);
         await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
 
         if (!this.getDatabaseVersionIfExist()) {
