@@ -35,7 +35,12 @@ const queryInterface = sequelize.queryInterface;
 
 describe(getTestDialectTeaser('Sequelize Errors'), () => {
   describe('API Surface', () => {
-    allowDeprecationsInSuite(['SEQUELIZE0007']);
+    allowDeprecationsInSuite([
+      'SEQUELIZE0007',
+      'SEQUELIZE0033-BaseError',
+      'SEQUELIZE0033-ValidationError',
+      'SEQUELIZE0033-OptimisticLockError',
+    ]);
 
     it('Should have the Error constructors exposed', () => {
       expect(Sequelize).to.have.property('BaseError');

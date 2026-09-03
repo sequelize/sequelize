@@ -7,57 +7,10 @@ const expect = chai.expect;
  * Context: https://github.com/sequelize/sequelize/pull/13689
  */
 
-// require('@sequelize/core') returns the Sequelize class
-// The typings do not reflect this as some properties of the Sequelize class are not declared as exported in types/index.d.ts.
-// This array lists the properties that are present on the class, but should not be exported in the esm export file nor in types/index.d.ts.
+// This array lists the properties that are present on the CJS export,
+// but should not be exported in the esm export file nor in types/index.d.ts.
 const ignoredCjsKeysMap = {
-  '@sequelize/core': [
-    // make no sense to export
-    'length',
-    'prototype',
-    'name',
-    'version',
-
-    // importing the data type directly has been removed, and accessing them on the Sequelize constructor is deprecated.
-    // Use DataTypes.x exclusively.
-    'ABSTRACT',
-    'ARRAY',
-    'BIGINT',
-    'BLOB',
-    'BOOLEAN',
-    'CHAR',
-    'CIDR',
-    'CITEXT',
-    'DATE',
-    'DATEONLY',
-    'DECIMAL',
-    'DOUBLE',
-    'ENUM',
-    'FLOAT',
-    'GEOGRAPHY',
-    'GEOMETRY',
-    'HSTORE',
-    'INET',
-    'INTEGER',
-    'JSON',
-    'JSONB',
-    'MACADDR',
-    'MACADDR8',
-    'MEDIUMINT',
-    'NOW',
-    'RANGE',
-    'REAL',
-    'SMALLINT',
-    'STRING',
-    'TEXT',
-    'TIME',
-    'TINYINT',
-    'TSVECTOR',
-    'UUID',
-    'UUIDV1',
-    'UUIDV4',
-    'VIRTUAL',
-  ],
+  '@sequelize/core': [],
   '@sequelize/core/decorators-legacy': ['__esModule'],
   '@sequelize/db2': ['__esModule'],
   '@sequelize/db2-ibmi': ['__esModule'],

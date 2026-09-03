@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Model, Op } = require('@sequelize/core');
 const {
   _validateIncludedElements,
 } = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
@@ -269,7 +269,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const options = {
           include: ['Owner'],
         };
-        Sequelize.Model._conformIncludes(options, this.Company);
+        Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
@@ -287,7 +287,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             },
           ],
         };
-        Sequelize.Model._conformIncludes(options, this.Company);
+        Model._conformIncludes(options, this.Company);
 
         expect(options.include[0]).to.deep.equal({
           model: this.User,
@@ -307,7 +307,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         };
 
         expect(() => {
-          Sequelize.Model._conformIncludes(options, this.Company);
+          Model._conformIncludes(options, this.Company);
         }).to.throw(
           'Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.',
         );
@@ -323,7 +323,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         };
 
         expect(() => {
-          Sequelize.Model._conformIncludes(options, this.Company);
+          Model._conformIncludes(options, this.Company);
         }).to.throw(
           'Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.',
         );

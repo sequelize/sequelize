@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../../support');
 
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -39,7 +39,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         const posts = await Post.findAll({
-          attributes: [[Sequelize.fn('COUNT', Sequelize.col('comments.id')), 'comment_count']],
+          attributes: [[sql.fn('COUNT', sql.col('comments.id')), 'comment_count']],
           include: [{ model: Comment, attributes: [] }],
           group: ['Post.id'],
           order: [['id']],
@@ -76,10 +76,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         const posts = await Comment.findAll({
-          attributes: [
-            'postId',
-            [Sequelize.fn('COUNT', Sequelize.col('Comment.id')), 'comment_count'],
-          ],
+          attributes: ['postId', [sql.fn('COUNT', sql.col('Comment.id')), 'comment_count']],
           include: [{ model: Post, attributes: [] }],
           group: ['postId'],
           order: [['postId']],

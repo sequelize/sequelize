@@ -76,6 +76,7 @@ export * from './model-repository.types.js';
 export * from './model.js';
 export { Op, type OpTypes } from './operators.js';
 export * from './sequelize.js';
+export type { NormalizedOptions, Options, PoolOptions } from './sequelize.types.js';
 export {
   IsolationLevel,
   Lock,
@@ -86,9 +87,6 @@ export {
   type NormalizedTransactionOptions,
   type TransactionOptions,
 } from './transaction.js';
-// eslint-disable-next-line import/no-default-export -- legacy, will be removed in the future | TODO [>=8]: remove this alias
-export { Sequelize as default } from './sequelize.js';
-export type { NormalizedOptions, Options, PoolOptions } from './sequelize.types.js';
 export { isModelStatic, isSameInitialModel } from './utils/model-utils.js';
 export { useInflection } from './utils/string.js';
 export type { Validator } from './utils/validator-extras.js';

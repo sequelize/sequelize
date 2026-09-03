@@ -4,7 +4,12 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { ConstraintChecking, DataTypes, Deferrable, Sequelize } = require('@sequelize/core');
+const {
+  ConstraintChecking,
+  DataTypes,
+  Deferrable,
+  ForeignKeyConstraintError,
+} = require('@sequelize/core');
 
 if (Support.sequelize.dialect.supports.constraints.deferrable) {
   describe(Support.getTestDialectTeaser('Sequelize'), () => {
@@ -49,7 +54,7 @@ if (Support.sequelize.dialect.supports.constraints.deferrable) {
           describe('NOT', () => {
             it('does not allow the violation of the foreign key constraint', async function () {
               await expect(this.run(Deferrable.NOT)).to.eventually.be.rejectedWith(
-                Sequelize.ForeignKeyConstraintError,
+                ForeignKeyConstraintError,
               );
             });
           });
@@ -67,7 +72,7 @@ if (Support.sequelize.dialect.supports.constraints.deferrable) {
                 this.run(Deferrable.INITIALLY_IMMEDIATE, {
                   constraintChecking: undefined,
                 }),
-              ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+              ).to.eventually.be.rejectedWith(ForeignKeyConstraintError);
             });
 
             it('allows the violation of the foreign key constraint if the transaction deferred only the foreign key constraint', async function () {

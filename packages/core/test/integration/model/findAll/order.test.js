@@ -4,14 +4,14 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('findAll', () => {
     describe('order', () => {
-      describe('Sequelize.literal()', () => {
+      describe('sql.literal()', () => {
         beforeEach(async function () {
           this.User = this.sequelize.define('User', {
             email: DataTypes.STRING,
@@ -26,11 +26,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         if (!['oracle', 'ibmi', 'mssql'].includes(current.dialect.name)) {
           const email = current.dialect.name === 'db2' ? '"email"' : 'email';
-          it('should work with order: literal()', async function () {
+          it('should work with order: sql.literal()', async function () {
             const users = await this.User.findAll({
-              order: this.sequelize.literal(
-                `${email} = ${this.sequelize.escape('test@sequelizejs.com')}`,
-              ),
+              order: sql.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`),
             });
 
             expect(users.length).to.equal(1);
@@ -39,13 +37,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          it('should work with order: [literal()]', async function () {
+          it('should work with order: [sql.literal()]', async function () {
             const users = await this.User.findAll({
-              order: [
-                this.sequelize.literal(
-                  `${email} = ${this.sequelize.escape('test@sequelizejs.com')}`,
-                ),
-              ],
+              order: [sql.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)],
             });
 
             expect(users.length).to.equal(1);
@@ -54,15 +48,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             }
           });
 
-          it('should work with order: [[literal()]]', async function () {
+          it('should work with order: [[sql.literal()]]', async function () {
             const users = await this.User.findAll({
-              order: [
-                [
-                  this.sequelize.literal(
-                    `${email} = ${this.sequelize.escape('test@sequelizejs.com')}`,
-                  ),
-                ],
-              ],
+              order: [[sql.literal(`${email} = ${this.sequelize.escape('test@sequelizejs.com')}`)]],
             });
 
             expect(users.length).to.equal(1);
@@ -98,11 +86,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         it('should not throw on a literal', async function () {
           if (['db2', 'ibmi', 'oracle'].includes(current.dialect.name)) {
             await this.User.findAll({
-              order: [['id', this.sequelize.literal('ASC, "name" DESC')]],
+              order: [['id', sql.literal('ASC, "name" DESC')]],
             });
           } else {
             await this.User.findAll({
-              order: [['id', this.sequelize.literal('ASC, name DESC')]],
+              order: [['id', sql.literal('ASC, name DESC')]],
             });
           }
         });

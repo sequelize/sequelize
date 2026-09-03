@@ -40,6 +40,8 @@ import * as DataTypes from './data-types';
 import { QueryTypes } from './enums.js';
 import * as SequelizeErrors from './errors';
 import { BaseSqlExpression } from './expression-builders/base-sql-expression.js';
+import { col } from './expression-builders/col.js';
+import { fn } from './expression-builders/fn.js';
 import { InstanceValidator } from './instance-validator';
 import {
   _validateIncludedElements,
@@ -1619,10 +1621,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const attrOptions = this.getAttributes()[attribute];
     const field = (attrOptions && attrOptions.field) || attribute;
-    let aggregateColumn = this.sequelize.col(field);
+    let aggregateColumn = col(field);
 
     if (options.distinct) {
-      aggregateColumn = this.sequelize.fn('DISTINCT', aggregateColumn);
+      aggregateColumn = fn('DISTINCT', aggregateColumn);
     }
 
     let { group } = options;
@@ -1634,7 +1636,7 @@ ${associationOwner._getAssociationDebugList()}`);
     options.attributes = unionBy(
       options.attributes,
       group,
-      [[this.sequelize.fn(aggregateFunction, aggregateColumn), aggregateFunction]],
+      [[fn(aggregateFunction, aggregateColumn), aggregateFunction]],
       a => (Array.isArray(a) ? a[1] : a),
     );
 

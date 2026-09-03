@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const dialect = Support.getTestDialect();
-const { Col, DataTypes, Fn } = require('@sequelize/core');
+const { Col, DataTypes, Fn, sql } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('DAO'), () => {
   describe('Values', () => {
@@ -88,7 +88,7 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         expect(user.get('updated_at')).not.to.be.ok;
       });
 
-      it('allows use of sequelize.fn and sequelize.col in date and bool fields', async function () {
+      it('allows use of sql.fn and sql.col in date and bool fields', async function () {
         const User = this.sequelize.define(
           'User',
           {
@@ -108,16 +108,16 @@ describe(Support.getTestDialectTeaser('DAO'), () => {
         // so we must create a record with the right value for always_false, then reference it in an update
         const now =
           dialect === 'sqlite3'
-            ? this.sequelize.fn('', this.sequelize.fn('datetime', 'now'))
+            ? sql.fn('', sql.fn('datetime', 'now'))
             : dialect === 'mssql'
-              ? this.sequelize.fn('', this.sequelize.fn('getdate'))
+              ? sql.fn('', sql.fn('getdate'))
               : dialect === 'oracle'
-                ? this.sequelize.fn('', this.sequelize.literal('SYSDATE'))
-                : this.sequelize.fn('NOW');
+                ? sql.fn('', sql.literal('SYSDATE'))
+                : sql.fn('NOW');
 
         user.set({
           d: now,
-          b: this.sequelize.col('always_false'),
+          b: sql.col('always_false'),
         });
 
         expect(user.get('d')).to.be.instanceof(Fn);

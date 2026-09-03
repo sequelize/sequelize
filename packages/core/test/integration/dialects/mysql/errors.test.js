@@ -6,7 +6,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, ForeignKeyConstraintError } = require('@sequelize/core');
 
 if (dialect === 'mysql') {
   describe('[MYSQL Specific] Errors', () => {
@@ -51,14 +51,14 @@ if (dialect === 'mysql') {
         await user1.setTasks([task1]);
 
         await Promise.all([
-          validateError(user1.destroy(), Sequelize.ForeignKeyConstraintError, {
+          validateError(user1.destroy(), ForeignKeyConstraintError, {
             fields: ['userId'],
             table: 'users',
             value: undefined,
             index: 'tasksusers_ibfk_1',
             reltype: 'parent',
           }),
-          validateError(task1.destroy(), Sequelize.ForeignKeyConstraintError, {
+          validateError(task1.destroy(), ForeignKeyConstraintError, {
             fields: ['taskId'],
             table: 'tasks',
             value: undefined,
@@ -73,7 +73,7 @@ if (dialect === 'mysql') {
 
         await validateError(
           this.Task.create({ title: 'task', primaryUserId: 5 }),
-          Sequelize.ForeignKeyConstraintError,
+          ForeignKeyConstraintError,
           {
             fields: ['primaryUserId'],
             table: 'users',

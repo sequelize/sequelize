@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, sql } = require('@sequelize/core');
+const { and, DataTypes, or, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const sinon = require('sinon');
@@ -297,7 +297,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.ParanoidUser.create({ username: 'cuss' });
 
       const users0 = await this.ParanoidUser.findAll({
-        where: this.sequelize.and({
+        where: and({
           username: 'cuss',
         }),
       });
@@ -306,7 +306,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await users0[0].destroy();
 
       const users = await this.ParanoidUser.findAll({
-        where: this.sequelize.and({
+        where: and({
           username: 'cuss',
         }),
       });
@@ -318,7 +318,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await this.ParanoidUser.create({ username: 'cuss' });
 
       const users0 = await this.ParanoidUser.findAll({
-        where: this.sequelize.or({
+        where: or({
           username: 'cuss',
         }),
       });
@@ -327,7 +327,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       await users0[0].destroy();
 
       const users = await this.ParanoidUser.findAll({
-        where: this.sequelize.or({
+        where: or({
           username: 'cuss',
         }),
       });

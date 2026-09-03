@@ -145,3 +145,47 @@ export const noSequelizeRandom = deprecate(
   'Do not use sequelize.random(). Use sql.random instead, as it can be used without needing a reference to sequelize.',
   'SEQUELIZE0032',
 );
+
+const staticPropertyDeprecations = new Map<string, () => void>();
+
+/**
+ * Emits a deprecation warning (once per property name) when a named export is accessed
+ * as a static property on the Sequelize class instead of being imported directly.
+ *
+ * @param propertyName
+ */
+export function noSequelizeStaticProperty(propertyName: string): void {
+  let deprecated = staticPropertyDeprecations.get(propertyName);
+  if (!deprecated) {
+    deprecated = deprecate(
+      noop,
+      `Do not use the Sequelize.${propertyName} static property. Import ${propertyName} directly from '@sequelize/core' instead.`,
+      `SEQUELIZE0033-${propertyName}`,
+    );
+    staticPropertyDeprecations.set(propertyName, deprecated);
+  }
+
+  deprecated();
+}
+
+const instancePropertyDeprecations = new Map<string, () => void>();
+
+/**
+ * Emits a deprecation warning (once per property name) when a named export is accessed
+ * as an instance property on a Sequelize instance instead of being imported directly.
+ *
+ * @param propertyName
+ */
+export function noSequelizeInstanceProperty(propertyName: string): void {
+  let deprecated = instancePropertyDeprecations.get(propertyName);
+  if (!deprecated) {
+    deprecated = deprecate(
+      noop,
+      `Do not use the sequelize.${propertyName} instance property. Import ${propertyName} directly from '@sequelize/core' instead.`,
+      `SEQUELIZE0034-${propertyName}`,
+    );
+    instancePropertyDeprecations.set(propertyName, deprecated);
+  }
+
+  deprecated();
+}

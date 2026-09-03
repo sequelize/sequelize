@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, ForeignKeyConstraintError } = require('@sequelize/core');
 
 const current = Support.sequelize;
 const dialect = Support.getTestDialect();
@@ -184,13 +184,13 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await User.sync({ force: true });
       await Task.sync({ force: true });
       await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(
-        Sequelize.ForeignKeyConstraintError,
+        ForeignKeyConstraintError,
       );
       const task = await Task.create({ title: 'task' });
 
       await expect(
         Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } }),
-      ).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      ).to.be.rejectedWith(ForeignKeyConstraintError);
     });
 
     it('should setup underscored field with foreign keys when using underscored', function () {
@@ -399,9 +399,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
         const user = await User.create({ username: 'foo' });
         const task = await Task.create({ title: 'task' });
         await user.setTask(task);
-        await expect(user.destroy()).to.eventually.be.rejectedWith(
-          Sequelize.ForeignKeyConstraintError,
-        );
+        await expect(user.destroy()).to.eventually.be.rejectedWith(ForeignKeyConstraintError);
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
       });
@@ -426,7 +424,7 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
 
         await expect(
           user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id }),
-        ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+        ).to.eventually.be.rejectedWith(ForeignKeyConstraintError);
 
         // Should fail due to FK restriction
         const tasks = await Task.findAll();

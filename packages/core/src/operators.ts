@@ -262,7 +262,7 @@ export interface OpTypes {
    * Operator @@
    *
    * ```js
-   * [Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')`
+   * [Op.match]: sql.fn('to_tsquery', 'fat & rat')`
    * ```
    * In SQL
    * ```sql
