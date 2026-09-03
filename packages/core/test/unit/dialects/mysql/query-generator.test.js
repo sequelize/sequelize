@@ -339,6 +339,29 @@ if (dialect === 'mysql') {
           },
           needsSequelize: true,
         },
+        {
+          title: 'upsert with literal increment',
+          arguments: [
+            'myTable',
+            function (sequelize) {
+              return {
+                name: 'foo',
+                counter: sequelize.literal('counter + 1'),
+              };
+            },
+            {},
+            {
+              updateOnDuplicate: ['name', 'counter'],
+              upsertKeys: ['id'],
+            },
+          ],
+          expectation: {
+            query:
+              'INSERT INTO `myTable` (`name`,`counter`) VALUES ($sequelize_1,counter + 1) ON DUPLICATE KEY UPDATE `name`=$sequelize_1,`counter`=counter + 1;',
+            bind: { sequelize_1: 'foo' },
+          },
+          needsSequelize: true,
+        },
       ],
 
       bulkInsertQuery: [
