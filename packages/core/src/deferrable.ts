@@ -80,9 +80,6 @@ export class ConstraintChecking {
 class DEFERRED extends ConstraintChecking {
   readonly #constraints: readonly string[];
 
-  /**
-   * @param constraints An array of constraint names. Will defer all constraints by default.
-   */
   constructor(constraints: readonly string[] = EMPTY_ARRAY) {
     super();
     this.#constraints = Object.freeze([...constraints]);
@@ -100,9 +97,6 @@ class DEFERRED extends ConstraintChecking {
 class IMMEDIATE extends ConstraintChecking {
   readonly #constraints: readonly string[];
 
-  /**
-   * @param constraints An array of constraint names. Will defer all constraints by default.
-   */
   constructor(constraints: readonly string[] = EMPTY_ARRAY) {
     super();
     this.#constraints = Object.freeze([...constraints]);
