@@ -85,7 +85,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 > {
   readonly #lib: PgModule;
   readonly #oidMap = new Map<number, TypeOids>();
-  readonly #oidParserCache = new Map<number, TextTypeParser | BinaryTypeParser>();
+  readonly #oidParserCache = new Map<string, TextTypeParser | BinaryTypeParser>();
 
   constructor(dialect: PostgresDialect) {
     super(dialect);
@@ -333,30 +333,27 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  #buildArrayParser(subTypeParser: TextTypeParser | BinaryTypeParser): TextTypeParser {
+  #buildArrayParser(subTypeParser: TextTypeParser): TextTypeParser {
     return (source: string) => {
-      return parseArray(source, subTypeParser as TextTypeParser);
+      return parseArray(source, subTypeParser);
     };
-  }
-
-  #getSubTypeParser(oid: number, format?: TypeFormat): TextTypeParser | BinaryTypeParser {
-    return format === 'binary'
-      ? this.getTypeParser(oid, 'binary')
-      : this.getTypeParser(oid, 'text');
   }
 
   getTypeParser(oid: number, format?: 'text'): TextTypeParser;
   getTypeParser(oid: number, format: 'binary'): BinaryTypeParser;
   getTypeParser(oid: number, format?: TypeFormat): TextTypeParser | BinaryTypeParser {
-    const cachedParser = this.#oidParserCache.get(oid);
+    const cacheKey = `${format ?? 'text'}:${oid}`;
+    const cachedParser = this.#oidParserCache.get(cacheKey);
 
     if (cachedParser) {
       return cachedParser;
     }
 
-    const customParser = this.#getCustomTypeParser(oid, format);
+    // The dialect's parsers all take a string, so they must never serve the binary format,
+    // which pg hands a Buffer.
+    const customParser = format === 'binary' ? null : this.#getCustomTypeParser(oid);
     if (customParser) {
-      this.#oidParserCache.set(oid, customParser);
+      this.#oidParserCache.set(cacheKey, customParser);
 
       return customParser;
     }
@@ -374,19 +371,20 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  #getCustomTypeParser(oid: number, format?: TypeFormat): TextTypeParser | null {
+  #getCustomTypeParser(oid: number): TextTypeParser | null {
     const typeData = this.#oidMap.get(oid);
 
     if (!typeData) {
       return null;
     }
 
+    // Only the text format reaches this point, so the sub-type parsers are text parsers too.
     if (typeData.type === 'range-array') {
-      return this.#buildArrayParser(this.#getSubTypeParser(typeData.rangeOid!, format));
+      return this.#buildArrayParser(this.getTypeParser(typeData.rangeOid!, 'text'));
     }
 
     if (typeData.type === 'array') {
-      return this.#buildArrayParser(this.#getSubTypeParser(typeData.baseOid!, format));
+      return this.#buildArrayParser(this.getTypeParser(typeData.baseOid!, 'text'));
     }
 
     const parser = this.dialect.getParserForDatabaseDataType(typeData.typeName);
