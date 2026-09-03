@@ -201,6 +201,12 @@ export class BelongsToAssociation<
       newForeignKeyAttribute.onUpdate ??= newForeignKeyAttribute.onUpdate ?? 'CASCADE';
     }
 
+    // Auto-index foreign key columns for query performance (#5042).
+    // Users can opt out per-association via foreignKey: { index: false }.
+    if (newForeignKeyAttribute.index === undefined) {
+      newForeignKeyAttribute.index = true;
+    }
+
     this.source.mergeAttributesDefault({
       [this.foreignKey]: newForeignKeyAttribute,
     });
