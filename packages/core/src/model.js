@@ -1893,13 +1893,78 @@ ${associationOwner._getAssociationDebugList()}`);
   static async create(values, options) {
     options = cloneDeep(options) ?? {};
 
-    return await this.build(values, {
+    const inferredIncludes = [];
+    const pendingAssociations = [];
+
+    for (const assocName of Object.keys(this.modelDefinition.associations)) {
+      const association = this.modelDefinition.associations[assocName];
+      const associatedValue = values?.[assocName];
+
+      if (associatedValue == null) {
+        continue;
+      }
+
+      const isArray = Array.isArray(associatedValue);
+      const isModelInstance = isArray
+        ? associatedValue.every(item => item instanceof association.target)
+        : associatedValue instanceof association.target;
+
+      // Save built models (built but not persisted)
+      if (isModelInstance) {
+        if (isArray) {
+          for (const instance of associatedValue) {
+            if (instance.isNewRecord) {
+              await instance.save();
+            }
+          }
+        } else if (associatedValue.isNewRecord) {
+          await associatedValue.save();
+        }
+
+        // BelongsTo can be set directly before create
+        if (association.associationType === 'BelongsTo') {
+          values[association.foreignKey] = isArray
+            ? undefined // shouldn't happen with BelongsTo
+            : associatedValue.get(association.target.primaryKeyAttribute);
+
+          delete values[assocName];
+        } else {
+          // Other types handled after main instance is saved
+          pendingAssociations.push({ association, assocName, associatedValue });
+          delete values[assocName];
+        }
+
+        continue;
+      }
+
+      // Raw object input for nested creation
+      inferredIncludes.push({ association: assocName });
+    }
+
+    if (!options.include && inferredIncludes.length > 0) {
+      options.include = inferredIncludes;
+    }
+
+    const instance = await this.build(values, {
       isNewRecord: true,
       attributes: options.fields,
       include: options.include,
       raw: options.raw,
       silent: options.silent,
     }).save(options);
+
+    // Apply any set/add calls now that the instance is created
+    for (const { associatedValue, assocName } of pendingAssociations) {
+      const methodName = `set${assocName[0].toUpperCase()}${assocName.slice(1)}`;
+
+      if (typeof instance[methodName] === 'function') {
+        await instance[methodName](associatedValue);
+      } else {
+        throw new Error(`Missing association method: ${methodName}`);
+      }
+    }
+
+    return instance;
   }
 
   /**
