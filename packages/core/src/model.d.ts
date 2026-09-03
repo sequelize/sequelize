@@ -1267,6 +1267,11 @@ export interface DestroyOptions<TAttributes = any>
    * @default false
    */
   force?: boolean;
+
+  /**
+   * Return the affected rows (only for postgres)
+   */
+  returning?: boolean | Array<keyof TAttributes | Literal | Col>;
 }
 
 /**
