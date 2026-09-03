@@ -183,31 +183,40 @@ export class MariaDbQuery extends AbstractQuery {
     }
 
     const meta = rows.meta;
-    for (const [i, _field] of Object.keys(this.model.fieldRawAttributesMap).entries()) {
-      const modelField = this.model.fieldRawAttributesMap[_field];
-      if (modelField.type instanceof DataTypes.JSON) {
-        // Value is returned as String, not JSON
-        rows = rows.map(row => {
-          // JSON fields for MariaDB server 10.5.2+ already results in JSON format so we can skip JSON.parse
-          // In this case the column type field will be MYSQL_TYPE_STRING, but the extended type will indicate 'json'
-          if (
-            row[modelField.fieldName] &&
-            typeof row[modelField.fieldName] === 'string' &&
-            !meta[i]?.isDataTypeFormatJson()
-          ) {
-            row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
-          }
+    const tableName = this.model.table.tableName;
 
-          if (DataTypes.JSON.parse) {
-            return DataTypes.JSON.parse(
-              modelField,
-              this.sequelize.options,
-              row[modelField.fieldName],
-            );
-          }
+    for (const field of Object.keys(this.model.fieldRawAttributesMap)) {
+      const modelField = this.model.fieldRawAttributesMap[field];
+      if (!(modelField.type instanceof DataTypes.JSON)) {
+        continue;
+      }
 
-          return row;
-        });
+      // `name()` is the alias the column has in the result set, which is what the row is keyed by,
+      // so it is the only unambiguous match. `orgName()` is the name the column has in its table,
+      // and is only used as a fallback: under an `include`, a joined table can expose a column
+      // with the same original name as one of this model's attributes, so it must be qualified
+      // by the table the column originates from.
+      const metaEntry =
+        meta?.find(
+          column => column.name() === modelField.fieldName || column.name() === modelField.field,
+        ) ??
+        meta?.find(
+          column => column.orgName() === modelField.field && column.orgTable() === tableName,
+        );
+
+      // JSON columns on MariaDB 10.5.2+ are already decoded by the driver. The column type is
+      // MYSQL_TYPE_STRING either way, so the extended type is what tells the two apart. Parsing
+      // an already-decoded value would either throw or, for a value that is itself valid JSON,
+      // silently corrupt it.
+      if (metaEntry?.isDataTypeFormatJson()) {
+        continue;
+      }
+
+      // Value is returned as String, not JSON
+      for (const row of rows) {
+        if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string') {
+          row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
+        }
       }
     }
   }
