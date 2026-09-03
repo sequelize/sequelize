@@ -112,8 +112,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       port: 5432,
       ...config,
       types: {
-        // `format` is a union here, but `getTypeParser` only has per-format overloads,
-        // so it has to be narrowed before it can be forwarded.
         getTypeParser: (oid, format) => {
           return format === 'binary'
             ? this.getTypeParser(oid, format)
@@ -337,9 +335,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
   #buildArrayParser(subTypeParser: TextTypeParser | BinaryTypeParser): TextTypeParser {
     return (source: string) => {
-      // `parseArray` only ever hands the sub-parser a string, so a binary sub-parser is already
-      // wrong here. Forwarding it preserves the behaviour this branch inherits; it is corrected
-      // separately, along with the rest of the format handling.
       return parseArray(source, subTypeParser as TextTypeParser);
     };
   }
@@ -386,8 +381,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       return null;
     }
 
-    // Forwarding the requested format keeps this identical to the previous behaviour: an absent
-    // format already resolved to the text parser.
     if (typeData.type === 'range-array') {
       return this.#buildArrayParser(this.#getSubTypeParser(typeData.rangeOid!, format));
     }
