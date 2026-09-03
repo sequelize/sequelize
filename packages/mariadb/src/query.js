@@ -183,31 +183,31 @@ export class MariaDbQuery extends AbstractQuery {
     }
 
     const meta = rows.meta;
-    for (const [i, _field] of Object.keys(this.model.fieldRawAttributesMap).entries()) {
-      const modelField = this.model.fieldRawAttributesMap[_field];
-      if (modelField.type instanceof DataTypes.JSON) {
-        // Value is returned as String, not JSON
-        rows = rows.map(row => {
-          // JSON fields for MariaDB server 10.5.2+ already results in JSON format so we can skip JSON.parse
-          // In this case the column type field will be MYSQL_TYPE_STRING, but the extended type will indicate 'json'
-          if (
-            row[modelField.fieldName] &&
-            typeof row[modelField.fieldName] === 'string' &&
-            !meta[i]?.isDataTypeFormatJson()
-          ) {
-            row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
-          }
+    const tableName = this.model.table.tableName;
 
-          if (DataTypes.JSON.parse) {
-            return DataTypes.JSON.parse(
-              modelField,
-              this.sequelize.options,
-              row[modelField.fieldName],
-            );
-          }
+    for (const field of Object.keys(this.model.fieldRawAttributesMap)) {
+      const modelField = this.model.fieldRawAttributesMap[field];
+      if (!(modelField.type instanceof DataTypes.JSON)) {
+        continue;
+      }
 
-          return row;
-        });
+      const metaEntry =
+        meta?.find(
+          column => column.name() === modelField.fieldName || column.name() === modelField.field,
+        ) ??
+        meta?.find(
+          column => column.orgName() === modelField.field && column.orgTable() === tableName,
+        );
+
+      // JSON columns on MariaDB 10.5.2+ are already decoded by the driver
+      if (metaEntry?.isDataTypeFormatJson()) {
+        continue;
+      }
+
+      for (const row of rows) {
+        if (row[modelField.fieldName] && typeof row[modelField.fieldName] === 'string') {
+          row[modelField.fieldName] = JSON.parse(row[modelField.fieldName]);
+        }
       }
     }
   }
