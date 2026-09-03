@@ -178,7 +178,89 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     let query;
     const whereOptions = { ...options, bindParam };
 
-    if (options.limit) {
+    if (options.include && options.include.length > 0) {
+      if (options.limit) {
+        throw new Error('Model.update with include does not support limit.');
+      }
+
+      const quotedTableName = this.quoteTable(tableName);
+      const model = options.model;
+      const modelDefinition = model.modelDefinition;
+
+      const pkColumns = [];
+      for (const pkAttrName of modelDefinition.primaryKeysAttributeNames) {
+        const attribute = modelDefinition.attributes.get(pkAttrName);
+        pkColumns.push(attribute.columnName);
+      }
+
+      if (pkColumns.length === 0) {
+        throw new Error('Model.update with include requires the model to have a primary key.');
+      }
+
+      const mainTable = {
+        name: tableName,
+        quotedName: quotedTableName,
+        as: model.name,
+        quotedAs: this.quoteIdentifier(model.name),
+        model,
+      };
+
+      const topLevelInfo = {
+        names: mainTable,
+        options: { ...options, model, keysEscaped: true },
+        subQuery: false,
+      };
+
+      const assertNoSeparateIncludes = includes => {
+        for (const include of includes) {
+          if (include.separate) {
+            throw new Error('Model.update with include does not support separate includes.');
+          }
+
+          if (include.include) {
+            assertNoSeparateIncludes(include.include);
+          }
+        }
+      };
+
+      assertNoSeparateIncludes(options.include);
+
+      let joinStatements = [];
+      for (const include of options.include) {
+        const joinQueries = this.generateInclude(
+          include,
+          { externalAs: mainTable.as, internalAs: mainTable.as },
+          topLevelInfo,
+          { replacements: options.replacements, minifyAliases: options.minifyAliases },
+        );
+
+        joinStatements = joinStatements.concat(joinQueries.mainQuery);
+      }
+
+      const pkSelect = pkColumns
+        .map(col => `${this.quoteIdentifier(mainTable.as)}.${this.quoteIdentifier(col)}`)
+        .join(', ');
+
+      const pkWhere = pkColumns
+        .map(col => `${quotedTableName}.${this.quoteIdentifier(col)}`)
+        .join(', ');
+
+      const whereClause = this.whereQuery(where, {
+        ...whereOptions,
+        model,
+        mainAlias: mainTable.as,
+      });
+
+      let subqueryWhere;
+      if (pkColumns.length === 1) {
+        subqueryWhere = `${pkWhere} IN (SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''})`;
+      } else {
+        subqueryWhere = `(${pkWhere}) IN (SELECT ${pkSelect} FROM ${this.quoteTable(tableName, { alias: mainTable.as })}${joinStatements.join('')}${whereClause ? ` ${whereClause}` : ''})`;
+      }
+
+      query =
+        `UPDATE ${quotedTableName} SET ${values.join(',')} WHERE ${subqueryWhere}${suffix}`.trim();
+    } else if (options.limit) {
       query =
         `UPDATE ${this.quoteTable(tableName)} SET ${values.join(',')} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(tableName)} ${this.whereQuery(where, whereOptions)} LIMIT ${this.escape(options.limit, undefined, options)})${suffix}`.trim();
     } else {
