@@ -1943,7 +1943,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * before the insert call.
    * However, it is not always possible to handle this case in SQLite, specifically if one transaction inserts
    * and another tries to select before the first one has committed.
-   * In this case, an instance of {@link TimeoutError} will be thrown instead.
+   * In this case, an instance of {@link @sequelize/core!TimeoutError} will be thrown instead.
    *
    * If a transaction is passed, a savepoint will be created instead,
    * and any unique constraint violation will be handled internally.
@@ -3855,7 +3855,7 @@ Instead of specifying a Model, either:
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    *
-   * Returns a Promise that resolves to the saved instance (or rejects with a {@link ValidationError},
+   * Returns a Promise that resolves to the saved instance (or rejects with a {@link @sequelize/core!ValidationError},
    * which will have a property for each of the fields for which the validation failed, with the error message for that
    * field).
    *
