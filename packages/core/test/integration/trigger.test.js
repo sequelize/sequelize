@@ -64,6 +64,39 @@ if (current.dialect.supports.tmpTableTrigger) {
           .which.equals('triggertest');
       });
 
+      if (dialect === 'mssql') {
+        it('when a trigger emits rows, maps bulk insert output by source row', async () => {
+          // Arrange
+          await current.query('DROP TRIGGER User_ChangeTracking');
+          await current.query(
+            'CREATE TRIGGER User_ChangeTracking ON [users] AFTER INSERT AS BEGIN SET NOCOUNT ON; SELECT COUNT(*) AS trigger_count FROM inserted; END',
+          );
+
+          // Act
+          const users = await User.bulkCreate([{ username: 'second' }, { username: 'first' }], {
+            returning: ['id', 'username'],
+          });
+
+          // Assert
+          const persistedUsers = await User.findAll();
+          const idsByUsername = new Map(persistedUsers.map(user => [user.username, user.id]));
+          const expectedUsers = [
+            {
+              id: idsByUsername.get('second'),
+              username: 'second',
+            },
+            {
+              id: idsByUsername.get('first'),
+              username: 'first',
+            },
+          ];
+
+          expect(users.map(user => ({ id: user.id, username: user.username }))).to.deep.equal(
+            expectedUsers,
+          );
+        });
+      }
+
       it('should return output rows after instance update', async () => {
         const user = await User.create({
           username: 'triggertest',
