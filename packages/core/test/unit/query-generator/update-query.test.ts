@@ -15,14 +15,17 @@ describe('QueryGenerator#updateQuery', () => {
       { timestamps: false },
     );
 
-    const JsonUser = sequelize.define(
-      'JsonUser',
-      {
-        name: DataTypes.STRING,
-        data: DataTypes.JSON,
-      },
-      { timestamps: false },
-    );
+    // Only defined on dialects that support the JSON data type (used by the oracle-only test below).
+    const JsonUser = dialect.supports.dataTypes.JSON
+      ? sequelize.define(
+          'JsonUser',
+          {
+            name: DataTypes.STRING,
+            data: DataTypes.JSON,
+          },
+          { timestamps: false },
+        )
+      : null;
 
     return { User, JsonUser };
   });
@@ -112,6 +115,9 @@ describe('QueryGenerator#updateQuery', () => {
     }
 
     const { JsonUser } = vars;
+    if (!JsonUser) {
+      throw new Error('JsonUser should have been defined: oracle supports the JSON data type');
+    }
 
     const { query, bind } = queryGenerator.updateQuery(
       JsonUser.table,
