@@ -130,7 +130,8 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
       } else {
-        attrString.push(`\`${attributeName}\` \`${attributeName}\` ${definition}`);
+        const quotedAttrName = this.quoteIdentifier(attributeName);
+        attrString.push(`${quotedAttrName} ${quotedAttrName} ${definition}`);
       }
     }
 
@@ -148,7 +149,9 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     for (const attrName in attributes) {
       const definition = attributes[attrName];
-      attrString.push(`\`${attrBefore}\` \`${attrName}\` ${definition}`);
+      attrString.push(
+        `${this.quoteIdentifier(attrBefore)} ${this.quoteIdentifier(attrName)} ${definition}`,
+      );
     }
 
     return joinSQLFragments([
