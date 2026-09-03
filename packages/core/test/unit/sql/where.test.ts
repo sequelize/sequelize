@@ -1092,7 +1092,7 @@ Caused by: "undefined" cannot be escaped`),
       testSql(
         { [Op.not]: {} },
         {
-          default: '',
+          default: '0 = 1',
         },
       );
 
@@ -1103,21 +1103,22 @@ Caused by: "undefined" cannot be escaped`),
           },
         },
         {
-          default: '',
+          default: '1 = 1',
         },
       );
 
       testSql(
         { [Op.not]: [] },
         {
-          default: '',
+          default: '0 = 1',
         },
       );
 
+      // same case, reached through the attribute-level path instead
       testSql(
         { nullableIntAttr: { [Op.not]: {} } },
         {
-          default: '',
+          default: '0 = 1',
         },
       );
 
@@ -1631,9 +1632,89 @@ Caused by: "undefined" cannot be escaped`),
       testSql(
         { intAttr1: { [Op.in]: [] } },
         {
-          default: '[intAttr1] IN (NULL)',
+          default: '0 = 1',
         },
       );
+
+      testSql(
+        { [Op.or]: [{ intAttr1: { [Op.in]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '[intAttr2] = 5',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { intAttr1: { [Op.in]: [] } } },
+        {
+          default: '1 = 1',
+        },
+      );
+
+      testSql(
+        { [Op.and]: [{ intAttr1: { [Op.in]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '0 = 1',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { intAttr1: [] } },
+        {
+          default: '1 = 1',
+        },
+      );
+
+      // same case, reached through the attribute-level path instead
+      testSql(
+        { intAttr1: { [Op.not]: { [Op.in]: [] } } },
+        {
+          default: '1 = 1',
+        },
+      );
+
+      {
+        // fails if WhereAttributeHashValue's conditional is left distributive: Op.in is then
+        // instantiated once for `number` and once for `null`, and neither accepts both
+        const ignoreMixed: TestModelWhere = { nullableIntAttr: { [Op.in]: [1, null] } };
+        const ignoreOnlyNull: TestModelWhere = { nullableIntAttr: { [Op.notIn]: [null] } };
+
+        // @ts-expect-error -- null is only accepted for a nullable attribute
+        const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: [1, null] } };
+      }
+
+      testSql(
+        { nullableIntAttr: { [Op.in]: [1, null] } },
+        {
+          default: '[nullableIntAttr] IN (1) OR [nullableIntAttr] IS NULL',
+        },
+      );
+
+      testSql(
+        { nullableIntAttr: { [Op.in]: [null] } },
+        {
+          default: '[nullableIntAttr] IS NULL',
+        },
+      );
+
+      testSql(
+        { [Op.and]: [{ nullableIntAttr: { [Op.in]: [1, null] } }, { intAttr2: 5 }] },
+        {
+          default: '([nullableIntAttr] IN (1) OR [nullableIntAttr] IS NULL) AND [intAttr2] = 5',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { nullableIntAttr: { [Op.in]: [1, null] } } },
+        {
+          default: 'NOT ([nullableIntAttr] IN (1) OR [nullableIntAttr] IS NULL)',
+        },
+      );
+
+      // only the cause is asserted: the rest of the message inspects the where object, and
+      // util.inspect renders it differently across Node versions
+      testSql(where(fn('lower', undefined), Op.in, []), {
+        default: new Error(`Caused by: "undefined" cannot be escaped`),
+      });
     });
 
     describeInSuite(Op.notIn, 'NOT IN', () => {
@@ -1647,23 +1728,50 @@ Caused by: "undefined" cannot be escaped`),
       testSql(
         { [Op.or]: [{ intAttr1: { [Op.notIn]: [] } }, { intAttr2: 5 }] },
         {
-          default: '1 = 1 OR [intAttr2] = 5',
+          default: '1 = 1',
         },
       );
 
       testSql(
         { [Op.not]: { intAttr1: { [Op.notIn]: [] } } },
         {
-          default: 'NOT (1 = 1)',
+          default: '0 = 1',
         },
       );
 
       testSql(
         { [Op.and]: [{ intAttr1: { [Op.notIn]: [] } }, { intAttr2: 5 }] },
         {
-          default: '1 = 1 AND [intAttr2] = 5',
+          default: '[intAttr2] = 5',
         },
       );
+
+      testSql(
+        { nullableIntAttr: { [Op.notIn]: [1, null] } },
+        {
+          default: '[nullableIntAttr] NOT IN (1) AND [nullableIntAttr] IS NOT NULL',
+        },
+      );
+
+      testSql(
+        { nullableIntAttr: { [Op.notIn]: [null] } },
+        {
+          default: '[nullableIntAttr] IS NOT NULL',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { nullableIntAttr: { [Op.notIn]: [1, null] } } },
+        {
+          default: 'NOT ([nullableIntAttr] NOT IN (1) AND [nullableIntAttr] IS NOT NULL)',
+        },
+      );
+
+      // only the cause is asserted: the rest of the message inspects the where object, and
+      // util.inspect renders it differently across Node versions
+      testSql(where(fn('lower', undefined), Op.notIn, []), {
+        default: new Error(`Caused by: "undefined" cannot be escaped`),
+      });
     });
 
     function describeLikeSuite(
@@ -3767,6 +3875,8 @@ Caused by: "undefined" cannot be escaped`),
         expect(util.inspect(and('a', 'b'))).to.deep.equal(util.inspect({ [Op.and]: ['a', 'b'] }));
       });
 
+      // Deliberately asymmetric with Op.or: an empty conjunction is true, so "no condition" is
+      // the right SQL for it. Do not "fix" this for consistency with or([]).
       testSql(and([]), {
         default: '',
       });
@@ -3774,6 +3884,35 @@ Caused by: "undefined" cannot be escaped`),
       testSql(and({}), {
         default: '',
       });
+
+      testSql(
+        { [Op.not]: { [Op.and]: [] } },
+        {
+          default: '0 = 1',
+        },
+      );
+
+      testSql(
+        { [Op.or]: [{ [Op.and]: [] }, { intAttr1: 1 }] },
+        {
+          default: '[intAttr1] = 1',
+        },
+      );
+
+      testSql(
+        // @ts-expect-error -- an absent arm is handled at runtime but not accepted by the typings
+        { [Op.or]: [undefined, { intAttr1: 1 }] },
+        {
+          default: '[intAttr1] = 1',
+        },
+      );
+
+      testSql(
+        { [Op.and]: [{ intAttr1: 1 }, { [Op.or]: [] }] },
+        {
+          default: '0 = 1',
+        },
+      );
 
       // by default: it already is Op.and
       testSql(
@@ -3836,11 +3975,11 @@ Caused by: "undefined" cannot be escaped`),
       });
 
       testSql(or([]), {
-        default: '',
+        default: '0 = 1',
       });
 
       testSql(or({}), {
-        default: '',
+        default: '0 = 1',
       });
 
       // can pass a simple object

@@ -141,6 +141,21 @@ export class WhereSqlBuilder {
    * @param options
    */
   formatWhereOptions(where: WhereOptions, options: FormatWhereOptions = EMPTY_OBJECT): string {
+    return renderWhereFragment(this.formatWhereOptionsFragment(where, options));
+  }
+
+  /**
+   * Same as {@link formatWhereOptions}, but keeps a known truth value as a {@link WhereFragment}
+   * rather than rendering it to SQL. Use this when composing the result with AND / OR / NOT, or
+   * when it matters whether a condition was derived by Sequelize or written by the caller.
+   *
+   * @param where
+   * @param options
+   */
+  formatWhereOptionsFragment(
+    where: WhereOptions,
+    options: FormatWhereOptions = EMPTY_OBJECT,
+  ): WhereFragment {
     if (typeof where === 'string') {
       throw new TypeError(
         "Support for `{ where: 'raw query' }` has been removed. Use `{ where: literal('raw query') }` instead",
@@ -148,7 +163,7 @@ export class WhereSqlBuilder {
     }
 
     if (where === undefined) {
-      return '';
+      return NO_CONDITION;
     }
 
     try {
@@ -159,10 +174,14 @@ export class WhereSqlBuilder {
             return this.#queryGenerator.formatSqlExpression(piece, options);
           }
 
-          return this.formatPojoWhere(piece, options);
+          return this.formatPojoWhereFragment(piece, options);
         },
       );
     } catch (error) {
+      if (error instanceof AlwaysTrueWhereError) {
+        throw error;
+      }
+
       throw new BaseError(
         `Invalid value received for the "where" option. Refer to the sequelize documentation to learn which values the "where" option accepts.\nValue: ${NodeUtil.inspect(where)}`,
         {
@@ -183,15 +202,15 @@ export class WhereSqlBuilder {
    */
   #handleRecursiveNotOrAndWithImplicitAndArray<TAttributes>(
     input: WhereOptions<TAttributes>,
-    handlePart: (part: BaseSqlExpression | PojoWhere) => string,
+    handlePart: (part: BaseSqlExpression | PojoWhere) => WhereFragment,
     logicalOperator: typeof Op.and | typeof Op.or = Op.and,
-  ): string {
+  ): WhereFragment {
     // Arrays in this method are treated as an implicit "AND" operator
     if (Array.isArray(input)) {
       return joinWithLogicalOperator(
         input.map(part => {
           if (part === undefined) {
-            return '';
+            return NO_CONDITION;
           }
 
           return this.#handleRecursiveNotOrAndWithImplicitAndArray(part, handlePart);
@@ -268,6 +287,19 @@ export class WhereSqlBuilder {
    * @param options Option bag.
    */
   formatPojoWhere(pojoWhere: PojoWhere, options: FormatWhereOptions = EMPTY_OBJECT): string {
+    return renderWhereFragment(this.formatPojoWhereFragment(pojoWhere, options));
+  }
+
+  /**
+   * Same as {@link formatPojoWhere}, but keeps a known truth value instead of rendering it.
+   *
+   * @param pojoWhere The representation of the group.
+   * @param options Option bag.
+   */
+  formatPojoWhereFragment(
+    pojoWhere: PojoWhere,
+    options: FormatWhereOptions = EMPTY_OBJECT,
+  ): WhereFragment {
     const modelDefinition = options?.model ? extractModelDefinition(options.model) : null;
 
     // we need to parse the left operand early to determine the data type of the right operand
@@ -346,7 +378,7 @@ export class WhereSqlBuilder {
     );
   }
 
-  protected [Op.notIn](...args: Parameters<WhereSqlBuilder[typeof Op.in]>): string {
+  protected [Op.notIn](...args: Parameters<WhereSqlBuilder[typeof Op.in]>): WhereFragment {
     return this[Op.in](...args);
   }
 
@@ -357,7 +389,7 @@ export class WhereSqlBuilder {
     right: Expression,
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
-  ): string {
+  ): WhereFragment {
     const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
     const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
 
@@ -366,17 +398,32 @@ export class WhereSqlBuilder {
       rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
     } else if (Array.isArray(right)) {
       if (right.length === 0) {
-        // NOT IN () does not exist in SQL, so we need to return a condition that is:
-        // - always false if the operator is IN
-        // - always true if the operator is NOT IN
-        if (operator === Op.notIn) {
-          return '1 = 1';
+        const leftValidationOptions = { ...leftEscapeOptions };
+        delete leftValidationOptions.bindParam;
+        this.#queryGenerator.escape(left, leftValidationOptions);
+
+        return operator === Op.notIn ? ALWAYS_TRUE : ALWAYS_FALSE;
+      }
+
+      if (right.includes(null)) {
+        const nonNullValues = right.filter(value => value !== null);
+        const isOperator = operator === Op.notIn ? Op.isNot : Op.is;
+
+        if (nonNullValues.length === 0) {
+          const onlyLeftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
+
+          return `${onlyLeftSql} ${this.#operatorMap[isOperator]} NULL`;
         }
 
-        rightSql = '(NULL)';
-      } else {
-        rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
+        const listLeftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
+        const listSql = `${listLeftSql} ${this.#operatorMap[operator]} ${this.#queryGenerator.escapeList(nonNullValues, rightEscapeOptions)}`;
+        const nullLeftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
+        const nullSql = `${nullLeftSql} ${this.#operatorMap[isOperator]} NULL`;
+
+        return operator === Op.notIn ? `${listSql} AND ${nullSql}` : `${listSql} OR ${nullSql}`;
       }
+
+      rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
     } else {
       throw new TypeError(
         'Operators Op.in and Op.notIn must be called with an array of values, or a literal',
@@ -796,10 +843,14 @@ export class WhereSqlBuilder {
     leftOperand: Expression,
     whereValue: WhereAttributeHashValue<any>,
     allowJsonPath: boolean,
-    handlePart: (left: Expression, operator: symbol | undefined, right: Expression) => string,
+    handlePart: (
+      left: Expression,
+      operator: symbol | undefined,
+      right: Expression,
+    ) => WhereFragment,
     operator: typeof Op.and | typeof Op.or = Op.and,
     parentJsonPath: ReadonlyArray<string | number> = EMPTY_ARRAY,
-  ): string {
+  ): WhereFragment {
     if (!isPlainObject(whereValue)) {
       return handlePart(
         this.#wrapSimpleJsonPath(leftOperand, parentJsonPath),
@@ -819,7 +870,7 @@ export class WhereSqlBuilder {
 
     const keys = [...stringKeys, ...getOperators(whereValue)];
 
-    const parts: string[] = keys.map(key => {
+    const parts: WhereFragment[] = keys.map(key => {
       const value = whereValue[key];
 
       // nested JSON path
@@ -976,23 +1027,113 @@ export class WhereSqlBuilder {
   }
 }
 
-export function joinWithLogicalOperator(
-  sqlArray: string[],
-  operator: typeof Op.and | typeof Op.or,
-): string {
-  const operatorSql = operator === Op.and ? ' AND ' : ' OR ';
+/**
+ * True for every row, with no SQL to show for it: an empty conjunction, an empty `where`, or an
+ * omitted condition. Distinct from {@link ALWAYS_TRUE} because it renders to nothing at all, and
+ * because the caller asked for it rather than Sequelize deriving it.
+ */
+export const NO_CONDITION = Symbol('noCondition');
 
-  sqlArray = sqlArray.filter(val => Boolean(val));
+/** A WHERE fragment known to be true for every row, e.g. `x NOT IN ()`. */
+export const ALWAYS_TRUE = Symbol('alwaysTrue');
 
-  if (sqlArray.length === 0) {
+/** A WHERE fragment known to be false for every row, e.g. `x IN ()` or an empty disjunction. */
+export const ALWAYS_FALSE = Symbol('alwaysFalse');
+
+/**
+ * Either a piece of SQL, or a truth value query generation worked out without needing any.
+ */
+export type WhereFragment = string | typeof NO_CONDITION | typeof ALWAYS_TRUE | typeof ALWAYS_FALSE;
+
+/**
+ * Renders a fragment as the SQL that goes into the query.
+ *
+ * @param fragment
+ */
+export function renderWhereFragment(fragment: WhereFragment | undefined): string {
+  if (fragment === undefined || fragment === NO_CONDITION) {
     return '';
   }
 
-  if (sqlArray.length === 1) {
-    return sqlArray[0];
+  if (fragment === ALWAYS_TRUE) {
+    return '1 = 1';
   }
 
-  return sqlArray
+  if (fragment === ALWAYS_FALSE) {
+    return '0 = 1';
+  }
+
+  return fragment;
+}
+
+export class AlwaysTrueWhereError extends BaseError {}
+
+export function buildAlwaysTrueWhereError(statement: 'DELETE' | 'UPDATE'): AlwaysTrueWhereError {
+  return new AlwaysTrueWhereError(
+    `Invalid Query: the "where" option of this ${statement} is true for every row, so it would affect the entire table.
+This usually means a condition was built from a list that turned out to be empty, such as { id: { [Op.notIn]: [] } }.
+Check that list before building the where clause. If you do mean every row, pass a condition that says so, such as sql\`1 = 1\`.`,
+  );
+}
+
+/**
+ * Combines fragments with AND or OR, folding any truth values among them:
+ * FALSE decides an AND, TRUE decides an OR, and each is the identity of the other operator.
+ * An empty AND is {@link NO_CONDITION}; an empty OR is {@link ALWAYS_FALSE}.
+ *
+ * @param sqlArray
+ * @param operator
+ */
+export function joinWithLogicalOperator(
+  sqlArray: ReadonlyArray<WhereFragment | undefined>,
+  operator: typeof Op.and | typeof Op.or,
+): WhereFragment {
+  const operatorSql = operator === Op.and ? ' AND ' : ' OR ';
+  const isAnd = operator === Op.and;
+
+  let sawNoCondition = false;
+  let sawAlwaysTrue = false;
+  const parts: string[] = [];
+
+  for (const fragment of sqlArray) {
+    if (fragment === undefined || fragment === '' || fragment === NO_CONDITION) {
+      sawNoCondition = true;
+      continue;
+    }
+
+    if (fragment === ALWAYS_TRUE) {
+      if (!isAnd) {
+        return ALWAYS_TRUE;
+      }
+
+      sawAlwaysTrue = true;
+      continue;
+    }
+
+    if (fragment === ALWAYS_FALSE) {
+      if (isAnd) {
+        return ALWAYS_FALSE;
+      }
+
+      continue;
+    }
+
+    parts.push(fragment);
+  }
+
+  if (parts.length === 0) {
+    if (isAnd) {
+      return sawAlwaysTrue ? ALWAYS_TRUE : NO_CONDITION;
+    }
+
+    return sawNoCondition ? NO_CONDITION : ALWAYS_FALSE;
+  }
+
+  if (parts.length === 1) {
+    return parts[0];
+  }
+
+  return parts
     .map(sql => {
       if (/ AND | OR /i.test(sql)) {
         return `(${sql})`;
@@ -1003,12 +1144,16 @@ export function joinWithLogicalOperator(
     .join(operatorSql);
 }
 
-function wrapWithNot(sql: string): string {
-  if (!sql) {
-    return '';
+function wrapWithNot(fragment: WhereFragment): WhereFragment {
+  if (fragment === NO_CONDITION || fragment === '' || fragment === ALWAYS_TRUE) {
+    return ALWAYS_FALSE;
   }
 
-  return `NOT (${sql})`;
+  if (fragment === ALWAYS_FALSE) {
+    return ALWAYS_TRUE;
+  }
+
+  return `NOT (${fragment})`;
 }
 
 export function wrapAmbiguousWhere(operand: Expression, sql: string): string {

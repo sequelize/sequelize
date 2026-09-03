@@ -51,6 +51,7 @@ import type {
   ListSchemasQueryOptions,
   ListTablesQueryOptions,
   QuoteTableOptions,
+  RejectAlwaysTrueWhereOption,
   RemoveColumnQueryOptions,
   RemoveConstraintQueryOptions,
   RemoveIndexQueryOptions,
@@ -63,7 +64,12 @@ import type {
 import type { TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
-import { PojoWhere } from './where-sql-builder.js';
+import {
+  ALWAYS_TRUE,
+  PojoWhere,
+  buildAlwaysTrueWhereError,
+  renderWhereFragment,
+} from './where-sql-builder.js';
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
@@ -130,7 +136,10 @@ export interface EscapeOptions extends FormatWhereOptions {
   readonly type?: DataType | undefined;
 }
 
-export interface FormatWhereOptions extends Partial<BindParamOptions>, ParameterOptions {
+export interface FormatWhereOptions
+  extends Partial<BindParamOptions>,
+    ParameterOptions,
+    RejectAlwaysTrueWhereOption {
   /**
    * The model of the main alias. Used to determine the type & column name of attributes referenced in the where clause.
    */
@@ -717,12 +726,38 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   }
 
   whereQuery<M extends Model>(where: WhereOptions<Attributes<M>>, options?: FormatWhereOptions) {
-    const query = this.whereItemsQuery(where, options);
-    if (query && query.length > 0) {
+    const fragment = this.#whereGenerator.formatWhereOptionsFragment(where, options);
+
+    if (options?.rejectAlwaysTrueWhere && fragment === ALWAYS_TRUE) {
+      throw buildAlwaysTrueWhereError(options.rejectAlwaysTrueWhere);
+    }
+
+    const query = renderWhereFragment(fragment);
+    if (query.length > 0) {
       return `WHERE ${query}`;
     }
 
     return '';
+  }
+
+  /**
+   * Throws if `where` on its own imposes no restriction, i.e. Sequelize derived it to be true for
+   * every row. Called by the model methods that modify rows, before a scope or a paranoid clause
+   * is merged in, so that the judgement is about what the caller asked for rather than about the
+   * statement Sequelize ends up building.
+   *
+   * @param where
+   * @param statement the SQL statement being built, used in the error message
+   * @param options
+   */
+  assertNotAlwaysTrueWhere<M extends Model>(
+    where: WhereOptions<Attributes<M>>,
+    statement: 'DELETE' | 'UPDATE',
+    options?: FormatWhereOptions,
+  ): void {
+    if (this.#whereGenerator.formatWhereOptionsFragment(where, options) === ALWAYS_TRUE) {
+      throw buildAlwaysTrueWhereError(statement);
+    }
   }
 
   whereItemsQuery<M extends Model>(

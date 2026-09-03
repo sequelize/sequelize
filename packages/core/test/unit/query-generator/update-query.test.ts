@@ -1,4 +1,4 @@
-import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
+import { DataTypes, Op, ParameterStyle, literal, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
@@ -108,6 +108,79 @@ describe('QueryGenerator#updateQuery', () => {
     });
 
     expect(bind).to.be.undefined;
+  });
+
+  it('refuses a where derived to be true for every row when rejectAlwaysTrueWhere is set', () => {
+    const { User } = vars;
+
+    expect(() =>
+      queryGenerator.updateQuery(
+        User.table,
+        { firstName: 'John' },
+        { id: { [Op.notIn]: [] } },
+        { rejectAlwaysTrueWhere: 'UPDATE' },
+      ),
+    ).to.throw(/is true for every row/);
+
+    expect(() =>
+      queryGenerator.updateQuery(
+        User.table,
+        { firstName: 'John' },
+        { [Op.not]: { id: { [Op.in]: [] } } },
+        { rejectAlwaysTrueWhere: 'UPDATE' },
+      ),
+    ).to.throw(/is true for every row/);
+  });
+
+  it('accepts a where the caller wrote to be true for every row', () => {
+    const { User } = vars;
+
+    const { query } = queryGenerator.updateQuery(User.table, { firstName: 'John' }, sql`1 = 1`, {
+      parameterStyle: ParameterStyle.REPLACEMENT,
+      rejectAlwaysTrueWhere: 'UPDATE',
+    });
+
+    expectsql(query, {
+      default: `UPDATE [Users] SET [firstName]='John' WHERE 1 = 1`,
+      mssql: `UPDATE [Users] SET [firstName]=N'John' WHERE 1 = 1`,
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"='John' WHERE 1 = 1);`,
+    });
+  });
+
+  it('keeps the bind parameters of conditions that were folded away', () => {
+    const { query, bind } = queryGenerator.updateQuery(
+      'myTable',
+      { name: 'bar' },
+      { id: 2, other: { [Op.in]: [] }, value: 3 },
+    );
+
+    expectsql(query, {
+      default: 'UPDATE [myTable] SET [name]=$sequelize_1 WHERE 0 = 1',
+      db2: 'SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "name"=$sequelize_1 WHERE 0 = 1);',
+    });
+
+    expect(bind).to.deep.eq({
+      sequelize_1: 'bar',
+      sequelize_2: 2,
+      sequelize_3: 3,
+    });
+  });
+
+  it('binds nothing for the left operand of an empty Op.in', () => {
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      { firstName: 'bar' },
+      sql.where(sql.fn('lower', 'ABC'), Op.in, []),
+    );
+
+    expectsql(query, {
+      default: 'UPDATE [Users] SET [firstName]=$sequelize_1 WHERE 0 = 1',
+      db2: 'SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE 0 = 1);',
+    });
+
+    expect(bind).to.deep.eq({ sequelize_1: 'bar' });
   });
 
   it('binds date values', () => {
