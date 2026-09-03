@@ -349,8 +349,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       return cachedParser;
     }
 
-    // The dialect's parsers all take a string, so they must never serve the binary format,
-    // which pg hands a Buffer.
     const customParser = format === 'binary' ? null : this.#getCustomTypeParser(oid);
     if (customParser) {
       this.#oidParserCache.set(cacheKey, customParser);
@@ -378,7 +376,6 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       return null;
     }
 
-    // Only the text format reaches this point, so the sub-type parsers are text parsers too.
     if (typeData.type === 'range-array') {
       return this.#buildArrayParser(this.getTypeParser(typeData.rangeOid!, 'text'));
     }
