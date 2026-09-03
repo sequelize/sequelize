@@ -444,6 +444,23 @@ if (dialect === 'mysql') {
         },
       ],
 
+      changeColumnQuery: [
+        {
+          title: 'should not treat ENUM value containing REFERENCES as a foreign key (fix #17544)',
+          arguments: ['users', { status: "ENUM('PREFERENCES')" }],
+          expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('PREFERENCES');",
+        },
+        {
+          title: 'should treat actual REFERENCES keyword as a foreign key',
+          arguments: [
+            'users',
+            { level_id: 'INTEGER REFERENCES `levels` (`id`) ON DELETE CASCADE ON UPDATE CASCADE' },
+          ],
+          expectation:
+            'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `levels` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+        },
+      ],
+
       updateQuery: [
         {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],

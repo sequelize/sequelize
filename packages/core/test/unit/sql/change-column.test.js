@@ -4,6 +4,24 @@ const sinon = require('sinon');
 const { beforeAll2, expectsql, sequelize } = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 
+// Regression test for https://github.com/sequelize/sequelize/issues/17544
+describe('QueryGenerator#changeColumnQuery', () => {
+  if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+    return;
+  }
+
+  it("does not treat ENUM value containing 'REFERENCES' as a foreign key", () => {
+    const queryGenerator = sequelize.queryGenerator;
+    const sql = queryGenerator.changeColumnQuery('users', {
+      status: "ENUM('PREFERENCES')",
+    });
+
+    expectsql(sql, {
+      'mysql mariadb': "ALTER TABLE `users` CHANGE `status` `status` ENUM('PREFERENCES');",
+    });
+  });
+});
+
 describe('QueryInterface#changeColumn', () => {
   if (sequelize.dialect.name === 'sqlite3') {
     return;

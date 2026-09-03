@@ -62,7 +62,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         if (dataType.includes('PRIMARY KEY')) {
           primaryKeys.push(attr);
 
-          if (dataType.includes('REFERENCES')) {
+          if (/\bREFERENCES\b/.test(dataType)) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
             attributesClauseParts.push(
@@ -74,7 +74,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
               `${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`,
             );
           }
-        } else if (dataType.includes('REFERENCES')) {
+        } else if (/\bREFERENCES\b/.test(dataType)) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -187,7 +187,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         definition = commentMatch[1];
       }
 
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         constraintString.push(
           `FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`,
         );

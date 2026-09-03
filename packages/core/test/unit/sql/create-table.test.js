@@ -14,6 +14,32 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
   describe('createTable', () => {
     describe('with enums', () => {
+      // Regression test for https://github.com/sequelize/sequelize/issues/17544
+      it("does not treat ENUM value containing 'REFERENCES' as a foreign key", () => {
+        if (!['mysql', 'mariadb'].includes(current.dialect.name)) {
+          return;
+        }
+
+        const PrefUser = current.define(
+          'user',
+          {
+            pref_type: DataTypes.ENUM('PREFERENCES', 'SETTINGS'),
+          },
+          { timestamps: false },
+        );
+
+        const sql = queryGenerator.createTableQuery(
+          PrefUser.table,
+          queryGenerator.attributesToSQL(PrefUser.getAttributes()),
+          {},
+        );
+
+        expectsql(sql, {
+          'mysql mariadb':
+            "CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER NOT NULL auto_increment , `pref_type` ENUM('PREFERENCES', 'SETTINGS'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+        });
+      });
+
       it('references enum in the right schema #3171', () => {
         const FooUser = current.define(
           'user',

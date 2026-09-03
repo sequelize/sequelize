@@ -36,7 +36,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         primaryKeys.push(attr);
 
-        if (dataType.includes('REFERENCES')) {
+        if (/\bREFERENCES\b/.test(dataType)) {
           // MariaDB doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
@@ -44,7 +44,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
         } else {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (/\bREFERENCES\b/.test(dataType)) {
         // MariaDB doesn't support inline REFERENCES declarations: move to the end
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -125,7 +125,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         const attrName = this.quoteIdentifier(attributeName);
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
