@@ -2119,6 +2119,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
       const foundAgain = await this.findOne(options);
 
+      if (foundAgain === null) {
+        throw error;
+      }
+
       return [foundAgain, false];
     }
   }
