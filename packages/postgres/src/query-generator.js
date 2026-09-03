@@ -142,6 +142,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
       let attrSql = '';
 
+      let columnComment = '';
+      const i = definition.indexOf('; COMMENT ON COLUMN');
+      if (i !== -1) {
+        // Move comment to a separate query
+        columnComment = `${definition.slice(i + 1)};`;
+        definition = definition.slice(0, i);
+      }
+
       if (definition.includes('NOT NULL')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
 
@@ -186,7 +194,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
 
-      sql.push(attrSql);
+      sql.push(attrSql + columnComment);
     }
 
     return sql.join('');
