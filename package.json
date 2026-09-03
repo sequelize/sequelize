@@ -96,7 +96,7 @@
     "mocha": "11.7.5",
     "node-gyp": "11.5.0",
     "node-hook": "1.0.0",
-    "nx": "21.6.10",
+    "nx": "22.7.7",
     "prettier": "3.5.3",
     "prettier-plugin-organize-imports": "4.3.0",
     "source-map-support": "0.5.21",
