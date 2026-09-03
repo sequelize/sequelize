@@ -76,7 +76,7 @@ export interface TableNameWithSchema {
 
 export type TableName = string | TableNameWithSchema;
 
-export type IndexType = AllowLowercase<'UNIQUE' | 'FULLTEXT' | 'SPATIAL'>;
+export type IndexType = AllowLowercase<'UNIQUE' | 'FULLTEXT' | 'SPATIAL' | 'VECTOR'>;
 export type IndexMethod = 'BTREE' | 'HASH' | 'GIST' | 'SPGIST' | 'GIN' | 'BRIN' | string;
 
 export interface IndexField {
@@ -116,7 +116,7 @@ export interface IndexOptions {
   parser?: string | null;
 
   /**
-   * Index type. Only used by mysql. One of `UNIQUE`, `FULLTEXT` and `SPATIAL`
+   * Index type. Used by MySQL (`UNIQUE`, `FULLTEXT`, `SPATIAL`) and Oracle (`VECTOR`).
    */
   type?: IndexType | undefined;
 

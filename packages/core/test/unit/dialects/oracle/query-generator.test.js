@@ -17,6 +17,7 @@ if (dialect.startsWith('oracle')) {
     const sequelize = Support.createSequelizeInstance();
     const dialect = sequelize.dialect;
     const integerDialect = new DataTypes.INTEGER().toDialectDataType(dialect);
+    const vectorDialect = DataTypes.VECTOR(3).toDialectDataType(dialect);
 
     const suites = {
       attributesToSQL: [
@@ -408,6 +409,13 @@ if (dialect.startsWith('oracle')) {
           },
           needsSequelize: true,
         },
+        {
+          arguments: ['myTable', { embedding: [1, 2, 3] }, { embedding: { type: vectorDialect } }],
+          expectation: {
+            query: 'INSERT INTO "myTable" ("embedding") VALUES ($sequelize_1);',
+            bind: { sequelize_1: Float64Array.from([1, 2, 3]) },
+          },
+        },
 
         // Variants when quoteIdentifiers is false
         {
@@ -640,6 +648,19 @@ if (dialect.startsWith('oracle')) {
             bind: { sequelize_1: 'foo' },
           },
           needsSequelize: true,
+        },
+        {
+          arguments: [
+            'myTable',
+            { embedding: [4, 5, 6] },
+            { id: 1 },
+            {},
+            { embedding: { type: vectorDialect } },
+          ],
+          expectation: {
+            query: 'UPDATE "myTable" SET "embedding"=$sequelize_1 WHERE "id" = $sequelize_2',
+            bind: { sequelize_1: Float64Array.from([4, 5, 6]), sequelize_2: 1 },
+          },
         },
         {
           arguments: [

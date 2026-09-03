@@ -53,6 +53,7 @@ const ignoredCjsKeysMap = {
     'TIME',
     'TINYINT',
     'TSVECTOR',
+    'VECTOR',
     'UUID',
     'UUIDV1',
     'UUIDV4',

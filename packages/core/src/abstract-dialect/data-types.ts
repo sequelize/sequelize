@@ -2855,6 +2855,217 @@ export class TSVECTOR extends AbstractDataType<string> {
   }
 }
 
+export interface VectorOptions {
+  /**
+   * Optional vector dimension.
+   */
+  dimension?: number;
+  /**
+   * Optional dialect-specific element format (for example float32, int8, binary).
+   */
+  format?: string;
+}
+
+/**
+ * Numeric typed arrays accepted as vector values.
+ */
+export type NumericTypedArray =
+  | Int8Array
+  | Uint8Array
+  | Uint8ClampedArray
+  | Int16Array
+  | Uint16Array
+  | Int32Array
+  | Uint32Array
+  | Float32Array
+  | Float64Array;
+
+// Dialects may accept plain arrays or any number-backed typed array. The generic validator
+// checks only the container shape; dialects are responsible for validating dimensions and values.
+export type VectorValue = number[] | NumericTypedArray;
+
+/**
+ * The VECTOR type stores ordered numeric vectors.
+ *
+ * Availability depends on the dialect (for example Oracle, Snowflake, pgvector, ...); check your dialect’s
+ * documentation to confirm supported element formats and dimensions.
+ *
+ * __Fallback policy:__
+ * If this type is not supported, an error will be raised.
+ *
+ * This shared base exists for dialect-specific VECTOR implementations. Dialects that can use Sequelize's
+ * generic {@link VectorOptions} may extend {@link VECTOR}; dialects with a different option shape may extend
+ * this class directly with their own options type.
+ *
+ * @example
+ * ```ts
+ * DataTypes.VECTOR
+ * DataTypes.VECTOR(1536)
+ * DataTypes.VECTOR(1536, 'float32')
+ * DataTypes.VECTOR({ dimension: 1024, format: 'int8' })
+ * DataTypes.VECTOR({ dimension: 2048 })
+ * ```
+ *
+ * @category DataTypes
+ */
+export abstract class AbstractVECTORBase<
+  TOptions extends object,
+> extends AbstractDataType<VectorValue> {
+  readonly options!: TOptions;
+
+  validate(value: unknown): asserts value is VectorValue {
+    if (this._getVectorIterable(value)) {
+      return;
+    }
+
+    ValidationErrorItem.throwDataTypeValidationError(
+      util.format('%O is not a valid vector', value),
+    );
+  }
+
+  protected _getVectorIterable(value: unknown): VectorValue | null {
+    if (Array.isArray(value) || isTypedArrayIterable(value)) {
+      return value;
+    }
+
+    return null;
+  }
+
+  protected _validateVectorElement(item: unknown): number {
+    if (typeof item !== 'number' || !Number.isFinite(item)) {
+      ValidationErrorItem.throwDataTypeValidationError(
+        util.format('%O is not a valid vector', item),
+      );
+    }
+
+    return item;
+  }
+
+  protected _validateDimension(dimension: number, max?: number): number {
+    if (!Number.isInteger(dimension) || dimension <= 0) {
+      throw new TypeError(`Invalid VECTOR dimension: ${dimension}`);
+    }
+
+    if (max !== undefined && dimension > max) {
+      throw new TypeError(`Invalid VECTOR dimension: ${dimension} (max ${max})`);
+    }
+
+    return dimension;
+  }
+
+  protected _checkOptionSupport(dialect: AbstractDialect) {
+    if (!dialect.supports.dataTypes.VECTOR) {
+      throwUnsupportedDataType(dialect, 'VECTOR');
+    }
+  }
+
+  protected abstract _getTypeName(): string;
+
+  protected _getSqlOptionParts(): string[] {
+    return [];
+  }
+
+  toSql(): string {
+    const parts = this._getSqlOptionParts();
+
+    return parts.length ? `${this._getTypeName()}(${parts.join(', ')})` : this._getTypeName();
+  }
+}
+
+/**
+ * Generic VECTOR implementation used by dialects whose options fit {@link VectorOptions}.
+ * Dialects with stricter option models can extend {@link AbstractVECTORBase} directly.
+ */
+export class VECTOR extends AbstractVECTORBase<VectorOptions> {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'VECTOR';
+
+  readonly options: VectorOptions;
+
+  constructor();
+  constructor(dimension: number, format?: string);
+  constructor(options: VectorOptions);
+  /** @hidden */
+  constructor(
+    ...args:
+      | []
+      | [dimension: number]
+      | [dimension: number, format: string]
+      | [options: VectorOptions]
+  );
+  constructor(dimensionOrOptions?: number | VectorOptions, format?: string) {
+    super();
+
+    if (typeof dimensionOrOptions === 'object' && dimensionOrOptions !== null) {
+      this.options = {
+        ...(dimensionOrOptions.dimension !== undefined
+          ? { dimension: this._validateDimension(dimensionOrOptions.dimension) }
+          : {}),
+        ...(dimensionOrOptions.format !== undefined
+          ? { format: this._validateFormat(dimensionOrOptions.format) }
+          : {}),
+      };
+
+      return;
+    }
+
+    this.options = {
+      ...(dimensionOrOptions !== undefined
+        ? { dimension: this._validateDimension(dimensionOrOptions) }
+        : {}),
+      ...(format !== undefined ? { format: this._validateFormat(format) } : {}),
+    };
+  }
+
+  protected _getTypeName(): string {
+    return 'VECTOR';
+  }
+
+  protected _validateFormat(format: string): string {
+    const normalized = format.trim().toLowerCase();
+
+    switch (normalized) {
+      case 'float':
+      case 'float32':
+      case 'float64':
+      case 'int':
+      case 'int8':
+      case 'int16':
+      case 'int32':
+      case 'binary':
+        return normalized;
+      default:
+        throw new TypeError(`Invalid VECTOR format: ${format}`);
+    }
+  }
+
+  protected override _getSqlOptionParts(): string[] {
+    return [
+      ...(this.options.dimension !== undefined ? [String(this.options.dimension)] : []),
+      ...(this.options.format !== undefined ? [this.options.format.toUpperCase()] : []),
+    ];
+  }
+}
+
+/**
+ * Returns true when the input is one of Sequelize's accepted numeric typed arrays.
+ *
+ * @param value
+ */
+function isTypedArrayIterable(value: unknown): value is NumericTypedArray {
+  return (
+    value instanceof Int8Array ||
+    value instanceof Uint8Array ||
+    value instanceof Uint8ClampedArray ||
+    value instanceof Int16Array ||
+    value instanceof Uint16Array ||
+    value instanceof Int32Array ||
+    value instanceof Uint32Array ||
+    value instanceof Float32Array ||
+    value instanceof Float64Array
+  );
+}
+
 function rejectBlobs(value: unknown) {
   // We have a DataType called BLOB. People might try to use the built-in Blob type with it, which they cannot.
   // To clarify why it doesn't work, we have a dedicated message for it.

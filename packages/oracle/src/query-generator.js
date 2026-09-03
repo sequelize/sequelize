@@ -7,6 +7,7 @@ import forOwn from 'lodash/forOwn';
 import includes from 'lodash/includes';
 import isPlainObject from 'lodash/isPlainObject';
 import toPath from 'lodash/toPath';
+import util from 'node:util';
 import oracledb from 'oracledb';
 
 import { DataTypes } from '@sequelize/core';
@@ -15,6 +16,8 @@ import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
+import { conformIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
@@ -24,10 +27,52 @@ import {
   getObjectFromMap,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { nameIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { pojo } from '@sequelize/utils';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
+const VECTOR_ORGANIZATION_DEFAULT = 'hnsw';
+const VECTOR_INDEX_QUERY_SUPPORTABLE_OPTIONS = new Set([
+  'name',
+  'parser',
+  'type',
+  'unique',
+  'msg',
+  'concurrently',
+  'fields',
+  'using',
+  'operator',
+  'where',
+  'prefix',
+  'distance',
+  'accuracy',
+  'parameter',
+  'parallel',
+  'include',
+]);
+const VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS = new Set([
+  'name',
+  'type',
+  'fields',
+  'using',
+  'prefix',
+  'distance',
+  'accuracy',
+  'parameter',
+  'parallel',
+]);
+const VECTOR_INDEX_USING = new Set(['hnsw', 'ivf']);
+const VECTOR_INDEX_USING_ERROR = 'Oracle VECTOR index using must be either "hnsw" or "ivf".';
+const VECTOR_INDEX_DISTANCE_METRICS = new Set([
+  'COSINE',
+  'DOT',
+  'EUCLIDEAN',
+  'EUCLIDEAN_SQUARED',
+  'HAMMING',
+  'MANHATTAN',
+]);
+const VECTOR_INDEX_FIELD_ORDER_ERROR = 'Oracle VECTOR indexes do not support ordered fields.';
 
 /**
  * list of reserved words in Oracle DB 21c
@@ -404,11 +449,126 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   @overide
   */
   addIndexQuery(tableName, attributes, options, rawTablename) {
-    if (typeof tableName !== 'string' && attributes.name) {
+    if (typeof tableName !== 'string' && attributes?.name) {
       attributes.name = `${tableName.schema}.${attributes.name}`;
     }
 
-    return super.addIndexQuery(tableName, attributes, options, rawTablename);
+    const requestedIndexType = toUpperCaseIfString(options?.type);
+    const requestedAttributeType = Array.isArray(attributes)
+      ? undefined
+      : toUpperCaseIfString(attributes?.type);
+
+    if (requestedIndexType !== 'VECTOR' && requestedAttributeType !== 'VECTOR') {
+      return super.addIndexQuery(tableName, attributes, options, rawTablename);
+    }
+
+    const normalizedOptions = this.#buildVectorIndexOptions(
+      tableName,
+      attributes,
+      options,
+      rawTablename,
+      requestedIndexType,
+    );
+
+    return joinSQLFragments([
+      'CREATE VECTOR INDEX',
+      this.quoteIdentifiers(normalizedOptions.name),
+      `ON ${this.quoteTable(tableName)}`,
+      `(${normalizedOptions.fieldsSql.join(', ')})`,
+      'ORGANIZATION',
+      normalizedOptions.usingIsHnsw ? 'INMEMORY NEIGHBOR GRAPH' : 'NEIGHBOR PARTITIONS',
+      normalizedOptions.distance,
+      normalizedOptions.accuracy,
+      normalizedOptions.parameters,
+      normalizedOptions.parallel,
+    ]);
+  }
+
+  /**
+   * Normalizes options and SQL fragments needed to build an Oracle VECTOR index.
+   *
+   * @param {string|object} tableName
+   * @param {Array|object|undefined} attributes
+   * @param {object|undefined} options
+   * @param {string|undefined} rawTablename
+   * @param {string|undefined} requestedIndexType
+   */
+  #buildVectorIndexOptions(tableName, attributes, options, rawTablename, requestedIndexType) {
+    const normalizedOptions = Array.isArray(attributes)
+      ? { ...options, fields: attributes }
+      : { ...attributes };
+
+    if (requestedIndexType) {
+      normalizedOptions.type = requestedIndexType;
+    }
+
+    normalizedOptions.prefix = sanitizePrefix(
+      normalizedOptions.prefix ?? rawTablename ?? tableName,
+    );
+
+    const fields = normalizedOptions.fields ?? [];
+    if (fields.length === 0) {
+      throw new Error('Vector indexes require at least one indexed field.');
+    }
+
+    rejectInvalidOptions(
+      'addIndexQuery',
+      this.dialect,
+      VECTOR_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      VECTOR_INDEX_QUERY_SUPPORTED_OPTIONS,
+      normalizedOptions,
+    );
+
+    const fieldsSql = fields.map(field => {
+      if (field instanceof BaseSqlExpression) {
+        return this.formatSqlExpression(field);
+      }
+
+      const normalizedField = typeof field === 'string' ? { name: field } : { ...field };
+
+      if (normalizedField.attribute) {
+        normalizedField.name = normalizedField.attribute;
+      }
+
+      if (!normalizedField.name) {
+        throw new Error(`The following index field has no name: ${util.inspect(field)}`);
+      }
+
+      if (normalizedField.order) {
+        throw new TypeError(VECTOR_INDEX_FIELD_ORDER_ERROR);
+      }
+
+      return this.quoteIdentifier(normalizedField.name);
+    });
+
+    if (!normalizedOptions.name) {
+      normalizedOptions.name = nameIndex(normalizedOptions, normalizedOptions.prefix).name;
+    }
+
+    const finalizedOptions = conformIndex(normalizedOptions);
+    const rawUsing = finalizedOptions.using;
+    if (rawUsing != null && typeof rawUsing !== 'string') {
+      throw new TypeError(VECTOR_INDEX_USING_ERROR);
+    }
+
+    const using = rawUsing == null ? VECTOR_ORGANIZATION_DEFAULT : rawUsing.toLowerCase();
+    validateVectorIndexUsing(using);
+    const distance = normalizeVectorIndexDistance(finalizedOptions.distance);
+    const accuracy = validateVectorIndexPositiveNumber(finalizedOptions.accuracy, 'accuracy');
+    const parallel = validateVectorIndexPositiveInteger(finalizedOptions.parallel, 'parallel');
+    const usingIsHnsw = using === 'hnsw';
+    const parameterFragments = buildVectorParameters(finalizedOptions.parameter, usingIsHnsw);
+
+    return {
+      name: finalizedOptions.name,
+      fieldsSql,
+      usingIsHnsw,
+      distance: distance ? `WITH DISTANCE ${distance}` : undefined,
+      accuracy: accuracy ? `WITH TARGET ACCURACY ${accuracy}` : undefined,
+      parameters:
+        parameterFragments.length > 0 ? `PARAMETERS (${parameterFragments.join(', ')})` : undefined,
+      parallel: parallel ? `PARALLEL ${parallel}` : undefined,
+    };
   }
 
   // addConstraintQuery(tableName, options) {
@@ -1163,6 +1323,123 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       return `:${Object.keys(bind).length + posOffset}`;
     };
   }
+}
+
+function toUpperCaseIfString(value) {
+  return typeof value === 'string' ? value.toUpperCase() : undefined;
+}
+
+function sanitizePrefix(prefix) {
+  if (typeof prefix !== 'string') {
+    return prefix;
+  }
+
+  return prefix.replaceAll('.', '_').replaceAll(/("|')/g, '');
+}
+
+function buildVectorParameters(parameter, usingIsHnsw) {
+  const parameters = [];
+  if (!parameter) {
+    return parameters;
+  }
+
+  if (usingIsHnsw) {
+    parameters.push('type hnsw');
+    const neighbor = validateVectorIndexPositiveInteger(parameter.neighbor, 'parameter.neighbor');
+    const efconstruction = validateVectorIndexPositiveInteger(
+      parameter.efconstruction,
+      'parameter.efconstruction',
+    );
+
+    if (neighbor) {
+      parameters.push(`neighbor ${neighbor}`);
+    }
+
+    if (efconstruction) {
+      parameters.push(`efconstruction ${efconstruction}`);
+    }
+
+    return parameters;
+  }
+
+  parameters.push('type ivf');
+  const partitions = validateVectorIndexPositiveInteger(
+    parameter.partitions,
+    'parameter.partitions',
+  );
+  const samplesPerPartition = validateVectorIndexPositiveInteger(
+    parameter.samplesPerPartition,
+    'parameter.samplesPerPartition',
+  );
+  const minVectors = validateVectorIndexPositiveInteger(
+    parameter.minVectors,
+    'parameter.minVectors',
+  );
+
+  if (partitions) {
+    parameters.push(`NEIGHBOR PARTITIONS ${partitions}`);
+  }
+
+  if (samplesPerPartition) {
+    parameters.push(`SAMPLES_PER_PARTITION ${samplesPerPartition}`);
+  }
+
+  if (minVectors) {
+    parameters.push(`MIN_VECTORS_PER_PARTITION ${minVectors}`);
+  }
+
+  return parameters;
+}
+
+function validateVectorIndexUsing(using) {
+  if (VECTOR_INDEX_USING.has(using)) {
+    return;
+  }
+
+  throw new TypeError(VECTOR_INDEX_USING_ERROR);
+}
+
+function normalizeVectorIndexDistance(distance) {
+  if (distance == null) {
+    return undefined;
+  }
+
+  if (typeof distance !== 'string') {
+    throw new TypeError('Oracle VECTOR index distance must be a string.');
+  }
+
+  const normalizedDistance = distance.toUpperCase();
+  if (VECTOR_INDEX_DISTANCE_METRICS.has(normalizedDistance)) {
+    return normalizedDistance;
+  }
+
+  throw new TypeError(
+    `Oracle VECTOR index distance must be one of: ${[...VECTOR_INDEX_DISTANCE_METRICS].join(', ')}.`,
+  );
+}
+
+function validateVectorIndexPositiveInteger(value, optionName) {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value <= 0) {
+    throw new TypeError(`Oracle VECTOR index ${optionName} must be a positive integer.`);
+  }
+
+  return value;
+}
+
+function validateVectorIndexPositiveNumber(value, optionName) {
+  if (value == null) {
+    return undefined;
+  }
+
+  if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) {
+    throw new TypeError(`Oracle VECTOR index ${optionName} must be a positive number.`);
+  }
+
+  return value;
 }
 
 /* istanbul ignore next */
