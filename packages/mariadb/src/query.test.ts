@@ -2,16 +2,7 @@ import { DataTypes, Sequelize } from '@sequelize/core';
 import { MariaDbDialect, MariaDbQuery } from '@sequelize/mariadb';
 import { expect } from 'chai';
 
-/**
- * The subset of the mariadb driver's `ColumnDefinition` that {@link MariaDbQuery#handleJsonSelectQuery}
- * relies on. The driver only exposes these as methods, hence the shape.
- *
- * @param options
- * @param options.name The alias the column has in the result set.
- * @param options.orgName The name the column has in its table. Defaults to `name`.
- * @param options.orgTable The table the column originates from. Defaults to `Users`.
- * @param options.json Whether the server reported the column's extended type as `json`.
- */
+// The driver only exposes these as methods, hence the shape.
 function metaColumn(options: {
   name: string;
   orgName?: string;
@@ -35,12 +26,6 @@ describe('MariaDbQuery#handleJsonSelectQuery', () => {
     name: DataTypes.STRING,
   });
 
-  /**
-   * Runs `handleJsonSelectQuery` over `rows`, which it mutates in place, and returns them.
-   *
-   * @param rows
-   * @param meta The result-set metadata, as the driver exposes it on the rows array.
-   */
   function handle(
     rows: Array<Record<string, unknown>>,
     meta?: Array<ReturnType<typeof metaColumn>>,
@@ -72,8 +57,6 @@ describe('MariaDbQuery#handleJsonSelectQuery', () => {
   });
 
   it('does not parse a column the server reported as being in the json format', () => {
-    // MariaDB 10.5.2+ returns JSON columns already decoded. Parsing them again would either
-    // throw or, for values that happen to be valid JSON twice over, silently corrupt them.
     const rows = handle(
       [{ id: 1, data: '"a string that is itself valid json"' }],
       [metaColumn({ name: 'id' }), metaColumn({ name: 'data', json: true })],
@@ -83,9 +66,6 @@ describe('MariaDbQuery#handleJsonSelectQuery', () => {
   });
 
   it('matches metadata by column, not by the position of the attribute in the model', () => {
-    // The metadata follows the order of the SELECT clause, which has no relation to the order
-    // of the model's attributes. Indexing into it by attribute position made `data` pick up
-    // `payload_json`'s metadata and skip parsing because that column is in the json format.
     const rows = handle(
       [{ id: 1, data: '{"a":1}', payload: { b: 2 }, name: 'Zoe' }],
       [
@@ -119,8 +99,6 @@ describe('MariaDbQuery#handleJsonSelectQuery', () => {
   });
 
   it('does not match the original column name of a column from another table', () => {
-    // Under an `include`, a joined table can expose a column with the same original name as one
-    // of this model's attributes. Picking that one up would apply the wrong json format to it.
     const rows = handle(
       [{ id: 1, data: '{"a":1}' }],
       [
