@@ -961,7 +961,26 @@ ${associationOwner._getAssociationDebugList()}`);
             }
           }
 
-          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, options);
+          const modelDef = this.modelDefinition;
+          const indexes = modelDef?.getIndexes?.() || [];
+
+          const uniqueKeys = Object.fromEntries(
+            indexes
+              .filter(i => i.unique)
+              .map(i => [
+                i.name,
+                {
+                  fields: i.fields.map(f => (typeof f === 'string' ? f : f.attribute || f.name)),
+                  name: i.name,
+                  unique: true,
+                },
+              ]),
+          );
+
+          await this.queryInterface.changeColumn(tableName, columnName, currentAttribute, {
+            ...options,
+            uniqueKeys,
+          });
         }
       }
     }
