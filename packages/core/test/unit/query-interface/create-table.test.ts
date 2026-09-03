@@ -3,7 +3,7 @@ import { expect } from 'chai';
 import sinon from 'sinon';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
-const dialect = sequelize.dialect;
+const { dialect } = sequelize;
 
 describe('QueryInterface#createTable', () => {
   afterEach(() => {
@@ -91,6 +91,51 @@ describe('QueryInterface#createTable', () => {
       expectsql(firstCall.args[0], {
         postgres:
           'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuid_generate_v4(), PRIMARY KEY ("id"));',
+      });
+    });
+
+    it('supports sql.uuidV7 default values (postgres >= 18)', async () => {
+      const localSequelize = createSequelizeInstance({
+        databaseVersion: '18.0.0',
+      });
+
+      const stub = sinon.stub(localSequelize, 'queryRaw');
+
+      await localSequelize.queryInterface.createTable('table', {
+        id: {
+          type: DataTypes.UUID,
+          primaryKey: true,
+          defaultValue: sql.uuidV7,
+        },
+      });
+
+      expect(stub.callCount).to.eq(1);
+      const firstCall = stub.getCall(0);
+      expectsql(firstCall.args[0], {
+        postgres:
+          'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuidv7(), PRIMARY KEY ("id"));',
+      });
+    });
+
+    it('supports sql.uuidV7 default values (postgres < 18)', async () => {
+      const localSequelize = createSequelizeInstance({
+        databaseVersion: '17.0.0',
+      });
+
+      const stub = sinon.stub(localSequelize, 'queryRaw');
+
+      await localSequelize.queryInterface.createTable('table', {
+        id: {
+          type: DataTypes.UUID,
+          primaryKey: true,
+          defaultValue: sql.uuidV7,
+        },
+      });
+
+      expect(stub.callCount).to.eq(1);
+      const firstCall = stub.getCall(0);
+      expectsql(firstCall.args[0], {
+        postgres: 'CREATE TABLE IF NOT EXISTS "table" ("id" UUID, PRIMARY KEY ("id"));',
       });
     });
   }

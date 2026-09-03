@@ -247,7 +247,7 @@ export type DialectSupports = {
   /** Whether this dialect provides a native way to generate UUID v4 values */
   uuidV4Generation: boolean;
   /** Whether this dialect provides a native way to generate UUID v7 values */
-  uuidV7Generation: boolean;
+  uuidV7Generation: boolean | { minimumDatabaseVersion: string };
   /** Whether this dialect provides a native way to generate random values between 0 and 1 */
   randomFloatGeneration: boolean;
 
