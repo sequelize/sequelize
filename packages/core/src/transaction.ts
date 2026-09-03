@@ -29,7 +29,6 @@ export class Transaction {
   readonly #afterHooks = new Set<TransactionCallback>();
 
   readonly #name: string;
-  readonly #savepoints = new Map<string, Transaction>();
   readonly options: Readonly<NormalizedTransactionOptions>;
   readonly parent: Transaction | null;
   readonly id: string;
@@ -56,8 +55,10 @@ export class Transaction {
 
     if (this.parent) {
       this.id = this.parent.id;
-      this.#name = `${this.id}-sp-${this.parent.#savepoints.size}`;
-      this.parent.#savepoints.set(this.#name, this);
+      // Each savepoint needs a unique name. Deriving it from a per-parent
+      // counter made the first savepoint at every nesting level share the same
+      // name, so `ROLLBACK TO SAVEPOINT` could target the wrong savepoint.
+      this.#name = generateTransactionId();
     } else {
       const id = generateTransactionId();
       this.id = id;
