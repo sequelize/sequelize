@@ -768,7 +768,7 @@ type OrderItemAssociation =
   | { model: ModelStatic; as: AssociationName }
   | AssociationName;
 type OrderItemColumn = string | BaseSqlExpression;
-type OrderDirection =
+export type OrderDirection =
   | 'ASC'
   | 'DESC'
   | 'ASC NULLS LAST'
@@ -2934,7 +2934,7 @@ export abstract class Model<
   /**
    * @private
    */
-  static _injectDependentVirtualAttributes(attributes: string[]): string[];
+  static _injectDependentVirtualAttributes<T>(attributes: T[]): T[];
 
   /**
    * Returns true if this instance has not yet been persisted to the database
@@ -3191,6 +3191,44 @@ export type ModelDefined<S extends {}, T extends {}> = ModelStatic<Model<S, T>>;
 
 // remove the existing constructor that tries to return `Model<{},{}>` which would be incompatible with models that have typing defined & replace with proper constructor.
 export type ModelStatic<M extends Model = Model> = OmitConstructors<typeof Model> & { new (): M };
+
+/**
+ * The internal static methods used to normalize finder options before they are handed to the query
+ * generator. They are declared separately from {@link Model} because referencing
+ * {@link ModelStatic} from inside the class body would make its declaration circular.
+ *
+ * @private
+ */
+export interface ModelFinderInternals {
+  /**
+   * Merges the scope currently applied to the model into the provided finder options.
+   *
+   * Mutates the `options` parameter.
+   */
+  _injectScope(options: FindOptions<any>): void;
+
+  /**
+   * Normalizes the `attributes` finder option, expanding its `{ exclude, include }` form into a
+   * plain list of attributes.
+   *
+   * Mutates the `options` parameter.
+   */
+  _expandAttributes(options: FindOptions<any>): void;
+
+  /**
+   * Adds the condition that excludes soft-deleted rows to the provided finder options, if the model
+   * is paranoid.
+   */
+  _paranoidClause<T extends object>(model: ModelStatic, options: T): T;
+}
+
+/**
+ * A model, including the internal methods of {@link ModelFinderInternals}.
+ *
+ * @private
+ */
+export type ModelStaticWithInternals<M extends Model = Model> = ModelStatic<M> &
+  ModelFinderInternals;
 
 /**
  * Type will be true is T is branded with Brand, false otherwise

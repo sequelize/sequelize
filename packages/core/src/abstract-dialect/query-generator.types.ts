@@ -2,15 +2,124 @@ import type { Deferrable } from '../deferrable';
 import type { TableHints } from '../enums';
 import type { BaseSqlExpression } from '../expression-builders/base-sql-expression';
 import type { Literal } from '../expression-builders/literal';
-import type { Filterable, IndexHintable, ModelStatic, ReferentialAction } from '../model';
+import type {
+  Attributes,
+  Filterable,
+  FindOptions,
+  IndexHintable,
+  Model,
+  ModelStatic,
+  OrderDirection,
+  ReferentialAction,
+} from '../model';
 import type { ModelDefinition } from '../model-definition.js';
+import type { QueryRawOptions } from '../sequelize';
 import type { TransactionType } from '../transaction';
+import type { AbstractDataType } from './data-types.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { TableName } from './query-interface.js';
 import type { ConstraintType } from './query-interface.types';
 import type { WhereOptions } from './where-sql-builder-types';
 
 export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
+
+/**
+ * Describes one of the columns produced by a member query of a UNION.
+ *
+ * Because a UNION takes its result column names from its first member,
+ * {@link UnionColumnDescriptor.name} is the name the column has in the result set (the attribute
+ * name, or the user-provided alias), not the name of the underlying table column.
+ */
+export interface UnionColumnDescriptor {
+  /** The name this column has in the result set of the UNION. */
+  name: string;
+
+  /**
+   * The data type of the column, or `null` when it cannot be determined
+   * (e.g. the attribute is an arbitrary SQL expression). Columns whose type is unknown are skipped
+   * by the type compatibility check.
+   */
+  dataType: AbstractDataType<any> | null;
+}
+
+/**
+ * A single entry of {@link UnionOptions.order}.
+ *
+ * A UNION's result set only contains the columns selected by its member queries, so ordering may
+ * only reference those columns by name. Use {@link Literal} (`sql.literal`) as an escape hatch for
+ * expressions that cannot be expressed as a plain column reference.
+ */
+export type UnionOrderItem =
+  | string
+  | [column: string, direction: OrderDirection]
+  | BaseSqlExpression;
+
+/**
+ * Options that apply to the combined result set of a UNION, as opposed to its individual members.
+ */
+export interface UnionOptions extends QueryRawOptions, AddLimitOffsetOptions {
+  /**
+   * Whether to keep duplicate rows (`UNION ALL`) instead of removing them (`UNION`).
+   *
+   * @default false
+   */
+  unionAll?: boolean;
+
+  /**
+   * Specifies the ordering of the combined result set.
+   *
+   * Each entry is either the name of one of the result columns, a two-element array of
+   * `[column, direction]`, or a {@link Literal}.
+   *
+   * @example
+   * `order: ['velocity']`.
+   * @example
+   * `order: [['velocity', 'DESC']]`.
+   */
+  order?: UnionOrderItem[];
+}
+
+/**
+ * The options accepted by a member query of {@link Sequelize#union}.
+ *
+ * `include` is not supported, because eager-loading changes which columns a query selects, which
+ * would break the column alignment a UNION requires.
+ *
+ * `limit`, `offset` and `order` are not supported either: SQLite does not accept those clauses
+ * inside a compound SELECT, and MySQL requires the member to be parenthesized, so allowing them
+ * would produce queries that work on some dialects and break on others. Use the equivalent options
+ * of {@link UnionOptions} to paginate and sort the combined result set instead.
+ */
+export type UnionQueryOptions<M extends Model> = Omit<
+  FindOptions<Attributes<M>>,
+  'include' | 'limit' | 'offset' | 'order'
+> & {
+  include?: never;
+  limit?: never;
+  offset?: never;
+  order?: never;
+};
+
+/**
+ * A single member query of {@link Sequelize#union}.
+ */
+export interface UnionQuery<M extends Model = Model> {
+  model: ModelStatic<M>;
+  options?: UnionQueryOptions<M>;
+}
+
+/**
+ * A row of the result set of {@link Sequelize#union}.
+ *
+ * **Note:** union results are plain objects, not model instances. A UNION can combine rows coming
+ * from different models, so there is no single model that could faithfully represent every row. As
+ * a consequence getters, virtual attributes and instance methods such as `toJSON()` are not
+ * available on these rows.
+ *
+ * The known keys are those of the first member query's model, since a UNION takes its result column
+ * names from its first member. Aliased attributes are typed as `unknown`.
+ */
+export type UnionRow<M extends Model = Model> = Partial<Attributes<M>> & Record<string, unknown>;
 
 export interface BoundQuery {
   query: string;

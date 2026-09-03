@@ -1518,6 +1518,57 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return `${query};`;
   }
 
+  /**
+   * Combines already-generated `SELECT` queries into a single query, using the SQL `UNION` operator.
+   *
+   * The `ORDER BY` of a compound `SELECT` may only reference the columns of the result set, so
+   * `options.order` is expected to have been validated against them by {@link Sequelize#union}
+   * beforehand.
+   *
+   * @param {string[]} sqls The SQL of the queries to combine.
+   * @param {object} options Options that apply to the combined result set.
+   * @returns {string}
+   */
+  unionQuery(sqls, options) {
+    const joinChar = options.unionAll ? ' UNION ALL ' : ' UNION ';
+
+    let query = sqls.map(sql => (sql.endsWith(';') ? sql.slice(0, -1) : sql)).join(joinChar);
+
+    if (options.order?.length > 0) {
+      const orderClauses = options.order.map(orderItem => {
+        if (orderItem instanceof BaseSqlExpression) {
+          return this.formatSqlExpression(orderItem, options);
+        }
+
+        if (!Array.isArray(orderItem)) {
+          return this.quoteIdentifier(orderItem);
+        }
+
+        const [columnName, direction] = orderItem;
+        const normalizedDirection = typeof direction === 'string' ? direction.toUpperCase() : null;
+
+        if (normalizedDirection != null && !VALID_ORDER_OPTIONS.includes(normalizedDirection)) {
+          throw new Error(
+            `Invalid order direction: ${direction}. Expected one of ${VALID_ORDER_OPTIONS.join(', ')}.`,
+          );
+        }
+
+        return joinSQLFragments([this.quoteIdentifier(columnName), normalizedDirection]);
+      });
+
+      query += ` ORDER BY ${orderClauses.join(', ')}`;
+    }
+
+    if (options.limit != null || options.offset != null) {
+      const limitOffset = this.#internals.addLimitAndOffset(options);
+      if (limitOffset) {
+        query += ` ${limitOffset}`;
+      }
+    }
+
+    return `${query};`;
+  }
+
   aliasGrouping(field, model, tableName, options) {
     const src = Array.isArray(field) ? field[0] : field;
 

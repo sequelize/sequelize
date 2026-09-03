@@ -336,6 +336,16 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return query;
   }
 
+  unionQuery(sqls, options) {
+    // remove the final semi-colon
+    let query = super.unionQuery(sqls, options);
+    if (query.at(-1) === ';') {
+      query = query.slice(0, -1);
+    }
+
+    return query;
+  }
+
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     // remove the final semi-colon
     let query = super.bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes);
