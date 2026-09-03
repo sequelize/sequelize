@@ -163,7 +163,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    */
   async dropSchema(schema: string, options?: DropSchemaOptions): Promise<void> {
     const sql = this.queryGenerator.dropSchemaQuery(schema, options);
-    await this.sequelize.queryRaw(sql, options);
+    await this.sequelize.queryRaw(sql, options as QueryRawOptions);
   }
 
   /**
