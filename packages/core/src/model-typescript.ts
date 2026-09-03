@@ -15,6 +15,7 @@ import type {
   InitOptions,
   ModelAttributes,
   ModelStatic,
+  ModelWithRejectOnEmpty,
   NonNullFindByPkOptions,
   NormalizedAttributeOptions,
   Sequelize,
@@ -455,6 +456,48 @@ export class ModelTypeScript {
    * Returns the model with the matching primary key.
    * If not found, returns null or throws an error if {@link FindOptions.rejectOnEmpty} is set.
    */
+  // Models typed with ModelWithRejectOnEmpty: allow per-call override to false
+  static findByPk<M extends Model>(
+    this: ModelWithRejectOnEmpty<M>,
+    identifier: unknown,
+    options: FindByPkOptions<M> & { rejectOnEmpty: false },
+  ): Promise<M | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelWithRejectOnEmpty<M>,
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty: false },
+  ): Promise<R | null>;
+  // Default behavior for ModelWithRejectOnEmpty (rejects when empty)
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelWithRejectOnEmpty<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<M> & { raw: true },
+  ): Promise<R>;
+  static findByPk<M extends Model>(
+    this: ModelWithRejectOnEmpty<M>,
+    identifier: unknown,
+    options?: FindByPkOptions<M>,
+  ): Promise<M>;
+  // Same signatures for models refined structurally via options.rejectOnEmpty: true
+  static findByPk<M extends Model>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+    options: FindByPkOptions<M> & { rejectOnEmpty: false },
+  ): Promise<M | null>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true; rejectOnEmpty: false },
+  ): Promise<R | null>;
+  static findByPk<M extends Model>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+  ): Promise<M>;
+  static findByPk<M extends Model, R = Attributes<M>>(
+    this: ModelStatic<M> & { options: BuiltModelOptions & { rejectOnEmpty: true } },
+    identifier: unknown,
+    options: FindByPkOptions<M> & { raw: true },
+  ): Promise<R>;
   static findByPk<M extends Model, R = Attributes<M>>(
     this: ModelStatic<M>,
     identifier: unknown,
