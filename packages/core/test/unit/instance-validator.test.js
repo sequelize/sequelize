@@ -86,6 +86,74 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
     });
   });
 
+  describe('builtin validators - boolean shorthand', () => {
+    // The boolean shorthand `{ validatorName: true }` means "run this validator with its
+    // defaults". It must not forward `true` as the validator's second argument, which
+    // validator.js interprets as an options object (isJSON) or a version (isUUID). See #18141.
+
+    it('accepts a valid UUID when isUUID is enabled via the boolean shorthand', async () => {
+      const User = Support.sequelize.define('user', {
+        uuidField: {
+          type: DataTypes.TEXT,
+          validate: {
+            isUUID: true,
+          },
+        },
+      });
+
+      const instanceValidator = new InstanceValidator(
+        User.build({ uuidField: '550e8400-e29b-41d4-a716-446655440000' }),
+      );
+
+      await expect(instanceValidator.validate()).to.be.fulfilled;
+    });
+
+    it('rejects an invalid UUID when isUUID is enabled via the boolean shorthand', async () => {
+      const User = Support.sequelize.define('user', {
+        uuidField: {
+          type: DataTypes.TEXT,
+          validate: {
+            isUUID: true,
+          },
+        },
+      });
+
+      const instanceValidator = new InstanceValidator(User.build({ uuidField: 'not-a-uuid' }));
+
+      await expect(instanceValidator.validate()).to.be.rejectedWith(SequelizeValidationError);
+    });
+
+    it('accepts valid JSON when isJSON is enabled via the boolean shorthand', async () => {
+      const User = Support.sequelize.define('user', {
+        payload: {
+          type: DataTypes.TEXT,
+          validate: {
+            isJSON: true,
+          },
+        },
+      });
+
+      const instanceValidator = new InstanceValidator(User.build({ payload: '{"valid":true}' }));
+
+      await expect(instanceValidator.validate()).to.be.fulfilled;
+    });
+
+    it('rejects invalid JSON when isJSON is enabled via the boolean shorthand', async () => {
+      const User = Support.sequelize.define('user', {
+        payload: {
+          type: DataTypes.TEXT,
+          validate: {
+            isJSON: true,
+          },
+        },
+      });
+
+      const instanceValidator = new InstanceValidator(User.build({ payload: 'not json' }));
+
+      await expect(instanceValidator.validate()).to.be.rejectedWith(SequelizeValidationError);
+    });
+  });
+
   describe('_validateAndRunHooks', () => {
     beforeEach(function () {
       this.successfulInstanceValidator = new InstanceValidator(this.User.build());
