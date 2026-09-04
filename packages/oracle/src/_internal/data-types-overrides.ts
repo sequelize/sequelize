@@ -3,6 +3,7 @@
 import type { AbstractDialect, BindParamOptions } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -354,6 +355,14 @@ export class JSON extends BaseTypes.JSON {
   }
 
   getBindParamSql(value: any, options: BindParamOptions): any {
+    // Oracle's JSON_VALUE (used to extract a value at a JSON path) returns a plain SQL scalar, not a
+    // re-encoded JSON document, unlike e.g. MySQL's JSON_EXTRACT. When comparing against such an
+    // extraction, the value must be bound the same way `toBindableValue` renders it as a SQL literal
+    // (a plain string), not encoded as the BLOB-compatible bytes the JSON column is stored as.
+    if ((options as EscapeOptions).comparedAgainstJsonPathExtraction) {
+      return options.bindParam(this.toBindableValue(value));
+    }
+
     return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
   }
 }

@@ -408,7 +408,8 @@ export class WhereSqlBuilder {
 
     // "IS" operator does not accept bind parameters, only literals
     if (options.bindParam) {
-      delete options.bindParam;
+      const { bindParam: ignoreBindParam, ...optionsWithoutBindParam } = options;
+      options = optionsWithoutBindParam;
     }
 
     return this.formatBinaryOperation(left, undefined, operator, right, undefined, options);
@@ -743,7 +744,11 @@ export class WhereSqlBuilder {
     });
     const rightSql =
       this.#formatOpAnyAll(right, rightDataType ?? leftDataType) ||
-      this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
+      this.#queryGenerator.escape(right, {
+        ...options,
+        type: rightDataType ?? leftDataType,
+        comparedAgainstJsonPathExtraction: left instanceof JsonPath,
+      });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }

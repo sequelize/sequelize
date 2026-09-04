@@ -4,6 +4,7 @@ import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+  const dialect = sequelize.dialect;
 
   const vars = beforeAll2(() => {
     const User = sequelize.define(
@@ -14,7 +15,19 @@ describe('QueryGenerator#updateQuery', () => {
       { timestamps: false },
     );
 
-    return { User };
+    // Only defined on dialects that support the JSON data type (used by the oracle-only test below).
+    const JsonUser = dialect.supports.dataTypes.JSON
+      ? sequelize.define(
+          'JsonUser',
+          {
+            name: DataTypes.STRING,
+            data: DataTypes.JSON,
+          },
+          { timestamps: false },
+        )
+      : null;
+
+    return { User, JsonUser };
   });
 
   // you'll find more replacement tests in query-generator tests
@@ -63,6 +76,64 @@ describe('QueryGenerator#updateQuery', () => {
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
       sequelize_2: 'jd',
+    });
+  });
+
+  it('still binds conditions that follow an Op.is/Op.isNot comparison in the same WHERE clause', async () => {
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      {
+        firstName: 'John',
+      },
+      {
+        lastName: null,
+        username: 'jd',
+      },
+    );
+
+    expectsql(query, {
+      default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [lastName] IS NULL AND [username] = $sequelize_2`,
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "lastName" IS NULL AND "username" = $sequelize_2);`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'jd',
+    });
+  });
+
+  it('binds a scalar compared against a JSON path extraction as a plain value, not as a JSON document', () => {
+    // Oracle's JSON_VALUE returns a plain SQL scalar, unlike other dialects' JSON extraction functions.
+    if (dialect.name !== 'oracle') {
+      return;
+    }
+
+    const { JsonUser } = vars;
+    if (!JsonUser) {
+      throw new Error('JsonUser should have been defined: oracle supports the JSON data type');
+    }
+
+    const { query, bind } = queryGenerator.updateQuery(
+      JsonUser.table,
+      {
+        name: 'John',
+      },
+      {
+        data: {
+          field: {
+            deep: true,
+          },
+        },
+      },
+    );
+
+    expectsql(query, {
+      oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."field"."deep"') = $sequelize_2`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'true',
     });
   });
 
