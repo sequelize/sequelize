@@ -11,8 +11,11 @@ services:
     volumes:
       - db2-latest:/database
     healthcheck:
-      test: su - db2inst1 -c "db2 connect to testdb; db2 select 1 from sysibm.sysdummy1" || exit 1
-      start_period: 15s
+      # The setup script restarts the instance twice after creating the database. Requiring its
+      # completion marker prevents a probe from passing in the short windows between those restarts.
+      test: test -f /database/config/.shared-data/setup_complete && su - db2inst1 -c "db2 connect to testdb; db2 select 1 from sysibm.sysdummy1" || exit 1
+      # failed probes while the database is still being created do not count towards `retries`
+      start_period: 300s
       interval: 10s
       timeout: 5s
       retries: 10
