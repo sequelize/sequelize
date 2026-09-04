@@ -104,12 +104,7 @@ describe('QueryGenerator#updateQuery', () => {
   });
 
   it('binds a scalar compared against a JSON path extraction as a plain value, not as a JSON document', () => {
-    // Oracle's JSON_VALUE (used to extract a value at a JSON path) returns a plain SQL scalar, unlike
-    // dialects whose extraction function returns a re-encoded JSON value. This is a regression test for
-    // https://github.com/sequelize/sequelize/pull/18322, which corrected the WHERE builder to no longer
-    // disable bind params for conditions that follow an Op.is comparison (such as the "deletedAt IS NULL"
-    // condition paranoid destroy() always prepends) -- doing so uncovered this Oracle-specific bug, since
-    // this condition was previously always inlined as a literal instead of being bound.
+    // Oracle's JSON_VALUE returns a plain SQL scalar, unlike other dialects' JSON extraction functions.
     if (dialect.name !== 'oracle') {
       return;
     }
