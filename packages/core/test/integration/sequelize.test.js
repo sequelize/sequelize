@@ -21,7 +21,7 @@ const { CONFIG } = require('../config/config');
 const dialect = getTestDialect();
 
 const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+  if (['postgres', 'mssql', 'db2', 'ibmi', 'oracle', 'hana'].includes(dialect)) {
     return `"${str}"`;
   }
 
@@ -64,6 +64,9 @@ const badUsernameConfig = {
   oracle: {
     username: 'bad_user',
   },
+  hana: {
+    user: 'bad_user',
+  },
 };
 
 const noPasswordConfig = {
@@ -98,6 +101,9 @@ const noPasswordConfig = {
   oracle: {
     password: null,
   },
+  hana: {
+    password: null,
+  },
 };
 
 const badAddressConfig = {
@@ -125,6 +131,9 @@ const badAddressConfig = {
   },
   oracle: {
     port: 9999,
+  },
+  hana: {
+    host: 'bad-address',
   },
 };
 
@@ -165,7 +174,8 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               error.message.includes('Login failed for user') ||
               error.message.includes('A communication error has been detected') ||
               error.message.includes('must be > 0 and < 65536') ||
-              error.message.includes('Error connecting to the database'),
+              error.message.includes('Error connecting to the database') ||
+              error.message.includes('Connection failed'),
           ).to.be.ok;
         });
       });
@@ -403,6 +413,12 @@ describe(getTestDialectTeaser('Sequelize'), () => {
               expect(error.cause.odbcErrors[0].message).to.include(
                 'Data source name not found and no default driver specified',
               );
+
+              break;
+            }
+
+            case 'hana': {
+              expect(error.message).to.include('Connection failed');
 
               break;
             }

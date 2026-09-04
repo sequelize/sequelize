@@ -85,11 +85,13 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             err instanceof UnknownConstraintError,
             'Expected error to be an instance of UnknownConstraintError',
           );
-          if (dialect !== 'ibmi') {
+          if (dialect !== 'ibmi' && dialect !== 'hana') {
             expect(err.table).to.equal('levels');
           }
 
-          expect(err.constraint).to.equal('unknown__constraint__name');
+          if (dialect !== 'hana') {
+            expect(err.constraint).to.equal('unknown__constraint__name');
+          }
         }
       }
     });
@@ -164,7 +166,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         referencedTableSchema: defaultSchema,
         referencedColumnNames: ['id'],
         deleteAction: 'CASCADE',
-        updateAction: dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+        updateAction: ['mariadb', 'hana'].includes(dialect)
+          ? 'RESTRICT'
+          : dialect === 'sqlite3'
+            ? ''
+            : 'NO ACTION',
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -240,7 +246,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         referencedTableName: 'levels',
         referencedColumnNames: ['id', 'manager_id'],
         deleteAction: 'CASCADE',
-        updateAction: dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+        updateAction: ['mariadb', 'hana'].includes(dialect)
+          ? 'RESTRICT'
+          : dialect === 'sqlite3'
+            ? ''
+            : 'NO ACTION',
         ...(sequelize.dialect.supports.constraints.deferrable && {
           deferrable: 'INITIALLY_IMMEDIATE',
         }),
@@ -370,7 +380,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           definition:
             dialect === 'mssql'
               ? '([age]>(10))'
-              : dialect === 'db2' || dialect === 'oracle'
+              : ['db2', 'oracle', 'hana'].includes(dialect)
                 ? '"age" > 10'
                 : dialect === 'postgres'
                   ? '(age > 10)'
@@ -535,8 +545,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
           referencedTableName: 'levels',
           referencedColumnNames: ['id'],
           deleteAction: 'CASCADE',
-          updateAction:
-            dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+          updateAction: ['mariadb', 'hana'].includes(dialect)
+            ? 'RESTRICT'
+            : dialect === 'sqlite3'
+              ? ''
+              : 'NO ACTION',
           ...(sequelize.dialect.supports.constraints.deferrable && {
             deferrable: 'INITIALLY_IMMEDIATE',
           }),
@@ -656,8 +669,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             referencedTableName: 'levels',
             referencedColumnNames: ['id'],
             deleteAction: 'CASCADE',
-            updateAction:
-              dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+            updateAction: ['mariadb', 'hana'].includes(dialect)
+              ? 'RESTRICT'
+              : dialect === 'sqlite3'
+                ? ''
+                : 'NO ACTION',
             ...(sequelize.dialect.supports.constraints.deferrable && {
               deferrable: 'INITIALLY_IMMEDIATE',
             }),
@@ -684,8 +700,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             referencedTableName: 'levels',
             referencedColumnNames: ['id'],
             deleteAction: 'CASCADE',
-            updateAction:
-              dialect === 'mariadb' ? 'RESTRICT' : dialect === 'sqlite3' ? '' : 'NO ACTION',
+            updateAction: ['mariadb', 'hana'].includes(dialect)
+              ? 'RESTRICT'
+              : dialect === 'sqlite3'
+                ? ''
+                : 'NO ACTION',
             ...(sequelize.dialect.supports.constraints.deferrable && {
               deferrable: 'INITIALLY_IMMEDIATE',
             }),

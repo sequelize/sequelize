@@ -114,6 +114,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             boolQuery = '1 AS "someBoolean"';
           } else if (dialect === 'oracle') {
             boolQuery = '(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS "someBoolean"';
+          } else if (dialect === 'hana') {
+            boolQuery = 'CASE WHEN EXISTS(SELECT 1 FROM DUMMY) THEN 1 ELSE 0 END AS "someBoolean"';
           }
 
           const post = await Post.findOne({
@@ -199,7 +201,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be able to include model with virtual attributes', async function () {
-          const user0 = await this.User.create(dialect === 'db2' ? { id: 1 } : {});
+          const user0 = await this.User.create(['db2', 'hana'].includes(dialect) ? { id: 1 } : {});
           await user0.createTask();
 
           const tasks = await this.Task.findAll({

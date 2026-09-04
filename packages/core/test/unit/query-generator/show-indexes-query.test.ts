@@ -29,11 +29,21 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
-      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type 
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type
         FROM all_ind_columns i
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
         WHERE i.table_name = 'myTable' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
+      hana: `SELECT SYS.INDEXES.SCHEMA_NAME AS "schemaName", SYS.INDEXES.TABLE_NAME AS "tableName",
+          SYS.INDEXES.INDEX_NAME AS "name", SYS.INDEXES.INDEX_TYPE AS "type", SYS.INDEXES.CONSTRAINT AS "constraint",
+          SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName", SYS.INDEX_COLUMNS.POSITION AS "position",
+          SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"
+        FROM SYS.INDEXES
+        INNER JOIN SYS.INDEX_COLUMNS
+          ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME
+          AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME
+        WHERE SYS.INDEXES.SCHEMA_NAME = 'SYSTEM' AND SYS.INDEXES.TABLE_NAME = 'myTable'
+        ORDER BY SYS.INDEXES.INDEX_NAME, SYS.INDEX_COLUMNS.POSITION`,
     });
   });
 
@@ -68,6 +78,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
         WHERE i.table_name = 'MyModels' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
+      hana: `SELECT SYS.INDEXES.SCHEMA_NAME AS "schemaName", SYS.INDEXES.TABLE_NAME AS "tableName",
+          SYS.INDEXES.INDEX_NAME AS "name", SYS.INDEXES.INDEX_TYPE AS "type", SYS.INDEXES.CONSTRAINT AS "constraint",
+          SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName", SYS.INDEX_COLUMNS.POSITION AS "position",
+          SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"
+        FROM SYS.INDEXES
+        INNER JOIN SYS.INDEX_COLUMNS
+          ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME
+          AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME
+          AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME
+        WHERE SYS.INDEXES.SCHEMA_NAME = 'SYSTEM' AND SYS.INDEXES.TABLE_NAME = 'MyModels'
+        ORDER BY SYS.INDEXES.INDEX_NAME, SYS.INDEX_COLUMNS.POSITION`,
     });
   });
 
@@ -101,6 +122,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
       oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type FROM all_ind_columns i
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name) WHERE i.table_name = 'MyModels' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
+      hana: `SELECT SYS.INDEXES.SCHEMA_NAME AS "schemaName", SYS.INDEXES.TABLE_NAME AS "tableName",
+          SYS.INDEXES.INDEX_NAME AS "name", SYS.INDEXES.INDEX_TYPE AS "type", SYS.INDEXES.CONSTRAINT AS "constraint",
+          SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName", SYS.INDEX_COLUMNS.POSITION AS "position",
+          SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"
+        FROM SYS.INDEXES
+        INNER JOIN SYS.INDEX_COLUMNS
+          ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME
+          AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME
+          AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME
+        WHERE SYS.INDEXES.SCHEMA_NAME = 'SYSTEM' AND SYS.INDEXES.TABLE_NAME = 'MyModels'
+        ORDER BY SYS.INDEXES.INDEX_NAME, SYS.INDEX_COLUMNS.POSITION`,
     });
   });
 
@@ -133,6 +165,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
         WHERE i.table_name = 'myTable' AND u.table_owner = 'mySchema' ORDER BY index_name, column_position`,
+      hana: `SELECT SYS.INDEXES.SCHEMA_NAME AS "schemaName", SYS.INDEXES.TABLE_NAME AS "tableName",
+          SYS.INDEXES.INDEX_NAME AS "name", SYS.INDEXES.INDEX_TYPE AS "type", SYS.INDEXES.CONSTRAINT AS "constraint",
+          SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName", SYS.INDEX_COLUMNS.POSITION AS "position",
+          SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"
+        FROM SYS.INDEXES
+        INNER JOIN SYS.INDEX_COLUMNS
+          ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME
+          AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME
+          AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME
+        WHERE SYS.INDEXES.SCHEMA_NAME = 'mySchema' AND SYS.INDEXES.TABLE_NAME = 'myTable'
+        ORDER BY SYS.INDEXES.INDEX_NAME, SYS.INDEX_COLUMNS.POSITION`,
     });
   });
 
@@ -171,6 +214,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
         WHERE i.table_name = 'myTable' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
+        hana: `SELECT SYS.INDEXES.SCHEMA_NAME AS "schemaName", SYS.INDEXES.TABLE_NAME AS "tableName",
+            SYS.INDEXES.INDEX_NAME AS "name", SYS.INDEXES.INDEX_TYPE AS "type", SYS.INDEXES.CONSTRAINT AS "constraint",
+            SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName", SYS.INDEX_COLUMNS.POSITION AS "position",
+            SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"
+          FROM SYS.INDEXES
+          INNER JOIN SYS.INDEX_COLUMNS
+            ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME
+            AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME
+            AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME
+          WHERE SYS.INDEXES.SCHEMA_NAME = 'SYSTEM' AND SYS.INDEXES.TABLE_NAME = 'myTable'
+          ORDER BY SYS.INDEXES.INDEX_NAME, SYS.INDEX_COLUMNS.POSITION`,
       },
     );
   });
@@ -207,6 +261,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
         INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
         LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
         WHERE i.table_name = 'myTable' AND u.table_owner = 'mySchema' ORDER BY index_name, column_position`,
+      hana: `SELECT SYS.INDEXES.SCHEMA_NAME AS "schemaName", SYS.INDEXES.TABLE_NAME AS "tableName",
+          SYS.INDEXES.INDEX_NAME AS "name", SYS.INDEXES.INDEX_TYPE AS "type", SYS.INDEXES.CONSTRAINT AS "constraint",
+          SYS.INDEX_COLUMNS.COLUMN_NAME AS "columnName", SYS.INDEX_COLUMNS.POSITION AS "position",
+          SYS.INDEX_COLUMNS.ASCENDING_ORDER AS "ascendingOrder"
+        FROM SYS.INDEXES
+        INNER JOIN SYS.INDEX_COLUMNS
+          ON SYS.INDEXES.SCHEMA_NAME = SYS.INDEX_COLUMNS.SCHEMA_NAME
+          AND SYS.INDEXES.TABLE_NAME = SYS.INDEX_COLUMNS.TABLE_NAME
+          AND SYS.INDEXES.INDEX_NAME = SYS.INDEX_COLUMNS.INDEX_NAME
+        WHERE SYS.INDEXES.SCHEMA_NAME = 'mySchema' AND SYS.INDEXES.TABLE_NAME = 'myTable'
+        ORDER BY SYS.INDEXES.INDEX_NAME, SYS.INDEX_COLUMNS.POSITION`,
     });
   });
 

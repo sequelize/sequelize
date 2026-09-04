@@ -15,21 +15,21 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
     testDataTypeSql('STRING', DataTypes.STRING, {
       default: 'VARCHAR(255)',
-      mssql: 'NVARCHAR(255)',
+      'mssql hana': 'NVARCHAR(255)',
       sqlite3: 'TEXT',
       oracle: 'NVARCHAR2(255)',
     });
 
     testDataTypeSql('STRING(1234)', DataTypes.STRING(1234), {
       default: 'VARCHAR(1234)',
-      mssql: 'NVARCHAR(1234)',
+      'mssql hana': 'NVARCHAR(1234)',
       sqlite3: 'TEXT',
       oracle: 'NVARCHAR2(1234)',
     });
 
     testDataTypeSql('STRING({ length: 1234 })', DataTypes.STRING({ length: 1234 }), {
       default: 'VARCHAR(1234)',
-      mssql: 'NVARCHAR(1234)',
+      'mssql hana': 'NVARCHAR(1234)',
       sqlite3: 'TEXT',
       oracle: 'NVARCHAR2(1234)',
     });
@@ -38,7 +38,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'VARCHAR(1234) BINARY',
       'db2 ibmi': 'VARCHAR(1234) FOR BIT DATA',
       sqlite3: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
+      'mssql postgres hana': binaryCollationUnsupportedError,
       oracle: 'RAW(1234)',
     });
 
@@ -46,7 +46,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'VARCHAR(255) BINARY',
       'db2 ibmi': 'VARCHAR(255) FOR BIT DATA',
       sqlite3: 'TEXT COLLATE BINARY',
-      'mssql postgres': binaryCollationUnsupportedError,
+      'mssql postgres hana': binaryCollationUnsupportedError,
       oracle: 'RAW(255)',
     });
   });
@@ -68,12 +68,13 @@ describe('DataTypes.TEXT', () => {
       'ibmi db2': 'CLOB(2147483647)',
       mssql: 'NVARCHAR(MAX)', // in mssql text is actually representing a non unicode text field
       oracle: 'CLOB',
+      hana: 'NCLOB',
     });
 
     testDataTypeSql('TEXT("tiny")', DataTypes.TEXT('tiny'), {
       default: 'TEXT',
       'ibmi db2': 'VARCHAR(256)',
-      mssql: 'NVARCHAR(256)',
+      'mssql hana': 'NVARCHAR(256)',
       'mariadb mysql': 'TINYTEXT',
       oracle: 'CLOB',
     });
@@ -81,7 +82,7 @@ describe('DataTypes.TEXT', () => {
     testDataTypeSql('TEXT({ length: "tiny" })', DataTypes.TEXT({ length: 'tiny' }), {
       default: 'TEXT',
       'ibmi db2': 'VARCHAR(256)',
-      mssql: 'NVARCHAR(256)',
+      'mssql hana': 'NVARCHAR(256)',
       'mariadb mysql': 'TINYTEXT',
       oracle: 'CLOB',
     });
@@ -92,6 +93,7 @@ describe('DataTypes.TEXT', () => {
       mssql: 'NVARCHAR(MAX)',
       'mariadb mysql': 'MEDIUMTEXT',
       oracle: 'CLOB',
+      hana: 'NCLOB',
     });
 
     testDataTypeSql('TEXT("long")', DataTypes.TEXT('long'), {
@@ -100,6 +102,7 @@ describe('DataTypes.TEXT', () => {
       mssql: 'NVARCHAR(MAX)',
       'mariadb mysql': 'LONGTEXT',
       oracle: 'CLOB',
+      hana: 'NCLOB',
     });
   });
 
@@ -158,16 +161,19 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
 
     testDataTypeSql('CHAR', DataTypes.CHAR, {
       default: 'CHAR(255)',
+      hana: 'NCHAR(255)',
       sqlite3: charNotSupportedError,
     });
 
     testDataTypeSql('CHAR(12)', DataTypes.CHAR(12), {
       default: 'CHAR(12)',
+      hana: 'NCHAR(12)',
       sqlite3: charNotSupportedError,
     });
 
     testDataTypeSql('CHAR({ length: 12 })', DataTypes.CHAR({ length: 12 }), {
       default: 'CHAR(12)',
+      hana: 'NCHAR(12)',
       sqlite3: charNotSupportedError,
     });
 
@@ -175,7 +181,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'CHAR(12) BINARY',
       'db2 ibmi': 'CHAR(12) FOR BIT DATA',
       sqlite3: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
+      'postgres mssql hana': binaryNotSupportedError,
       oracle: 'RAW(12)',
     });
 
@@ -183,7 +189,7 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
       default: 'CHAR(255) BINARY',
       'db2 ibmi': 'CHAR(255) FOR BIT DATA',
       sqlite3: charNotSupportedError,
-      'postgres mssql': binaryNotSupportedError,
+      'postgres mssql hana': binaryNotSupportedError,
       oracle: 'RAW(255)',
     });
   });

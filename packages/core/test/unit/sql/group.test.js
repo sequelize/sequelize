@@ -43,6 +43,7 @@ describe('QueryGenerator#selectQuery with "group"', () => {
         mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
         snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
         oracle: `SELECT * FROM "Users" "User" GROUP BY "name";`,
+        hana: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
       },
     );
   });
@@ -63,6 +64,7 @@ describe('QueryGenerator#selectQuery with "group"', () => {
         mssql: 'SELECT * FROM [Users] AS [User];',
         snowflake: 'SELECT * FROM "Users" AS "User";',
         oracle: `SELECT * FROM "Users" "User";`,
+        hana: 'SELECT * FROM "Users" AS "User";',
       },
     );
   });

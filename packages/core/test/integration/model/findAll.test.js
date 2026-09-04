@@ -143,6 +143,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should not break when using smart syntax on binary fields', async function () {
+        if (dialectName === 'hana') {
+          // hana does not support BLOB type comparison
+          return;
+        }
+
         const users = await this.User.findAll({
           where: {
             binary: [this.buf, this.buf],

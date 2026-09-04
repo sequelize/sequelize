@@ -1160,6 +1160,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mssql:
             'SELECT [name], [age], [data] FROM [User] AS [User] WHERE [User].[data] IN (0x313233);',
           oracle: `SELECT "name", "age", "data" FROM "User" "User" WHERE "User"."data" IN ('313233');`,
+          // will fail on hana with: Error: (dberror) [266]: inconsistent datatype: lob type comparison
+          hana: `SELECT "name", "age", "data" FROM "User" AS "User" WHERE "User"."data" IN (X'313233');`,
         },
       );
     });

@@ -295,6 +295,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           break;
         }
 
+        case 'hana': {
+          expect(index.fields).to.deep.equal([
+            { attribute: 'user_name', length: undefined, order: 'ASC' },
+          ]);
+
+          break;
+        }
+
         case 'sqlite3':
         default: {
           expect(index.fields).to.deep.equal([
@@ -624,6 +632,37 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           expect(idx3.fields).to.deep.equal([
             { attribute: 'fieldD', length: undefined, order: undefined, collate: undefined },
+          ]);
+
+          break;
+        }
+
+        case 'hana': {
+          primary = args[0];
+          idx1 = args[1];
+          idx2 = args[2];
+          idx3 = args[3];
+
+          expect(primary.primary).to.be.ok;
+
+          // BTREE is only applicable to row store tables.
+          // in this test, `method: 'BTREE',` is not used in the sql
+          // because of https://github.com/sequelize/sequelize/issues/17433
+          const columnTableDefaultInvertedIndexType = 'INVERTED VALUE';
+          expect(idx1.type).to.equal(columnTableDefaultInvertedIndexType);
+          expect(idx2.type).to.equal('FULLTEXT');
+
+          expect(idx1.fields).to.deep.equal([
+            { attribute: 'fieldB', length: undefined, order: 'ASC' },
+            { attribute: 'fieldA', length: undefined, order: 'DESC' },
+          ]);
+
+          expect(idx2.fields).to.deep.equal([
+            { attribute: 'fieldC', length: undefined, order: 'ASC' },
+          ]);
+
+          expect(idx3.fields).to.deep.equal([
+            { attribute: 'fieldD', length: undefined, order: 'ASC' },
           ]);
 
           break;
@@ -1103,7 +1142,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 case 'postgres':
                 case 'db2':
                 case 'ibmi':
-                case 'oracle': {
+                case 'oracle':
+                case 'hana': {
                   expect(sql).to.match(/REFERENCES\s+"prefix"\."UserPubs" \("id"\)/);
 
                   break;
@@ -1151,7 +1191,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 case 'postgres':
                 case 'db2':
                 case 'ibmi':
-                case 'oracle': {
+                case 'oracle':
+                case 'hana': {
                   expect(UserPublic).to.include('INSERT INTO "UserPublics"');
 
                   break;
@@ -1184,7 +1225,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 case 'postgres':
                 case 'db2':
                 case 'ibmi':
-                case 'oracle': {
+                case 'oracle':
+                case 'hana': {
                   expect(UserSpecial).to.include('INSERT INTO "special"."UserSpecials"');
 
                   break;
@@ -1223,7 +1265,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                 case 'postgres':
                 case 'db2':
                 case 'ibmi':
-                case 'oracle': {
+                case 'oracle':
+                case 'hana': {
                   expect(user).to.include('UPDATE "special"."UserSpecials"');
 
                   break;
@@ -1431,6 +1474,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             expect(error.message).to.match(
               /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
             );
+
+            break;
+          }
+
+          case 'hana': {
+            expect(error.message).to.match(/invalid table name: 4uth0r5/);
 
             break;
           }
@@ -1727,13 +1776,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await User.create({ id: '3415718944570971483', username: 'u1' });
-      const createdUsers = await User.bulkCreate([{ username: 'u2', id: '3415718944570971484' }]);
-      expect(createdUsers[0].id.toString()).to.equal('3415718944570971484');
+      // in HANA Express 2.00.072.00.20231123.1, version 2.00.072.00.1690304772 (fa/hana2sp07)
+      // there is a bug in HANA: inserting with big ID values hangs
+      const bigintValue = dialectName === 'hana' ? 2_147_483_648n : 3_415_718_944_570_971_483n;
+      await User.create({ id: `${bigintValue}`, username: 'u1' });
+      const createdUsers = await User.bulkCreate([{ username: 'u2', id: `${bigintValue + 1n}` }]);
+      expect(createdUsers[0].id.toString()).to.equal(`${bigintValue + 1n}`);
       const users1 = await User.findAll({ order: [['id', 'ASC']] });
       expect(users1[0].username).to.equal('u1');
       expect(users1[1].username).to.equal('u2');
-      expect(users1[1].id.toString()).to.equal('3415718944570971484');
+      expect(users1[1].id.toString()).to.equal(`${bigintValue + 1n}`);
     });
   });
 

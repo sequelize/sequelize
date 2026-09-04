@@ -7,10 +7,21 @@ const dialect = sequelize.dialect;
 describe('QueryGenerator#dropTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
 
+  const hanaIfExistsWrapper = (sql: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF EXISTS (
+        SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sql};
+      END IF;
+    END;
+  `;
+
   it('produces a query that drops a table', () => {
     expectsql(() => queryGenerator.dropTableQuery('myTable'), {
       default: `DROP TABLE IF EXISTS [myTable]`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      hana: hanaIfExistsWrapper('DROP TABLE "myTable"', 'myTable', 'SYSTEM'),
     });
   });
 
@@ -19,6 +30,7 @@ describe('QueryGenerator#dropTableQuery', () => {
       default: buildInvalidOptionReceivedError('dropTableQuery', dialectName, ['cascade']),
       'postgres snowflake': `DROP TABLE IF EXISTS "myTable" CASCADE`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      hana: hanaIfExistsWrapper('DROP TABLE "myTable" CASCADE', 'myTable', 'SYSTEM'),
     });
   });
 
@@ -28,6 +40,7 @@ describe('QueryGenerator#dropTableQuery', () => {
     expectsql(() => queryGenerator.dropTableQuery(MyModel), {
       default: `DROP TABLE IF EXISTS [MyModels]`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      hana: hanaIfExistsWrapper('DROP TABLE "MyModels"', 'MyModels', 'SYSTEM'),
     });
   });
 
@@ -38,6 +51,7 @@ describe('QueryGenerator#dropTableQuery', () => {
     expectsql(() => queryGenerator.dropTableQuery(myDefinition), {
       default: `DROP TABLE IF EXISTS [MyModels]`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "MyModels" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      hana: hanaIfExistsWrapper('DROP TABLE "MyModels"', 'MyModels', 'SYSTEM'),
     });
   });
 
@@ -46,6 +60,7 @@ describe('QueryGenerator#dropTableQuery', () => {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
       sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "mySchema"."myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      hana: hanaIfExistsWrapper('DROP TABLE "mySchema"."myTable"', 'myTable', 'mySchema'),
     });
   });
 
@@ -56,6 +71,7 @@ describe('QueryGenerator#dropTableQuery', () => {
       {
         default: `DROP TABLE IF EXISTS [myTable]`,
         oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+        hana: hanaIfExistsWrapper('DROP TABLE "myTable"', 'myTable', 'SYSTEM'),
       },
     );
   });
@@ -68,6 +84,7 @@ describe('QueryGenerator#dropTableQuery', () => {
       default: `DROP TABLE IF EXISTS [mySchema].[myTable]`,
       sqlite3: 'DROP TABLE IF EXISTS `mySchema.myTable`',
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "mySchema"."myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+      hana: hanaIfExistsWrapper('DROP TABLE "mySchema"."myTable"', 'myTable', 'mySchema'),
     });
   });
 

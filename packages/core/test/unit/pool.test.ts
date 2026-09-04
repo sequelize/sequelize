@@ -135,6 +135,9 @@ describe('sequelize.pool', () => {
         oracle: {
           host: 'replica1',
         },
+        hana: {
+          host: 'replica1',
+        },
       };
 
       const replica2Overrides: DialectConnectionConfigs = {
@@ -163,6 +166,9 @@ describe('sequelize.pool', () => {
           account: 'replica2',
         },
         oracle: {
+          host: 'replica2',
+        },
+        hana: {
           host: 'replica2',
         },
       };
@@ -237,6 +243,9 @@ describe('sequelize.pool', () => {
           account: 'write',
         },
         oracle: {
+          host: 'write',
+        },
+        hana: {
           host: 'write',
         },
       };

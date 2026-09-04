@@ -9,6 +9,16 @@ describe('QueryInterface#dropTable', () => {
     sinon.restore();
   });
 
+  const hanaIfExistsWrapper = (sql: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF EXISTS (
+        SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sql};
+      END IF;
+    END;
+  `;
+
   it('produces a DROP TABLE query with cascade', async () => {
     if (sequelize.dialect.supports.dropTable.cascade) {
       const stub = sinon.stub(sequelize, 'queryRaw');
@@ -20,6 +30,7 @@ describe('QueryInterface#dropTable', () => {
       expectsql(firstCall.args[0], {
         default: 'DROP TABLE IF EXISTS [myTable] CASCADE',
         oracle: `BEGIN EXECUTE IMMEDIATE 'DROP TABLE "myTable" CASCADE CONSTRAINTS PURGE'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;`,
+        hana: hanaIfExistsWrapper('DROP TABLE "myTable" CASCADE', 'myTable', 'SYSTEM'),
       });
     } else {
       await expect(

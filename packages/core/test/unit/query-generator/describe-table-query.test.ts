@@ -76,9 +76,32 @@ describe('QueryGenerator#describeTableQuery', () => {
         WHERE QSYS2.SYSCOLUMNS.TABLE_SCHEMA = CURRENT SCHEMA
         AND QSYS2.SYSCOLUMNS.TABLE_NAME = 'myTable'`,
       oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
-        LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc 
+        LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = '${dialect.getDefaultSchema()}') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+      hana: `SELECT
+        SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",
+        SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",
+        SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",
+        SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",
+        SYS.TABLE_COLUMNS.LENGTH AS "Length",
+        SYS.TABLE_COLUMNS.SCALE AS "Scale",
+        SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",
+        SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",
+        SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",
+        pk.IS_PRIMARY_KEY AS "IsPrimaryKey",
+        SYS.TABLE_COLUMNS.COMMENTS AS "Comments"
+        FROM SYS.TABLE_COLUMNS
+        LEFT JOIN
+        (
+          SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY
+          FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE'
+        ) pk
+        ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME
+          AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME
+          AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME
+        WHERE SYS.TABLE_COLUMNS.TABLE_NAME = 'myTable'
+          AND SYS.TABLE_COLUMNS.SCHEMA_NAME = 'SYSTEM'`,
     });
   });
 
@@ -158,6 +181,29 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = '${dialect.getDefaultSchema()}') AND (atc.TABLE_NAME = 'MyModels')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+      hana: `SELECT
+        SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",
+        SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",
+        SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",
+        SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",
+        SYS.TABLE_COLUMNS.LENGTH AS "Length",
+        SYS.TABLE_COLUMNS.SCALE AS "Scale",
+        SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",
+        SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",
+        SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",
+        pk.IS_PRIMARY_KEY AS "IsPrimaryKey",
+        SYS.TABLE_COLUMNS.COMMENTS AS "Comments"
+        FROM SYS.TABLE_COLUMNS
+        LEFT JOIN
+        (
+          SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY
+          FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE'
+        ) pk
+        ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME
+          AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME
+          AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME
+        WHERE SYS.TABLE_COLUMNS.TABLE_NAME = 'MyModels'
+          AND SYS.TABLE_COLUMNS.SCHEMA_NAME = 'SYSTEM'`,
     });
   });
 
@@ -239,6 +285,29 @@ describe('QueryGenerator#describeTableQuery', () => {
         FROM all_tab_columns atc
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc
         ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) WHERE (atc.OWNER = '${dialect.getDefaultSchema()}') AND (atc.TABLE_NAME = 'MyModels')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+      hana: `SELECT
+        SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",
+        SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",
+        SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",
+        SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",
+        SYS.TABLE_COLUMNS.LENGTH AS "Length",
+        SYS.TABLE_COLUMNS.SCALE AS "Scale",
+        SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",
+        SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",
+        SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",
+        pk.IS_PRIMARY_KEY AS "IsPrimaryKey",
+        SYS.TABLE_COLUMNS.COMMENTS AS "Comments"
+        FROM SYS.TABLE_COLUMNS
+        LEFT JOIN
+        (
+          SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY
+          FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE'
+        ) pk
+        ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME
+          AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME
+          AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME
+        WHERE SYS.TABLE_COLUMNS.TABLE_NAME = 'MyModels'
+          AND SYS.TABLE_COLUMNS.SCHEMA_NAME = 'SYSTEM'`,
     });
   });
 
@@ -316,6 +385,29 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = 'mySchema') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+        hana: `SELECT
+          SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",
+          SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",
+          SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",
+          SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",
+          SYS.TABLE_COLUMNS.LENGTH AS "Length",
+          SYS.TABLE_COLUMNS.SCALE AS "Scale",
+          SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",
+          SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",
+          SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",
+          pk.IS_PRIMARY_KEY AS "IsPrimaryKey",
+          SYS.TABLE_COLUMNS.COMMENTS AS "Comments"
+          FROM SYS.TABLE_COLUMNS
+          LEFT JOIN
+          (
+            SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY
+            FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE'
+          ) pk
+          ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME
+            AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME
+            AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME
+          WHERE SYS.TABLE_COLUMNS.TABLE_NAME = 'myTable'
+            AND SYS.TABLE_COLUMNS.SCHEMA_NAME = 'mySchema'`,
       },
     );
   });
@@ -399,6 +491,29 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = '${dialect.getDefaultSchema()}') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+        hana: `SELECT
+          SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",
+          SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",
+          SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",
+          SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",
+          SYS.TABLE_COLUMNS.LENGTH AS "Length",
+          SYS.TABLE_COLUMNS.SCALE AS "Scale",
+          SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",
+          SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",
+          SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",
+          pk.IS_PRIMARY_KEY AS "IsPrimaryKey",
+          SYS.TABLE_COLUMNS.COMMENTS AS "Comments"
+          FROM SYS.TABLE_COLUMNS
+          LEFT JOIN
+          (
+            SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY
+            FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE'
+          ) pk
+          ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME
+            AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME
+            AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME
+          WHERE SYS.TABLE_COLUMNS.TABLE_NAME = 'myTable'
+            AND SYS.TABLE_COLUMNS.SCHEMA_NAME = 'SYSTEM'`,
       },
     );
   });
@@ -480,6 +595,29 @@ describe('QueryGenerator#describeTableQuery', () => {
         LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
         INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
         WHERE (atc.OWNER = 'mySchema') AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+      hana: `SELECT
+        SYS.TABLE_COLUMNS.COLUMN_NAME AS "ColumnName",
+        SYS.TABLE_COLUMNS.TABLE_NAME AS "TableName",
+        SYS.TABLE_COLUMNS.SCHEMA_NAME AS "SchemaName",
+        SYS.TABLE_COLUMNS.DATA_TYPE_NAME AS "DataTypeName",
+        SYS.TABLE_COLUMNS.LENGTH AS "Length",
+        SYS.TABLE_COLUMNS.SCALE AS "Scale",
+        SYS.TABLE_COLUMNS.IS_NULLABLE AS "IsNullable",
+        SYS.TABLE_COLUMNS.DEFAULT_VALUE AS "DefaultValue",
+        SYS.TABLE_COLUMNS.GENERATION_TYPE AS "GenerationType",
+        pk.IS_PRIMARY_KEY AS "IsPrimaryKey",
+        SYS.TABLE_COLUMNS.COMMENTS AS "Comments"
+        FROM SYS.TABLE_COLUMNS
+        LEFT JOIN
+        (
+          SELECT SCHEMA_NAME, TABLE_NAME, COLUMN_NAME, IS_PRIMARY_KEY
+          FROM SYS.CONSTRAINTS WHERE IS_PRIMARY_KEY = 'TRUE'
+        ) pk
+        ON SYS.TABLE_COLUMNS.SCHEMA_NAME = pk.SCHEMA_NAME
+          AND SYS.TABLE_COLUMNS.TABLE_NAME = pk.TABLE_NAME
+          AND SYS.TABLE_COLUMNS.COLUMN_NAME = pk.COLUMN_NAME
+        WHERE SYS.TABLE_COLUMNS.TABLE_NAME = 'myTable'
+          AND SYS.TABLE_COLUMNS.SCHEMA_NAME = 'mySchema'`,
     });
   });
 

@@ -57,6 +57,7 @@ describe('QueryInterface#changeColumn', () => {
       snowflake:
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
       oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT NOT NULL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT '; ELSE RAISE; END IF; END; END;`,
+      hana: 'ALTER TABLE "users" ALTER ("level_id" REAL NOT NULL);',
     });
   });
 
@@ -90,8 +91,9 @@ describe('QueryInterface#changeColumn', () => {
         FROM
           (SELECT DISTINCT cc.owner, cc.table_name, cc.constraint_name, cc.column_name AS cons_columns FROM all_cons_columns cc, all_constraints c WHERE cc.owner = c.owner AND cc.table_name = c.table_name AND cc.constraint_name = c.constraint_name AND c.constraint_type = 'R' GROUP BY cc.owner, cc.table_name, cc.constraint_name, cc.column_name)
           WHERE owner = '${sequelize.dialect.getDefaultSchema()}' AND table_name = 'users' AND cons_columns = 'level_id' ;
-          EXCEPTION WHEN NO_DATA_FOUND THEN CONS_NAME := NULL; END; IF CONS_NAME IS NOT NULL THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" DROP CONSTRAINT "'||CONS_NAME||'"'; END IF; 
+          EXCEPTION WHEN NO_DATA_FOUND THEN CONS_NAME := NULL; END; IF CONS_NAME IS NOT NULL THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" DROP CONSTRAINT "'||CONS_NAME||'"'; END IF;
           EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE'; END;`,
+      hana: 'ALTER TABLE "users" ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
     });
   });
 });

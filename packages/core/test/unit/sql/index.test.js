@@ -90,6 +90,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
           mysql: 'ALTER TABLE `User` ADD FULLTEXT INDEX `user_field_c` (`fieldC`)',
           oracle: `CREATE INDEX "user_field_c" ON "User" ("fieldC")`,
+          hana: 'CREATE FULLTEXT INDEX "user_field_c" ON "User" ("fieldC")', // FULLTEXT is supported on on-premise, not HANA Cloud
         },
       );
 
@@ -121,6 +122,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mysql:
             'ALTER TABLE `User` ADD UNIQUE INDEX `a_b_uniq` USING BTREE (`fieldB`, `fieldA`(5) DESC) WITH PARSER foo',
           oracle: `CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)`,
+          hana: 'CREATE UNIQUE INDEX "a_b_uniq" ON "User" ("fieldB", "fieldA" DESC)',
         },
       );
     });
@@ -141,6 +143,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           mariadb: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
           mysql: 'ALTER TABLE `table` ADD INDEX `table_column` (`column`(5) DESC)',
           oracle: `CREATE INDEX "table_column" ON "table" ("column" DESC)`,
+          hana: 'CREATE INDEX "table_column" ON "table" ("column" DESC)',
         },
       );
     });

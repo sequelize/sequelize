@@ -1,6 +1,7 @@
 import type { ConnectionOptions, Options } from '@sequelize/core';
 import { Db2Dialect } from '@sequelize/db2';
 import { IBMiDialect } from '@sequelize/db2-ibmi';
+import { HanaDialect } from '@sequelize/hana';
 import { MariaDbDialect } from '@sequelize/mariadb';
 import { MsSqlDialect } from '@sequelize/mssql';
 import { MySqlDialect } from '@sequelize/mysql';
@@ -29,6 +30,7 @@ export interface DialectConfigs {
   db2: Options<Db2Dialect>;
   ibmi: Options<IBMiDialect>;
   oracle: Options<OracleDialect>;
+  hana: Options<HanaDialect>;
 }
 
 export interface DialectConnectionConfigs {
@@ -41,6 +43,7 @@ export interface DialectConnectionConfigs {
   db2: ConnectionOptions<Db2Dialect>;
   ibmi: ConnectionOptions<IBMiDialect>;
   oracle: ConnectionOptions<OracleDialect>;
+  hana: ConnectionOptions<HanaDialect>;
 }
 
 const seqPort = env.SEQ_PORT ? parseSafeInteger.orThrow(env.SEQ_PORT) : undefined;
@@ -170,5 +173,20 @@ export const CONFIG: DialectConfigs = {
       idle: Number(env.SEQ_IBMI_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
     },
     odbcConnectionString: env.SEQ_IBMI_CONN_STR,
+  },
+
+  hana: {
+    dialect: HanaDialect,
+    database: env.SEQ_HANA_DB || env.SEQ_DB || 'HXE',
+    user: env.SEQ_HANA_USER || env.SEQ_USER || 'system',
+    password: env.SEQ_HANA_PW || env.SEQ_PW || 'HXEHana1',
+    host: env.HANA_PORT_39017_TCP_ADDR || env.SEQ_HANA_HOST || env.SEQ_HOST || '127.0.0.1',
+    port: parseSafeInteger.orThrow(
+      env.HANA_PORT_39017_TCP_PORT || env.SEQ_HANA_PORT || env.SEQ_PORT || 39_017,
+    ),
+    pool: {
+      max: Number(env.SEQ_HANA_POOL_MAX || env.SEQ_POOL_MAX || 5),
+      idle: Number(env.SEQ_HANA_POOL_IDLE || env.SEQ_POOL_IDLE || 3000),
+    },
   },
 };

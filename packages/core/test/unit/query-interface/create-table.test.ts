@@ -10,6 +10,16 @@ describe('QueryInterface#createTable', () => {
     sinon.restore();
   });
 
+  const hanaIfNotExistsWrapper = (sqlStatement: string, tableName: string, schema: string) => `
+    DO BEGIN
+      IF NOT EXISTS (
+        SELECT * FROM SYS.TABLES WHERE TABLE_NAME = '${tableName}' AND SCHEMA_NAME = '${schema}'
+      ) THEN
+        ${sqlStatement}
+      END IF;
+    END;
+  `;
+
   it('supports sql.random default values', async () => {
     const stub = sinon.stub(sequelize, 'queryRaw');
     await sequelize.queryInterface.createTable('table', {
@@ -32,6 +42,11 @@ describe('QueryInterface#createTable', () => {
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("value" REAL DEFAULT RAND());',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("value" REAL DEFAULT RAND()); END`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("value" BINARY_FLOAT DEFAULT DBMS_RANDOM.VALUE())'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("value" REAL DEFAULT RAND());',
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 
@@ -66,6 +81,11 @@ describe('QueryInterface#createTable', () => {
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("id" VARCHAR2(36),PRIMARY KEY ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 
@@ -120,6 +140,11 @@ describe('QueryInterface#createTable', () => {
       db2: 'CREATE TABLE IF NOT EXISTS "table" ("id" CHAR(36) FOR BIT DATA NOT NULL, PRIMARY KEY ("id"));',
       ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "table" ("id" CHAR(36), PRIMARY KEY ("id")); END`,
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("id" VARCHAR2(36),PRIMARY KEY ("id"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+      hana: hanaIfNotExistsWrapper(
+        'CREATE COLUMN TABLE "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 
@@ -146,6 +171,11 @@ describe('QueryInterface#createTable', () => {
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
       // oracle uses BLOB with CHECK constraint and JSON_NULL isn't allowed.
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+      hana: hanaIfNotExistsWrapper(
+        `CREATE COLUMN TABLE "table" ("json" NVARCHAR(5000) DEFAULT 'null');`,
+        'table',
+        'SYSTEM',
+      ),
     });
   });
 });
