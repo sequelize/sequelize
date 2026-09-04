@@ -381,7 +381,10 @@ export class InstanceValidator {
     if (!Array.isArray(validatorArgs)) {
       if (validatorType === 'isImmutable') {
         validatorArgs = [validatorArgs, field, this.modelInstance];
-      } else if (isLocalizedValidator || validatorType === 'isIP') {
+      } else if (validatorArgs === true || isLocalizedValidator || validatorType === 'isIP') {
+        // The boolean shorthand (e.g. `{ isJSON: true }`) just enables the validator, so run it
+        // with its defaults. Forwarding `true` would be passed as the validator's second argument,
+        // which validator.js reads as an options object (isJSON) or a version (isUUID). See #18141.
         validatorArgs = [];
       } else {
         validatorArgs = [validatorArgs];
