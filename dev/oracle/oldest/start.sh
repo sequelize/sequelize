@@ -5,6 +5,7 @@ set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
 docker compose -p sequelize-oracle-oldest down --remove-orphans
+./../../pull-images.sh sequelize-oracle-oldest
 docker compose -p sequelize-oracle-oldest up -d
 
 ./../../wait-until-healthy.sh sequelize-oracle-oldest
