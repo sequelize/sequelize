@@ -11,8 +11,6 @@ docker compose -p sequelize-oracle-latest up -d
 
 docker cp ../privileges.sql sequelize-oracle-latest:/opt/oracle/.
 
-# No -t: without a TTY sqlplus cannot fall into an interactive logon prompt and hang forever.
-# -L: attempt the logon only once and exit non-zero if it fails, so the script fails fast instead of hanging.
 docker exec sequelize-oracle-latest sqlplus -L system/password@localhost:1521/XEPDB1 @privileges.sql
 
 DIALECT=oracle ts-node ../../check-connection.ts
