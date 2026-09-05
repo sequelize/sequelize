@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Pulls the images of a docker compose project, retrying on transient registry errors.
-# Docker Hub occasionally answers a pull with "500 Internal Server Error", which
-# otherwise fails the whole CI job within seconds of it starting.
 set -uo pipefail
 
 if [ "$#" -ne 1 ]; then
