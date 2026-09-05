@@ -675,6 +675,22 @@ ${associationOwner._getAssociationDebugList()}`);
 
     model._injectScope(include);
 
+    // When no explicit attributes were requested, mirror the top-level default (see _findAll) so the
+    // built instance's `_options.attributes` lists virtual attributes too — otherwise `get()` skips
+    // their getters and they are dropped from `toJSON()` output for included models. This must run
+    // after `_injectScope` (which may narrow `include.attributes` via a scope) and before the
+    // concrete-column default below, so a scoped include derives `originalAttributes` from the scoped
+    // list (not running getters whose dependencies the scope excluded) while an unscoped include falls
+    // back to the full attribute list, virtuals included.
+    if (include.originalAttributes === undefined && !options.raw) {
+      // A scope may supply `attributes` in the `{ include, exclude }` object form; expand it first so
+      // `originalAttributes` is always a list, which is what `_setInclude` expects.
+      include.model._expandAttributes(include);
+      include.originalAttributes = include.model._injectDependentVirtualAttributes(
+        include.attributes ?? Array.from(include.model.modelDefinition.attributes.keys()),
+      );
+    }
+
     // This check should happen after injecting the scope, since the scope may contain a .attributes
     if (!include.attributes) {
       include.attributes = Object.keys(include.model.tableAttributes);
