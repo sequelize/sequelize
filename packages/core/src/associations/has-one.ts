@@ -44,9 +44,9 @@ import {
 export class HasOneAssociation<
   S extends Model = Model,
   T extends Model = Model,
-  SourceKey extends AttributeNames<S> = any,
-  TargetKey extends AttributeNames<T> = any,
-  TargetPrimaryKey extends AttributeNames<T> = any,
+  SourceKey extends AttributeNames<S> = AttributeNames<S>,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
+  TargetPrimaryKey extends AttributeNames<T> = AttributeNames<T>,
 > extends Association<S, T, TargetKey, NormalizedHasOneOptions<SourceKey, TargetKey>> {
   get foreignKey(): TargetKey {
     return this.inverse.foreignKey;
