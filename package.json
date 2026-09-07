@@ -81,7 +81,7 @@
     "@types/mocha": "10.0.10",
     "@types/node": "22.19.17",
     "chai": "4.5.0",
-    "concurrently": "9.2.1",
+    "concurrently": "9.2.4",
     "cross-env": "10.1.0",
     "esbuild": "0.28.1",
     "eslint": "8.57.1",
