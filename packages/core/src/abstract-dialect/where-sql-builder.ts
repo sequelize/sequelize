@@ -370,7 +370,7 @@ export class WhereSqlBuilder {
         // - always false if the operator is IN
         // - always true if the operator is NOT IN
         if (operator === Op.notIn) {
-          return '';
+          return '1 = 1';
         }
 
         rightSql = '(NULL)';
