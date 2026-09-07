@@ -401,17 +401,21 @@ export function createUnspecifiedOrderedBindCollector(token = '?'): BindCollecto
  */
 export function createSpecifiedOrderedBindCollector(prefix = '$'): BindCollector {
   const parameterOrder: string[] = [];
+  // bind parameter name -> 1-based position in parameterOrder.
+  // A Map keeps `collect` O(1); bulk inserts can produce tens of thousands of distinct parameters in one statement,
+  // and a linear `indexOf` lookup made that quadratic.
+  const positions = new Map<string, number>();
 
   return {
     collect(bindParameterName) {
-      const cachedPosition = parameterOrder.indexOf(bindParameterName);
-      if (cachedPosition === -1) {
+      let position = positions.get(bindParameterName);
+      if (position === undefined) {
         parameterOrder.push(bindParameterName);
-
-        return `${prefix}${parameterOrder.length}`;
+        position = parameterOrder.length;
+        positions.set(bindParameterName, position);
       }
 
-      return `${prefix}${cachedPosition + 1}`;
+      return `${prefix}${position}`;
     },
     getBindParameterOrder() {
       return parameterOrder;
