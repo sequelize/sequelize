@@ -123,8 +123,6 @@ export type DialectSupports = {
     onConflictDoNothing: string;
     /** whether dialect supports ON CONFLICT WHERE */
     onConflictWhere: boolean;
-    /* whether dialect supports ON CONFLICT WHERE with bind parameters */
-    onConflictWhereBind: boolean;
     /** whether the dialect supports specifying conflict fields or not */
     conflictFields: boolean;
   };
@@ -382,7 +380,6 @@ export abstract class AbstractDialect<
       updateOnDuplicate: false,
       onConflictDoNothing: '',
       onConflictWhere: false,
-      onConflictWhereBind: false,
       conflictFields: false,
     },
     constraints: {

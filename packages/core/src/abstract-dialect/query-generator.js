@@ -218,11 +218,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          if (this.dialect.supports.inserts.onConflictWhereBind) {
-            fragments.push(this.whereQuery(options.conflictWhere, { ...options, bindParam }));
-          } else {
-            fragments.push(this.whereQuery(options.conflictWhere, options));
-          }
+          // The conflict predicate is intentionally never bound: both PostgreSQL and SQLite infer the partial unique
+          // index by matching this predicate against the index definition, which only works with literal values.
+          // See https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT (index_predicate).
+          fragments.push(this.whereQuery(options.conflictWhere, options));
         }
 
         // if update keys are provided, then apply them here.  if there are no updateKeys provided, then do not try to
@@ -421,11 +420,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
-          if (this.dialect.supports.inserts.onConflictWhereBind) {
-            whereClause = this.whereQuery(options.conflictWhere, { ...options, bindParam });
-          } else {
-            whereClause = this.whereQuery(options.conflictWhere, options);
-          }
+          // Intentionally never bound, see insertQuery.
+          whereClause = this.whereQuery(options.conflictWhere, options);
         }
 
         // The Utils.joinSQLFragments later on will join this as it handles nested arrays.

@@ -136,10 +136,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectsql(result, {
           default: new Error('missing dialect support for conflictWhere option'),
-          postgres:
-            'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ("user_name") WHERE "user_name" = $sequelize_3 DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
-          sqlite3:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT (`user_name`) WHERE `user_name` = 'test where value' DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+          // The conflict predicate is never bound, even though insertQuery defaults to bind parameters:
+          // the database must be able to match it against the partial index definition.
+          'postgres sqlite3': `INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [user_name] = 'test where value' DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];`,
         });
       },
     );
@@ -488,6 +487,57 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: {
               sequelize_1: 'testuser',
               sequelize_2: '12345',
+            },
+            default: undefined,
+          },
+        });
+      });
+
+      it('does not bind conflictWhere values, even with parameterStyle BIND', () => {
+        const User = Support.sequelize.define(
+          'user',
+          {
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              primaryKey: true,
+            },
+            status: DataTypes.STRING,
+          },
+          { timestamps: false },
+        );
+
+        let result;
+
+        try {
+          result = queryGenerator.bulkInsertQuery(
+            User.table,
+            [{ user_name: 'testuser', status: 'active' }],
+            {
+              updateOnDuplicate: ['status'],
+              upsertKeys: ['user_name'],
+              conflictWhere: { status: 'active' },
+              parameterStyle: ParameterStyle.BIND,
+            },
+            User.fieldRawAttributesMap,
+          );
+        } catch (error) {
+          result = error;
+        }
+
+        expectsql(result, {
+          query: {
+            default: new Error(`conflictWhere not supported for dialect ${dialect.name}`),
+            'postgres sqlite3': `INSERT INTO [users] ([user_name],[status]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [status] = 'active' DO UPDATE SET [status]=EXCLUDED.[status];`,
+          },
+          bind: {
+            postgres: {
+              sequelize_1: 'testuser',
+              sequelize_2: 'active',
+            },
+            sqlite3: {
+              sequelize_1: 'testuser',
+              sequelize_2: 'active',
             },
             default: undefined,
           },
