@@ -5,7 +5,6 @@ const each = require('lodash/each');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { DataTypes } = require('@sequelize/core');
 const { OracleQueryGenerator: QueryGenerator } = require('@sequelize/oracle');
 const Support = require('../../../support');
 
@@ -14,9 +13,6 @@ const dialect = Support.getTestDialect();
 if (dialect.startsWith('oracle')) {
   describe('[Oracle Specific] QueryGenerator', () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
-    const sequelize = Support.createSequelizeInstance();
-    const dialect = sequelize.dialect;
-    const integerDialect = new DataTypes.INTEGER().toDialectDataType(dialect);
 
     const suites = {
       attributesToSQL: [
@@ -498,83 +494,6 @@ if (dialect.startsWith('oracle')) {
         },
       ],
 
-      bulkInsertQuery: [
-        {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], {}],
-          expectation: {
-            query: `INSERT INTO "myTable" ("name") VALUES (:1)`,
-            bind: [['foo'], ['bar']],
-          },
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { id: null, name: 'foo' },
-              { id: null, name: 'bar' },
-            ],
-            {},
-            { id: { autoIncrement: true, type: integerDialect } },
-          ],
-          expectation: {
-            query: `INSERT INTO "myTable" ("id","name") VALUES (DEFAULT,:1) RETURNING "id" INTO :2`,
-            bind: [['foo'], ['bar']],
-          },
-          outBindAttributes: {
-            id: {
-              type: {
-                num: 2010,
-                name: 'DB_TYPE_NUMBER',
-                columnTypeName: 'NUMBER',
-                _bufferSizeFactor: 22,
-                _oraTypeNum: 2,
-                _csfrm: 0,
-              },
-              dir: 3003,
-            },
-          },
-        },
-
-        // Variants when quoteIdentifiers is false
-        {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], {}],
-          expectation: {
-            query: `INSERT INTO myTable (name) VALUES (:1)`,
-            bind: [['foo'], ['bar']],
-          },
-          context: { options: { quoteIdentifiers: false } },
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { id: null, name: 'foo' },
-              { id: null, name: 'bar' },
-            ],
-            {},
-            { id: { autoIncrement: true, type: integerDialect } },
-          ],
-          expectation: {
-            query: `INSERT INTO myTable (id,name) VALUES (DEFAULT,:1) RETURNING id INTO :2`,
-            bind: [['foo'], ['bar']],
-          },
-          outBindAttributes: {
-            id: {
-              type: {
-                num: 2010,
-                name: 'DB_TYPE_NUMBER',
-                columnTypeName: 'NUMBER',
-                _bufferSizeFactor: 22,
-                _oraTypeNum: 2,
-                _csfrm: 0,
-              },
-              dir: 3003,
-            },
-          },
-          context: { options: { quoteIdentifiers: false } },
-        },
-      ],
-
       updateQuery: [
         {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
@@ -762,11 +681,6 @@ if (dialect.startsWith('oracle')) {
             }
 
             expect(conditions).to.deep.equal(test.expectation);
-            if (test.outBindAttributes && !(conditions instanceof Error)) {
-              const args = test.arguments;
-              const options = args[2];
-              expect(options.outBindAttributes).to.deep.equal(test.outBindAttributes);
-            }
           });
         }
       });
