@@ -5,7 +5,7 @@ const each = require('lodash/each');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { DataTypes, ParameterStyle } = require('@sequelize/core');
+const { DataTypes } = require('@sequelize/core');
 const { OracleQueryGenerator: QueryGenerator } = require('@sequelize/oracle');
 const Support = require('../../../support');
 
@@ -533,16 +533,6 @@ if (dialect.startsWith('oracle')) {
               dir: 3003,
             },
           },
-        },
-        {
-          arguments: [
-            'myTable',
-            [{ name: 'foo' }, { name: 'bar' }],
-            { parameterStyle: ParameterStyle.REPLACEMENT },
-          ],
-          expectation: new Error(
-            'The Oracle dialect does not support ParameterStyle.REPLACEMENT for bulk inserts.',
-          ),
         },
 
         // Variants when quoteIdentifiers is false

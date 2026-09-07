@@ -1219,9 +1219,16 @@ export interface BulkCreateOptions<TAttributes = any>
   conflictAttributes?: Array<keyof TAttributes>;
 
   /**
-   * Optional parameter to specify whether the generated query uses bind parameters or
-   * replacement (values are added directly as literals in the SQL statement)
-   * Defaults to 'replacement' for backwards compatibility:
+   * Whether the generated query sends the values as bind parameters ({@link ParameterStyle.BIND})
+   * or inlines them as literals in the SQL statement ({@link ParameterStyle.REPLACEMENT}).
+   *
+   * Defaults to {@link ParameterStyle.REPLACEMENT} for backwards compatibility, except in dialects that only
+   * support bind parameters (oracle). Requesting a style the dialect does not support throws:
+   * mssql and db2 only support REPLACEMENT, oracle only supports BIND.
+   * See `dialect.supports.inserts.bulkInsertParameterStyles`.
+   *
+   * Note that databases limit the number of bind parameters per statement (e.g. 65535 in postgres and mysql),
+   * so very large bulk inserts using BIND must be split into multiple calls.
    */
   parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }

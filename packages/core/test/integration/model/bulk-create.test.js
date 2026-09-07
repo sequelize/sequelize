@@ -167,7 +167,10 @@ describe('Model', () => {
           },
         ],
         {
-          parameterStyle: ParameterStyle.BIND,
+          // mssql and db2 inline all values and reject an explicit BIND request
+          ...(dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]
+            ? { parameterStyle: ParameterStyle.BIND }
+            : {}),
           logging(sql) {
             switch (dialectName) {
               case 'postgres':

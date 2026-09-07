@@ -37,6 +37,11 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiBulkInsertOptions extends QiOptionsWithReplacements {
+  /**
+   * Whether the generated query sends the values as bind parameters or inlines them as literals.
+   * Defaults to {@link ParameterStyle.REPLACEMENT} where supported. Requesting a style the dialect does not
+   * support throws, see `dialect.supports.inserts.bulkInsertParameterStyles`.
+   */
   parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 

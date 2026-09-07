@@ -1,5 +1,5 @@
 import type { Sequelize } from '@sequelize/core';
-import { AbstractDialect } from '@sequelize/core';
+import { AbstractDialect, ParameterStyle } from '@sequelize/core';
 import { parseCommonConnectionUrlOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/connection-options.js';
 import { createNamedParamBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
@@ -66,6 +66,10 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     },
     inserts: {
       ignoreDuplicates: false,
+      bulkInsertParameterStyles: {
+        // TODO: MsSqlQueryGenerator#bulkInsertQuery / Db2QueryGenerator#bulkInsertQuery inline all values
+        [ParameterStyle.BIND]: false,
+      },
     },
     tmpTableTrigger: true,
     dataTypes: {

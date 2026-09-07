@@ -4,6 +4,12 @@ import range from 'lodash/range';
 import sinon from 'sinon';
 import { beforeAll2, expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
 
+const { bulkInsertParameterStyles } = sequelize.dialect.supports.inserts;
+// dialects that inline all values (mssql, db2) reject an explicit BIND request
+const bindIfSupported = bulkInsertParameterStyles[ParameterStyle.BIND]
+  ? { parameterStyle: ParameterStyle.BIND }
+  : {};
+
 describe('QueryInterface#bulkInsert', () => {
   const vars = beforeAll2(() => {
     const User = sequelize.define(
@@ -26,9 +32,7 @@ describe('QueryInterface#bulkInsert', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
     const users = range(1000).map(i => ({ firstName: `user${i}` }));
-    await sequelize.queryInterface.bulkInsert(User.table, users, {
-      parameterStyle: ParameterStyle.BIND,
-    });
+    await sequelize.queryInterface.bulkInsert(User.table, users, bindIfSupported);
 
     expect(stub.callCount).to.eq(1);
     const firstCall = stub.getCall(0).args[0];
@@ -63,7 +67,7 @@ describe('QueryInterface#bulkInsert', () => {
     const users = range(2000).map(i => ({ firstName: `user${i}` }));
     await sequelize.queryInterface.bulkInsert(User.table, users, {
       transaction,
-      parameterStyle: ParameterStyle.BIND,
+      ...bindIfSupported,
     });
 
     expect(stub.callCount).to.eq(1);
@@ -72,7 +76,7 @@ describe('QueryInterface#bulkInsert', () => {
     if (firstOpts && typeof firstOpts === 'object') {
       expect(firstOpts.transaction).to.equal(transaction);
       if (['db2', 'mssql'].includes(sequelize.dialect.name)) {
-        expect(firstOpts.bind ?? {}).to.deep.equal({});
+        expect(firstOpts).to.not.have.property('bind');
       } else if (sequelize.dialect.name === 'oracle') {
         expect(firstOpts.bind).to.deep.eq(users.map(user => [user.firstName]));
       } else {
@@ -107,52 +111,82 @@ describe('QueryInterface#bulkInsert', () => {
   });
 
   // you'll find more replacement tests in query-generator tests
-  (sequelize.dialect.name === 'oracle' ? it.skip : it)(
-    'does not parse replacements outside of raw sql',
-    async () => {
+  it('does not parse replacements outside of raw sql', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await sequelize.queryInterface.bulkInsert(
+      User.table,
+      [
+        {
+          firstName: ':injection',
+        },
+      ],
+      {
+        replacements: {
+          injection: 'raw sql',
+        },
+        // REPLACEMENT is the default where supported; oracle only supports BIND and would reject it
+      },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+
+    expectPerDialect(() => firstCall.args[0], {
+      default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
+      'mysql mariadb sqlite3': toMatchSql(
+        "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
+      ),
+      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
+      // TODO: db2 should use the same system as ibmi
+      ibmi: toMatchSql(
+        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
+      ),
+      oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
+    });
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
+    } else {
+      // replacement-style queries must not reach queryRaw with an (empty) bind object,
+      // otherwise queryRaw would parse the generated SQL for bind tokens
+      expect(stub.getCall(0).args[1]).to.not.have.property('bind');
+    }
+  });
+
+  const unsupportedStyle = [ParameterStyle.REPLACEMENT, ParameterStyle.BIND].find(
+    style => !bulkInsertParameterStyles[style],
+  );
+
+  if (unsupportedStyle) {
+    it(`rejects parameterStyle ${unsupportedStyle}, which the dialect does not support`, async () => {
       const { User } = vars;
       const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-      await sequelize.queryInterface.bulkInsert(
-        User.table,
-        [
-          {
-            firstName: ':injection',
-          },
-        ],
-        {
-          replacements: {
-            injection: 'raw sql',
-          },
-          parameterStyle: ParameterStyle.REPLACEMENT,
-        },
+      await expect(
+        sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
+          parameterStyle: unsupportedStyle,
+        }),
+      ).to.be.rejectedWith(
+        Error,
+        `parameterStyle "${unsupportedStyle}" is not supported by bulk inserts in the ${sequelize.dialect.name} dialect`,
       );
 
-      expect(stub.callCount).to.eq(1);
-      const firstCall = stub.getCall(0);
+      expect(stub.callCount).to.eq(0);
+    });
+  }
 
-      expectPerDialect(() => firstCall.args[0], {
-        default: toMatchSql('INSERT INTO "Users" ("firstName") VALUES (\':injection\');'),
-        'mysql mariadb sqlite3': toMatchSql(
-          "INSERT INTO `Users` (`firstName`) VALUES (':injection');",
-        ),
-        mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N':injection');`),
-        // TODO: db2 should use the same system as ibmi
-        ibmi: toMatchSql(
-          `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES (':injection'))`,
-        ),
-        oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
-      });
+  it('rejects unknown parameterStyle values', async () => {
+    const { User } = vars;
 
-      if (sequelize.dialect.name === 'oracle') {
-        expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
-      } else {
-        // replacement-style queries must not reach queryRaw with an (empty) bind object,
-        // otherwise queryRaw would parse the generated SQL for bind tokens
-        expect(stub.getCall(0).args[1]).to.not.have.property('bind');
-      }
-    },
-  );
+    await expect(
+      sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
+        // @ts-expect-error -- testing invalid input
+        parameterStyle: 'nope',
+      }),
+    ).to.be.rejectedWith(Error, 'parameterStyle "nope" is not supported by bulk inserts');
+  });
 
   it('does not forward an empty bind when the dialect inlines all values', async () => {
     const { User } = vars;

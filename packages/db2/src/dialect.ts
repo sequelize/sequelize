@@ -1,5 +1,5 @@
 import type { Sequelize } from '@sequelize/core';
-import { AbstractDialect } from '@sequelize/core';
+import { AbstractDialect, ParameterStyle } from '@sequelize/core';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
 import * as DataTypes from './_internal/data-types-overrides.js';
@@ -56,6 +56,10 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     },
     inserts: {
       ignoreDuplicates: false,
+      bulkInsertParameterStyles: {
+        // TODO: MsSqlQueryGenerator#bulkInsertQuery / Db2QueryGenerator#bulkInsertQuery inline all values
+        [ParameterStyle.BIND]: false,
+      },
     },
     constraints: {
       onUpdate: false,

@@ -9,7 +9,7 @@ import isPlainObject from 'lodash/isPlainObject';
 import toPath from 'lodash/toPath';
 import oracledb from 'oracledb';
 
-import { DataTypes, ParameterStyle } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -672,13 +672,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    */
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     options = options || {};
-
-    if (options.parameterStyle === ParameterStyle.REPLACEMENT) {
-      throw new Error(
-        'The Oracle dialect does not support ParameterStyle.REPLACEMENT for bulk inserts.',
-      );
-    }
-
+    // Oracle only supports bind parameters here (see supports.inserts.bulkInsertParameterStyles), the query interface
+    // rejects other styles before reaching this method.
     options.executeMany = true;
     fieldMappedAttributes = fieldMappedAttributes || {};
 
