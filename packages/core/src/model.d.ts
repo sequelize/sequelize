@@ -1227,6 +1227,9 @@ export interface BulkCreateOptions<TAttributes = any>
    * mssql and db2 only support REPLACEMENT, oracle only supports BIND.
    * See `dialect.supports.inserts.bulkInsertParameterStyles`.
    *
+   * When `searchPath` (or the `prependSearchPath` option of the Sequelize instance) is used, values are always
+   * inlined, because the generated query has to be combined with a SET search_path statement.
+   *
    * Note that databases limit the number of bind parameters per statement (e.g. 65535 in postgres and mysql),
    * so very large bulk inserts using BIND must be split into multiple calls.
    */

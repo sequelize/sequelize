@@ -57,7 +57,7 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     inserts: {
       ignoreDuplicates: false,
       bulkInsertParameterStyles: {
-        // TODO: MsSqlQueryGenerator#bulkInsertQuery / Db2QueryGenerator#bulkInsertQuery inline all values
+        // TODO: Db2QueryGenerator#bulkInsertQuery inlines all values
         [ParameterStyle.BIND]: false,
       },
     },

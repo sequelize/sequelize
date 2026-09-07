@@ -67,7 +67,7 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     inserts: {
       ignoreDuplicates: false,
       bulkInsertParameterStyles: {
-        // TODO: MsSqlQueryGenerator#bulkInsertQuery / Db2QueryGenerator#bulkInsertQuery inline all values
+        // TODO: MsSqlQueryGenerator#bulkInsertQuery inlines all values
         [ParameterStyle.BIND]: false,
       },
     },

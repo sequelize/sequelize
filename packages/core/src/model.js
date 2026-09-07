@@ -2327,6 +2327,17 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
+      // queryInterface.bulkInsert validates this too, but checking here as well avoids running hooks and
+      // validation for a call that is guaranteed to fail.
+      if (
+        options.parameterStyle != null &&
+        !model.sequelize.dialect.supports.inserts.bulkInsertParameterStyles[options.parameterStyle]
+      ) {
+        throw new Error(
+          `${dialect} does not support the parameterStyle "${options.parameterStyle}" option for bulkCreate.`,
+        );
+      }
+
       const modelDefinition = model.modelDefinition;
 
       options.fields = options.fields || Array.from(modelDefinition.attributes.keys());
