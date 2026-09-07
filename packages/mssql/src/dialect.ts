@@ -67,7 +67,7 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     inserts: {
       ignoreDuplicates: false,
       bulkInsertParameterStyles: {
-        // TODO: MsSqlQueryGenerator#bulkInsertQuery inlines all values
+        // TODO: https://github.com/sequelize/sequelize/issues/18346
         [ParameterStyle.BIND]: false,
       },
     },

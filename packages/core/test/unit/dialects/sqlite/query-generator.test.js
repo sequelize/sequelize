@@ -549,8 +549,7 @@ if (dialect === 'sqlite3') {
             },
           },
         },
-        // The cases above use bind parameters. The cases below are the pre-existing replacement-style cases
-        // (still the default for bulkInsertQuery / Model.bulkCreate) and cover literal escaping and serialisation.
+        // replacement-style (default) cases
         {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
           expectation: { query: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');" },

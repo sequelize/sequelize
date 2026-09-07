@@ -38,10 +38,9 @@ export interface QiInsertOptions extends QueryRawOptions, Replaceable {
 
 export interface QiBulkInsertOptions extends QiOptionsWithReplacements {
   /**
-   * Whether the generated query sends the values as bind parameters or inlines them as literals.
-   * Defaults to {@link ParameterStyle.REPLACEMENT} where supported. Requesting a style the dialect does not
-   * support throws, see `dialect.supports.inserts.bulkInsertParameterStyles`.
-   * When `searchPath` is used, values are always inlined.
+   * Whether the values are sent as bind parameters ({@link ParameterStyle.BIND}) or inlined as literals
+   * ({@link ParameterStyle.REPLACEMENT}). Defaults to REPLACEMENT where supported; requesting an unsupported style
+   * throws, see `dialect.supports.inserts.bulkInsertParameterStyles`. Ignored when `searchPath` is used.
    */
   parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }

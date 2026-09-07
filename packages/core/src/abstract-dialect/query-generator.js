@@ -81,14 +81,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   /**
-   * Resolves which parameter style a query must use and, for bind parameters, creates the bind collector.
-   * Shared by insertQuery, bulkInsertQuery and updateQuery so the fallback rules live in one place.
-   *
-   * @param {object} options the query options
-   * @param {ParameterStyle} defaultStyle the style used when `options.parameterStyle` is not set
+   * @param {object} options
+   * @param {ParameterStyle} defaultStyle
    * @param {object} [extra]
-   * @param {boolean} [extra.forceReplacement] force REPLACEMENT even if BIND was requested
-   * @param {object} [extra.bind] an existing bind map to keep appending to, instead of a fresh one
+   * @param {boolean} [extra.forceReplacement]
+   * @param {object} [extra.bind]
    * @returns {{ parameterStyle: ParameterStyle, bind?: object, bindParam?: (value: unknown) => string }}
    */
   #resolveParameterStyle(options, defaultStyle, { bind, forceReplacement = false } = {}) {
@@ -116,7 +113,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     return {
       parameterStyle,
       bind,
-      // For Oracle, continue numbering to handle upsert sql generation
       bindParam: createBindParamGenerator(bind, this.dialect.name === 'oracle'),
     };
   }
@@ -141,7 +137,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       {
         // Not currently supported with bind parameters (requires output of multiple queries)
         forceReplacement: Boolean(this.dialect.supports.EXCEPTION && options.exception),
-        // dialects with "RETURNING INTO" out binds (oracle) keep appending to the bind map they received
         bind: this.dialect.supports.returnIntoValues && options.bind ? options.bind : undefined,
       },
     );
@@ -249,9 +244,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const fragments = ['ON CONFLICT', '(', conflictKeys.join(','), ')'];
 
         if (!isEmpty(options.conflictWhere)) {
-          // The conflict predicate is intentionally never bound: both PostgreSQL and SQLite infer the partial unique
-          // index by matching this predicate against the index definition, which only works with literal values.
-          // See https://www.postgresql.org/docs/current/sql-insert.html#SQL-ON-CONFLICT (index_predicate).
           fragments.push(this.whereQuery(options.conflictWhere, options));
         }
 
@@ -371,8 +363,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     fieldMappedAttributes ||= {};
 
-    // Note: bulkInsertQuery defaults to REPLACEMENT for backwards compatibility
-    // (unlike insertQuery/updateQuery which default to BIND)
+    // Note: bulkInsertQuery defaults to REPLACEMENT (unlike insertQuery/updateQuery which default to BIND)
     const { bind, bindParam, parameterStyle } = this.#resolveParameterStyle(
       options,
       ParameterStyle.REPLACEMENT,
@@ -434,7 +425,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             throw new Error(`conflictWhere not supported for dialect ${this.dialect.name}`);
           }
 
-          // Intentionally never bound, see insertQuery.
           whereClause = this.whereQuery(options.conflictWhere, options);
         }
 

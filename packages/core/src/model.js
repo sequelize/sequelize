@@ -2327,8 +2327,6 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
-      // queryInterface.bulkInsert validates this too, but checking here as well avoids running hooks and
-      // validation for a call that is guaranteed to fail.
       if (
         options.parameterStyle != null &&
         !model.sequelize.dialect.supports.inserts.bulkInsertParameterStyles[options.parameterStyle]

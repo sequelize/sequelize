@@ -672,8 +672,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    */
   bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
     options = options || {};
-    // Oracle only supports bind parameters here (see supports.inserts.bulkInsertParameterStyles), the query interface
-    // rejects other styles before reaching this method.
     options.executeMany = true;
     fieldMappedAttributes = fieldMappedAttributes || {};
 

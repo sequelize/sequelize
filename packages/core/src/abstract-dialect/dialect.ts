@@ -126,10 +126,7 @@ export type DialectSupports = {
     onConflictWhere: boolean;
     /** whether the dialect supports specifying conflict fields or not */
     conflictFields: boolean;
-    /**
-     * Which `parameterStyle` values bulk inserts support (`QueryInterface#bulkInsert`, `Model.bulkCreate`).
-     * Requesting an unsupported style throws. When no style is requested, REPLACEMENT is used if supported.
-     */
+    /** which `parameterStyle` values bulk inserts support; requesting an unsupported one throws */
     bulkInsertParameterStyles: Record<ParameterStyle, boolean>;
   };
   constraints: {

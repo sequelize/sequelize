@@ -45,7 +45,6 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     inserts: {
       ignoreDuplicates: false,
       bulkInsertParameterStyles: {
-        // bulk inserts always go through the driver's executeMany() with positional binds
         [ParameterStyle.REPLACEMENT]: false,
       },
     },

@@ -1219,19 +1219,10 @@ export interface BulkCreateOptions<TAttributes = any>
   conflictAttributes?: Array<keyof TAttributes>;
 
   /**
-   * Whether the generated query sends the values as bind parameters ({@link ParameterStyle.BIND})
-   * or inlines them as literals in the SQL statement ({@link ParameterStyle.REPLACEMENT}).
-   *
-   * Defaults to {@link ParameterStyle.REPLACEMENT} for backwards compatibility, except in dialects that only
-   * support bind parameters (oracle). Requesting a style the dialect does not support throws:
-   * mssql and db2 only support REPLACEMENT, oracle only supports BIND.
-   * See `dialect.supports.inserts.bulkInsertParameterStyles`.
-   *
-   * When `searchPath` (or the `prependSearchPath` option of the Sequelize instance) is used, values are always
-   * inlined, because the generated query has to be combined with a SET search_path statement.
-   *
-   * Note that databases limit the number of bind parameters per statement (e.g. 65535 in postgres and mysql),
-   * so very large bulk inserts using BIND must be split into multiple calls.
+   * Whether the values are sent as bind parameters ({@link ParameterStyle.BIND}) or inlined as literals
+   * ({@link ParameterStyle.REPLACEMENT}). Defaults to REPLACEMENT where supported; requesting an unsupported style
+   * throws, see `dialect.supports.inserts.bulkInsertParameterStyles`. Ignored when `searchPath` is used.
+   * Databases cap bind parameters per statement (65535 in postgres and mysql), so split very large BIND inserts.
    */
   parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }

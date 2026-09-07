@@ -5,7 +5,6 @@ import sinon from 'sinon';
 import { beforeAll2, expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
 
 const { bulkInsertParameterStyles } = sequelize.dialect.supports.inserts;
-// dialects that inline all values (mssql, db2) reject an explicit BIND request
 const bindIfSupported = bulkInsertParameterStyles[ParameterStyle.BIND]
   ? { parameterStyle: ParameterStyle.BIND }
   : {};
@@ -126,7 +125,6 @@ describe('QueryInterface#bulkInsert', () => {
         replacements: {
           injection: 'raw sql',
         },
-        // REPLACEMENT is the default where supported; oracle only supports BIND and would reject it
       },
     );
 
@@ -149,8 +147,6 @@ describe('QueryInterface#bulkInsert', () => {
     if (sequelize.dialect.name === 'oracle') {
       expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
     } else {
-      // replacement-style queries must not reach queryRaw with an (empty) bind object,
-      // otherwise queryRaw would parse the generated SQL for bind tokens
       expect(stub.getCall(0).args[1]).to.not.have.property('bind');
     }
   });
@@ -208,7 +204,6 @@ describe('QueryInterface#bulkInsert', () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    // replacement is the default parameterStyle for bulk inserts
     await sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
       bind: { custom: 1 },
     });
@@ -217,7 +212,6 @@ describe('QueryInterface#bulkInsert', () => {
     const options = stub.getCall(0).args[1];
 
     if (sequelize.dialect.name === 'oracle') {
-      // oracle always uses executeMany binds, see the dialect-specific bulkInsert
       expect(options?.bind).to.deep.eq([['a']]);
     } else {
       expect(options?.bind).to.deep.eq({ custom: 1 });

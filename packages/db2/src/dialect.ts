@@ -57,7 +57,7 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     inserts: {
       ignoreDuplicates: false,
       bulkInsertParameterStyles: {
-        // TODO: Db2QueryGenerator#bulkInsertQuery inlines all values
+        // TODO: https://github.com/sequelize/sequelize/issues/18346
         [ParameterStyle.BIND]: false,
       },
     },
