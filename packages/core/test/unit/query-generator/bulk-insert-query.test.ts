@@ -66,8 +66,9 @@ describe('QueryGenerator#bulkInsertQuery', () => {
     });
 
     it('parses named replacements in literals', () => {
-      // The Oracle dialect doesn't support replacements for bulkInsert
-      if (dialect === 'oracle') {
+      if (
+        !sequelize.dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.REPLACEMENT]
+      ) {
         return;
       }
 
