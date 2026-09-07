@@ -500,7 +500,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     // queries would make queryRaw parse the generated SQL for bind tokens, which changes logging output,
     // rejects `$name` tokens inside literal() values, and costs a full pass over the SQL for nothing.
     if (bind != null) {
-      options.bind = combineBinds(options.bind, bind);
+      // Dialects that use the driver's executeMany() (oracle) return positional tuples instead of a named bind map.
+      // queryRaw forwards those to the driver as-is, so they cannot be combined with user-provided binds.
+      options.bind = Array.isArray(bind) ? bind : combineBinds(options.bind, bind);
     }
 
     const results = await this.sequelize.queryRaw(query, options);
