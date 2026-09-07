@@ -991,6 +991,211 @@ if (dialect === 'snowflake') {
           },
           context: { options: { quoteIdentifiers: false } },
         },
+        // The cases above use bind parameters. The cases below are the pre-existing replacement-style cases
+        // (still the default for bulkInsertQuery / Model.bulkCreate) and cover literal escaping and serialisation.
+        {
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
+          expectation: { query: 'INSERT INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');' },
+        },
+        {
+          arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
+          expectation: {
+            query:
+              "INSERT INTO \"myTable\" (\"name\") VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
+              { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) },
+            ],
+          ],
+          expectation: {
+            query: `INSERT INTO "myTable" ("name","birthday") VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');`,
+          },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1 },
+              { name: 'bar', foo: 2 },
+            ],
+          ],
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","foo") VALUES (\'foo\',1),(\'bar\',2);',
+          },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: null },
+              { name: 'bar', nullValue: null },
+            ],
+          ],
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',NULL,NULL);',
+          },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: null },
+              { name: 'bar', foo: 2, nullValue: null },
+            ],
+          ],
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
+          },
+          context: { options: { omitNull: false } },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: null },
+              { name: 'bar', foo: 2, nullValue: null },
+            ],
+          ],
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue") VALUES (\'foo\',1,NULL),(\'bar\',2,NULL);',
+          },
+          context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: undefined },
+              { name: 'bar', foo: 2, undefinedValue: undefined },
+            ],
+          ],
+          expectation: {
+            query:
+              'INSERT INTO "myTable" ("name","foo","nullValue","undefinedValue") VALUES (\'foo\',1,NULL,NULL),(\'bar\',2,NULL,NULL);',
+          },
+          context: { options: { omitNull: true } }, // Note: As above
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', value: true },
+              { name: 'bar', value: false },
+            ],
+          ],
+          expectation: {
+            query: 'INSERT INTO "myTable" ("name","value") VALUES (\'foo\',true),(\'bar\',false);',
+          },
+        },
+        {
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
+          expectation: {
+            query: 'INSERT IGNORE INTO "myTable" ("name") VALUES (\'foo\'),(\'bar\');',
+          },
+        },
+        {
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
+          expectation: { query: "INSERT INTO myTable (name) VALUES ('foo'),('bar');" },
+          context: { options: { quoteIdentifiers: false } },
+        },
+        {
+          arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
+          expectation: {
+            query: "INSERT INTO myTable (name) VALUES ('foo'';DROP TABLE myTable;'),('bar');",
+          },
+          context: { options: { quoteIdentifiers: false } },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1 },
+              { name: 'bar', foo: 2 },
+            ],
+          ],
+          expectation: { query: "INSERT INTO myTable (name,foo) VALUES ('foo',1),('bar',2);" },
+          context: { options: { quoteIdentifiers: false } },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: null },
+              { name: 'bar', nullValue: null },
+            ],
+          ],
+          expectation: {
+            query:
+              "INSERT INTO myTable (name,foo,nullValue) VALUES ('foo',1,NULL),('bar',NULL,NULL);",
+          },
+          context: { options: { quoteIdentifiers: false } },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: null },
+              { name: 'bar', foo: 2, nullValue: null },
+            ],
+          ],
+          expectation: {
+            query: "INSERT INTO myTable (name,foo,nullValue) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          },
+          context: { options: { omitNull: false, quoteIdentifiers: false } },
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: null },
+              { name: 'bar', foo: 2, nullValue: null },
+            ],
+          ],
+          expectation: {
+            query: "INSERT INTO myTable (name,foo,nullValue) VALUES ('foo',1,NULL),('bar',2,NULL);",
+          },
+          context: { options: { omitNull: true, quoteIdentifiers: false } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', foo: 1, nullValue: undefined },
+              { name: 'bar', foo: 2, undefinedValue: undefined },
+            ],
+          ],
+          expectation: {
+            query:
+              "INSERT INTO myTable (name,foo,nullValue,undefinedValue) VALUES ('foo',1,NULL,NULL),('bar',2,NULL,NULL);",
+          },
+          context: { options: { omitNull: true, quoteIdentifiers: false } }, // Note: As above
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { name: 'foo', value: true },
+              { name: 'bar', value: false },
+            ],
+          ],
+          expectation: {
+            query: "INSERT INTO myTable (name,value) VALUES ('foo',true),('bar',false);",
+          },
+          context: { options: { quoteIdentifiers: false } },
+        },
+        {
+          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
+          expectation: { query: "INSERT IGNORE INTO myTable (name) VALUES ('foo'),('bar');" },
+          context: { options: { quoteIdentifiers: false } },
+        },
       ],
 
       updateQuery: [
