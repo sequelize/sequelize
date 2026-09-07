@@ -146,7 +146,47 @@ describe('QueryInterface#bulkInsert', () => {
 
       if (sequelize.dialect.name === 'oracle') {
         expect(stub.getCall(0).args[1]?.bind).to.deep.eq([[':injection']]);
+      } else {
+        // replacement-style queries must not reach queryRaw with an (empty) bind object,
+        // otherwise queryRaw would parse the generated SQL for bind tokens
+        expect(stub.getCall(0).args[1]).to.not.have.property('bind');
       }
     },
   );
+
+  it('does not forward an empty bind when the dialect inlines all values', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }]);
+
+    expect(stub.callCount).to.eq(1);
+    const options = stub.getCall(0).args[1];
+
+    if (sequelize.dialect.name === 'oracle') {
+      expect(options?.bind).to.deep.eq([['a']]);
+    } else {
+      expect(options).to.not.have.property('bind');
+    }
+  });
+
+  it('forwards user-provided binds untouched in replacement mode', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    // replacement is the default parameterStyle for bulk inserts
+    await sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
+      bind: { custom: 1 },
+    });
+
+    expect(stub.callCount).to.eq(1);
+    const options = stub.getCall(0).args[1];
+
+    if (sequelize.dialect.name === 'oracle') {
+      // oracle always uses executeMany binds, see the dialect-specific bulkInsert
+      expect(options?.bind).to.deep.eq([['a']]);
+    } else {
+      expect(options?.bind).to.deep.eq({ custom: 1 });
+    }
+  });
 });
