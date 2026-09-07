@@ -509,8 +509,16 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
 
-    if (bind != null) {
-      options.bind = Array.isArray(bind) ? bind : combineBinds(options.bind, bind);
+    if (Array.isArray(bind)) {
+      if (options.bind) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support the "bind" option in bulkInsert, because it executes bulk inserts with one set of positional binds per row.`,
+        );
+      }
+
+      options.bind = bind;
+    } else if (bind != null) {
+      options.bind = combineBinds(options.bind, bind);
     }
 
     const results = await this.sequelize.queryRaw(query, options);

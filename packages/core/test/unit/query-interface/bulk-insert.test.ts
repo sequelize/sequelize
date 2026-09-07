@@ -200,21 +200,30 @@ describe('QueryInterface#bulkInsert', () => {
     }
   });
 
-  it('forwards user-provided binds untouched in replacement mode', async () => {
-    const { User } = vars;
-    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+  if (!bulkInsertParameterStyles[ParameterStyle.REPLACEMENT]) {
+    it('rejects user-provided binds, because bulk inserts use positional binds per row', async () => {
+      const { User } = vars;
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    await sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
-      bind: { custom: 1 },
+      await expect(
+        sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
+          bind: { custom: 1 },
+        }),
+      ).to.be.rejectedWith(Error, 'does not support the "bind" option in bulkInsert');
+
+      expect(stub.callCount).to.eq(0);
     });
+  } else {
+    it('forwards user-provided binds untouched in replacement mode', async () => {
+      const { User } = vars;
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    expect(stub.callCount).to.eq(1);
-    const options = stub.getCall(0).args[1];
+      await sequelize.queryInterface.bulkInsert(User.table, [{ firstName: 'a' }], {
+        bind: { custom: 1 },
+      });
 
-    if (sequelize.dialect.name === 'oracle') {
-      expect(options?.bind).to.deep.eq([['a']]);
-    } else {
-      expect(options?.bind).to.deep.eq({ custom: 1 });
-    }
-  });
+      expect(stub.callCount).to.eq(1);
+      expect(stub.getCall(0).args[1]?.bind).to.deep.eq({ custom: 1 });
+    });
+  }
 });
