@@ -16,6 +16,20 @@ if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryGenerator', () => {
     Support.allowDeprecationsInSuite(['SEQUELIZE0023']);
 
+    describe('getMinifiedTableAlias()', () => {
+      it('measures aliases in UTF-8 bytes', function () {
+        const internals = new QueryGenerator(this.sequelize.dialect).__TEST__getInternals();
+        const options = { minifyAliases: true };
+        const aliasWithinLimit = 'é'.repeat(31);
+        const aliasOverLimit = 'é'.repeat(32);
+
+        expect(internals.getMinifiedTableAlias(aliasWithinLimit, options)).to.equal(
+          aliasWithinLimit,
+        );
+        expect(internals.getMinifiedTableAlias(aliasOverLimit, options)).to.equal('%0');
+      });
+    });
+
     const suites = {
       attributesToSQL: [
         {
