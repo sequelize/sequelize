@@ -159,7 +159,7 @@ export interface ParameterOptions {
    */
   readonly parameterStyle?: ParameterStyle | `${ParameterStyle}` | undefined;
   /**
-   * These are used to inline replacements into the query, when one is found inside of a {@link sql.literal}.
+   * These are used to inline replacements into the query, when one is found inside of a {@link @sequelize/core!sql.literal}.
    */
   readonly replacements?: BindOrReplacements | undefined;
 }
