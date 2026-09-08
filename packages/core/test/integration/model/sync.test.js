@@ -236,6 +236,47 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     expect(constraint.referencedTableName).to.eq('Users');
   });
 
+  it('should honor explicit onDelete/onUpdate for composite fk constraints instead of defaulting to SET NULL', async () => {
+    const User = sequelize.define('User', {
+      userId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      tenantId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+      username: DataTypes.STRING,
+    });
+    const Address = sequelize.define('Address', {
+      addressId: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+      },
+    });
+    Address.belongsTo(User, {
+      foreignKey: {
+        keys: ['userId', 'tenantId'],
+        allowNull: true,
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+      },
+    });
+
+    await sequelize.sync({ alter: true });
+    const constraints = await sequelize.queryInterface.showConstraints(Address.getTableName(), {
+      constraintType: 'FOREIGN KEY',
+    });
+    const constraint = constraints.find(
+      c =>
+        c.constraintType === 'FOREIGN KEY' && c.constraintName === 'Addresses_userId_tenantId_fkey',
+    );
+    expect(constraint.deleteAction).to.eq('CASCADE');
+    if (sequelize.dialect.supports.constraints.onUpdate) {
+      expect(constraint.updateAction).to.eq('CASCADE');
+    }
+  });
+
   it('should properly add composite fk constraint using full name when columns are not equal', async () => {
     const User = sequelize.define('User', {
       userId: {

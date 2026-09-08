@@ -1038,13 +1038,11 @@ ${associationOwner._getAssociationDebugList()}`);
       const sourceKeyFields = foreignKey.keys.map(k => k.sourceKey);
       const targetKeyFields = foreignKey.keys.map(k => k.targetKey);
       const modelKeysMatch = isEqual(sourceKeyFields, targetKeyFields);
-      const onDelete = foreignKey.onDelete || foreignKey.allowNull ? 'SET NULL' : 'CASCADE';
+      const onDelete = foreignKey.onDelete || (foreignKey.allowNull ? 'SET NULL' : 'CASCADE');
       const onUpdate =
         this.sequelize.dialect.supports.constraints.onUpdate === false
           ? undefined
-          : foreignKey.onUpdate || foreignKey.allowNull
-            ? 'SET NULL'
-            : 'CASCADE';
+          : foreignKey.onUpdate || (foreignKey.allowNull ? 'SET NULL' : 'CASCADE');
 
       const constraintName =
         foreignKey.constraintName ||
