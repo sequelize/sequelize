@@ -5,7 +5,6 @@ import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
-import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
@@ -30,7 +29,6 @@ import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
-import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -81,43 +79,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   /**
-   * @param {object} options
-   * @param {ParameterStyle} defaultStyle
-   * @param {object} [extra]
-   * @param {boolean} [extra.forceReplacement]
-   * @param {object} [extra.bind]
-   * @returns {{ parameterStyle: ParameterStyle, bind?: object, bindParam?: (value: unknown) => string }}
-   */
-  #resolveParameterStyle(options, defaultStyle, { bind, forceReplacement = false } = {}) {
-    if ('bindParam' in options) {
-      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
-    }
-
-    let parameterStyle = options.parameterStyle ?? defaultStyle;
-
-    if (
-      forceReplacement ||
-      // Not currently supported with search path (requires output of multiple queries)
-      get(this, ['sequelize', 'options', 'prependSearchPath']) ||
-      options.searchPath
-    ) {
-      parameterStyle = ParameterStyle.REPLACEMENT;
-    }
-
-    if (parameterStyle !== ParameterStyle.BIND) {
-      return { parameterStyle };
-    }
-
-    bind ??= pojo();
-
-    return {
-      parameterStyle,
-      bind,
-      bindParam: createBindParamGenerator(bind, this.dialect.name === 'oracle'),
-    };
-  }
-
-  /**
    * Returns an insert into command
    *
    * @param {string} table
@@ -131,7 +92,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     defaults(options, this.options);
 
-    const { bind, bindParam, parameterStyle } = this.#resolveParameterStyle(
+    const { bind, bindParam, parameterStyle } = this.#internals.resolveParameterStyle(
       options,
       ParameterStyle.BIND,
       {
@@ -364,7 +325,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     fieldMappedAttributes ||= {};
 
     // Note: bulkInsertQuery defaults to REPLACEMENT (unlike insertQuery/updateQuery which default to BIND)
-    const { bind, bindParam, parameterStyle } = this.#resolveParameterStyle(
+    const { bind, bindParam, parameterStyle } = this.#internals.resolveParameterStyle(
       options,
       ParameterStyle.REPLACEMENT,
     );
@@ -514,7 +475,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     options ||= {};
     defaults(options, this.options);
 
-    const { bind, bindParam, parameterStyle } = this.#resolveParameterStyle(
+    const { bind, bindParam, parameterStyle } = this.#internals.resolveParameterStyle(
       options,
       ParameterStyle.BIND,
     );
