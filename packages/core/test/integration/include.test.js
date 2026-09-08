@@ -146,9 +146,6 @@ Instead of specifying a Model, either:
           },
         },
         {
-          // The default scope narrows the selection to `name` only, so `path` (a dependency of the
-          // `url` virtual) is not loaded. The included instance must mirror a top-level scoped query
-          // and NOT expose `url`, rather than computing it from an unloaded `path`.
           defaultScope: { attributes: ['id', 'name'] },
         },
       );
@@ -162,7 +159,6 @@ Instead of specifying a Model, either:
 
       const user = await User.findOne({ include: ['avatar'] });
 
-      // `path` was excluded by the scope, so the virtual `url` must not appear in the output.
       expect(user.avatar.get('path')).to.be.undefined;
       expect(user.toJSON().avatar).to.not.have.property('url');
     });
@@ -182,8 +178,6 @@ Instead of specifying a Model, either:
           },
         },
         {
-          // The object form of `attributes` must be expanded before it is recorded as the included
-          // instance's attribute list, otherwise the association is not hydrated at all.
           defaultScope: { attributes: { exclude: ['secret'] } },
         },
       );
