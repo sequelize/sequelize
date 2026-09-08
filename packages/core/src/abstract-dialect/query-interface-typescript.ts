@@ -959,13 +959,13 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    *  }]);
    *
    * @param tableOrModel Table or model to insert records into
-   * @param records List of records to insert
+   * @param records List of records to insert, keyed by column name
    * @param options Various options, please see Model.bulkCreate options
    * @param attributes Various attributes mapped by field name
    */
   async bulkInsert(
     tableOrModel: TableOrModel,
-    records: object[],
+    records: ReadonlyArray<Record<string, unknown>>,
     options?: QiBulkInsertOptions,
     attributes?: Record<string, AttributeOptions>,
   ): Promise<object | number> {
