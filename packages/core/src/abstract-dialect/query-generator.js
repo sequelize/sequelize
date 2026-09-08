@@ -102,6 +102,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       },
     );
 
+    if (
+      this.dialect.supports.returnIntoValues &&
+      options.returning &&
+      parameterStyle !== ParameterStyle.BIND
+    ) {
+      throw new Error(
+        `The ${this.dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+      );
+    }
+
     const modelAttributeMap = {};
     const fields = [];
     const returningModelAttributes = [];
