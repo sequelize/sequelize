@@ -8,7 +8,7 @@
 | Status   | Living design and triage reference                                                                                      |
 | Audience | Maintainers, integrators, security reviewers, and AI agents                                                             |
 
-This document defines security boundaries and expected properties for Sequelize v7: the `@sequelize/core` package, `@sequelize/validator.js`, and the official `@sequelize/*` dialect and CLI packages, published from the `main` branch as v7 alpha releases. This document does not model Sequelize v6; v6 remains within the project's security and disclosure scope under `SECURITY.md`. This is not a vulnerability list, audit report, or assertion that every requirement is currently satisfied. Verify behavior in the applicable code and tests before relying on it. Update this model when supported behavior, trust boundaries, attack methods, security guarantees, or protections change.
+This document defines security boundaries and expected properties for Sequelize v7: the `@sequelize/core` package, `@sequelize/validator.js`, and the official `@sequelize/*` dialect and CLI packages, published from the `main` branch as v7 alpha releases. Sequelize v6 (the `sequelize` package) remains supported for security updates per [SECURITY.md](SECURITY.md); this document models v7 only. This is not a vulnerability list, audit report, or assertion that every requirement is currently satisfied. Verify behavior in the applicable code and tests before relying on it. Update this model when supported behavior, trust boundaries, attack methods, security guarantees, or protections change.
 
 ## 1. Scope
 
@@ -126,11 +126,9 @@ TB-4 (logging), TB-5 (replication), and TB-6 (hooks and extensions) are cross-cu
 | Extension or supply-chain maintainer | Privileged  | Controls a dialect, driver, hook, validator, model module, migration, config module, or dependency.                                                               |
 | Operator or CI user                  | Privileged  | Controls credentials, connection options, migration directories, environment, logs, and deployment commands.                                                      |
 
-Use this table to identify the relevant threat actor for the finding and the capabilities available to that threat actor by default. If the exploit path requires the threat actor to exercise a capability that Section 4 assigns to another actor, the finding's attacker model is wrong unless the report also shows how that capability is realistically exposed to the threat actor. If the bug does not let the threat actor achieve an outcome beyond what that actor could already achieve without the bug, that is a strong invalidation signal.
+Use this table to identify the relevant threat actor for the finding and the capabilities available to that threat actor by default. If the exploit path requires the threat actor to exercise a capability that Section 4 assigns to another actor, the finding's attacker model is wrong unless the report also shows how that capability is realistically exposed to the threat actor.
 
 A trusted or privileged actor is not the threat actor merely because it performs an expected action or supplies a supported configuration, schema, query shape, or deployment state that makes the code path reachable. In those cases, treat that actor's behavior as a precondition and evaluate the lower-trust actor who exploits the resulting library behavior.
-
-If the threat actor itself is trusted or privileged and exploitation requires malicious action or compromise of that role, the path begins only after loss of a protected trust domain. Such findings cannot exceed Low severity, and they should be invalidated entirely when the bug does not let that actor achieve an outcome beyond its baseline capabilities.
 
 ## 5. Entry-point rules
 
@@ -152,54 +150,7 @@ If the threat actor itself is trusted or privileged and exploitation requires ma
 | Database rows, aliases, metadata, and errors                                   | Untrusted database output                | Handle them defensively during parsing, nesting, model creation, serialization, and logging. A finding must still establish which threat actor can influence the specific output.                                                                                                        |
 | CLI config, dialect path, migration folder/files                               | Code with CLI access                     | Load only from a reviewed project whose files and dependencies are access-controlled.                                                                                                                                                                                                    |
 
-### Disposition and severity methodology
-
-Assign a disposition, then a severity. Record enough evidence for another reviewer to reproduce or challenge the result. Base the conclusion on the evidence available for the finding. The conclusion must be final for that evidence: do not defer it to another pass or qualify it with hypothetical future evidence, inputs, deployments, or exploit paths.
-
-#### Disposition
-
-Before assigning disposition, evaluate the complete exploit path under a compliant application and operator:
-
-1. Identify the relevant threat actor and its baseline capabilities from Section 4.
-2. Identify every additional capability required before the defect is reached and which actor Section 4 assigns it to.
-3. Ask whether the exploit still succeeds when those capability boundaries and obligations are respected.
-4. Identify the outcome the bug lets the threat actor achieve beyond what that actor could already achieve without the bug.
-
-Then apply the disposition rules:
-
-- **Library responsibility** — a required Sequelize guarantee or invariant failed under intended use, and the concrete impact does not require an additional application or operator failure.
-- **Shared responsibility** — Sequelize introduces an independent unsafe behavior, but exploitation also requires an application or operator failure.
-- **Application misuse / defense-in-depth** — Sequelize preserves its invariants and introduces no independent unsafe behavior, but the issue exists only because the application or operator exposes an input or capability it is required to control.
-- **Out of scope / dependency issue** — the failure is wholly inside an out-of-scope database, driver, runtime, operating system, or third-party component and Sequelize neither configures nor exposes it. Route it to the responsible project without assigning Sequelize vulnerability severity.
-
-#### Severity
-
-Rate three factors, combine them into a starting severity, then apply the disposition rules and finding-specific adjustments.
-
-- **Impact if triggered.** Data exposure, integrity corruption, or code execution is high impact. Availability impact is high when an attacker can repeatedly or persistently disable a process or database for many users, and medium when disruption is bounded, narrow, or readily recoverable.
-- **Blast radius.** Whole-process effects are wide. Effects limited to one query, request, or connection are narrow.
-- **Reachability.** Evaluate from the relevant threat actor and its baseline capabilities to the final impact. Paths available through that actor's documented inputs are easier to reach; paths that require another actor's capability, application misuse, operator error, unusual deployment assumptions, or a separate bug are harder.
-
-Severity must be derived from the complete attack path, not from maximum impact alone. Record every non-library precondition required before the defect can be exploited and explain how each affects reachability. The existence of a public API, supported option, or severe end impact does not by itself determine reachability or severity.
-
-Impact should be measured relative to what the threat actor could already achieve without the bug. If the bug does not let the threat actor achieve an outcome beyond that, that is a strong invalidation signal.
-
-Combine all three factors into a starting severity. No single factor may substitute for the others:
-
-- **Critical** — exceptional impact with broad practical exposure across many consumers or deployments.
-- **High** — high impact with broad practical exposure after accounting for blast radius and required preconditions.
-- **Medium** — material impact with bounded practical exposure, or high impact whose exploit path depends on meaningful preconditions.
-- **Low** — limited impact or exploit paths with narrow effects and substantial preconditions.
-- **Informational** — useful hardening or integration guidance that does not establish a Sequelize vulnerability.
-
-Apply these adjustments, and record the reason for any change:
-
-- **Application misuse / defense-in-depth** and **out of scope / dependency issue** dispositions do not receive Sequelize vulnerability severity. They may be recorded as **Informational** when useful for hardening or integration guidance, or tracked as external-project issues where appropriate.
-- For **Shared responsibility** findings, rate the complete attack path and treat application or operator failure as a reachability precondition; do not count the same precondition again as an automatic severity reduction.
-- If the threat actor itself is trusted or privileged and the exploit requires malicious action or compromise of that role, cap severity at Low. Do not apply this cap when the trusted or privileged actor only performs a legitimate expected action and a lower-trust actor exploits the resulting behavior.
-- Raise or lower the starting severity once the concrete finding's preconditions, affected versions, deployment, database privileges, duration, and recoverability are known, and record the reason.
-
-The entry-point rules establish expected handling only. Final disposition and severity come from the concrete exploit path and the factors above.
+The entry-point rules establish expected handling only. Final disposition and severity are assigned by maintainers when a concrete finding is evaluated; [Appendix A](#appendix-a-non-normative-heuristics-for-automated-security-review) lists the non-normative heuristics used for first-pass and automated review.
 
 ## 6. Threat scenarios
 
@@ -282,10 +233,10 @@ For any report or code change:
 1. Identify the relevant threat actor from Section 4, then identify the actor-controlled source and classify it using Section 5.
 2. Trace the complete lifecycle and record every transformation, resource allocation, retained state, cleanup path, and cross-operation effect.
 3. Check all official dialect overrides; do not generalize from one dialect.
-4. State the threat actor, baseline capabilities, required additional capabilities and the actors Section 4 assigns them to, failed guarantee or applicable non-guarantee, disposition, concrete impact, blast radius, reachability, required non-library preconditions, whether the exploit survives compliant integration, outcome gained beyond what the threat actor could already achieve without the bug, database privileges, final severity or Informational label, and the reason for any adjustment.
+4. State the threat actor, baseline capabilities, required additional capabilities and the actors Section 4 assigns them to, failed guarantee or applicable non-guarantee, proposed disposition, concrete impact, blast radius, reachability, required non-library preconditions, whether the exploit survives compliant integration, outcome gained beyond what the threat actor could already achieve without the bug, database privileges, proposed severity or Informational label, and the reason for any adjustment. Use the heuristics in Appendix A and mark the result as a proposal for maintainer review.
 5. For resource findings, distinguish request-scoped work caused by application-selected input from retained state or cross-operation amplification introduced by Sequelize. Absence of an existing or documented resource control is not a dismissal criterion.
 6. Evaluate every affected input path and trust boundary. Do not stop after identifying either an application- or operator-controlled input or a Sequelize failure; determine which failures are required for the concrete impact.
-7. Distinguish application misuse from a library failure by applying the disposition check in Section 5. Supported data values in model attributes, ordinary `where` value positions, bind parameters, and replacements must remain data; explicit SQL-expression objects are a separate structural input class, and the existence of raw SQL APIs does not weaken the value guarantee.
+7. Distinguish application misuse from a library failure by applying the disposition check in Appendix A. Supported data values in model attributes, ordinary `where` value positions, bind parameters, and replacements must remain data; explicit SQL-expression objects are a separate structural input class, and the existence of raw SQL APIs does not weaken the value guarantee.
 8. Follow [SECURITY.md](SECURITY.md). Search open GitHub issues and pull requests, the project's known-findings file when present, and any approved private advisory tracker before treating a finding as new. Do not disclose private records in public artifacts.
 9. Require a failing regression test and, where applicable, a real-database reproduction before closure.
 
@@ -294,3 +245,54 @@ For any report or code change:
 - [Sequelize v7 documentation](https://sequelize.org/docs/v7/)
 - [Sequelize monorepo — `@sequelize/core`, official dialects, and `@sequelize/cli`](https://github.com/sequelize/sequelize)
 - [`@sequelize/cli` package source](https://github.com/sequelize/sequelize/tree/main/packages/cli)
+
+## Appendix A (non-normative): heuristics for automated security review
+
+This appendix is a heuristic for first-pass and automated review of security findings. It is not project policy: it does not override maintainer judgement on individual reports, it does not change the disclosure process in [SECURITY.md](SECURITY.md), and past or future assessments are not bound by it. Whether to adopt, revise, or replace it as policy is tracked in [sequelize/sequelize#18280](https://github.com/sequelize/sequelize/issues/18280). Reviewers who use it should report the resulting disposition and severity as a proposal, together with the evidence behind it.
+
+Assign a disposition, then a severity. Record enough evidence for another reviewer to reproduce or challenge the result. Base the conclusion on the evidence available for the finding. The conclusion must be final for that evidence: do not defer it to another pass or qualify it with hypothetical future evidence, inputs, deployments, or exploit paths.
+
+### Disposition
+
+Before assigning disposition, evaluate the complete exploit path under a compliant application and operator:
+
+1. Identify the relevant threat actor and its baseline capabilities from Section 4.
+2. Identify every additional capability required before the defect is reached and which actor Section 4 assigns it to.
+3. Ask whether the exploit still succeeds when those capability boundaries and obligations are respected.
+4. Identify the outcome the bug lets the threat actor achieve beyond what that actor could already achieve without the bug.
+
+Then apply the disposition rules:
+
+- **Library responsibility** — a required Sequelize guarantee or invariant failed under intended use, and the concrete impact does not require an additional application or operator failure.
+- **Shared responsibility** — Sequelize introduces an independent unsafe behavior, but exploitation also requires an application or operator failure.
+- **Application misuse / defense-in-depth** — Sequelize preserves its invariants and introduces no independent unsafe behavior, but the issue exists only because the application or operator exposes an input or capability it is required to control.
+- **Out of scope / dependency issue** — the failure is wholly inside an out-of-scope database, driver, runtime, operating system, or third-party component and Sequelize neither configures nor exposes it. Route it to the responsible project without assigning Sequelize vulnerability severity.
+
+### Severity
+
+Rate three factors, combine them into a starting severity, then apply the disposition rules and finding-specific adjustments.
+
+- **Impact if triggered.** Data exposure, integrity corruption, or code execution is high impact. Availability impact is high when an attacker can repeatedly or persistently disable a process or database for many users, and medium when disruption is bounded, narrow, or readily recoverable.
+- **Blast radius.** Whole-process effects are wide. Effects limited to one query, request, or connection are narrow.
+- **Reachability.** Evaluate from the relevant threat actor and its baseline capabilities to the final impact. Paths available through that actor's documented inputs are easier to reach; paths that require another actor's capability, application misuse, operator error, unusual deployment assumptions, or a separate bug are harder.
+
+Severity must be derived from the complete attack path, not from maximum impact alone. Record every non-library precondition required before the defect can be exploited and explain how each affects reachability. The existence of a public API, supported option, or severe end impact does not by itself determine reachability or severity.
+
+Impact should be measured relative to what the threat actor could already achieve without the bug. If the bug does not let the threat actor achieve an outcome beyond that, that is a strong invalidation signal.
+
+Combine all three factors into a starting severity. No single factor may substitute for the others:
+
+- **Critical** — exceptional impact with broad practical exposure across many consumers or deployments.
+- **High** — high impact with broad practical exposure after accounting for blast radius and required preconditions.
+- **Medium** — material impact with bounded practical exposure, or high impact whose exploit path depends on meaningful preconditions.
+- **Low** — limited impact or exploit paths with narrow effects and substantial preconditions.
+- **Informational** — useful hardening or integration guidance that does not establish a Sequelize vulnerability.
+
+Apply these adjustments, and record the reason for any change:
+
+- **Application misuse / defense-in-depth** and **out of scope / dependency issue** dispositions do not receive Sequelize vulnerability severity. They may be recorded as **Informational** when useful for hardening or integration guidance, or tracked as external-project issues where appropriate.
+- For **Shared responsibility** findings, rate the complete attack path and treat application or operator failure as a reachability precondition; do not count the same precondition again as an automatic severity reduction.
+- If the threat actor itself is trusted or privileged and the exploit requires malicious action or compromise of that role, cap severity at Low. Do not apply this cap when the trusted or privileged actor only performs a legitimate expected action and a lower-trust actor exploits the resulting behavior.
+- Raise or lower the starting severity once the concrete finding's preconditions, affected versions, deployment, database privileges, duration, and recoverability are known, and record the reason.
+
+The entry-point rules in Section 5 establish expected handling only. A heuristic disposition and severity come from the concrete exploit path and the factors above; maintainers make the final call.
