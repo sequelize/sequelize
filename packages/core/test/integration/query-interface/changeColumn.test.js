@@ -172,7 +172,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
           const table = await this.queryInterface.describeTable('users');
 
-          expect(table.status.type).to.equal("ENUM('pending','complete')");
+          expect(table.status.type).to.equal('USER-DEFINED');
+          expect(table.status.special).to.deep.equal(['pending', 'complete']);
           expect(table.status.allowNull).to.be.false;
           expect(table.status.comment).to.equal('Amount (in cents)');
         });
