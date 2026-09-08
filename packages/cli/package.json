@@ -13,7 +13,7 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
-    "cosmiconfig": "^9.0.1",
+    "cosmiconfig": "^9.0.2",
     "umzug": "^3.8.2",
     "zod": "^4.3.6"
   },
