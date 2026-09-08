@@ -21,40 +21,45 @@ const debug = logger.debugContext('sql:mssql');
 const minSafeIntegerAsBigInt = BigInt(Number.MIN_SAFE_INTEGER);
 const maxSafeIntegerAsBigInt = BigInt(Number.MAX_SAFE_INTEGER);
 
+// Reasonable default precision for NUMERIC parameters, pending more sophisticated logic.
+const NUMERIC_PRECISION = 30;
+
+// Largest scale a parameter may declare: SQL Server requires the scale to be at most the
+// precision, and tedious encodes `Math.round(value * 10 ** scale)` as a 64 bit integer, so the
+// scaled value must also stay exactly representable.
+function getMaxScale(magnitude) {
+  let scale = NUMERIC_PRECISION;
+  while (scale > 0 && magnitude * 10 ** scale > Number.MAX_SAFE_INTEGER) {
+    scale -= 1;
+  }
+
+  return scale;
+}
+
 function getScale(aNum) {
   if (!Number.isFinite(aNum)) {
     return 0;
   }
 
-  const str = Math.abs(aNum).toString();
+  const magnitude = Math.abs(aNum);
+  const str = magnitude.toString();
   const exponentIndex = str.indexOf('e');
+  let scale;
 
   if (exponentIndex === -1) {
     const decimalIndex = str.indexOf('.');
-
-    return decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
+    scale = decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
+  } else {
+    // Only negative exponents reach this: getScale is called for non-integer values, and
+    // `Number#toString` switches to positive exponential notation at 1e21, past which every
+    // double is an integer.
+    const significand = str.slice(0, exponentIndex);
+    const decimalIndex = significand.indexOf('.');
+    const significandDecimals = decimalIndex === -1 ? 0 : significand.length - decimalIndex - 1;
+    scale = significandDecimals - Number(str.slice(exponentIndex + 1));
   }
 
-  // `Number#toString` switches to exponential notation for magnitudes < 1e-6 or >= 1e21. For the
-  // (common) small-magnitude case, the true number of decimal places is derivable directly from
-  // the significand's own decimals plus the (negative) exponent. Large-magnitude values that
-  // still have a fractional part are rare enough, and already imprecise enough, that we fall back
-  // to the legacy approach rather than reason about their scale.
-  const exponent = Number(str.slice(exponentIndex + 1));
-  if (exponent >= 0) {
-    let e = 1;
-    while (Math.round(aNum * e) / e !== aNum) {
-      e *= 10;
-    }
-
-    return Math.log10(e);
-  }
-
-  const significand = str.slice(0, exponentIndex);
-  const decimalIndex = significand.indexOf('.');
-  const significandDecimals = decimalIndex === -1 ? 0 : significand.length - decimalIndex - 1;
-
-  return significandDecimals - exponent;
+  return Math.min(scale, getMaxScale(magnitude));
 }
 
 export class MsSqlQuery extends AbstractQuery {
@@ -73,8 +78,7 @@ export class MsSqlQuery extends AbstractQuery {
         }
       } else {
         paramType.type = TYPES.Numeric;
-        // Default to a reasonable numeric precision/scale pending more sophisticated logic
-        paramType.typeOptions = { precision: 30, scale: getScale(value) };
+        paramType.typeOptions = { precision: NUMERIC_PRECISION, scale: getScale(value) };
       }
     } else if (typeof value === 'bigint') {
       if (value < minSafeIntegerAsBigInt || value > maxSafeIntegerAsBigInt) {
