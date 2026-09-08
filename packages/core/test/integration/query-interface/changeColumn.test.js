@@ -157,6 +157,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           );
         });
       }
+
+      if (dialect === 'postgres') {
+        it('should work with enums with comments containing parentheses', async function () {
+          await this.queryInterface.createTable('users', {
+            status: DataTypes.STRING,
+          });
+
+          await this.queryInterface.changeColumn('users', 'status', {
+            type: DataTypes.ENUM(['pending', 'complete']),
+            allowNull: false,
+            comment: 'Amount (in cents)',
+          });
+
+          const table = await this.queryInterface.describeTable('users');
+
+          expect(table.status.type).to.equal("ENUM('pending','complete')");
+          expect(table.status.allowNull).to.be.false;
+          expect(table.status.comment).to.equal('Amount (in cents)');
+        });
+      }
     }
 
     describe('should support foreign keys', () => {

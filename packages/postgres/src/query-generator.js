@@ -139,16 +139,18 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     for (const attributeName in attributes) {
-      let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
-      let attrSql = '';
-
+      let rawDefinition = attributes[attributeName];
       let columnComment = '';
-      const i = definition.indexOf('; COMMENT ON COLUMN');
+      const commentPrefix = `; COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(attributeName)} IS `;
+      const i = rawDefinition.indexOf(commentPrefix);
       if (i !== -1) {
         // Move comment to a separate query
-        columnComment = `${definition.slice(i + 1)};`;
-        definition = definition.slice(0, i);
+        columnComment = `${rawDefinition.slice(i + 1)};`;
+        rawDefinition = rawDefinition.slice(0, i);
       }
+
+      let definition = this.dataTypeMapping(tableName, attributeName, rawDefinition);
+      let attrSql = '';
 
       if (definition.includes('NOT NULL')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
@@ -168,12 +170,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
-      if (attributes[attributeName].startsWith('ENUM(')) {
-        attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
-        definition = definition.replace(
-          /^ENUM\(.+\)/,
-          this.pgEnumName(tableName, attributeName, { schema: false }),
-        );
+      if (rawDefinition.startsWith('ENUM(')) {
+        attrSql += this.pgEnum(tableName, attributeName, rawDefinition);
         definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
       }
 
