@@ -945,12 +945,6 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   }
 
   /**
-   * Deletes records from a table
-   *
-   * @param tableOrModel
-   * @param options
-   */
-  /**
    * Insert multiple records into a table
    *
    * @example
@@ -1023,6 +1017,12 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     return results[0];
   }
 
+  /**
+   * Deletes records from a table
+   *
+   * @param tableOrModel
+   * @param options
+   */
   async bulkDelete(tableOrModel: TableOrModel, options?: QiBulkDeleteOptions): Promise<number> {
     const bulkDeleteOptions = { ...options };
     const sql = this.queryGenerator.bulkDeleteQuery(tableOrModel, bulkDeleteOptions);
