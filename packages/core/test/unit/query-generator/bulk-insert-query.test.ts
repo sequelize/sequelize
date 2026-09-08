@@ -422,9 +422,16 @@ describe('QueryGenerator#bulkInsertQuery', () => {
 
   describe('autoIncrement attributes', () => {
     const vars = beforeAll2(() => {
-      const integer = new DataTypes.INTEGER().toDialectDataType(sequelize.dialect);
+      const User = sequelize.define(
+        'User',
+        {
+          id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
+          name: DataTypes.STRING,
+        },
+        { timestamps: false },
+      );
 
-      return { attributes: { id: { autoIncrement: true, type: integer } } };
+      return { attributes: Object.fromEntries(User.modelDefinition.physicalAttributes) };
     });
 
     it('lets the database generate the value when null is provided', () => {
@@ -499,18 +506,12 @@ describe('QueryGenerator#bulkInsertQuery', () => {
 
     if (dialect === 'mssql') {
       it('uses DEFAULT VALUES when the only column is a null autoIncrement column', () => {
-        expectsql(
-          queryGenerator.bulkInsertQuery(
-            'myTable',
-            [{ id: null }],
-            {},
-            { id: { autoIncrement: true } },
-          ),
-          {
-            query: { mssql: 'INSERT INTO [myTable] DEFAULT VALUES;' },
-            bind: { default: undefined },
-          },
-        );
+        const { attributes } = vars;
+
+        expectsql(queryGenerator.bulkInsertQuery('myTable', [{ id: null }], {}, attributes), {
+          query: { mssql: 'INSERT INTO [myTable] DEFAULT VALUES;' },
+          bind: { default: undefined },
+        });
       });
     }
   });
