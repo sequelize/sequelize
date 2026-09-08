@@ -94,7 +94,7 @@ export class AbstractQueryGenerator<
     tableName: TableName,
     newEntries: object[],
     options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
+    columnDefinitions?: { [columnName: string]: AttributeOptions },
   ): BoundQuery;
 
   addColumnQuery(

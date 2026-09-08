@@ -353,16 +353,6 @@ export class AbstractQueryInterface<
   ): Promise<object>;
 
   /**
-   * Inserts multiple records at once
-   */
-  bulkInsert(
-    tableName: TableName,
-    records: object[],
-    options?: QiBulkInsertOptions,
-    attributes?: Record<string, AttributeOptions>,
-  ): Promise<object | number>;
-
-  /**
    * Updates a row
    */
   update<M extends Model>(

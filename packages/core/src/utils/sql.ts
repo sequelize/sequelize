@@ -450,7 +450,10 @@ export function assertNoReservedBind(bind: BindOrReplacements): void {
   }
 }
 
-export function combineBinds(bindA: BindOrReplacements, bindB: { [key: string]: unknown }) {
+export function combineBinds(
+  bindA: BindOrReplacements | undefined,
+  bindB: { [key: string]: unknown },
+) {
   if (Array.isArray(bindA)) {
     bindA = arrayBindToNamedBind(bindA);
   }

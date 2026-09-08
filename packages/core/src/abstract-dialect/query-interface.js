@@ -8,7 +8,7 @@ import isObject from 'lodash/isObject';
 import mapValues from 'lodash/mapValues';
 import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
-import { ParameterStyle, QueryTypes } from '../enums';
+import { QueryTypes } from '../enums';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
@@ -456,74 +456,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.bind = combineBinds(options.bind, bind);
 
     return await this.sequelize.queryRaw(query, options);
-  }
-
-  /**
-   * Insert multiple records into a table
-   *
-   * @example
-   * queryInterface.bulkInsert('roles', [{
-   *    label: 'user',
-   *    createdAt: new Date(),
-   *    updatedAt: new Date()
-   *  }, {
-   *    label: 'admin',
-   *    createdAt: new Date(),
-   *    updatedAt: new Date()
-   *  }]);
-   *
-   * @param {string} tableName   Table name to insert record to
-   * @param {Array}  records     List of records to insert
-   * @param {object} options     Various options, please see Model.bulkCreate options
-   * @param {object} attributes  Various attributes mapped by field name
-   *
-   * @returns {Promise}
-   */
-  async bulkInsert(tableName, records, options, attributes) {
-    options = { ...options, type: QueryTypes.INSERT };
-
-    const supportedStyles = this.dialect.supports.inserts.bulkInsertParameterStyles;
-    if (options.parameterStyle == null) {
-      options.parameterStyle = supportedStyles[ParameterStyle.REPLACEMENT]
-        ? ParameterStyle.REPLACEMENT
-        : ParameterStyle.BIND;
-    } else if (!supportedStyles[options.parameterStyle]) {
-      const supported = Object.keys(supportedStyles).filter(style => supportedStyles[style]);
-
-      throw new Error(
-        `parameterStyle "${options.parameterStyle}" is not supported by bulk inserts in the ${this.dialect.name} dialect. Supported styles: ${supported.join(', ')}.`,
-      );
-    }
-
-    if (options.bind) {
-      assertNoReservedBind(options.bind);
-    }
-
-    const { bind, query } = this.queryGenerator.bulkInsertQuery(
-      tableName,
-      records,
-      options,
-      attributes,
-    );
-
-    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
-    delete options.replacements;
-
-    if (Array.isArray(bind)) {
-      if (options.bind) {
-        throw new Error(
-          `The ${this.dialect.name} dialect does not support the "bind" option in bulkInsert, because it executes bulk inserts with one set of positional binds per row.`,
-        );
-      }
-
-      options.bind = bind;
-    } else if (bind != null) {
-      options.bind = combineBinds(options.bind, bind);
-    }
-
-    const results = await this.sequelize.queryRaw(query, options);
-
-    return results[0];
   }
 
   async update(instance, tableName, values, where, options) {

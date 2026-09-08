@@ -3,9 +3,10 @@ import isEmpty from 'lodash/isEmpty';
 import assert from 'node:assert';
 import type { ConstraintChecking } from '../deferrable';
 import { Deferrable } from '../deferrable';
-import { QueryTypes } from '../enums';
+import { ParameterStyle, QueryTypes } from '../enums';
 import { BaseError } from '../errors';
 import { setTransactionFromCls } from '../model-internals.js';
+import type { AttributeOptions } from '../model.js';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../sequelize';
 import { COMPLETES_TRANSACTION, Transaction } from '../transaction';
 import { isErrorWithStringCode } from '../utils/check.js';
@@ -15,11 +16,12 @@ import {
   showAllToListSchemas,
   showAllToListTables,
 } from '../utils/deprecations';
+import { assertNoReservedBind, combineBinds } from '../utils/sql.js';
 import type { AbstractConnection } from './connection-manager.js';
 import type { AbstractDialect } from './dialect.js';
 import type { TableOrModel } from './query-generator.types.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
-import type { TableNameWithSchema } from './query-interface.js';
+import type { QiBulkInsertOptions, TableName, TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
@@ -948,6 +950,79 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableOrModel
    * @param options
    */
+  /**
+   * Insert multiple records into a table
+   *
+   * @example
+   * queryInterface.bulkInsert('roles', [{
+   *    label: 'user',
+   *    createdAt: new Date(),
+   *    updatedAt: new Date()
+   *  }, {
+   *    label: 'admin',
+   *    createdAt: new Date(),
+   *    updatedAt: new Date()
+   *  }]);
+   *
+   * @param tableName Table name to insert record to
+   * @param records List of records to insert
+   * @param options Various options, please see Model.bulkCreate options
+   * @param attributes Various attributes mapped by field name
+   */
+  async bulkInsert(
+    tableName: TableName,
+    records: object[],
+    options?: QiBulkInsertOptions,
+    attributes?: Record<string, AttributeOptions>,
+  ): Promise<object | number> {
+    const queryOptions = { ...options, type: QueryTypes.INSERT as const };
+
+    const supportedStyles = this.dialect.supports.inserts.bulkInsertParameterStyles;
+    if (queryOptions.parameterStyle == null) {
+      queryOptions.parameterStyle = supportedStyles[ParameterStyle.REPLACEMENT]
+        ? ParameterStyle.REPLACEMENT
+        : ParameterStyle.BIND;
+    } else if (!supportedStyles[queryOptions.parameterStyle]) {
+      const supported = Object.keys(supportedStyles).filter(
+        style => supportedStyles[style as ParameterStyle],
+      );
+
+      throw new Error(
+        `parameterStyle "${queryOptions.parameterStyle}" is not supported by bulk inserts in the ${this.dialect.name} dialect. Supported styles: ${supported.join(', ')}.`,
+      );
+    }
+
+    if (queryOptions.bind) {
+      assertNoReservedBind(queryOptions.bind);
+    }
+
+    const { bind, query } = this.queryGenerator.bulkInsertQuery(
+      tableName,
+      records,
+      queryOptions,
+      attributes,
+    );
+
+    // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
+    delete queryOptions.replacements;
+
+    if (Array.isArray(bind)) {
+      if (queryOptions.bind) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support the "bind" option in bulkInsert, because it executes bulk inserts with one set of positional binds per row.`,
+        );
+      }
+
+      queryOptions.bind = bind;
+    } else if (bind != null) {
+      queryOptions.bind = combineBinds(queryOptions.bind, bind);
+    }
+
+    const results = await this.sequelize.queryRaw(query, queryOptions);
+
+    return results[0];
+  }
+
   async bulkDelete(tableOrModel: TableOrModel, options?: QiBulkDeleteOptions): Promise<number> {
     const bulkDeleteOptions = { ...options };
     const sql = this.queryGenerator.bulkDeleteQuery(tableOrModel, bulkDeleteOptions);
