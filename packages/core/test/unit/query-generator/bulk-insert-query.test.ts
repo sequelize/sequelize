@@ -685,6 +685,50 @@ describe('QueryGenerator#bulkInsertQuery', () => {
       });
     });
 
+    it('supports models', () => {
+      const MyModel = sequelize.define('MyModel', {});
+
+      expectsql(queryGenerator.bulkInsertQuery(MyModel, rows), {
+        query: {
+          default: `INSERT INTO [MyModels] ([name]) VALUES ('foo'),('bar');`,
+          mssql: `INSERT INTO [MyModels] ([name]) VALUES (N'foo'),(N'bar');`,
+          ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "MyModels" ("name") VALUES ('foo'),('bar'))`,
+          oracle: `INSERT INTO "MyModels" ("name") VALUES (:1)`,
+        },
+        bind: { default: undefined, oracle: oracleTwoStrings },
+      });
+    });
+
+    it('supports model definitions', () => {
+      const MyModel = sequelize.define('MyModel', {});
+
+      expectsql(queryGenerator.bulkInsertQuery(MyModel.modelDefinition, rows), {
+        query: {
+          default: `INSERT INTO [MyModels] ([name]) VALUES ('foo'),('bar');`,
+          mssql: `INSERT INTO [MyModels] ([name]) VALUES (N'foo'),(N'bar');`,
+          ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "MyModels" ("name") VALUES ('foo'),('bar'))`,
+          oracle: `INSERT INTO "MyModels" ("name") VALUES (:1)`,
+        },
+        bind: { default: undefined, oracle: oracleTwoStrings },
+      });
+    });
+
+    it('supports models with a schema', () => {
+      const MyModel = sequelize.define('MyModel', {}, { schema: 'mySchema' });
+
+      expectsql(queryGenerator.bulkInsertQuery(MyModel, rows, BIND), {
+        query: {
+          default: `INSERT INTO [mySchema].[MyModels] ([name]) VALUES ($sequelize_1),($sequelize_2);`,
+          sqlite3: 'INSERT INTO `mySchema.MyModels` (`name`) VALUES ($sequelize_1),($sequelize_2);',
+          mssql: `INSERT INTO [mySchema].[MyModels] ([name]) VALUES (N'foo'),(N'bar');`,
+          db2: `INSERT INTO "mySchema"."MyModels" ("name") VALUES ('foo'),('bar');`,
+          ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "mySchema"."MyModels" ("name") VALUES ($sequelize_1),($sequelize_2))`,
+          oracle: `INSERT INTO "mySchema"."MyModels" ("name") VALUES (:1)`,
+        },
+        bind: { default: twoStrings, ...inlinesValues, oracle: oracleTwoStrings },
+      });
+    });
+
     describe('with quoteIdentifiers: false', () => {
       allowDeprecationsInSuite(['SEQUELIZE0023']);
 

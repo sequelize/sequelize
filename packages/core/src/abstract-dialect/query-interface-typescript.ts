@@ -21,7 +21,7 @@ import type { AbstractConnection } from './connection-manager.js';
 import type { AbstractDialect } from './dialect.js';
 import type { TableOrModel } from './query-generator.types.js';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
-import type { QiBulkInsertOptions, TableName, TableNameWithSchema } from './query-interface.js';
+import type { QiBulkInsertOptions, TableNameWithSchema } from './query-interface.js';
 import type {
   AddConstraintOptions,
   ColumnsDescription,
@@ -958,13 +958,13 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    *    updatedAt: new Date()
    *  }]);
    *
-   * @param tableName Table name to insert record to
+   * @param tableOrModel Table or model to insert records into
    * @param records List of records to insert
    * @param options Various options, please see Model.bulkCreate options
    * @param attributes Various attributes mapped by field name
    */
   async bulkInsert(
-    tableName: TableName,
+    tableOrModel: TableOrModel,
     records: object[],
     options?: QiBulkInsertOptions,
     attributes?: Record<string, AttributeOptions>,
@@ -991,7 +991,7 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     }
 
     const { bind, query } = this.queryGenerator.bulkInsertQuery(
-      tableName,
+      tableOrModel,
       records,
       queryOptions,
       attributes,

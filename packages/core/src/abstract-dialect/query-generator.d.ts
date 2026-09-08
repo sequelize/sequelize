@@ -91,7 +91,7 @@ export class AbstractQueryGenerator<
     options?: InsertOptions,
   ): BoundQuery;
   bulkInsertQuery(
-    tableName: TableName,
+    tableOrModel: TableOrModel,
     newEntries: object[],
     options?: BulkInsertOptions,
     columnDefinitions?: { [columnName: string]: AttributeOptions },

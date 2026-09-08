@@ -19,7 +19,15 @@ describe('QueryInterface#bulkInsert', () => {
       { timestamps: false },
     );
 
-    return { User };
+    const Task = sequelize.define(
+      'Task',
+      {
+        title: DataTypes.STRING,
+      },
+      { timestamps: false, schema: 'mySchema' },
+    );
+
+    return { User, Task };
   });
 
   afterEach(() => {
@@ -149,6 +157,47 @@ describe('QueryInterface#bulkInsert', () => {
     } else {
       expect(stub.getCall(0).args[1]).to.not.have.property('bind');
     }
+  });
+
+  it('accepts a model instead of a table name', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await sequelize.queryInterface.bulkInsert(User, [{ firstName: 'a' }]);
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+
+    expectPerDialect(() => firstCall.args[0], {
+      default: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES ('a');`),
+      'mysql mariadb sqlite3': toMatchSql("INSERT INTO `Users` (`firstName`) VALUES ('a');"),
+      mssql: toMatchSql(`INSERT INTO [Users] ([firstName]) VALUES (N'a');`),
+      ibmi: toMatchSql(
+        `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ('a'))`,
+      ),
+      oracle: toMatchSql(`INSERT INTO "Users" ("firstName") VALUES (:1)`),
+    });
+  });
+
+  it('targets the schema of the model when a model is passed', async () => {
+    const { Task } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await sequelize.queryInterface.bulkInsert(Task, [{ title: 'a' }]);
+
+    expect(stub.callCount).to.eq(1);
+    const firstCall = stub.getCall(0);
+
+    expectPerDialect(() => firstCall.args[0], {
+      default: toMatchSql(`INSERT INTO "mySchema"."Tasks" ("title") VALUES ('a');`),
+      'mysql mariadb': toMatchSql("INSERT INTO `mySchema`.`Tasks` (`title`) VALUES ('a');"),
+      sqlite3: toMatchSql("INSERT INTO `mySchema.Tasks` (`title`) VALUES ('a');"),
+      mssql: toMatchSql(`INSERT INTO [mySchema].[Tasks] ([title]) VALUES (N'a');`),
+      ibmi: toMatchSql(
+        `SELECT * FROM FINAL TABLE (INSERT INTO "mySchema"."Tasks" ("title") VALUES ('a'))`,
+      ),
+      oracle: toMatchSql(`INSERT INTO "mySchema"."Tasks" ("title") VALUES (:1)`),
+    });
   });
 
   const unsupportedStyle = [ParameterStyle.REPLACEMENT, ParameterStyle.BIND].find(

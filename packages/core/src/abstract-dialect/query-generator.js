@@ -323,14 +323,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Returns an insert into command for multiple values.
    *
-   * @param {string} tableName
+   * @param {TableOrModel} tableOrModel
    * @param {object} fieldValueHashes
    * @param {object} options
    * @param {object} fieldMappedAttributes
    *
    * @private
    */
-  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
+  bulkInsertQuery(tableOrModel, fieldValueHashes, options, fieldMappedAttributes) {
     options ||= {};
     fieldMappedAttributes ||= {};
 
@@ -441,7 +441,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       'INSERT',
       ignoreDuplicates,
       'INTO',
-      this.quoteTable(tableName),
+      this.quoteTable(tableOrModel),
       `(${attributes})`,
       'VALUES',
       tuples.join(','),
