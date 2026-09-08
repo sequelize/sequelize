@@ -48,9 +48,11 @@ import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from
 export class BelongsToAssociation<
   S extends Model = Model,
   T extends Model = Model,
-  SourceKey extends AttributeNames<S> = any,
-  TargetKey extends AttributeNames<T> = any,
+  SourceKey extends AttributeNames<S> = AttributeNames<S>,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
 > extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
+  readonly #foreignKey: SourceKey;
+
   readonly accessors: SingleAssociationAccessors;
 
   /**
@@ -62,7 +64,9 @@ export class BelongsToAssociation<
     return this.foreignKey;
   }
 
-  foreignKey: SourceKey;
+  get foreignKey(): SourceKey {
+    return this.#foreignKey;
+  }
 
   foreignKeys: Array<Key<SourceKey, TargetKey>> = [];
 
@@ -166,7 +170,7 @@ export class BelongsToAssociation<
       // Composite key flow
       // TODO: fix this
       this.targetKey = null as any;
-      this.foreignKey = null as any;
+      this.#foreignKey = null as any;
       this.identifierField = null as any;
 
       const foreignKeyAttributeOptions = options.foreignKey;
@@ -214,7 +218,7 @@ export class BelongsToAssociation<
         foreignKey = this.inferForeignKey();
       }
 
-      this.foreignKey = foreignKey as SourceKey;
+      this.#foreignKey = foreignKey as SourceKey;
 
       const targetAttribute = targetAttributes.get(this.targetKey)!;
 

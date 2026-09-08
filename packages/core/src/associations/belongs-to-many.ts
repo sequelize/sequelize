@@ -117,8 +117,8 @@ export class BelongsToManyAssociation<
   SourceModel extends Model = Model,
   TargetModel extends Model = Model,
   ThroughModel extends Model = Model,
-  SourceKey extends AttributeNames<SourceModel> = any,
-  TargetKey extends AttributeNames<TargetModel> = any,
+  SourceKey extends AttributeNames<SourceModel> = AttributeNames<SourceModel>,
+  TargetKey extends AttributeNames<TargetModel> = AttributeNames<TargetModel>,
 > extends MultiAssociation<
   SourceModel,
   TargetModel,

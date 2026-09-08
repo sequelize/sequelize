@@ -38,6 +38,25 @@ describe('Sequelize', () => {
     });
   });
 
+  describe('setSessionVariables', () => {
+    afterEach(() => sinon.restore());
+
+    if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+      return;
+    }
+
+    it('escapes an injection value in the generated assignment', async () => {
+      const query = sinon.stub(sequelize, 'query').resolves([[], 0]);
+      const value = `", @is_admin := 1, apostrophe ', backslash \\`;
+
+      await sequelize.setSessionVariables({ café: value }, { connection: {} });
+
+      expect(query).to.have.been.calledWith(
+        String.raw`SET @café := '", @is_admin := 1, apostrophe \', backslash \\'`,
+      );
+    });
+  });
+
   describe('close', () => {
     it('clears the pool & closes Sequelize', async () => {
       const options = {

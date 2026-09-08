@@ -15,7 +15,7 @@ import { Value } from './value.js';
 import { where } from './where.js';
 
 /**
- * The template tag function used to easily create {@link sql.literal}.
+ * The template tag function used to easily create {@link @sequelize/core!sql.literal}.
  *
  * @param rawSql
  * @param values

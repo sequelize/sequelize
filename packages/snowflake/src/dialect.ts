@@ -38,6 +38,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptio
   arrayBindingThreshold: undefined,
   authenticator: undefined,
   browserActionTimeout: undefined,
+  browserRedirectPort: undefined,
   clientConfigFile: undefined,
   clientRequestMFAToken: undefined,
   clientSessionKeepAlive: undefined,
@@ -101,6 +102,7 @@ export class SnowflakeDialect extends AbstractDialect<
   SnowflakeConnectionOptions
 > {
   static supports = AbstractDialect.extendSupport({
+    maxTableAliasLength: 255,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,

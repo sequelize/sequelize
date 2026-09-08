@@ -101,7 +101,10 @@ export abstract class Association<
     /* method name in model */ string
   >;
 
-  abstract foreignKey: ForeignKey;
+  /**
+   * The name of the foreign key attribute used by this association.
+   */
+  abstract get foreignKey(): ForeignKey;
 
   abstract foreignKeys: Array<Key<string, string>>;
 
@@ -204,7 +207,7 @@ export abstract class MultiAssociation<
   S extends Model = Model,
   T extends Model = Model,
   ForeignKey extends string = string,
-  TargetKey extends AttributeNames<T> = any,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
   Opts extends NormalizedAssociationOptions<ForeignKey> = NormalizedAssociationOptions<ForeignKey>,
 > extends Association<S, T, ForeignKey, Opts> {
   static get isMultiAssociation() {
