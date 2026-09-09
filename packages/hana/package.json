@@ -40,7 +40,7 @@
     "@sap/hana-client": "^2.19.21",
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "dayjs": "^1.11.20",
+    "dayjs": "^1.11.23",
     "lodash": "^4.17.21",
     "wkx": "^0.5.0"
   },
