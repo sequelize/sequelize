@@ -52,6 +52,11 @@ if (dialect === 'db2') {
           expectation: { id: 'INTEGER COMMENT Test' },
         },
         {
+          title: 'createTable context omits the comment fragment',
+          arguments: [{ id: { type: 'INTEGER', comment: 'Test' } }, { context: 'createTable' }],
+          expectation: { id: 'INTEGER' },
+        },
+        {
           arguments: [{ id: { type: 'INTEGER', unique: true } }],
           expectation: { id: 'INTEGER UNIQUE' },
         },
@@ -545,16 +550,19 @@ if (dialect === 'db2') {
       });
     });
 
-    describe(Support.getTestDialectTeaser('createTableQuery column comments'), () => {
-      it('emits COMMENT ON COLUMN instead of a discarded -- comment', () => {
-        const sequelize = createSequelizeInstance();
-        const sql = sequelize.dialect.queryGenerator.createTableQuery('myTable', {
-          myColumn: 'DATE COMMENT Foo',
-        });
-
-        expect(sql).to.equal(
-          `CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE); COMMENT ON COLUMN "myTable"."myColumn" IS 'Foo';`,
+    describe('commentOnColumnQuery', () => {
+      it('generates a standalone COMMENT ON COLUMN statement', () => {
+        const queryGenerator = createSequelizeInstance().dialect.queryGenerator;
+        expect(queryGenerator.commentOnColumnQuery('myTable', 'age', 'Test')).to.equal(
+          `COMMENT ON COLUMN "myTable"."age" IS 'Test';`,
         );
+      });
+
+      it('escapes quotes in the comment', () => {
+        const queryGenerator = createSequelizeInstance().dialect.queryGenerator;
+        expect(
+          queryGenerator.commentOnColumnQuery('myTable', 'age', `Te'st'; DROP TABLE "Users"; --`),
+        ).to.equal(`COMMENT ON COLUMN "myTable"."age" IS 'Te''st''; DROP TABLE "Users"; --';`);
       });
     });
   });
