@@ -367,10 +367,6 @@ export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult
   toBindableValue(value: any): string {
     return jsonToBindableValue(value, this._getDialect());
   }
-
-  getBindParamSql(value: any, options: BindParamOptions): any {
-    return options.bindParam(this.toBindableValue(value));
-  }
 }
 
 export class DOUBLE extends BaseTypes.DOUBLE {
