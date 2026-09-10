@@ -15,19 +15,7 @@ describe('QueryGenerator#updateQuery', () => {
       { timestamps: false },
     );
 
-    // Only defined on dialects that support the JSON data type (used by the oracle-only test below).
-    const JsonUser = dialect.supports.dataTypes.JSON
-      ? sequelize.define(
-          'JsonUser',
-          {
-            name: DataTypes.STRING,
-            data: DataTypes.JSON,
-          },
-          { timestamps: false },
-        )
-      : null;
-
-    return { User, JsonUser };
+    return { User };
   });
 
   // you'll find more replacement tests in query-generator tests
@@ -103,39 +91,58 @@ describe('QueryGenerator#updateQuery', () => {
     });
   });
 
-  it('binds a scalar compared against a JSON path extraction as a plain value, not as a JSON document', () => {
-    // Oracle's JSON_VALUE returns a plain SQL scalar, unlike other dialects' JSON extraction functions.
-    if (dialect.name !== 'oracle') {
-      return;
-    }
-
-    const { JsonUser } = vars;
-    if (!JsonUser) {
-      throw new Error('JsonUser should have been defined: oracle supports the JSON data type');
-    }
-
-    const { query, bind } = queryGenerator.updateQuery(
-      JsonUser.table,
-      {
-        name: 'John',
-      },
-      {
-        data: {
-          field: {
-            deep: true,
+  if (dialect.supports.jsonExtraction.quoted) {
+    it('binds a scalar compared against a JSON path extraction as a plain value, not as a JSON document', () => {
+      const { query, bind } = queryGenerator.updateQuery(
+        'JsonUsers',
+        {
+          name: 'John',
+        },
+        {
+          data: {
+            field: {
+              deep: true,
+            },
           },
         },
-      },
-    );
+      );
 
-    expectsql(query, {
-      oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."field"."deep"') = $sequelize_2`,
+      expectsql(query, {
+        postgres: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE "data"#>ARRAY['field','deep']::VARCHAR(255)[] = $sequelize_2`,
+        mysql: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_extract(\`data\`,'$.field.deep') = CAST($sequelize_2 AS JSON)`,
+        mariadb: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_compact(json_extract(\`data\`,'$.field.deep')) = $sequelize_2`,
+        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."field"."deep"') = $sequelize_2`,
+      });
+      expect(bind).to.deep.eq({
+        sequelize_1: 'John',
+        sequelize_2: 'true',
+      });
     });
-    expect(bind).to.deep.eq({
-      sequelize_1: 'John',
-      sequelize_2: 'true',
+
+    it('applies the same JSON path extraction type to every value of an Op.in comparison', () => {
+      const { query, bind } = queryGenerator.updateQuery(
+        'JsonUsers',
+        {
+          name: 'John',
+        },
+        {
+          'data.status': ['a', 'b'],
+        },
+      );
+
+      expectsql(query, {
+        postgres: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE "data"->'status' IN ($sequelize_2, $sequelize_3)`,
+        mysql: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_extract(\`data\`,'$.status') IN (CAST($sequelize_2 AS JSON), CAST($sequelize_3 AS JSON))`,
+        mariadb: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_compact(json_extract(\`data\`,'$.status')) IN ($sequelize_2, $sequelize_3)`,
+        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."status"') IN ($sequelize_2, $sequelize_3)`,
+      });
+      expect(bind).to.deep.eq({
+        sequelize_1: 'John',
+        sequelize_2: dialect.name === 'oracle' ? 'a' : '"a"',
+        sequelize_3: dialect.name === 'oracle' ? 'b' : '"b"',
+      });
     });
-  });
+  }
 
   it('throws an error if the bindParam option is used', () => {
     const { User } = vars;

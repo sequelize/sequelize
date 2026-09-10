@@ -3,7 +3,6 @@
 import type { AbstractDialect, BindParamOptions } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
-import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 
@@ -330,6 +329,19 @@ export class BLOB extends BaseTypes.BLOB {
   }
 }
 
+function jsonToBindableValue(value: any, dialect: AbstractDialect): string {
+  if (value === null) {
+    const isExplicit = dialect.sequelize.options.nullJsonStringification === 'explicit';
+    if (isExplicit) {
+      throw new Error(
+        `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
+      );
+    }
+  }
+
+  return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+}
+
 export class JSON extends BaseTypes.JSON {
   toSql(): string {
     return 'BLOB';
@@ -340,30 +352,24 @@ export class JSON extends BaseTypes.JSON {
   }
 
   toBindableValue(value: any): string {
-    if (value === null) {
-      const sequelize = this._getDialect().sequelize;
-
-      const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
-      if (isExplicit) {
-        throw new Error(
-          `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
-        );
-      }
-    }
-
-    return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+    return jsonToBindableValue(value, this._getDialect());
   }
 
   getBindParamSql(value: any, options: BindParamOptions): any {
-    // Oracle's JSON_VALUE (used to extract a value at a JSON path) returns a plain SQL scalar, not a
-    // re-encoded JSON document, unlike e.g. MySQL's JSON_EXTRACT. When comparing against such an
-    // extraction, the value must be bound the same way `toBindableValue` renders it as a SQL literal
-    // (a plain string), not encoded as the BLOB-compatible bytes the JSON column is stored as.
-    if ((options as EscapeOptions).comparedAgainstJsonPathExtraction) {
-      return options.bindParam(this.toBindableValue(value));
-    }
-
     return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
+  }
+}
+
+// Not a valid column type -- only used by WhereSqlBuilder as the type of the other operand when
+// comparing against a JSON path extraction. Oracle's JSON_VALUE returns a plain scalar rather than a
+// re-encoded JSON document, so this binds a plain value instead of the BLOB encoding JSON columns need.
+export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult {
+  toBindableValue(value: any): string {
+    return jsonToBindableValue(value, this._getDialect());
+  }
+
+  getBindParamSql(value: any, options: BindParamOptions): any {
+    return options.bindParam(this.toBindableValue(value));
   }
 }
 
