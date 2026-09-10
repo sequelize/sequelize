@@ -137,8 +137,6 @@ export class JSON extends BaseTypes.JSON {
   }
 }
 
-// JSON_EXTRACT re-encodes its result as JSON, so a value compared against it needs the same CAST as
-// a value compared against a raw JSON column.
 export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult {
   escape(value: any): string {
     return castAsJson(super.escape(value));
