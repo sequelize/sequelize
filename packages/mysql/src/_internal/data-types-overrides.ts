@@ -120,16 +120,30 @@ export class DATE extends BaseTypes.DATE {
   }
 }
 
+function castAsJson(sql: string): string {
+  return `CAST(${sql} AS JSON)`;
+}
+
 export class JSON extends BaseTypes.JSON {
   escape(value: any): string {
     // In MySQL, JSON cannot be directly compared to a text, we need to cast it to JSON
     // This is not necessary for the values of INSERT & UPDATE statements, so we could omit this
     // if we add context to the escape & getBindParamSql methods
-    return `CAST(${super.escape(value)} AS JSON)`;
+    return castAsJson(super.escape(value));
   }
 
   getBindParamSql(value: any, options: BindParamOptions): string {
-    return `CAST(${super.getBindParamSql(value, options)} AS JSON)`;
+    return castAsJson(super.getBindParamSql(value, options));
+  }
+}
+
+export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult {
+  escape(value: any): string {
+    return castAsJson(super.escape(value));
+  }
+
+  getBindParamSql(value: any, options: BindParamOptions): string {
+    return castAsJson(super.getBindParamSql(value, options));
   }
 }
 
