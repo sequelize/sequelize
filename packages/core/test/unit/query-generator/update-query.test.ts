@@ -66,6 +66,27 @@ describe('QueryGenerator#updateQuery', () => {
     });
   });
 
+  it('preserves bind params for all WHERE conditions when one condition is IS NULL', () => {
+    // Regression: Op.is (triggered automatically for null) used to mutate the shared
+    // options object by deleting bindParam, which caused sibling conditions to emit
+    // inline literals instead of bind parameters.
+    const { query, bind } = queryGenerator.updateQuery(
+      'myTable',
+      { status: 'active' },
+      { deletedAt: null, name: 'Alice' },
+    );
+
+    expectsql(query, {
+      default:
+        'UPDATE [myTable] SET [status]=$sequelize_1 WHERE [deletedAt] IS NULL AND [name] = $sequelize_2',
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "myTable" SET "status"=$sequelize_1 WHERE "deletedAt" IS NULL AND "name" = $sequelize_2);`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: 'active',
+      sequelize_2: 'Alice',
+    });
+  });
+
   it('throws an error if the bindParam option is used', () => {
     const { User } = vars;
 
