@@ -3054,7 +3054,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     lodash: "npm:^4.18.1"
-    snowflake-sdk: "npm:^2.3.6"
+    snowflake-sdk: "npm:^2.4.3"
   languageName: unknown
   linkType: soft
 
@@ -14506,7 +14506,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:^2.3.6":
+"snowflake-sdk@npm:^2.4.3":
   version: 2.4.3
   resolution: "snowflake-sdk@npm:2.4.3"
   dependencies:
