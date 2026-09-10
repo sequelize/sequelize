@@ -360,9 +360,6 @@ export class JSON extends BaseTypes.JSON {
   }
 }
 
-// Not a valid column type -- only used by WhereSqlBuilder as the type of the other operand when
-// comparing against a JSON path extraction. Oracle's JSON_VALUE returns a plain scalar rather than a
-// re-encoded JSON document, so this binds a plain value instead of the BLOB encoding JSON columns need.
 export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult {
   toBindableValue(value: any): string {
     return jsonToBindableValue(value, this._getDialect());
