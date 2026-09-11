@@ -29,8 +29,6 @@ describe('QueryGenerator#attributesToSQL', () => {
     );
   });
 
-  // TODO: mssql and ibmi shallow-clone the attribute before reading it, which turns a plain string
-  //  into an object without a type.
   it('generates a SQL representation for attributes that are plain strings', () => {
     expectPerDialect(() => queryGenerator.attributesToSQL({ id: 'INTEGER', foo: 'VARCHAR(255)' }), {
       default: { id: 'INTEGER', foo: 'VARCHAR(255)' },
@@ -71,8 +69,8 @@ describe('QueryGenerator#attributesToSQL', () => {
     );
   });
 
-  // TODO: db2 and mssql drop the referential actions of every reference after the first one to a
-  //  given table, and mssql drops ON UPDATE unconditionally.
+  // db2 and mssql reject more than one cascading constraint to the same table, so they drop the
+  // referential actions of every reference after the first. mssql drops ON UPDATE unconditionally.
   it('generates a SQL representation for two references to the same table', () => {
     expectPerDialect(
       () =>
@@ -238,7 +236,8 @@ describe('QueryGenerator#attributesToSQL', () => {
     );
   });
 
-  // TODO: db2 silently drops the referential actions when the attribute is also unique.
+  // TODO: db2 drops the referential actions when the attribute is also unique. Unlike the
+  //  duplicate-table case above, no db2 restriction is known to require this.
   it('generates a SQL representation for a unique attribute that also references a table', () => {
     expectPerDialect(
       () =>
