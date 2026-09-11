@@ -135,7 +135,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
   }
 
-  changeColumnQuery(tableName, attributes) {
+  changeColumnQuery(tableName, attributes, columns) {
     const attrString = [];
     const constraintString = [];
 
@@ -147,13 +147,21 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         const foreignKey = this.quoteIdentifier(`${attributeName}`);
         constraintString.push(`${foreignKey} FOREIGN KEY (${attrName}) ${definition}`);
       } else {
-        attrString.push(`"${attributeName}" SET DATA TYPE ${definition}`);
+        attrString.push(`${this.quoteIdentifier(attributeName)} SET DATA TYPE ${definition}`);
+      }
+
+      // the type and the nullability of a column cannot be changed in one ALTER COLUMN clause
+      const { allowNull } = columns?.[attributeName] ?? {};
+      if (allowNull !== undefined) {
+        attrString.push(
+          `${this.quoteIdentifier(attributeName)} ${allowNull ? 'DROP NOT NULL' : 'SET NOT NULL'}`,
+        );
       }
     }
 
     let finalQuery = '';
     if (attrString.length) {
-      finalQuery += `ALTER COLUMN ${attrString.join(', ')}`;
+      finalQuery += `ALTER COLUMN ${attrString.join(' ALTER COLUMN ')}`;
       finalQuery += constraintString.length ? ' ' : '';
     }
 
@@ -373,10 +381,9 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       template = attributeTypeToSql(attribute.type);
     }
 
-    if (attribute.allowNull === false) {
+    // in the changeColumn context the nullability is emitted as its own ALTER COLUMN clause
+    if (attribute.allowNull === false && options?.context !== 'changeColumn') {
       template += ' NOT NULL';
-    } else if (attribute.allowNull === true && options && options.context === 'changeColumn') {
-      template += ' DROP NOT NULL';
     }
 
     if (attribute.autoIncrement) {

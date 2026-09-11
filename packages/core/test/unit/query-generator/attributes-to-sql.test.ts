@@ -281,8 +281,7 @@ describe('QueryGenerator#attributesToSQL', () => {
       {
         default: { id: 'INTEGER' },
         'mssql oracle': { id: 'INTEGER NULL' },
-        db2: { id: ['DATA TYPE INTEGER', 'DROP NOT NULL'] },
-        ibmi: { id: 'INTEGER DROP NOT NULL' },
+        db2: { id: 'DATA TYPE INTEGER' },
       },
     );
   });
