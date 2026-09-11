@@ -150,13 +150,16 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
       }
 
+      let setDefaultSql = '';
       if (definition.includes('DEFAULT')) {
-        attrSql += query(
+        setDefaultSql = query(
           `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
         );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      }
+
+      if (!definition.includes('REFERENCES')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
@@ -166,7 +169,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           /^ENUM\(.+\)/,
           this.pgEnumName(tableName, attributeName, { schema: false }),
         );
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        const enumType = definition.endsWith('[]')
+          ? `${this.pgEnumName(tableName, attributeName)}[]`
+          : this.pgEnumName(tableName, attributeName);
+
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${enumType})`;
       }
 
       if (/UNIQUE;*$/.test(definition)) {
@@ -186,7 +193,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
 
-      sql.push(attrSql);
+      sql.push(attrSql + setDefaultSql);
     }
 
     return sql.join('');

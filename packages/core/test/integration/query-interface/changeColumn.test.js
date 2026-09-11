@@ -131,6 +131,51 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       });
 
+      if (Support.sequelize.dialect.supports.dataTypes.ARRAY) {
+        it('should work with arrays of enums', async function () {
+          await this.queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            tags: DataTypes.ARRAY(DataTypes.STRING),
+          });
+
+          await this.queryInterface.changeColumn('users', 'tags', {
+            type: DataTypes.ARRAY(DataTypes.ENUM(['x', 'y'])),
+          });
+
+          const table = await this.queryInterface.describeTable('users');
+
+          expect(table.tags.type).to.equal('ARRAY');
+
+          const insert = values =>
+            this.sequelize.query(
+              `INSERT INTO "users" ("tags") VALUES (ARRAY[${values}]::"enum_users_tags"[])`,
+            );
+
+          await insert(`'x', 'y'`);
+
+          await expect(insert(`'nope'`)).to.be.rejected;
+        });
+      }
+
+      it('should work with enums with a default value', async function () {
+        await this.queryInterface.createTable('users', {
+          status: DataTypes.STRING,
+        });
+
+        await this.queryInterface.changeColumn('users', 'status', {
+          type: DataTypes.ENUM(['pending', 'complete']),
+          defaultValue: 'pending',
+        });
+
+        const table = await this.queryInterface.describeTable('users');
+
+        expect(table.status.defaultValue).to.equal('pending');
+      });
+
       if (Support.sequelize.dialect.supports.schemas) {
         it('should work with enums with schemas', async function () {
           await this.sequelize.createSchema('archive');
