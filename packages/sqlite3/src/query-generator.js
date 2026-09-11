@@ -2,6 +2,10 @@
 
 import { ParameterStyle } from '@sequelize/core';
 import {
+  attributeTypeToSql,
+  normalizeDataType,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
@@ -13,7 +17,7 @@ import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-you
 import { pojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
-import isObject from 'lodash/isObject';
+import isPlainObject from 'lodash/isPlainObject';
 import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
@@ -113,12 +117,18 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       );
     }
 
-    const attributes = {};
-    attributes[key] = dataType;
-    const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
-    const attribute = `${this.quoteIdentifier(key)} ${fields[key]}`;
+    dataType = {
+      ...dataType,
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
 
-    const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${attribute};`;
+    const definition = this.attributeToSQL(dataType, {
+      context: 'addColumn',
+      tableOrModel: table,
+    });
+
+    const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition};`;
 
     return this.replaceBooleanDefaults(sql);
   }
@@ -195,11 +205,11 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!isObject(attribute)) {
-      return attribute;
+    if (!isPlainObject(attribute)) {
+      attribute = { type: attribute };
     }
 
-    let sql = attribute.type.toString();
+    let sql = attributeTypeToSql(attribute.type);
 
     if (attribute.allowNull === false) {
       sql += ' NOT NULL';
@@ -224,7 +234,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       }
     }
 
-    if (attribute.references) {
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
       const referencesTable = this.quoteTable(attribute.references.table);
 
       let referencesKey;
@@ -250,9 +260,13 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
 
   attributesToSQL(attributes, options) {
     const result = {};
-    for (const name in attributes) {
-      const attribute = attributes[name];
-      const columnName = attribute.field || attribute.columnName || name;
+
+    for (const key of Object.keys(attributes)) {
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
 
       result[columnName] = this.attributeToSQL(attribute, options);
     }
