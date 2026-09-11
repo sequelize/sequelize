@@ -95,6 +95,25 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
+    if (current.dialect.name === 'postgres') {
+      it('keeps a column comment out of the type definition', () => {
+        return expectsql(
+          queryGenerator.addColumnQuery(
+            'Users',
+            'status',
+            current.normalizeAttribute({
+              type: DataTypes.ENUM(['active', 'pending']),
+              comment: 'Status (active/pending)',
+            }),
+          ),
+          {
+            postgres:
+              'DO \'BEGIN CREATE TYPE "public"."enum_Users_status" AS ENUM(\'\'active\'\', \'\'pending\'\'); EXCEPTION WHEN duplicate_object THEN null; END\';ALTER TABLE "Users" ADD COLUMN  "status" "public"."enum_Users_status"; COMMENT ON COLUMN "Users"."status" IS \'Status (active/pending)\';',
+          },
+        );
+      });
+    }
+
     it('defaults the schema to the one set in the Sequelize options', () => {
       const User = customSequelize.define('User', {}, { timestamps: false });
 

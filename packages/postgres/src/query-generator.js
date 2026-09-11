@@ -114,14 +114,24 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   addColumnQuery(table, key, attribute, options) {
     options ||= {};
 
-    const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
+    let dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
-    const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(table);
     const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
+    let columnComment = '';
+    const commentPrefix = `; COMMENT ON COLUMN ${quotedTable}.${quotedKey} IS `;
+    const commentIndex = dbDataType.indexOf(commentPrefix);
+    if (commentIndex !== -1) {
+      // Move comment to a separate query
+      columnComment = `${dbDataType.slice(commentIndex + 1)};`;
+      dbDataType = dbDataType.slice(0, commentIndex);
+    }
+
+    const definition = this.dataTypeMapping(table, key, dbDataType);
+
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};${columnComment}`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
