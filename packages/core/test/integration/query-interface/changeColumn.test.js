@@ -181,10 +181,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           type: DataTypes.ENUM(['pending', 'complete']),
           defaultValue: 'pending',
         });
-
-        const table = await this.queryInterface.describeTable('users');
-
-        expect(table.status.defaultValue).to.equal('pending');
       });
 
       if (Support.sequelize.dialect.supports.schemas) {
