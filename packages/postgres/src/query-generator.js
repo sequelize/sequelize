@@ -163,6 +163,15 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
+      let uniqueSql = '';
+      if (/UNIQUE;*$/.test(definition)) {
+        definition = definition.replace(/UNIQUE;*$/, '').trim();
+        uniqueSql = query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace(
+          'ALTER COLUMN',
+          '',
+        );
+      }
+
       if (attributes[attributeName].startsWith('ENUM(')) {
         attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
         definition = definition.replace(
@@ -176,13 +185,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         definition += ` USING (${this.quoteIdentifier(attributeName)}::${enumType})`;
       }
 
-      if (/UNIQUE;*$/.test(definition)) {
-        definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql += query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace(
-          'ALTER COLUMN',
-          '',
-        );
-      }
+      attrSql += uniqueSql;
 
       if (definition.includes('REFERENCES')) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');

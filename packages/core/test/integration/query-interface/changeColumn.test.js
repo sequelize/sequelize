@@ -161,6 +161,17 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       }
 
+      it('should work with enums that are unique', async function () {
+        await this.queryInterface.createTable('users', {
+          status: DataTypes.STRING,
+        });
+
+        await this.queryInterface.changeColumn('users', 'status', {
+          type: DataTypes.ENUM(['pending', 'complete']),
+          unique: true,
+        });
+      });
+
       it('should work with enums with a default value', async function () {
         await this.queryInterface.createTable('users', {
           status: DataTypes.STRING,
