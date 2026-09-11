@@ -23,7 +23,7 @@ function createAttributeTester(getQueryGenerator: () => AbstractQueryGenerator) 
       expectations: Expectations,
       // TODO: use AttributeToSqlOptions once attributeToSQL is typed. That interface does not
       //  currently describe what the dialects accept: it requires `context` and a string `table`,
-      //  and it is missing `foreignKey`, `key` and `attributeName`.
+      //  and it is missing the dialect-specific options.
       options?: Record<string, unknown>,
     ) => {
       it(
@@ -52,7 +52,6 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(sequelize.normalizeDataType(DataTypes.INTEGER), {
     default: 'INTEGER',
     'mssql oracle': 'INTEGER NULL',
-    sqlite3: new Error(`Cannot read properties of undefined (reading 'toString')`),
   });
 
   testSql(
@@ -76,11 +75,10 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.ENUM('value1', 'value2')) },
     {
-      default: "ENUM('value1', 'value2')",
-      'mssql db2 ibmi': new Error('quoteIdentifier received a non-string identifier: undefined'),
+      default: new Error('quoteIdentifier received a non-string identifier: undefined'),
+      'mariadb mysql postgres': "ENUM('value1', 'value2')",
       sqlite3: 'TEXT',
       snowflake: 'VARCHAR(255)',
-      oracle: new Error(`Cannot read properties of undefined (reading 'attributeName')`),
     },
   );
 
@@ -92,7 +90,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: "NVARCHAR(255) CHECK ([foo] IN(N'value1', N'value2'))",
       sqlite3: 'TEXT',
       snowflake: 'VARCHAR(255)',
-      oracle: new Error(`Cannot read properties of undefined (reading 'attributeName')`),
+      oracle: `VARCHAR2(512) CHECK ("foo" IN('value1', 'value2'))`,
     },
   );
 
@@ -104,7 +102,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: "NVARCHAR(255) CHECK ([foo] IN(N'value1', N'value2'))",
       sqlite3: 'TEXT',
       snowflake: 'VARCHAR(255)',
-      oracle: new Error('quoteIdentifier received a non-string identifier: undefined'),
+      oracle: `VARCHAR2(512) CHECK ("foo" IN('value1', 'value2'))`,
     },
     { context: 'createTable' },
   );
@@ -117,7 +115,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: "NVARCHAR(255) CHECK ([foo] IN(N'value1', N'value2'))",
       sqlite3: 'TEXT',
       snowflake: 'VARCHAR(255)',
-      oracle: new Error('quoteIdentifier received a non-string identifier: undefined'),
+      oracle: `VARCHAR2(512) CHECK ("foo" IN('value1', 'value2'))`,
     },
     { context: 'addColumn' },
   );
@@ -131,7 +129,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       snowflake: 'VARCHAR(255)',
       db2: `DATA TYPE VARCHAR(255) CHECK ("foo" IN('value1', 'value2'))`,
       ibmi: `VARCHAR(255) ADD CHECK ("foo" IN('value1', 'value2'))`,
-      oracle: new Error('quoteIdentifier received a non-string identifier: undefined'),
+      oracle: `VARCHAR2(512) CHECK ("foo" IN('value1', 'value2'))`,
     },
     { context: 'changeColumn' },
   );
@@ -291,7 +289,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: 'BIT DEFAULT 1',
       sqlite3: 'INTEGER DEFAULT 1',
       ibmi: 'SMALLINT DEFAULT 1',
-      oracle: new Error(`Cannot read properties of undefined (reading 'attributeName')`),
+      oracle: new Error('quoteIdentifier received a non-string identifier: undefined'),
     },
   );
 
@@ -303,7 +301,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: 'BIT DEFAULT 0',
       sqlite3: 'INTEGER DEFAULT 0',
       ibmi: 'SMALLINT DEFAULT 0',
-      oracle: new Error(`Cannot read properties of undefined (reading 'attributeName')`),
+      oracle: new Error('quoteIdentifier received a non-string identifier: undefined'),
     },
   );
 
@@ -455,7 +453,7 @@ describe('QueryGenerator#attributeToSQL', () => {
   );
 
   testSql(
-    { type: 'INTEGER', comment: 'Test' },
+    { type: 'INTEGER', field: 'column', comment: 'Test' },
     {
       default: "INTEGER COMMENT 'Test'",
       'sqlite3 ibmi': 'INTEGER',
@@ -464,7 +462,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       db2: 'INTEGER COMMENT Test',
       oracle: 'INTEGER NULL',
     },
-    { context: 'addColumn', key: 'column', table: { tableName: 'bar', schema: 'foo' } },
+    { context: 'addColumn', tableOrModel: { tableName: 'bar', schema: 'foo' } },
   );
 
   testSql(
@@ -472,12 +470,12 @@ describe('QueryGenerator#attributeToSQL', () => {
     {
       default: "INTEGER COMMENT 'Test'",
       'sqlite3 ibmi': 'INTEGER',
-      postgres: `INTEGER; COMMENT ON COLUMN "foo"."bar"."column" IS 'Test'`,
+      postgres: new Error('quoteIdentifier received a non-string identifier: undefined'),
       mssql: 'INTEGER NULL COMMENT Test',
       db2: 'DATA TYPE INTEGER COMMENT Test',
       oracle: 'INTEGER NULL',
     },
-    { context: 'changeColumn', key: 'column', table: { tableName: 'bar', schema: 'foo' } },
+    { context: 'changeColumn', tableOrModel: { tableName: 'bar', schema: 'foo' } },
   );
 
   testSql(
@@ -490,17 +488,14 @@ describe('QueryGenerator#attributeToSQL', () => {
       db2: 'INTEGER COMMENT Test',
       oracle: 'INTEGER NULL',
     },
-    { context: 'addColumn', attributeName: 'column', table: 'bar' },
+    { context: 'addColumn', tableOrModel: 'bar' },
   );
 
-  // TODO: postgres reads options.table and options.withoutForeignKeyConstraints without
-  //  guarding against a missing options object.
   testSql(
     { type: 'INTEGER', references: { table: 'Bar' } },
     {
-      default: 'INTEGER REFERENCES `Bar` (`id`)',
-      'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("id")',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      default: 'INTEGER REFERENCES "Bar" ("id")',
+      'mariadb mysql sqlite3': 'INTEGER REFERENCES `Bar` (`id`)',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
@@ -509,9 +504,8 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } },
     {
-      default: 'INTEGER REFERENCES `Bar` (`pk`)',
-      'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("pk")',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      default: 'INTEGER REFERENCES "Bar" ("pk")',
+      'mariadb mysql sqlite3': 'INTEGER REFERENCES `Bar` (`pk`)',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([pk])',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("pk")',
     },
@@ -520,9 +514,8 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' },
     {
-      default: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE',
-      'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      default: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE',
+      'mariadb mysql sqlite3': 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id]) ON DELETE CASCADE',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id") ON DELETE CASCADE',
     },
@@ -531,9 +524,8 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' },
     {
-      default: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT',
-      'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      default: 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT',
+      'mariadb mysql sqlite3': 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id]) ON UPDATE RESTRICT',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
@@ -542,9 +534,9 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' },
     {
-      default: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
-      'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      default: 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT',
+      'mariadb mysql sqlite3':
+        'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id]) ON DELETE CASCADE ON UPDATE RESTRICT',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id") ON DELETE CASCADE',
     },
@@ -555,7 +547,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     {
       default: 'INTEGER REFERENCES `Bar` (`id`)',
       'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("id")',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      postgres: 'INTEGER REFERENCES "Bar" ("id") DEFERRABLE INITIALLY IMMEDIATE',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
@@ -566,31 +558,23 @@ describe('QueryGenerator#attributeToSQL', () => {
     {
       default: 'INTEGER REFERENCES "myschema"."Bar" ("id")',
       'mariadb mysql': 'INTEGER REFERENCES `myschema`.`Bar` (`id`)',
-      postgres: new Error(
-        `Cannot read properties of undefined (reading 'withoutForeignKeyConstraints')`,
-      ),
       mssql: 'INTEGER NULL REFERENCES [myschema].[Bar] ([id])',
       sqlite3: 'INTEGER REFERENCES `myschema.Bar` (`id`)',
       oracle: 'INTEGER NULL REFERENCES "myschema"."Bar" ("id")',
     },
   );
 
-  // TODO: sqlite3, snowflake and ibmi ignore withoutForeignKeyConstraints.
   testSql(
     { type: 'INTEGER', references: { table: 'Bar' } },
     {
       default: 'INTEGER',
       'mssql oracle': 'INTEGER NULL',
-      'snowflake ibmi': 'INTEGER REFERENCES "Bar" ("id")',
-      sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
     },
     { withoutForeignKeyConstraints: true },
   );
 
-  // TODO: snowflake and ibmi embed the already-quoted column in the constraint name, and db2 leaves
-  //  the constraint name unquoted.
   testSql(
-    { type: 'INTEGER', references: { table: 'Bar' } },
+    { type: 'INTEGER', field: 'myColumn', references: { table: 'Bar' } },
     {
       default:
         'INTEGER, ADD CONSTRAINT `myTable_myColumn_foreign_idx` FOREIGN KEY (`myColumn`) REFERENCES `Bar` (`id`)',
@@ -598,54 +582,29 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
       sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
       snowflake:
-        'INTEGER, ADD CONSTRAINT "myTable_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      db2: 'INTEGER, CONSTRAINT myTable_"myColumn"_fidx FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      ibmi: 'INTEGER ADD CONSTRAINT "myTable_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+        'INTEGER, ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+      db2: 'INTEGER, CONSTRAINT "myTable_myColumn_fidx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+      ibmi: 'INTEGER ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
-    { context: 'addColumn', foreignKey: 'myColumn', tableName: 'myTable' },
-  );
-
-  // TODO: only postgres reads options.table here. Every other dialect reads options.tableName, so
-  //  passing the documented option name either throws or names the constraint after `undefined`.
-  testSql(
-    { type: 'INTEGER', references: { table: 'Bar' } },
-    {
-      default: new Error(
-        'Invalid input received, got undefined, expected a Model Class, a TableNameWithSchema object, or a table name string',
-      ),
-      postgres: 'INTEGER REFERENCES "Bar" ("id")',
-      mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
-      sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
-      snowflake:
-        'INTEGER, ADD CONSTRAINT "undefined_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      db2: 'INTEGER, CONSTRAINT undefined_"myColumn"_fidx FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      ibmi: 'INTEGER ADD CONSTRAINT "undefined_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
-    },
-    { context: 'addColumn', foreignKey: 'myColumn', table: 'myTable' },
+    { context: 'addColumn', tableOrModel: 'myTable' },
   );
 
   testSql(
-    { type: 'INTEGER', references: { table: 'Bar' } },
+    { type: 'INTEGER', field: 'myColumn', references: { table: 'Bar' } },
     {
-      default: new Error(
-        'Invalid input received, got undefined, expected a Model Class, a TableNameWithSchema object, or a table name string',
-      ),
+      default:
+        'INTEGER, ADD CONSTRAINT `myTable_myColumn_foreign_idx` FOREIGN KEY (`myColumn`) REFERENCES `Bar` (`id`)',
       postgres: 'INTEGER REFERENCES "mySchema"."Bar" ("id")',
       mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
       sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
       snowflake:
-        'INTEGER, ADD CONSTRAINT "undefined_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      db2: 'INTEGER, CONSTRAINT undefined_"myColumn"_fidx FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      ibmi: 'INTEGER ADD CONSTRAINT "undefined_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+        'INTEGER, ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+      db2: 'INTEGER, CONSTRAINT "myTable_myColumn_fidx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+      ibmi: 'INTEGER ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
-    {
-      context: 'addColumn',
-      foreignKey: 'myColumn',
-      table: { tableName: 'myTable', schema: 'mySchema' },
-    },
+    { context: 'addColumn', tableOrModel: { tableName: 'myTable', schema: 'mySchema' } },
   );
 
   testSql(
@@ -661,7 +620,8 @@ describe('QueryGenerator#attributeToSQL', () => {
     {
       default:
         'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
-      postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+      postgres:
+        'INTEGER NOT NULL SERIAL DEFAULT 1 REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT',
       mssql:
         'INTEGER NOT NULL IDENTITY(1,1) DEFAULT 1 REFERENCES [Bar] ([id]) ON DELETE CASCADE ON UPDATE RESTRICT',
       sqlite3:
@@ -703,7 +663,6 @@ describe('QueryGenerator#attributeToSQL', () => {
       ibmi: 'SMALLINT',
       oracle: `CHAR(1) CHECK ("foo" IN('1', '0'))`,
     },
-    { attributeName: 'foo' },
   );
 
   testSql(
@@ -715,7 +674,6 @@ describe('QueryGenerator#attributeToSQL', () => {
       mssql: 'BIGINT NULL',
       oracle: 'INTEGER NULL CHECK("foo" >= 0)',
     },
-    { attributeName: 'foo' },
   );
 
   testSql(
@@ -737,7 +695,6 @@ describe('QueryGenerator#attributeToSQL', () => {
       snowflake: 'VARCHAR(255)',
       oracle: `VARCHAR2(512) CHECK ("foo" IN('a', 'b'))`,
     },
-    { attributeName: 'foo' },
   );
 
   testSql(
@@ -783,7 +740,6 @@ describe('QueryGenerator#attributeToSQL', () => {
         sqlite3: 'TEXT',
         oracle: 'BLOB CHECK ("foo" IS JSON)',
       },
-      { attributeName: 'foo' },
     );
   }
 
@@ -796,7 +752,6 @@ describe('QueryGenerator#attributeToSQL', () => {
       {
         postgres: "ENUM('value1', 'value2')[]",
       },
-      { attributeName: 'foo' },
     );
   }
 
@@ -811,10 +766,9 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', references: { table: 'Bar' } },
       {
         default: 'INTEGER REFERENCES `Bar` (`id`)',
+        'postgres snowflake': 'INTEGER REFERENCES Bar (id)',
         'db2 ibmi': 'INTEGER REFERENCES "Bar" ("id")',
-        postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
         mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
-        snowflake: 'INTEGER REFERENCES Bar (id)',
         oracle: 'INTEGER NULL REFERENCES Bar (id)',
       },
     );
@@ -823,10 +777,9 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', references: { table: 'Bar', key: 'pk' } },
       {
         default: 'INTEGER REFERENCES `Bar` (`pk`)',
+        'postgres snowflake': 'INTEGER REFERENCES Bar (pk)',
         'db2 ibmi': 'INTEGER REFERENCES "Bar" ("pk")',
-        postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
         mssql: 'INTEGER NULL REFERENCES [Bar] ([pk])',
-        snowflake: 'INTEGER REFERENCES Bar (pk)',
         oracle: 'INTEGER NULL REFERENCES Bar (pk)',
       },
     );
@@ -835,10 +788,9 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE' },
       {
         default: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE',
+        'postgres snowflake': 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE',
         'db2 ibmi': 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE',
-        postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
         mssql: 'INTEGER NULL REFERENCES [Bar] ([id]) ON DELETE CASCADE',
-        snowflake: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE',
         oracle: 'INTEGER NULL REFERENCES Bar (id) ON DELETE CASCADE',
       },
     );
@@ -847,10 +799,9 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', references: { table: 'Bar' }, onUpdate: 'RESTRICT' },
       {
         default: 'INTEGER REFERENCES `Bar` (`id`) ON UPDATE RESTRICT',
+        'postgres snowflake': 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT',
         'db2 ibmi': 'INTEGER REFERENCES "Bar" ("id") ON UPDATE RESTRICT',
-        postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
         mssql: 'INTEGER NULL REFERENCES [Bar] ([id]) ON UPDATE RESTRICT',
-        snowflake: 'INTEGER REFERENCES Bar (id) ON UPDATE RESTRICT',
         oracle: 'INTEGER NULL REFERENCES Bar (id)',
       },
     );
@@ -859,10 +810,9 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', references: { table: 'Bar' }, onDelete: 'CASCADE', onUpdate: 'RESTRICT' },
       {
         default: 'INTEGER REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
+        'postgres snowflake': 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT',
         'db2 ibmi': 'INTEGER REFERENCES "Bar" ("id") ON DELETE CASCADE ON UPDATE RESTRICT',
-        postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
         mssql: 'INTEGER NULL REFERENCES [Bar] ([id]) ON DELETE CASCADE ON UPDATE RESTRICT',
-        snowflake: 'INTEGER REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT',
         oracle: 'INTEGER NULL REFERENCES Bar (id) ON DELETE CASCADE',
       },
     );
@@ -871,13 +821,10 @@ describe('QueryGenerator#attributeToSQL', () => {
       { type: 'INTEGER', references: { table: { tableName: 'Bar', schema: 'myschema' } } },
       {
         default: 'INTEGER REFERENCES `myschema`.`Bar` (`id`)',
+        'postgres snowflake': 'INTEGER REFERENCES myschema.Bar (id)',
         'db2 ibmi': 'INTEGER REFERENCES "myschema"."Bar" ("id")',
-        postgres: new Error(
-          `Cannot read properties of undefined (reading 'withoutForeignKeyConstraints')`,
-        ),
         mssql: 'INTEGER NULL REFERENCES [myschema].[Bar] ([id])',
         sqlite3: 'INTEGER REFERENCES `myschema.Bar` (`id`)',
-        snowflake: 'INTEGER REFERENCES myschema.Bar (id)',
         oracle: 'INTEGER NULL REFERENCES myschema.Bar (id)',
       },
     );
@@ -885,18 +832,13 @@ describe('QueryGenerator#attributeToSQL', () => {
     testUnquotedSql(
       { type: 'INTEGER', references: { table: 'Bar' } },
       {
-        default:
-          'INTEGER, ADD CONSTRAINT `myTable_myColumn_foreign_idx` FOREIGN KEY (`myColumn`) REFERENCES `Bar` (`id`)',
-        postgres: 'INTEGER REFERENCES Bar (id)',
+        default: 'INTEGER REFERENCES `Bar` (`id`)',
+        'postgres snowflake': 'INTEGER REFERENCES Bar (id)',
+        'db2 ibmi': 'INTEGER REFERENCES "Bar" ("id")',
         mssql: 'INTEGER NULL REFERENCES [Bar] ([id])',
-        sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
-        snowflake:
-          'INTEGER, ADD CONSTRAINT myTable_myColumn_foreign_idx FOREIGN KEY (myColumn) REFERENCES Bar (id)',
-        db2: 'INTEGER, CONSTRAINT myTable_"myColumn"_fidx FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-        ibmi: 'INTEGER ADD CONSTRAINT "myTable_""myColumn""_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
         oracle: 'INTEGER NULL REFERENCES Bar (id)',
       },
-      { context: 'addColumn', foreignKey: 'myColumn', tableName: 'myTable' },
+      { context: 'addColumn', tableOrModel: 'myTable' },
     );
 
     testUnquotedSql(
@@ -912,7 +854,8 @@ describe('QueryGenerator#attributeToSQL', () => {
       {
         default:
           'INTEGER NOT NULL auto_increment DEFAULT 1 REFERENCES `Bar` (`id`) ON DELETE CASCADE ON UPDATE RESTRICT',
-        postgres: new Error(`Cannot read properties of undefined (reading 'table')`),
+        postgres:
+          'INTEGER NOT NULL SERIAL DEFAULT 1 REFERENCES Bar (id) ON DELETE CASCADE ON UPDATE RESTRICT',
         mssql:
           'INTEGER NOT NULL IDENTITY(1,1) DEFAULT 1 REFERENCES [Bar] ([id]) ON DELETE CASCADE ON UPDATE RESTRICT',
         sqlite3:
@@ -942,7 +885,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       {
         default: "INTEGER COMMENT 'Test'",
         'sqlite3 ibmi': 'INTEGER',
-        postgres: `INTEGER; COMMENT ON COLUMN foo.bar."column" IS 'Test'`,
+        postgres: new Error(`Cannot read properties of undefined (reading 'includes')`),
         mssql: 'INTEGER NULL COMMENT Test',
         db2: 'INTEGER COMMENT Test',
         oracle: 'INTEGER NULL',
