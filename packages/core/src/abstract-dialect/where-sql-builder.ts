@@ -112,6 +112,7 @@ export class WhereSqlBuilder {
   };
 
   readonly #jsonType: NormalizedDataType | undefined;
+  readonly #jsonPathExtractionType: NormalizedDataType | undefined;
   readonly #arrayOfTextType: NormalizedDataType | undefined;
 
   constructor(dialect: AbstractDialect) {
@@ -119,6 +120,10 @@ export class WhereSqlBuilder {
 
     this.#jsonType = dialect.supports.dataTypes.JSON
       ? new DataTypes.JSON().toDialectDataType(dialect)
+      : undefined;
+
+    this.#jsonPathExtractionType = dialect.supports.dataTypes.JSON
+      ? new DataTypes.JsonPathExtractionResult().toDialectDataType(dialect)
       : undefined;
 
     this.#arrayOfTextType = dialect.supports.dataTypes.ARRAY
@@ -282,7 +287,7 @@ export class WhereSqlBuilder {
         // "left" could have been wrapped in a JSON path. If we still don't know its data type, it's very likely a JSON column
         // if the user used a JSON path in the where clause.
         if (leftDataType == null && left instanceof JsonPath) {
-          leftDataType = this.#jsonType;
+          leftDataType = this.#jsonPathExtractionType;
         } else if (left !== pojoWhere.leftOperand) {
           // if "left" was wrapped in a JSON path, we need to get its data type again as it might have been cast
           leftDataType = this.#getOperandType(left, modelDefinition);
@@ -407,11 +412,16 @@ export class WhereSqlBuilder {
     }
 
     // "IS" operator does not accept bind parameters, only literals
-    if (options.bindParam) {
-      delete options.bindParam;
-    }
+    const { bindParam: ignoreBindParam, ...optionsWithoutBindParam } = options;
 
-    return this.formatBinaryOperation(left, undefined, operator, right, undefined, options);
+    return this.formatBinaryOperation(
+      left,
+      undefined,
+      operator,
+      right,
+      undefined,
+      optionsWithoutBindParam,
+    );
   }
 
   protected [Op.notBetween](...args: Parameters<WhereSqlBuilder[typeof Op.between]>): string {
@@ -743,7 +753,10 @@ export class WhereSqlBuilder {
     });
     const rightSql =
       this.#formatOpAnyAll(right, rightDataType ?? leftDataType) ||
-      this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType });
+      this.#queryGenerator.escape(right, {
+        ...options,
+        type: rightDataType ?? leftDataType,
+      });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
   }
@@ -951,7 +964,7 @@ export class WhereSqlBuilder {
 
     if (operand instanceof JsonPath) {
       // JsonPath can wrap Attributes
-      return this.#jsonType;
+      return this.#jsonPathExtractionType;
     }
 
     if (!modelDefinition) {
