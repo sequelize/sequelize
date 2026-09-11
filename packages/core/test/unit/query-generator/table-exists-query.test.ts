@@ -14,6 +14,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'${defaultSchema}'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
       oracle: `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = 'myTable' AND OWNER = USER`,
+      hana: `SELECT TABLE_NAME FROM SYS.TABLES WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -27,6 +28,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'MyModels' AND TABLE_SCHEMA = N'${defaultSchema}'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
       oracle: `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = 'MyModels' AND OWNER = '${defaultSchema}'`,
+      hana: `SELECT TABLE_NAME FROM SYS.TABLES WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'MyModels'`,
     });
   });
 
@@ -41,6 +43,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'MyModels' AND TABLE_SCHEMA = N'${defaultSchema}'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'MyModels'`,
       oracle: `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = 'MyModels' AND OWNER = USER`,
+      hana: `SELECT TABLE_NAME FROM SYS.TABLES WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'MyModels'`,
     });
   });
 
@@ -52,6 +55,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'mySchema'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
       oracle: `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = 'myTable' AND OWNER = 'mySchema'`,
+      hana: `SELECT TABLE_NAME FROM SYS.TABLES WHERE SCHEMA_NAME = 'mySchema' AND TABLE_NAME = 'myTable'`,
     });
   });
 
@@ -69,6 +73,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
         mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'${defaultSchema}'`,
         sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'myTable'`,
         oracle: `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = 'myTable' AND OWNER = '${defaultSchema}'`,
+        hana: `SELECT TABLE_NAME FROM SYS.TABLES WHERE SCHEMA_NAME = 'SYSTEM' AND TABLE_NAME = 'myTable'`,
       },
     );
   });
@@ -84,6 +89,7 @@ describe('QueryGenerator#tableExistsQuery', () => {
       mssql: `SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE' AND TABLE_NAME = N'myTable' AND TABLE_SCHEMA = N'mySchema'`,
       sqlite3: `SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'mySchema.myTable'`,
       oracle: `SELECT TABLE_NAME FROM ALL_TABLES WHERE TABLE_NAME = 'myTable' AND OWNER = USER`,
+      hana: `SELECT TABLE_NAME FROM SYS.TABLES WHERE SCHEMA_NAME = 'mySchema' AND TABLE_NAME = 'myTable'`,
     });
   });
 

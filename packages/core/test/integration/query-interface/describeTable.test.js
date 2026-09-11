@@ -98,7 +98,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       expect(id.primaryKey).to.be.true;
 
-      if (['mysql', 'mssql', 'db2'].includes(dialect)) {
+      if (['mysql', 'mssql', 'db2', 'hana'].includes(dialect)) {
         expect(id.autoIncrement).to.be.true;
       }
 
@@ -119,6 +119,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           break;
         case 'oracle':
           assertVal = 'NVARCHAR2';
+          break;
+        case 'hana':
+          assertVal = 'NVARCHAR';
           break;
       }
 
@@ -144,6 +147,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       switch (dialect) {
         case 'postgres':
         case 'db2':
+        case 'hana':
           assertVal = 'BOOLEAN';
           break;
         case 'sqlite3':
@@ -180,7 +184,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.type).to.eql('VARCHAR2');
       }
 
-      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
+      if (['postgres', 'mysql', 'mssql', 'hana'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }

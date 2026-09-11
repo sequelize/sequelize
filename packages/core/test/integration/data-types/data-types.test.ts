@@ -303,7 +303,7 @@ describe('DataTypes', () => {
     });
 
     it('serialize/deserializes strings', async () => {
-      if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
+      if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'hana') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOut(vars.User, 'charAttr', '12345 ', '12345');
@@ -321,7 +321,7 @@ describe('DataTypes', () => {
     });
 
     it('is deserialized as a string when DataType is not specified', async () => {
-      if (dialect.name === 'mysql' || dialect.name === 'mariadb') {
+      if (dialect.name === 'mysql' || dialect.name === 'mariadb' || dialect.name === 'hana') {
         // mysql trims CHAR columns, unless PAD_CHAR_TO_FULL_LENGTH is true
         // https://dev.mysql.com/doc/refman/8.0/en/sql-mode.html#sqlmode_pad_char_to_full_length
         await testSimpleInOutRaw(vars.User, 'charAttr', '12345 ', '12345');
@@ -1256,7 +1256,9 @@ describe('DataTypes', () => {
               ? '2022-01-01 00:00:00.000000+00'
               : dialect.name === 'oracle'
                 ? new Date('2022-01-01T00:00:00Z') // For oracle, DATE columns are fetched as js dates for raw sql.
-                : '2022-01-01 00:00:00+00',
+                : dialect.name === 'hana'
+                  ? '2022-01-01 00:00:00.000000000+00'
+                  : '2022-01-01 00:00:00+00',
       );
     });
   });
@@ -1293,8 +1295,8 @@ describe('DataTypes', () => {
     });
 
     it('clamps to specified precision', async () => {
-      // sqlite and oracle do not support restricting the precision
-      if (dialect.name !== 'sqlite3' && dialect.name !== 'oracle') {
+      // sqlite, oracle and HANA do not support restricting the precision
+      if (dialect.name !== 'sqlite3' && dialect.name !== 'oracle' && dialect.name !== 'hana') {
         await testSimpleInOut(
           vars.User,
           'dateMinPrecisionAttr',
@@ -1791,6 +1793,9 @@ describe('DataTypes', () => {
           case 'oracle':
             expect(table.jsonStr.type).to.equal('BLOB');
             break;
+          case 'hana':
+            expect(table.jsonStr.type).to.equal('NVARCHAR');
+            break;
           default:
             expect(table.jsonStr.type).to.equal(jsonTypeName);
         }
@@ -1828,9 +1833,10 @@ describe('DataTypes', () => {
       // Oracle JSON is BLOB column and it returns Buffer for raw sql.
       // When native JSON support is added, this can be removed.
       if (dialect.name !== 'mariadb' && dialect.name !== 'oracle') {
-        if (dialect.name === 'mssql' || dialect.name === 'sqlite3') {
+        if (dialect.name === 'mssql' || dialect.name === 'sqlite3' || dialect.name === 'hana') {
           // MSSQL: does not have a JSON type, so we can't parse it if our DataType is not specified.
           // SQLite: sqlite3 does not tell us the type of a column, we cannot parse based on it.
+          // HANA: does not have a JSON type, so we can't parse it if our DataType is not specified.
           it(`is deserialized as a JSON string value when DataType is not specified`, async () => {
             await testSimpleInOutRaw(vars.User, 'jsonStr', 'abc', '"abc"');
             await testSimpleInOutRaw(vars.User, 'jsonBoolean', true, 'true');

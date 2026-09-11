@@ -460,6 +460,7 @@ describe('Model.update', () => {
               db2: `SELECT * FROM FINAL TABLE (UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?);`,
               ibmi: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?;`,
               oracle: `UPDATE "users1" SET "secretValue"=:1,"updatedAt"=:2 WHERE "id" = :3`,
+              hana: `UPDATE "users1" SET "secretValue"=?,"updatedAt"=? WHERE "id" = ?`,
             });
           },
           returning: [sql.col('*')],

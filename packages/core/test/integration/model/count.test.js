@@ -59,7 +59,8 @@ describe('Model.count', () => {
       dialectName !== 'mssql' &&
       dialectName !== 'db2' &&
       dialectName !== 'ibmi' &&
-      dialectName !== 'oracle'
+      dialectName !== 'oracle' &&
+      dialectName !== 'hana'
     ) {
       describe('aggregate', () => {
         it('allows grouping by aliased attribute', async function () {

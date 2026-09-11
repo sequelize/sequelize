@@ -12,6 +12,8 @@ import {
   setResetMode,
 } from './support';
 
+const dialectName = getTestDialect();
+
 describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () => {
   if (!sequelize.dialect.supports.transactions) {
     return;
@@ -175,7 +177,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   it('promises returned by sequelize.query are correctly patched', async () => {
     await vars.clsSequelize.transaction(async t => {
       await vars.clsSequelize.query(
-        `select 1 ${getTestDialect() === 'oracle' ? 'FROM DUAL' : ''}`,
+        `select 1 ${getTestDialect() === 'oracle' ? 'FROM DUAL' : dialectName === 'hana' ? 'FROM DUMMY' : ''}`,
         { type: QueryTypes.SELECT },
       );
 

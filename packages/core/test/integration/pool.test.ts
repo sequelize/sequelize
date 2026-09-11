@@ -35,6 +35,11 @@ function assertSameConnection(
       expect(newConnection.connected).to.equal(oldConnection.connected).and.to.be.ok;
       break;
 
+    case 'hana':
+      // @ts-expect-error -- untyped
+      expect(oldConnection.id).to.equal(newConnection.id).and.to.be.ok;
+      break;
+
     case 'sqlite3':
     case 'mssql':
     case 'ibmi':
@@ -69,6 +74,11 @@ function assertNewConnection(newConnection: AbstractConnection, oldConnection: A
       expect(newConnection.connected).to.be.ok;
       // @ts-expect-error -- untyped
       expect(oldConnection.connected).to.not.be.ok;
+      break;
+
+    case 'hana':
+      // @ts-expect-error -- untyped
+      expect(oldConnection.id).to.not.be.equal(newConnection.id);
       break;
 
     case 'mssql':
@@ -123,7 +133,7 @@ describe('Pool', () => {
           connection = attachMSSQLUniqueId(connection);
         }
 
-        if (dialectName === 'db2' || dialectName === 'mariadb' || dialectName === 'sqlite3') {
+        if (['db2', 'mariadb', 'sqlite3', 'hana'].includes(dialectName)) {
           await newSequelize.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');

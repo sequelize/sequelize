@@ -28,6 +28,9 @@ describe('QueryGenerator#setIsolationLevelQuery', () => {
       snowflake: notSupportedError,
       'db2 ibmi mssql': queryNotSupportedError,
       oracle: 'SET TRANSACTION ISOLATION LEVEL READ COMMITTED',
+      hana: new Error(
+        `The ${IsolationLevel.READ_UNCOMMITTED} isolation level is not supported by ${dialect.name}.`,
+      ),
     });
   });
 

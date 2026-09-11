@@ -26,6 +26,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
         dialectName,
         ['authorization'],
       ),
+      hana: 'CREATE SCHEMA "mySchema" OWNED BY "myUser"',
     });
   });
 
@@ -40,6 +41,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
           dialectName,
           ['authorization'],
         ),
+        hana: 'CREATE SCHEMA "mySchema" OWNED BY CURRENT USER', // will fail
       },
     );
   });
@@ -75,6 +77,7 @@ describe('QueryGenerator#createSchemaQuery', () => {
         'ifNotExists',
       ]),
       sqlite3: notSupportedError,
+      hana: buildInvalidOptionReceivedError('createSchemaQuery', dialectName, ['ifNotExists']),
     });
   });
 

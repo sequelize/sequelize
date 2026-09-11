@@ -23,6 +23,8 @@ const pSettle = require('p-settle');
 const fromQuery = () => {
   if (dialect === 'oracle') {
     return ' FROM DUAL';
+  } else if (dialect === 'hana') {
+    return ' FROM DUMMY';
   }
 
   return '';

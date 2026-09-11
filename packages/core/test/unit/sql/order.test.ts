@@ -360,6 +360,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         sqlite3:
           'SELECT `id`, `name` FROM `subtask` AS `Subtask` ORDER BY ((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0);',
         oracle: `SELECT "id", "name" FROM "subtask" "Subtask" ORDER BY DBMS_RANDOM.VALUE();`,
+        hana: 'SELECT "id", "name" FROM "subtask" AS "Subtask" ORDER BY RAND();',
       },
     );
   });

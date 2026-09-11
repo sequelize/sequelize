@@ -14,7 +14,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
     expectsql(() => queryGenerator.startTransactionQuery(), {
       default: 'START TRANSACTION',
       sqlite3: 'BEGIN DEFERRED TRANSACTION',
-      'db2 ibmi mssql': notSupportedError,
+      'db2 ibmi mssql hana': notSupportedError,
       oracle: 'BEGIN TRANSACTION',
     });
   });
@@ -24,7 +24,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
       default: 'START TRANSACTION',
       snowflake: 'START TRANSACTION NAME "myTransaction"',
       sqlite3: 'BEGIN DEFERRED TRANSACTION',
-      'db2 ibmi mssql': notSupportedError,
+      'db2 ibmi mssql hana': notSupportedError,
       oracle: 'BEGIN TRANSACTION',
     });
   });
@@ -32,7 +32,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
   it('should generate a query for starting a read-only transaction', () => {
     expectsql(() => queryGenerator.startTransactionQuery({ readOnly: true }), {
       default: buildInvalidOptionReceivedError('startTransactionQuery', dialect.name, ['readOnly']),
-      'db2 ibmi mssql': notSupportedError,
+      'db2 ibmi mssql hana': notSupportedError,
       'mariadb mysql postgres': 'START TRANSACTION READ ONLY',
     });
   });
@@ -45,7 +45,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
           'transactionType',
         ]),
         sqlite3: 'BEGIN DEFERRED TRANSACTION',
-        'db2 ibmi mssql': notSupportedError,
+        'db2 ibmi mssql hana': notSupportedError,
       },
     );
   });
@@ -58,7 +58,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
           'transactionType',
         ]),
         sqlite3: 'BEGIN IMMEDIATE TRANSACTION',
-        'db2 ibmi mssql': notSupportedError,
+        'db2 ibmi mssql hana': notSupportedError,
       },
     );
   });
@@ -71,7 +71,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
           'transactionType',
         ]),
         sqlite3: 'BEGIN EXCLUSIVE TRANSACTION',
-        'db2 ibmi mssql': notSupportedError,
+        'db2 ibmi mssql hana': notSupportedError,
       },
     );
   });
@@ -93,7 +93,7 @@ describe('QueryGenerator#startTransactionQuery', () => {
           dialect.name,
           ['readOnly'],
         ),
-        'db2 ibmi mssql': notSupportedError,
+        'db2 ibmi mssql hana': notSupportedError,
       },
     );
   });

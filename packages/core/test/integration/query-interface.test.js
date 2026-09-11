@@ -22,6 +22,11 @@ describe('QueryInterface', () => {
     }
 
     it('should drop all schema', async function () {
+      if (dialectName === 'hana') {
+        // cannot drop 'SYSTEM' schema in this test
+        return;
+      }
+
       await this.queryInterface.dropAllSchemas({
         skip: [this.sequelize.options.replication.write.database],
       });
@@ -247,6 +252,16 @@ describe('QueryInterface', () => {
 
       if (dialectName !== 'db2') {
         // Db2 does not allow rename of a primary key column
+        if (dialectName === 'hana') {
+          // HANA has a bug, primary keys defined by a dedicated clause cannot be renamed.
+          // e.g., we can rename the primary key:
+          // CREATE COLUMN TABLE "Fruit" ("fruitId" INTEGER PRIMARY KEY);
+          // but an error will be thrown if we rename the primary key:
+          // CREATE COLUMN TABLE "Fruit" ("fruitId" INTEGER, PRIMARY KEY ("fruitId"));
+          // In 2.00.072.00.1690304772, the bug still exists.
+          return;
+        }
+
         it('renames a column primary key autoIncrement column', async function () {
           const Fruits = this.sequelize.define(
             'Fruit',
