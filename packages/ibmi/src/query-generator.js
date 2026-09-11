@@ -396,7 +396,6 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     // BLOB cannot have a default value
     if (
       !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       if (attribute.defaultValue === true) {

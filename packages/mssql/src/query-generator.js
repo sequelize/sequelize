@@ -2,7 +2,6 @@
 
 import { DataTypes, Op } from '@sequelize/core';
 import {
-  attributeTypeToDataTypeId,
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -21,8 +20,6 @@ import forOwn from 'lodash/forOwn';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 import { MsSqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
-
-const typeWithoutDefault = new Set(['BLOB', 'TEXT']);
 
 /* istanbul ignore next */
 function throwMethodUndefined(methodName) {
@@ -503,12 +500,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       template += ' IDENTITY(1,1)';
     }
 
-    // Blobs/texts cannot have a defaultValue
-    if (
-      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      attribute.type.options?.binary !== true &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 

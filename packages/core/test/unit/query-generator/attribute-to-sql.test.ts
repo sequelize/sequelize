@@ -324,8 +324,9 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: 'TEXT', defaultValue: 'abc' },
     {
-      default: 'TEXT',
-      'postgres sqlite3 ibmi': "TEXT DEFAULT 'abc'",
+      default: "TEXT DEFAULT 'abc'",
+      'mariadb mysql snowflake': 'TEXT',
+      mssql: "TEXT DEFAULT N'abc'",
     },
   );
 
@@ -334,20 +335,17 @@ describe('QueryGenerator#attributeToSQL', () => {
     {
       default: 'TEXT',
       'postgres sqlite3': "TEXT DEFAULT 'abc'",
-      mssql: 'NVARCHAR(MAX)',
-      db2: 'CLOB(2147483647)',
-      ibmi: "CLOB(2147483647) DEFAULT 'abc'",
-      oracle: 'CLOB',
+      'db2 ibmi': "CLOB(2147483647) DEFAULT 'abc'",
+      mssql: "NVARCHAR(MAX) DEFAULT N'abc'",
+      oracle: "CLOB DEFAULT 'abc'",
     },
   );
 
   testSql(
     { type: 'BLOB', defaultValue: [] },
     {
-      default: 'BLOB',
-      'postgres sqlite3': new Error(
-        'Could not guess type of value [] because it is an empty array',
-      ),
+      default: new Error('Could not guess type of value [] because it is an empty array'),
+      'mariadb mysql snowflake ibmi': 'BLOB',
     },
   );
 
@@ -355,10 +353,12 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: sequelize.normalizeDataType(DataTypes.BLOB), defaultValue: Buffer.from('abc') },
     {
       default: 'BLOB',
-      'db2 ibmi': 'BLOB(1M)',
       postgres: "BYTEA DEFAULT '\\x616263'",
-      mssql: 'VARBINARY(MAX)',
+      mssql: 'VARBINARY(MAX) DEFAULT 0x616263',
       sqlite3: "BLOB DEFAULT X'616263'",
+      db2: "BLOB(1M) DEFAULT BLOB('abc')",
+      ibmi: 'BLOB(1M)',
+      oracle: "BLOB DEFAULT '616263'",
     },
   );
 

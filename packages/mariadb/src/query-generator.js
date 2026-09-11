@@ -182,7 +182,6 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
       !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
