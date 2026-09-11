@@ -2509,7 +2509,8 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
 
   attachUsageContext(usageContext: DataTypeUseContext): this {
     if (!isString(this.options.type)) {
-      this.options.type.attachUsageContext(usageContext);
+      // `clone` shares the element type instance, so it must be replaced instead of mutated.
+      this.options.type = this.options.type.withUsageContext(usageContext);
     }
 
     return super.attachUsageContext(usageContext);
