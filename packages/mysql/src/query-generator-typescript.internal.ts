@@ -35,8 +35,9 @@ import isPlainObject from 'lodash/isPlainObject';
 import type { MySqlDialect } from './dialect.js';
 import { MySqlQueryGeneratorInternal } from './query-generator.internal.js';
 
-// BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+// MySQL only accepts a default on these types if it is written as an expression,
+// i.e. wrapped in parentheses, even when the expression is a literal
+const typeNeedingParenthesizedDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -216,15 +217,14 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template += ' auto_increment';
     }
 
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (
-      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       const { defaultValue } = attribute;
       const escaped = this.escape(defaultValue);
-      // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
-      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
+      const needsParentheses =
+        defaultValue instanceof BaseSqlExpression ||
+        typeNeedingParenthesizedDefault.has(attributeTypeToDataTypeId(attribute.type));
+
+      template += ` DEFAULT ${needsParentheses ? `(${escaped})` : escaped}`;
     }
 
     if (attribute.unique === true) {

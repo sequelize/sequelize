@@ -259,8 +259,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ? (column as AttributeToSqlColumn)
       : { type: column as NormalizedDataType };
 
-    const attributeString = attribute.type.toString();
-    let template = attributeString;
+    let template;
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case

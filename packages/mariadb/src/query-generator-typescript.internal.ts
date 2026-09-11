@@ -8,10 +8,7 @@ import type {
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
-import {
-  attributeTypeToDataTypeId,
-  attributeTypeToSql,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import type { NormalizedDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
@@ -24,6 +21,7 @@ import type {
   AttributeToSqlInput,
   AttributeToSqlOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
@@ -35,9 +33,6 @@ import type { MariaDbDialect } from './dialect.js';
 import { MariaDbQueryGeneratorInternal } from './query-generator.internal.js';
 
 const REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS = new Set<keyof RemoveIndexQueryOptions>(['ifExists']);
-
-// BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 /**
  * Temporary class to ease the TypeScript migration
@@ -230,12 +225,12 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template += ' auto_increment';
     }
 
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (
-      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      const { defaultValue } = attribute;
+      const escaped = this.escape(defaultValue);
+
+      // MariaDB only accepts an expression default if it is wrapped in parentheses
+      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
     }
 
     if (attribute.unique === true) {
