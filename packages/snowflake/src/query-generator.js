@@ -1,5 +1,6 @@
 'use strict';
 
+import { attributeTypeToDataTypeId } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -245,8 +246,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
