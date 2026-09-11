@@ -161,7 +161,8 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'INTEGER', allowNull: false },
     {
       default: 'INTEGER NOT NULL',
-      db2: ['DATA TYPE INTEGER', 'NOT NULL'],
+      db2: 'DATA TYPE INTEGER',
+      ibmi: 'INTEGER',
     },
     { context: 'changeColumn' },
   );
@@ -171,8 +172,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     {
       default: 'INTEGER',
       'mssql oracle': 'INTEGER NULL',
-      db2: ['DATA TYPE INTEGER', 'DROP NOT NULL'],
-      ibmi: 'INTEGER DROP NOT NULL',
+      db2: 'DATA TYPE INTEGER',
     },
     { context: 'changeColumn' },
   );
@@ -718,11 +718,10 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'INTEGER', allowNull: true, comment: 'Test' },
     {
       default: "INTEGER COMMENT 'Test'",
+      'sqlite3 ibmi': 'INTEGER',
       postgres: new Error('quoteIdentifier received a non-string identifier: undefined'),
       mssql: 'INTEGER NULL COMMENT Test',
-      sqlite3: 'INTEGER',
-      db2: 'DATA TYPE INTEGER,DROP NOT NULL COMMENT Test',
-      ibmi: 'INTEGER DROP NOT NULL',
+      db2: 'DATA TYPE INTEGER COMMENT Test',
       oracle: 'INTEGER NULL',
     },
     { context: 'changeColumn' },

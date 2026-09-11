@@ -192,16 +192,18 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  changeColumnQuery(tableName, attributes) {
+  changeColumnQuery(tableName, attributes, columns) {
     const query = 'ALTER TABLE <%= tableName %> <%= query %>;';
     const attrString = [];
     const constraintString = [];
 
     for (const attributeName in attributes) {
-      const attrValue = attributes[attributeName];
-      let defs = [attrValue];
-      if (Array.isArray(attrValue)) {
-        defs = attrValue;
+      const defs = [attributes[attributeName]];
+
+      // db2 cannot change the type and the nullability of a column in one ALTER COLUMN clause
+      const { allowNull } = columns?.[attributeName] ?? {};
+      if (allowNull !== undefined) {
+        defs.push(allowNull ? 'DROP NOT NULL' : 'NOT NULL');
       }
 
       for (const definition of defs) {
@@ -554,7 +556,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     }
 
     let template;
-    let changeNull = 1;
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
@@ -572,7 +573,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       template = `DATA TYPE ${template}`;
     } else if (attribute.allowNull === false || attribute.primaryKey === true) {
       template += ' NOT NULL';
-      changeNull = 0;
     }
 
     if (attribute.autoIncrement) {
@@ -628,20 +628,6 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       if (attribute.onUpdate && attribute.onUpdate.toUpperCase() !== 'CASCADE') {
         // Db2 do not support CASCADE option for ON UPDATE clause.
         template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
-    }
-
-    if (
-      options &&
-      options.context === 'changeColumn' &&
-      changeNull === 1 &&
-      attribute.allowNull !== undefined
-    ) {
-      template = [template];
-      if (attribute.allowNull) {
-        template.push('DROP NOT NULL');
-      } else {
-        template.push('NOT NULL');
       }
     }
 
