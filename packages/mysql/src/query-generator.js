@@ -1,6 +1,7 @@
 'use strict';
 
 import {
+  attributeTypeToDataTypeId,
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -179,10 +180,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, {
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
+    const attributeString = attributeTypeToSql(attribute.type);
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -195,8 +193,8 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       const { defaultValue } = attribute;

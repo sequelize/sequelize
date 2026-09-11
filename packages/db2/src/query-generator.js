@@ -2,6 +2,7 @@
 
 import { DataTypes, Op, ParameterStyle } from '@sequelize/core';
 import {
+  attributeTypeToDataTypeId,
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -26,6 +27,8 @@ import isString from 'lodash/isString';
 import startsWith from 'lodash/startsWith';
 import template from 'lodash/template';
 import { Db2QueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
+
+const typeWithoutDefault = new Set(['BLOB', 'TEXT']);
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 
@@ -561,7 +564,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+      template = attributeTypeToSql(attribute.type);
     }
 
     if (options && options.context === 'changeColumn' && attribute.type) {
@@ -582,8 +585,8 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
 
     // Blobs/texts cannot have a defaultValue
     if (
-      attribute.type !== 'TEXT' &&
-      attribute.type._binary !== true &&
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { replacements: options?.replacements, type: attribute.type })}`;

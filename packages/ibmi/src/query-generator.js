@@ -2,6 +2,7 @@
 
 import { DataTypes } from '@sequelize/core';
 import {
+  attributeTypeToDataTypeId,
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -373,7 +374,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+      template = attributeTypeToSql(attribute.type);
     }
 
     if (attribute.allowNull === false) {
@@ -388,8 +389,8 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     // BLOB cannot have a default value
     if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
+      attribute.type.options?.binary !== true &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       if (attribute.defaultValue === true) {
