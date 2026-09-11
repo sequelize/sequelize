@@ -1,10 +1,7 @@
 'use strict';
 
-import { DataTypes, Op } from '@sequelize/core';
-import {
-  attributeTypeToSql,
-  normalizeDataType,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { Op } from '@sequelize/core';
+import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -12,12 +9,9 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { pojo } from '@sequelize/utils';
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
-import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
 import { MsSqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
@@ -136,7 +130,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     dataType = {
       ...dataType,
-      // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
+      // TODO: attributeToSql SHOULD be using attributes in addColumnQuery
       //       but instead we need to pass the key along as the field here
       field: key,
       type: normalizeDataType(dataType.type, this.dialect),
@@ -146,7 +140,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     if (dataType.comment && isString(dataType.comment)) {
       commentStr = this.commentTemplate(dataType.comment, table, key);
-      // attributeToSQL will try to include `COMMENT 'Comment Text'` when it returns if the comment key
+      // attributeToSql will try to include `COMMENT 'Comment Text'` when it returns if the comment key
       // is present. This is needed for createTable statement where that part is extracted with regex.
       // Here we can intercept the object and remove comment property since we have the original object.
       delete dataType.comment;
@@ -157,7 +151,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       this.quoteTable(table),
       'ADD',
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, { context: 'addColumn', tableOrModel: table }),
+      this.attributeToSql(dataType, { context: 'addColumn', tableOrModel: table }),
       ';',
       commentStr,
     ]);
@@ -448,128 +442,6 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     }
 
     return query;
-  }
-
-  attributeToSQL(attribute, options) {
-    if (!isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
-    }
-
-    // handle self-referential constraints
-    if (
-      attribute.references &&
-      attribute.Model &&
-      this.isSameTable(attribute.Model.tableName, attribute.references.table)
-    ) {
-      this.sequelize.log(
-        'MSSQL does not support self-referential constraints, ' +
-          'we will remove it but we recommend restructuring your query',
-      );
-      attribute.onDelete = '';
-      attribute.onUpdate = '';
-    }
-
-    let template;
-
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // enums are a special case
-      template = attribute.type.toSql({ dialect: this.dialect });
-      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
-        .map(value => {
-          return this.escape(value, options);
-        })
-        .join(', ')}))`;
-
-      return template;
-    }
-
-    template = attributeTypeToSql(attribute.type);
-
-    if (attribute.allowNull === false) {
-      template += ' NOT NULL';
-    } else if (
-      !attribute.primaryKey &&
-      !defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
-      template += ' NULL';
-    }
-
-    if (attribute.autoIncrement) {
-      template += ' IDENTITY(1,1)';
-    }
-
-    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
-    }
-
-    if (
-      attribute.unique === true &&
-      (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
-    ) {
-      template += ' UNIQUE';
-    }
-
-    if (attribute.primaryKey) {
-      template += ' PRIMARY KEY';
-    }
-
-    if (!options?.withoutForeignKeyConstraints && attribute.references) {
-      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
-
-      if (attribute.references.key) {
-        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
-      } else {
-        template += ` (${this.quoteIdentifier('id')})`;
-      }
-
-      if (attribute.onDelete) {
-        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
-
-      if (attribute.onUpdate) {
-        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
-    }
-
-    if (attribute.comment && typeof attribute.comment === 'string') {
-      template += ` COMMENT ${attribute.comment}`;
-    }
-
-    return template;
-  }
-
-  attributesToSQL(attributes, options) {
-    const result = pojo();
-    const existingConstraints = [];
-
-    for (const key of Object.keys(attributes)) {
-      const rawAttribute = attributes[key];
-      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      if (attribute.references) {
-        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
-          // mssql rejects more than one cascading constraint to the same table
-          attribute.onDelete = '';
-          attribute.onUpdate = '';
-        } else {
-          existingConstraints.push(this.quoteTable(attribute.references.table));
-
-          // NOTE: this really just disables cascading updates for all
-          //       definitions. Can be made more robust to support the
-          //       few cases where MSSQL actually supports them
-          attribute.onUpdate = '';
-        }
-      }
-
-      result[columnName] = this.attributeToSQL(attribute, options);
-    }
-
-    return result;
   }
 
   createTrigger() {

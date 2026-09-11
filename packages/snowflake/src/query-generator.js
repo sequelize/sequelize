@@ -1,9 +1,6 @@
 'use strict';
 
-import {
-  attributeTypeToDataTypeId,
-  normalizeDataType,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -12,9 +9,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
-import isPlainObject from 'lodash/isPlainObject';
 import { SnowflakeQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 /**
@@ -27,8 +22,6 @@ const SNOWFLAKE_RESERVED_WORDS =
   'account,all,alter,and,any,as,between,by,case,cast,check,column,connect,connections,constraint,create,cross,current,current_date,current_time,current_timestamp,current_user,database,delete,distinct,drop,else,exists,false,following,for,from,full,grant,group,gscluster,having,ilike,in,increment,inner,insert,intersect,into,is,issue,join,lateral,left,like,localtime,localtimestamp,minus,natural,not,null,of,on,or,order,organization,qualify,regexp,revoke,right,rlike,row,rows,sample,schema,select,set,some,start,table,tablesample,then,to,trigger,true,try_cast,union,unique,update,using,values,view,when,whenever,where,with'.split(
     ',',
   );
-
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
@@ -145,7 +138,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       this.quoteTable(table),
       'ADD',
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, {
+      this.attributeToSql(dataType, {
         context: 'addColumn',
         tableOrModel: table,
       }),
@@ -232,97 +225,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       attrString.join(' to '),
       ';',
     ]);
-  }
-
-  attributeToSQL(attribute, options) {
-    if (!isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
-    }
-
-    const attributeString = attribute.type.toString({ dialect: this.dialect });
-    let template = attributeString;
-
-    if (attribute.allowNull === false) {
-      template += ' NOT NULL';
-    }
-
-    if (attribute.autoIncrement) {
-      template += ' AUTOINCREMENT';
-    }
-
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (
-      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
-    }
-
-    if (attribute.unique === true) {
-      template += ' UNIQUE';
-    }
-
-    if (attribute.primaryKey) {
-      template += ' PRIMARY KEY';
-    }
-
-    if (attribute.comment) {
-      template += ` COMMENT ${this.escape(attribute.comment, options)}`;
-    }
-
-    if (attribute.first) {
-      template += ' FIRST';
-    }
-
-    if (attribute.after) {
-      template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
-    }
-
-    if (!options?.withoutForeignKeyConstraints && attribute.references) {
-      if (options?.context === 'addColumn' && attribute.field) {
-        const fkName = this.quoteIdentifier(
-          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
-        );
-
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
-      }
-
-      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
-
-      if (attribute.references.key) {
-        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
-      } else {
-        template += ` (${this.quoteIdentifier('id')})`;
-      }
-
-      if (attribute.onDelete) {
-        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
-
-      if (attribute.onUpdate) {
-        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
-    }
-
-    return template;
-  }
-
-  attributesToSQL(attributes, options) {
-    const result = {};
-
-    for (const key of Object.keys(attributes)) {
-      const rawAttribute = attributes[key];
-      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      result[columnName] = this.attributeToSQL(attribute, options);
-    }
-
-    return result;
   }
 
   dataTypeMapping(tableName, attr, dataType) {

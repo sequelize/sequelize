@@ -1,4 +1,8 @@
-import { DataTypes, fn, literal } from '@sequelize/core';
+import { DataTypes, Deferrable, fn, literal } from '@sequelize/core';
+import type {
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import type { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import util from 'node:util';
 import type { ExpectationRecord } from '../../support';
@@ -18,18 +22,15 @@ function createAttributeTester(getQueryGenerator: () => AbstractQueryGenerator) 
   return createTester(
     (
       it,
-      // TODO: type this once attributeToSQL is typed
-      attribute: any,
+      attribute: AttributeToSqlInput,
       expectations: Expectations,
-      // TODO: use AttributeToSqlOptions once attributeToSQL is typed.
-      options?: Record<string, unknown>,
+      options?: AttributeToSqlOptions,
     ) => {
       it(
         util.inspect(attribute, { depth: 10 }) + (options ? `, ${util.inspect(options)}` : ''),
         () => {
           return expectPerDialect(
-            // @ts-expect-error -- attributeToSQL is not typed yet
-            () => getQueryGenerator().attributeToSQL(attribute, options),
+            () => getQueryGenerator().attributeToSql(attribute, options),
             expectations,
           );
         },
@@ -38,7 +39,7 @@ function createAttributeTester(getQueryGenerator: () => AbstractQueryGenerator) 
   );
 }
 
-describe('QueryGenerator#attributeToSQL', () => {
+describe('QueryGenerator#attributeToSql', () => {
   const testSql = createAttributeTester(() => sequelize.dialect.queryGenerator);
 
   testSql('INTEGER', {
@@ -68,7 +69,7 @@ describe('QueryGenerator#attributeToSQL', () => {
   );
 
   // TODO: an ENUM without a column name should not throw. mssql, db2, ibmi and oracle build the
-  //  CHECK constraint out of `attribute.field`, which nothing guarantees is set when attributeToSQL
+  //  CHECK constraint out of `attribute.field`, which nothing guarantees is set when attributeToSql
   //  is called directly.
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.ENUM('value1', 'value2')) },
@@ -534,7 +535,7 @@ describe('QueryGenerator#attributeToSQL', () => {
   );
 
   testSql(
-    { type: 'INTEGER', references: { table: 'Bar', deferrable: 'INITIALLY_IMMEDIATE' } },
+    { type: 'INTEGER', references: { table: 'Bar', deferrable: Deferrable.INITIALLY_IMMEDIATE } },
     {
       default: 'INTEGER REFERENCES `Bar` (`id`)',
       'snowflake db2 ibmi': 'INTEGER REFERENCES "Bar" ("id")',
@@ -880,7 +881,7 @@ describe('QueryGenerator#attributeToSQL', () => {
         db2: 'INTEGER COMMENT Test',
         oracle: 'INTEGER NULL',
       },
-      { context: 'addColumn', key: 'column', table: { tableName: 'bar', schema: 'foo' } },
+      { context: 'addColumn', tableOrModel: { tableName: 'bar', schema: 'foo' } },
     );
   });
 });

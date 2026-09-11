@@ -1,17 +1,9 @@
 'use strict';
 
-import {
-  attributeTypeToDataTypeId,
-  attributeTypeToSql,
-  normalizeDataType,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
-import isPlainObject from 'lodash/isPlainObject';
 import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
-
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
@@ -112,7 +104,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       'ADD',
       ifNotExists,
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, {
+      this.attributeToSql(dataType, {
         context: 'addColumn',
         tableOrModel: table,
       }),
@@ -159,96 +151,5 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       attrString.join(', '),
       ';',
     ]);
-  }
-
-  attributeToSQL(attribute, options) {
-    if (!isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
-    }
-
-    const attributeString = attributeTypeToSql(attribute.type);
-    let template = attributeString;
-
-    if (attribute.allowNull === false) {
-      template += ' NOT NULL';
-    }
-
-    if (attribute.autoIncrement) {
-      template += ' auto_increment';
-    }
-
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (
-      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
-    }
-
-    if (attribute.unique === true) {
-      template += ' UNIQUE';
-    }
-
-    if (attribute.primaryKey) {
-      template += ' PRIMARY KEY';
-    }
-
-    if (attribute.comment) {
-      template += ` COMMENT ${this.escape(attribute.comment)}`;
-    }
-
-    if (attribute.first) {
-      template += ' FIRST';
-    }
-
-    if (attribute.after) {
-      template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
-    }
-
-    if (!options?.withoutForeignKeyConstraints && attribute.references) {
-      if (options?.context === 'addColumn' && attribute.field) {
-        const fkName = this.quoteIdentifier(
-          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
-        );
-
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
-      }
-
-      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
-
-      if (attribute.references.key) {
-        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
-      } else {
-        template += ` (${this.quoteIdentifier('id')})`;
-      }
-
-      if (attribute.onDelete) {
-        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
-
-      if (attribute.onUpdate) {
-        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-      }
-    }
-
-    return template;
-  }
-
-  attributesToSQL(attributes, options) {
-    const result = {};
-
-    for (const key of Object.keys(attributes)) {
-      const rawAttribute = attributes[key];
-      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      result[columnName] = this.attributeToSQL(attribute, options);
-    }
-
-    return result;
   }
 }

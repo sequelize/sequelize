@@ -5,9 +5,9 @@ import { createSequelizeInstance, expectsql, getTestDialect, sequelize } from '.
 const dialect = sequelize.dialect;
 const dialectName = getTestDialect();
 
-// TODO: check the tests with COMMENT after attributeToSQL quotes the comment
-// TODO: double check if all column SQL types are possible results of attributeToSQL after #15533 has been merged
-// TODO: see if some logic in handling columns can be moved to attributeToSQL which could make some tests here redundant
+// TODO: check the tests with COMMENT after attributeToSql quotes the comment
+// TODO: double check if all column SQL types are possible results of attributeToSql after #15533 has been merged
+// TODO: see if some logic in handling columns can be moved to attributeToSql which could make some tests here redundant
 
 describe('QueryGenerator#createTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -159,7 +159,7 @@ describe('QueryGenerator#createTableQuery', () => {
     );
   });
 
-  // quoting the identifiers after REFERENCES is done by attributesToSQL
+  // quoting the identifiers after REFERENCES is done by attributesToSql
   it('produces a query to create a table with references', () => {
     expectsql(
       queryGenerator.createTableQuery('myTable', { myColumn: 'DATE REFERENCES "Bar" ("id")' }),
@@ -198,7 +198,7 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   // TODO: REFERENCES should be pushed to the end, this is likely a bug in mysql/mariadb
-  //       mssql and db2 use the same logic but there does not seem to be a valid attributeToSQL result that causes issues
+  //       mssql and db2 use the same logic but there does not seem to be a valid attributeToSql result that causes issues
   it('produces a query to create a table with references and a comment', () => {
     expectsql(
       queryGenerator.createTableQuery('myTable', {
@@ -358,10 +358,10 @@ describe('QueryGenerator#createTableQuery', () => {
       },
     );
 
-    // getAttributes() returns NormalizedAttributeOptions, but attributesToSQL accepts both
+    // getAttributes() returns NormalizedAttributeOptions, but attributesToSql accepts both
     // ColumnsDescription and NormalizedAttributeOptions in practice (JS implementation).
     // The type declaration is too narrow, so we cast here to prevent TypeScript errors, this should really be fixed upstream.
-    const attributes = queryGenerator.attributesToSQL(UuidArrayModel.getAttributes() as any, {
+    const attributes = queryGenerator.attributesToSql(UuidArrayModel.getAttributes() as any, {
       tableOrModel: UuidArrayModel.table.tableName,
       context: 'createTable',
     });
@@ -372,7 +372,7 @@ describe('QueryGenerator#createTableQuery', () => {
     });
   });
 
-  // quoting the enum values is done by attributesToSQL
+  // quoting the enum values is done by attributesToSql
   it('produces a query to create a table with an enum', () => {
     expectsql(queryGenerator.createTableQuery('myTable', { myColumn: 'ENUM("foo", "bar")' }), {
       default: 'CREATE TABLE IF NOT EXISTS [myTable] ([myColumn] ENUM("foo", "bar"));',

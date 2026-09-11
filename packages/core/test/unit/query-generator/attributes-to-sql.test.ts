@@ -1,19 +1,10 @@
 import { expectPerDialect, sequelize } from '../../support';
 
-// TODO: attributesToSQL is declared as accepting a ColumnsDescription, which does not describe the
-//  attribute options (references, unique, comment, ...) that every dialect reads. Drop this cast
-//  once the method is properly typed.
-const queryGenerator = sequelize.dialect.queryGenerator as unknown as {
-  attributesToSQL(
-    attributes: Record<string, unknown>,
-    options?: Record<string, unknown>,
-    // db2 returns an array of fragments in the changeColumn context
-  ): Record<string, string | string[]>;
-};
+const queryGenerator = sequelize.dialect.queryGenerator;
 
-describe('QueryGenerator#attributesToSQL', () => {
+describe('QueryGenerator#attributesToSql', () => {
   it('generates a SQL representation for a single attribute', () => {
-    expectPerDialect(() => queryGenerator.attributesToSQL({ id: { type: 'INTEGER' } }), {
+    expectPerDialect(() => queryGenerator.attributesToSql({ id: { type: 'INTEGER' } }), {
       default: { id: 'INTEGER' },
       'mssql oracle': { id: 'INTEGER NULL' },
     });
@@ -21,7 +12,7 @@ describe('QueryGenerator#attributesToSQL', () => {
 
   it('generates a SQL representation for multiple attributes', () => {
     expectPerDialect(
-      () => queryGenerator.attributesToSQL({ id: { type: 'INTEGER' }, name: { type: 'STRING' } }),
+      () => queryGenerator.attributesToSql({ id: { type: 'INTEGER' }, name: { type: 'STRING' } }),
       {
         default: { id: 'INTEGER', name: 'STRING' },
         'mssql oracle': { id: 'INTEGER NULL', name: 'STRING NULL' },
@@ -30,7 +21,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   });
 
   it('generates a SQL representation for attributes that are plain strings', () => {
-    expectPerDialect(() => queryGenerator.attributesToSQL({ id: 'INTEGER', foo: 'VARCHAR(255)' }), {
+    expectPerDialect(() => queryGenerator.attributesToSql({ id: 'INTEGER', foo: 'VARCHAR(255)' }), {
       default: { id: 'INTEGER', foo: 'VARCHAR(255)' },
       'mssql oracle': { id: 'INTEGER NULL', foo: 'VARCHAR(255) NULL' },
     });
@@ -38,7 +29,7 @@ describe('QueryGenerator#attributesToSQL', () => {
 
   it('keys the result on the field name instead of the attribute name', () => {
     expectPerDialect(
-      () => queryGenerator.attributesToSQL({ id: { type: 'INTEGER', field: 'foo' } }),
+      () => queryGenerator.attributesToSql({ id: { type: 'INTEGER', field: 'foo' } }),
       {
         default: { foo: 'INTEGER' },
         'mssql oracle': { foo: 'INTEGER NULL' },
@@ -48,7 +39,7 @@ describe('QueryGenerator#attributesToSQL', () => {
 
   it('keys the result on the columnName', () => {
     expectPerDialect(
-      () => queryGenerator.attributesToSQL({ id: { type: 'INTEGER', columnName: 'foo' } }),
+      () => queryGenerator.attributesToSql({ id: { type: 'INTEGER', columnName: 'foo' } }),
       {
         default: { foo: 'INTEGER' },
         'mssql oracle': { foo: 'INTEGER NULL' },
@@ -59,7 +50,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for a reference when no options are provided', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL({ id: { type: 'INTEGER', references: { table: 'Bar' } } }),
+        queryGenerator.attributesToSql({ id: { type: 'INTEGER', references: { table: 'Bar' } } }),
       {
         default: { id: 'INTEGER REFERENCES "Bar" ("id")' },
         'mariadb mysql sqlite3': { id: 'INTEGER REFERENCES `Bar` (`id`)' },
@@ -74,7 +65,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for two references to the same table', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL({
+        queryGenerator.attributesToSql({
           a: { type: 'INTEGER', references: { table: 'Bar' } },
           b: { type: 'INTEGER', references: { table: 'Bar' } },
         }),
@@ -99,7 +90,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for two references to different tables', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL({
+        queryGenerator.attributesToSql({
           a: { type: 'INTEGER', references: { table: 'Bar' } },
           b: { type: 'INTEGER', references: { table: 'Baz' } },
         }),
@@ -124,7 +115,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for a comment in the createTable context', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL(
+        queryGenerator.attributesToSql(
           { id: { type: 'INTEGER', comment: 'Test' } },
           { context: 'createTable', tableOrModel: 'myTable' },
         ),
@@ -141,7 +132,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for a comment in the addColumn context', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL(
+        queryGenerator.attributesToSql(
           { id: { type: 'INTEGER', comment: 'Test' } },
           { context: 'addColumn', tableOrModel: 'myTable' },
         ),
@@ -159,7 +150,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for two references to the same table with referential actions', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL({
+        queryGenerator.attributesToSql({
           a: {
             type: 'INTEGER',
             references: { table: 'Bar' },
@@ -201,7 +192,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for two references to different tables with referential actions', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL({
+        queryGenerator.attributesToSql({
           a: {
             type: 'INTEGER',
             references: { table: 'Bar' },
@@ -241,7 +232,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation for a unique attribute that also references a table', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL({
+        queryGenerator.attributesToSql({
           a: { type: 'INTEGER', unique: true, references: { table: 'Bar' }, onDelete: 'CASCADE' },
         }),
       {
@@ -259,7 +250,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('omits foreign key constraints when withoutForeignKeyConstraints is set', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL(
+        queryGenerator.attributesToSql(
           { id: { type: 'INTEGER', references: { table: 'Bar' } } },
           { withoutForeignKeyConstraints: true },
         ),
@@ -273,7 +264,7 @@ describe('QueryGenerator#attributesToSQL', () => {
   it('generates a SQL representation in the changeColumn context', () => {
     expectPerDialect(
       () =>
-        queryGenerator.attributesToSQL(
+        queryGenerator.attributesToSql(
           { id: { type: 'INTEGER', allowNull: true } },
           { context: 'changeColumn', tableOrModel: 'myTable' },
         ),
