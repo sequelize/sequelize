@@ -532,10 +532,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return (
-      'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t ' +
-      'JOIN pg_enum e ON t.oid = e.enumtypid ' +
+      'SELECT t.typname enum_name, ' +
+      'COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value ' +
+      'FROM pg_type t ' +
+      'LEFT JOIN pg_enum e ON t.oid = e.enumtypid ' +
       'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
-      `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`
+      `WHERE n.nspname = ${this.escape(tableDetails.schema)} AND t.typtype = 'e'${enumName} GROUP BY 1`
     );
   }
 

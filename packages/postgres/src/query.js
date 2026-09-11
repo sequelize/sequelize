@@ -13,32 +13,20 @@ import {
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { pojo } from '@sequelize/utils';
-import escapeRegExp from 'lodash/escapeRegExp';
 import forOwn from 'lodash/forOwn';
 import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import mapKeys from 'lodash/mapKeys';
-import toPairs from 'lodash/toPairs';
 import zipObject from 'lodash/zipObject';
 
 const debug = logger.debugContext('sql:pg');
 
 export class PostgresQuery extends AbstractQuery {
-  async run(sql, parameters, options) {
+  async run(sql, parameters) {
     const { connection } = this;
 
     if (!isEmpty(this.options.searchPath)) {
       sql = this.sequelize.queryGenerator.setSearchPath(this.options.searchPath) + sql;
-    }
-
-    if (options?.minifyAliases && this.options.includeAliases) {
-      for (const [alias, original] of toPairs(this.options.includeAliases)
-        // Sorting to replace the longest aliases first to prevent alias collision
-        .sort((a, b) => b[1].length - a[1].length)) {
-        const reg = new RegExp(escapeRegExp(original), 'g');
-
-        sql = sql.replace(reg, alias);
-      }
     }
 
     this.sql = sql;
@@ -81,7 +69,7 @@ export class PostgresQuery extends AbstractQuery {
 
     complete();
 
-    let rows = Array.isArray(queryResult)
+    const rows = Array.isArray(queryResult)
       ? queryResult.reduce((allRows, r) => allRows.concat(r.rows || []), [])
       : queryResult.rows;
     const rowCount = Array.isArray(queryResult)
@@ -90,17 +78,6 @@ export class PostgresQuery extends AbstractQuery {
           0,
         )
       : queryResult.rowCount || 0;
-
-    if (options?.minifyAliases && this.options.aliasesMapping) {
-      rows = rows.map(row =>
-        toPairs(row).reduce((acc, [key, value]) => {
-          const mapping = this.options.aliasesMapping.get(key);
-          acc[mapping || key] = value;
-
-          return acc;
-        }, {}),
-      );
-    }
 
     const isTableNameQuery = sql.startsWith('SELECT table_name FROM information_schema.tables');
     const isRelNameQuery = sql.startsWith('SELECT relname FROM pg_class WHERE oid IN');

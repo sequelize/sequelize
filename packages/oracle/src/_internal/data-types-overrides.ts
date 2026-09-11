@@ -155,17 +155,16 @@ export class DATE extends BaseTypes.DATE {
     return { type: oracledb.DB_TYPE_TIMESTAMP_LTZ };
   }
 
-  toBindableValue(date: AcceptedDate) {
-    const format = 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM';
-    date = this._applyTimezone(date);
+  escape(value: AcceptedDate): string {
+    const dialect = this._getDialect();
+    const date = this.toBindableValue(value);
+    const format = dialect.escapeString('YYYY-MM-DD HH24:MI:SS.FFTZH:TZM');
 
-    const formatedDate = date.format('YYYY-MM-DD HH:mm:ss.SSS Z');
-
-    return `TO_TIMESTAMP_TZ('${formatedDate}', '${format}')`;
+    return `TO_TIMESTAMP_TZ(${dialect.escapeString(date)}, ${format})`;
   }
 
   /**
-   * avoids appending TO_TIMESTAMP_TZ in toBindableValue()
+   * Uses native temporal binds instead of the inline TO_TIMESTAMP_TZ wrapper.
    *
    * @override
    */
@@ -330,6 +329,19 @@ export class BLOB extends BaseTypes.BLOB {
   }
 }
 
+function jsonToBindableValue(value: any, dialect: AbstractDialect): string {
+  if (value === null) {
+    const isExplicit = dialect.sequelize.options.nullJsonStringification === 'explicit';
+    if (isExplicit) {
+      throw new Error(
+        `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
+      );
+    }
+  }
+
+  return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+}
+
 export class JSON extends BaseTypes.JSON {
   toSql(): string {
     return 'BLOB';
@@ -340,22 +352,17 @@ export class JSON extends BaseTypes.JSON {
   }
 
   toBindableValue(value: any): string {
-    if (value === null) {
-      const sequelize = this._getDialect().sequelize;
-
-      const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
-      if (isExplicit) {
-        throw new Error(
-          `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
-        );
-      }
-    }
-
-    return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+    return jsonToBindableValue(value, this._getDialect());
   }
 
   getBindParamSql(value: any, options: BindParamOptions): any {
     return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
+  }
+}
+
+export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult {
+  toBindableValue(value: any): string {
+    return jsonToBindableValue(value, this._getDialect());
   }
 }
 
@@ -384,14 +391,12 @@ export class DOUBLE extends BaseTypes.DOUBLE {
 }
 
 export class DATEONLY extends BaseTypes.DATEONLY {
-  toBindableValue(date: AcceptedDate) {
-    if (date) {
-      const format = 'YYYY/MM/DD';
+  escape(value: AcceptedDate): string {
+    const dialect = this._getDialect();
+    const date = this.toBindableValue(value).replaceAll('-', '/');
+    const format = dialect.escapeString('YYYY/MM/DD');
 
-      return this.escape(`TO_DATE('${date}','${format}')`);
-    }
-
-    return this.escape(date);
+    return `TO_DATE(${dialect.escapeString(date)}, ${format})`;
   }
 
   parseDatabaseValue(value: any) {
@@ -407,7 +412,7 @@ export class DATEONLY extends BaseTypes.DATEONLY {
   }
 
   /**
-   * avoids appending TO_DATE in toBindableValue()
+   * Uses native temporal binds instead of the inline TO_DATE wrapper.
    *
    * @override
    */
