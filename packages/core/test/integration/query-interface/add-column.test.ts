@@ -5,8 +5,6 @@ import { getTestDialect, sequelize } from '../support';
 const dialectName = getTestDialect();
 const queryInterface = sequelize.queryInterface;
 
-// Column comments have no `dialect.supports` flag; on PostgreSQL they are emitted as a
-// separate statement, which is what these tests cover.
 describe('QueryInterface#addColumn', () => {
   if (dialectName !== 'postgres') {
     return;
