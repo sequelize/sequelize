@@ -1,0 +1,17 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+reviews:
+  tools:
+    # Sequelize does not use Biome. Every packages/*/src/*.js file is ESM syntax
+    # inside a package declaring "type": "commonjs", because esbuild compiles
+    # these sources to CommonJS in lib/, which is what we publish. Biome resolves
+    # the nearest package.json to decide script vs module and so reports every
+    # import/export as "Illegal use of an import declaration outside of a module".
+    # Biome has no parser option to override that.
+    biome:
+      enabled: false
+    # CodeRabbit runs ESLint 10, which dropped eslintrc support. This repo is
+    # pinned to ESLint 8 and uses .eslintrc.js, so every run fails during config
+    # loading with "A config object is using the parserOptions key, which is not
+    # supported in flat config system". Re-enable if we ever move to flat config.
+    eslint:
+      enabled: false
