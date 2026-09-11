@@ -30,7 +30,7 @@ describe('QueryInterface#addColumn', () => {
 
     const table = await queryInterface.describeTable('users');
 
-    expect(table.status.special).to.deep.equal(['active', 'pending']);
+    expect(table.status.type).to.equal('USER-DEFINED');
     expect(table.status.comment).to.equal('Status (active/pending)');
   });
 
