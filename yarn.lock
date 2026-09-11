@@ -2540,7 +2540,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.10.5, @oclif/core@npm:^4.13.3":
+"@oclif/core@npm:^4, @oclif/core@npm:^4.13.3, @oclif/core@npm:^4.14.0":
   version: 4.14.0
   resolution: "@oclif/core@npm:4.14.0"
   dependencies:
@@ -2847,7 +2847,7 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.21"
     "@inquirer/input": "npm:^4.3.1"
     "@inquirer/select": "npm:^4.4.2"
-    "@oclif/core": "npm:^4.10.5"
+    "@oclif/core": "npm:^4.14.0"
     "@oclif/plugin-help": "npm:^6.2.55"
     "@oclif/test": "npm:4.1.22"
     "@sequelize/core": "workspace:*"
