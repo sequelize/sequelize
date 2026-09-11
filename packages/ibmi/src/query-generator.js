@@ -132,8 +132,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',
-      tableName: table,
-      foreignKey: key,
+      tableOrModel: table,
     });
 
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
@@ -423,12 +422,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if (attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && attribute.field) {
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
+        );
 
-        template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+        template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
@@ -455,12 +455,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     const result = pojo();
 
     for (const key of Object.keys(attributes)) {
-      const attribute = {
-        ...attributes[key],
-        field: attributes[key].field || key,
-      };
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
 
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;

@@ -102,6 +102,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     dataType = {
       ...dataType,
+      field: key,
       type: normalizeDataType(dataType.type, this.dialect),
     };
 
@@ -113,8 +114,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
         context: 'addColumn',
-        tableName: table,
-        foreignKey: key,
+        tableOrModel: table,
       }),
       ';',
     ]);
@@ -208,13 +208,13 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && attribute.field) {
         const fkName = this.quoteIdentifier(
-          `${this.extractTableDetails(options.tableName).tableName}_${options.foreignKey}_foreign_idx`,
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
         );
 
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(options.foreignKey)})`;
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
@@ -240,9 +240,14 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+    for (const key of Object.keys(attributes)) {
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;

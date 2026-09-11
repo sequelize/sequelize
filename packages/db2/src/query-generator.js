@@ -179,6 +179,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       key: this.quoteIdentifier(key),
       definition: this.attributeToSQL(dataType, {
         context: 'addColumn',
+        tableOrModel: table,
       }),
     });
 
@@ -603,11 +604,13 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       template += ' PRIMARY KEY';
     }
 
-    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = `${options.tableName}_${attrName}_fidx`;
-        template += `, CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && attribute.field) {
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_fidx`,
+        );
+
+        template += `, CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
@@ -652,18 +655,20 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
     const existingConstraints = [];
-    let key;
-    let attribute;
 
-    for (key in attributes) {
-      attribute = attributes[key];
+    for (const key of Object.keys(attributes)) {
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
 
       if (attribute.references) {
         if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
-          // no cascading constraints to a table more than once
+          // db2 rejects more than one cascading constraint to the same table
           attribute.onDelete = '';
           attribute.onUpdate = '';
-        } else if (attribute.unique && attribute.unique === true) {
+        } else if (attribute.unique === true) {
           attribute.onDelete = '';
           attribute.onUpdate = '';
         } else {
@@ -671,11 +676,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         }
       }
 
-      if (key && !attribute.field && typeof attribute === 'object') {
-        attribute.field = key;
-      }
-
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;
