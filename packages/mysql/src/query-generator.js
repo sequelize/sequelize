@@ -41,7 +41,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         primaryKeys.push(attr);
 
-        if (dataType.includes('REFERENCES')) {
+        if (/\bREFERENCES\b/.test(dataType)) {
           // MySQL doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
@@ -49,7 +49,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
         } else {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
-      } else if (dataType.includes('REFERENCES')) {
+      } else if (/\bREFERENCES\b/.test(dataType)) {
         // MySQL doesn't support inline REFERENCES declarations: move to the end
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -137,7 +137,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         const attrName = this.quoteIdentifier(attributeName);
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);

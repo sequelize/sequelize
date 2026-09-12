@@ -85,7 +85,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         if (includes(dataType, 'PRIMARY KEY')) {
           primaryKeys.push(attr);
 
-          if (includes(dataType, 'REFERENCES')) {
+          if (/\bREFERENCES\b/.test(dataType)) {
             // Db2 doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
             attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace(/PRIMARY KEY/, '')}`);
@@ -93,7 +93,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
           } else {
             attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace(/PRIMARY KEY/, '')}`);
           }
-        } else if (includes(dataType, 'REFERENCES')) {
+        } else if (/\bREFERENCES\b/.test(dataType)) {
           // Db2 doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -201,7 +201,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
 
       for (const definition of defs) {
-        if (/REFERENCES/.test(definition)) {
+        if (/\bREFERENCES\b/.test(definition)) {
           constraintString.push(
             template(
               '<%= fkName %> FOREIGN KEY (<%= attrName %>) <%= definition %>',

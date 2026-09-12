@@ -146,7 +146,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
 
         definition = definition.replace('NOT NULL', '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      } else if (!/\bREFERENCES\b/.test(definition)) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
       }
 
@@ -156,7 +156,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      } else if (!/\bREFERENCES\b/.test(definition)) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
@@ -177,7 +177,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         );
       }
 
-      if (definition.includes('REFERENCES')) {
+      if (/\bREFERENCES\b/.test(definition)) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         attrSql += query(
           `ADD FOREIGN KEY (${this.quoteIdentifier(attributeName)}) ${definition}`,
