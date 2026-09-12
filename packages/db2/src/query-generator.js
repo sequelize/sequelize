@@ -255,6 +255,24 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
+  /**
+   * Generates the statement that sets the comment of a column.
+   *
+   * Db2 has no inline `COMMENT` clause in `CREATE TABLE` or `ALTER TABLE`, so a column comment
+   * always needs a statement of its own. It cannot be appended to the statement it belongs to
+   * either, because the Db2 driver only ever executes the first statement of a multi-statement
+   * string; `Db2QueryInterface#addColumn`/`#changeColumn` run this as a follow-up query instead.
+   *
+   * @param {TableOrModel} tableName the table the column belongs to
+   * @param {string} columnName the column to comment on
+   * @param {string} comment the comment to set
+   *
+   * @returns {string}
+   */
+  commentOnColumnQuery(tableName, columnName, comment) {
+    return `COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)} IS ${this.escape(comment)};`;
+  }
+
   renameColumnQuery(tableName, attrBefore, attributes) {
     const query = 'ALTER TABLE <%= tableName %> RENAME COLUMN <%= before %> TO <%= after %>;';
     const newName = Object.keys(attributes)[0];
@@ -639,7 +657,16 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
     }
 
-    if (attribute.comment && typeof attribute.comment === 'string') {
+    if (
+      attribute.comment &&
+      typeof attribute.comment === 'string' &&
+      !(options && ['addColumn', 'changeColumn'].includes(options.context))
+    ) {
+      // for createTableQuery, which does its own parsing & escaping of this fragment.
+      // addColumn/changeColumn deliberately produce no fragment at all: Db2 has no inline COMMENT
+      // clause in ALTER TABLE, so Db2QueryInterface applies the comment with a follow-up
+      // commentOnColumnQuery() instead.
+      // TODO: centralize creation of comment statements here
       template += ` COMMENT ${attribute.comment}`;
     }
 

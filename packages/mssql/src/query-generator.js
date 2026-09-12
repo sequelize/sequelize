@@ -211,8 +211,10 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
 
     return joinSQLFragments([
       'EXEC sp_rename',
-      `'${this.quoteTable(tableName)}.${attrBefore}',`,
-      `'${newName}',`,
+      // sp_rename takes string literals, not identifiers. The object name may be qualified
+      // (and may use delimited identifiers), but the new name must be unqualified.
+      `${this.dialect.escapeString(`${this.quoteTable(tableName)}.${this.quoteIdentifier(attrBefore)}`)},`,
+      `${this.dialect.escapeString(newName)},`,
       "'COLUMN'",
       ';',
     ]);
