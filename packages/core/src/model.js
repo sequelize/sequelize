@@ -2190,7 +2190,17 @@ ${associationOwner._getAssociationDebugList()}`);
       modelDefinition.attributes.keys(),
       this,
     );
-    const updateValues = mapValueFieldNames(updatedDataValues, options.fields, this);
+    let updateValues = mapValueFieldNames(updatedDataValues, options.fields, this);
+
+    if (options.updateValues) {
+      const explicitUpdateValues = mapValueFieldNames(
+        options.updateValues,
+        Object.keys(options.updateValues),
+        this,
+      );
+      updateValues = { ...updateValues, ...explicitUpdateValues };
+    }
+
     const now = new Date();
 
     // Attach createdAt
