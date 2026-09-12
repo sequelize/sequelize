@@ -17,7 +17,12 @@ import type { DataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
 import type { AddColumnQueryOptions } from './query-generator.js';
-import type { RemoveIndexQueryOptions, TableOrModel } from './query-generator.types.js';
+import type {
+  RemoveIndexQueryOptions,
+  TableOrModel,
+  UnionOptions,
+  UnionRow,
+} from './query-generator.types.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -382,6 +387,18 @@ export class AbstractQueryInterface<
     tableName: TableName,
     options?: QiSelectOptions,
   ): Promise<object[]>;
+
+  /**
+   * Combines the results of already-generated `SELECT` queries into a single result set, using the
+   * SQL `UNION` operator.
+   *
+   * Prefer {@link Sequelize#union}, which validates that the member queries can be unioned before
+   * reaching the database.
+   *
+   * @param sqls The SQL of the queries to union.
+   * @param options Options that apply to the combined result set.
+   */
+  union(sqls: string[], options?: UnionOptions): Promise<UnionRow[]>;
 
   /**
    * Increments a row value

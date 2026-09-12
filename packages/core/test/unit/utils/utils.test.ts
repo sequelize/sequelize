@@ -240,7 +240,6 @@ describe('Utils', () => {
 
       expect(
         mapFinderOptions(
-          // @ts-expect-error -- TODO: improve mapFinderOptions typing
           mapFinderOptions(
             {
               attributes: ['active'],

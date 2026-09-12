@@ -2,15 +2,25 @@ import { pojo } from '@sequelize/utils';
 import forIn from 'lodash/forIn';
 import assert from 'node:assert';
 import type { Attributes, Model, ModelStatic, NormalizedAttributeOptions, WhereOptions } from '..';
+import type { DynamicSqlExpression } from '../expression-builders/base-sql-expression.js';
+
+/**
+ * A single entry of the `attributes` finder option: either the name of an attribute, or a
+ * two-element array pairing the column name (or an arbitrary SQL expression) with the alias it is
+ * selected as.
+ */
+export type FinderAttribute =
+  | string
+  | [columnNameOrExpression: string | DynamicSqlExpression, alias: string];
 
 export type FinderOptions<TAttributes> = {
-  attributes?: string[];
+  attributes?: FinderAttribute[];
   where?: WhereOptions<TAttributes>;
 };
 
 export type MappedFinderOptions<TAttributes> = Omit<FinderOptions<TAttributes>, 'attributes'> & {
   // an array of attribute-column mapping, or just attributes
-  attributes?: Array<[columnName: string, attributeName: string] | string>;
+  attributes?: Array<[columnName: string | DynamicSqlExpression, attributeName: string] | string>;
 };
 
 /**
@@ -29,7 +39,8 @@ export function mapFinderOptions<M extends Model, T extends FinderOptions<Attrib
 
     const modelDefinition = Model.modelDefinition;
     options.attributes = options.attributes.filter(
-      attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
+      attribute =>
+        typeof attribute !== 'string' || !modelDefinition.virtualAttributeNames.has(attribute),
     );
   }
 
