@@ -17,6 +17,7 @@ import type { SnowflakeDialect } from './dialect.js';
 export type SnowflakeSdkModule = typeof SnowflakeSdk;
 
 const debug = logger.debugContext('connection:snowflake');
+const CONNECTION_CLEANUP_TIMEOUT_MS = 5000;
 
 export interface SnowflakeConnection extends AbstractConnection, SnowflakeSdk.Connection {}
 
@@ -59,12 +60,14 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
    * @private
    */
   async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
+    let connection: SnowflakeConnection;
+
     try {
       const snowflakeConfig: SnowflakeSdk.ConnectionOptions = removeUndefined({
         schema: this.sequelize.options.schema,
         ...config,
       });
-      const connection: SnowflakeConnection = this.#lib.createConnection(snowflakeConfig);
+      connection = this.#lib.createConnection(snowflakeConfig);
 
       await new Promise<void>((resolve, reject) => {
         connection.connect(err => {
@@ -75,9 +78,30 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
           resolve();
         });
       });
+    } catch (error) {
+      if (!isErrorWithStringCode(error)) {
+        throw error;
+      }
 
-      debug('connection acquired');
+      switch (error.code) {
+        case 'ECONNREFUSED':
+          throw new ConnectionRefusedError(error);
+        case 'ER_ACCESS_DENIED_ERROR':
+          throw new AccessDeniedError(error);
+        case 'ENOTFOUND':
+          throw new HostNotFoundError(error);
+        case 'EHOSTUNREACH':
+          throw new HostNotReachableError(error);
+        case 'EINVAL':
+          throw new InvalidConnectionError(error);
+        default:
+          throw new ConnectionError(error);
+      }
+    }
 
+    debug('connection acquired');
+
+    try {
       if (!this.sequelize.options.keepDefaultTimezone) {
         // TODO: remove default timezone.
         // default value is '+00:00', put a quick workaround for it.
@@ -105,28 +129,32 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
           });
         });
       }
-
-      return connection;
     } catch (error) {
-      if (!isErrorWithStringCode(error)) {
-        throw error;
-      }
+      // The session is already established here. Best-effort cleanup avoids leaking a
+      // connection when timezone setup fails after a successful login.
+      await new Promise<void>(resolve => {
+        let settled = false;
+        const finish = () => {
+          if (!settled) {
+            settled = true;
+            clearTimeout(timeout);
+            resolve();
+          }
+        };
 
-      switch (error.code) {
-        case 'ECONNREFUSED':
-          throw new ConnectionRefusedError(error);
-        case 'ER_ACCESS_DENIED_ERROR':
-          throw new AccessDeniedError(error);
-        case 'ENOTFOUND':
-          throw new HostNotFoundError(error);
-        case 'EHOSTUNREACH':
-          throw new HostNotReachableError(error);
-        case 'EINVAL':
-          throw new InvalidConnectionError(error);
-        default:
-          throw new ConnectionError(error);
-      }
+        const timeout = setTimeout(finish, CONNECTION_CLEANUP_TIMEOUT_MS);
+
+        try {
+          connection.destroy(finish);
+        } catch {
+          finish();
+        }
+      });
+
+      throw error;
     }
+
+    return connection;
   }
 
   async disconnect(connection: SnowflakeConnection): Promise<void> {
