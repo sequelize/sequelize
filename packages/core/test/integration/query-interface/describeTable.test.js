@@ -180,7 +180,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(enumVals.type).to.eql('VARCHAR2');
       }
 
-      if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
+      if (['postgres', 'mysql', 'mssql', 'db2'].includes(dialect)) {
         expect(city.comment).to.equal('Users City');
         expect(username.comment).to.equal(null);
       }
