@@ -2,7 +2,7 @@
 
 const range = require('lodash/range');
 const { expect } = require('chai');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, ForeignKeyConstraintError, Op, sql } = require('@sequelize/core');
 const dayjs = require('dayjs');
 const sinon = require('sinon');
 const assert = require('node:assert');
@@ -90,7 +90,7 @@ describe('HasMany', () => {
               },
             },
           ],
-          group: this.sequelize.col(`${Task.name}.${Task.primaryKeyField}`),
+          group: sql.col(`${Task.name}.${Task.primaryKeyField}`),
         }),
       ).to.eventually.equal(1);
     });
@@ -1162,7 +1162,7 @@ describe('HasMany', () => {
           try {
             tasks = await user.destroy();
           } catch (error) {
-            if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
+            if (!(error instanceof ForeignKeyConstraintError)) {
               throw error;
             }
 
@@ -1203,7 +1203,7 @@ describe('HasMany', () => {
               { id: user.id },
             );
           } catch (error) {
-            if (!(error instanceof Sequelize.ForeignKeyConstraintError)) {
+            if (!(error instanceof ForeignKeyConstraintError)) {
               throw error;
             }
 

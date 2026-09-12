@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { beforeEach2, sequelize } = require('../support');
-const { DataTypes, Sequelize, sql } = require('@sequelize/core');
+const { DataTypes, ForeignKeyConstraintError, sql, ValidationError } = require('@sequelize/core');
 
 const dialectName = sequelize.dialect.name;
 
@@ -184,7 +184,7 @@ describe('Model', () => {
         });
 
         await expect(User.upsert({ email: 'notanemail' })).to.eventually.be.rejectedWith(
-          Sequelize.ValidationError,
+          ValidationError,
         );
       });
 
@@ -283,7 +283,7 @@ describe('Model', () => {
         const [, created0] = await this.User.upsert({
           id: 42,
           username: 'john',
-          foo: this.sequelize.fn('upper', 'mixedCase1'),
+          foo: sql.fn('upper', 'mixedCase1'),
         });
         if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created0).to.be.null;
@@ -295,7 +295,7 @@ describe('Model', () => {
         const [, created] = await this.User.upsert({
           id: 42,
           username: 'doe',
-          foo: this.sequelize.fn('upper', 'mixedCase2'),
+          foo: sql.fn('upper', 'mixedCase2'),
         });
         if (['db2', 'sqlite3', 'postgres'].includes(dialectName)) {
           expect(created).to.be.null;
@@ -548,7 +548,7 @@ describe('Model', () => {
           await User.create({ username: 'user1' });
           await expect(
             Posts.upsert({ title: 'Title', username: 'user2' }),
-          ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+          ).to.eventually.be.rejectedWith(ForeignKeyConstraintError);
         });
       }
 
@@ -598,11 +598,11 @@ describe('Model', () => {
         it('should allow to use calculated values on duplicate', async function () {
           await this.User.upsert({
             id: 1,
-            counter: this.sequelize.literal('`counter` + 1'),
+            counter: sql.literal('`counter` + 1'),
           });
           await this.User.upsert({
             id: 1,
-            counter: this.sequelize.literal('`counter` + 1'),
+            counter: sql.literal('`counter` + 1'),
           });
           const user = await this.User.findByPk(1);
           expect(user.counter).to.equal(2);
@@ -717,7 +717,7 @@ describe('Model', () => {
           it('should return default value set by the database (upsert)', async function () {
             const User = this.sequelize.define('User', {
               name: { type: DataTypes.STRING, primaryKey: true },
-              code: { type: DataTypes.INTEGER, defaultValue: Sequelize.literal(2020) },
+              code: { type: DataTypes.INTEGER, defaultValue: sql.literal(2020) },
             });
 
             await User.sync({ force: true });

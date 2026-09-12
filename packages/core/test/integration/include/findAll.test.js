@@ -7,7 +7,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, sql } = require('@sequelize/core');
 const promiseProps = require('p-props');
 
 function sortById(a, b) {
@@ -1279,7 +1279,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           { model: this.models.Price },
         ],
         limit: 3,
-        order: [[this.sequelize.col(`${this.models.Product.name}.id`), 'ASC']],
+        order: [[sql.col(`${this.models.Product.name}.id`), 'ASC']],
       });
 
       expect(products.length).to.equal(3);
@@ -1798,9 +1798,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       );
 
       const posts = await Post.findAll({
-        attributes: [
-          [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount'],
-        ],
+        attributes: [[sql.fn('COUNT', sql.col('comments.id')), 'commentCount']],
         include: [{ association: Post.Comments, attributes: [] }],
         group: ['Post.id'],
       });
@@ -1841,9 +1839,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       );
 
       const users = await User.findAll({
-        attributes: [
-          [this.sequelize.fn('COUNT', this.sequelize.col('projects.id')), 'projectsCount'],
-        ],
+        attributes: [[sql.fn('COUNT', sql.col('projects.id')), 'projectsCount']],
         include: {
           association: User.associations.projects,
           attributes: [],
@@ -1891,9 +1887,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [
           {
             association: Post.Comments,
-            attributes: [
-              [this.sequelize.fn('COUNT', this.sequelize.col('comments.id')), 'commentCount'],
-            ],
+            attributes: [[sql.fn('COUNT', sql.col('comments.id')), 'commentCount']],
           },
         ],
         raw: true,

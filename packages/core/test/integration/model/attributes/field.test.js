@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, or, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -432,7 +432,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         const user = await this.User.findOne({
-          where: this.sequelize.or(
+          where: or(
             {
               name: 'Foobar',
             },
@@ -474,33 +474,33 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         let findAttributes;
         if (dialect === 'mssql') {
           findAttributes = [
-            Sequelize.literal(
+            sql.literal(
               'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "someProperty"',
             ),
             [
-              Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'),
+              sql.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'),
               'someProperty2',
             ],
           ];
         } else if (['db2', 'ibmi'].includes(dialect)) {
           findAttributes = [
-            Sequelize.literal('1 AS "someProperty"'),
-            [Sequelize.literal('1'), 'someProperty2'],
+            sql.literal('1 AS "someProperty"'),
+            [sql.literal('1'), 'someProperty2'],
           ];
         } else if (dialect === 'oracle') {
           findAttributes = [
-            Sequelize.literal(
+            sql.literal(
               '(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS "someProperty"',
             ),
             [
-              Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'),
+              sql.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'),
               'someProperty2',
             ],
           ];
         } else {
           findAttributes = [
-            Sequelize.literal('EXISTS(SELECT 1) AS "someProperty"'),
-            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
+            sql.literal('EXISTS(SELECT 1) AS "someProperty"'),
+            [sql.literal('EXISTS(SELECT 1)'), 'someProperty2'],
           ];
         }
 

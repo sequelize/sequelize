@@ -6,7 +6,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { and, DataTypes, or, Sequelize } = require('@sequelize/core');
+const { and, DataTypes, or, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
@@ -107,7 +107,7 @@ Instead of specifying a Model, either:
       expect(user).to.be.ok;
     });
 
-    it('should support to use associations with Sequelize.col', async function () {
+    it('should support to use associations with sql.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
       const Table3 = this.sequelize.define('Table3', { value: DataTypes.INTEGER });
@@ -139,7 +139,7 @@ Instead of specifying a Model, either:
 
       const result = await Table1.findAll({
         raw: true,
-        attributes: [[Sequelize.fn('SUM', Sequelize.col('table2.Tables3.value')), 'sum']],
+        attributes: [[sql.fn('SUM', sql.col('table2.Tables3.value')), 'sum']],
         include: [
           {
             model: Table2,
@@ -721,11 +721,11 @@ Instead of specifying a Model, either:
       switch (dialect) {
         case 'mssql': {
           findAttributes = [
-            Sequelize.literal(
+            sql.literal(
               'CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT) AS "postComments.someProperty"',
             ),
             [
-              Sequelize.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'),
+              sql.literal('CAST(CASE WHEN EXISTS(SELECT 1) THEN 1 ELSE 0 END AS BIT)'),
               'someProperty2',
             ],
           ];
@@ -735,8 +735,8 @@ Instead of specifying a Model, either:
 
         case 'ibmi': {
           findAttributes = [
-            Sequelize.literal('1 AS "postComments.someProperty"'),
-            [Sequelize.literal('1'), 'someProperty2'],
+            sql.literal('1 AS "postComments.someProperty"'),
+            [sql.literal('1'), 'someProperty2'],
           ];
 
           break;
@@ -744,10 +744,8 @@ Instead of specifying a Model, either:
 
         case 'db2': {
           findAttributes = [
-            Sequelize.literal(
-              'EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "postComments.someProperty"',
-            ),
-            [Sequelize.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2'],
+            sql.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1) AS "postComments.someProperty"'),
+            [sql.literal('EXISTS(SELECT 1 FROM SYSIBM.SYSDUMMY1)'), 'someProperty2'],
           ];
 
           break;
@@ -755,11 +753,11 @@ Instead of specifying a Model, either:
 
         case 'oracle': {
           findAttributes = [
-            Sequelize.literal(
+            sql.literal(
               '(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END) AS "postComments.someProperty"',
             ),
             [
-              Sequelize.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'),
+              sql.literal('(CASE WHEN EXISTS(SELECT 1 FROM DUAL) THEN 1 ELSE 0 END)'),
               'someProperty2',
             ],
           ];
@@ -769,8 +767,8 @@ Instead of specifying a Model, either:
 
         default: {
           findAttributes = [
-            Sequelize.literal('EXISTS(SELECT 1) AS "postComments.someProperty"'),
-            [Sequelize.literal('EXISTS(SELECT 1)'), 'someProperty2'],
+            sql.literal('EXISTS(SELECT 1) AS "postComments.someProperty"'),
+            [sql.literal('EXISTS(SELECT 1)'), 'someProperty2'],
           ];
         }
       }

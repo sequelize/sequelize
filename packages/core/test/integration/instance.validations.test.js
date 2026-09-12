@@ -3,7 +3,7 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, sql, ValidationError, Validator } = require('@sequelize/core');
 const Support = require('./support');
 
 describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
@@ -418,7 +418,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
     await User.sync();
     const error = await expect(User.build({ name: 'error' }).validate()).to.be.rejected;
-    expect(error).to.be.instanceof(Sequelize.ValidationError);
+    expect(error).to.be.instanceof(ValidationError);
     expect(error.get('name')[0].message).to.equal('Invalid username');
 
     await expect(User.build({ name: 'no error' }).validate()).not.to.be.rejected;
@@ -536,7 +536,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       },
     });
 
-    const failingBar = Bar.build({ field: this.sequelize.literal('5 + 1') });
+    const failingBar = Bar.build({ field: sql.literal('5 + 1') });
 
     await expect(failingBar.validate()).not.to.be.rejected;
   });
@@ -587,7 +587,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       User.build({
         email: ['iama', 'dummy.com'],
       }).validate(),
-    ).to.be.rejectedWith(Sequelize.ValidationError);
+    ).to.be.rejectedWith(ValidationError);
   });
 
   it('raises an error for array on a STRING(20)', async function () {
@@ -601,7 +601,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       User.build({
         email: ['iama', 'dummy.com'],
       }).validate(),
-    ).to.be.rejectedWith(Sequelize.ValidationError);
+    ).to.be.rejectedWith(ValidationError);
   });
 
   it('raises an error for array on a TEXT', async function () {
@@ -615,7 +615,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       User.build({
         email: ['iama', 'dummy.com'],
       }).validate(),
-    ).to.be.rejectedWith(Sequelize.ValidationError);
+    ).to.be.rejectedWith(ValidationError);
   });
 
   it('raises an error for {} on a STRING', async function () {
@@ -629,7 +629,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       User.build({
         email: { lol: true },
       }).validate(),
-    ).to.be.rejectedWith(Sequelize.ValidationError);
+    ).to.be.rejectedWith(ValidationError);
   });
 
   it('raises an error for {} on a STRING(20)', async function () {
@@ -643,7 +643,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       User.build({
         email: { lol: true },
       }).validate(),
-    ).to.be.rejectedWith(Sequelize.ValidationError);
+    ).to.be.rejectedWith(ValidationError);
   });
 
   it('raises an error for {} on a TEXT', async function () {
@@ -657,7 +657,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       User.build({
         email: { lol: true },
       }).validate(),
-    ).to.be.rejectedWith(Sequelize.ValidationError);
+    ).to.be.rejectedWith(ValidationError);
   });
 
   it('does not raise an error for null on a STRING (where null is allowed)', async function () {
@@ -713,7 +713,7 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
   });
 
   it('allows me to add custom validation functions to validator.js', async function () {
-    this.sequelize.Validator.extend('isExactly7Characters', val => {
+    Validator.extend('isExactly7Characters', val => {
       return val.length === 7;
     });
 

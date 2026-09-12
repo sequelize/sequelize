@@ -416,7 +416,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         }),
       ).to.eventually.be.rejectedWith(
         Error,
-        'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.',
+        'The `{raw: "..."}` syntax is no longer supported. Use `sql` instead.',
       );
     });
 
@@ -436,7 +436,7 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         }),
       ).to.eventually.be.rejectedWith(
         Error,
-        'The `{raw: "..."}` syntax is no longer supported.  Use `sequelize.literal` instead.',
+        'The `{raw: "..."}` syntax is no longer supported. Use `sql` instead.',
       );
     });
   });

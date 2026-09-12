@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../../support');
-const { literal, Op } = require('@sequelize/core');
+const { literal, Op, sql } = require('@sequelize/core');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -147,7 +147,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     it('function', () => {
       expectsql(
-        queryGenerator.addIndexQuery('table', [current.fn('UPPER', current.col('test'))], {
+        queryGenerator.addIndexQuery('table', [sql.fn('UPPER', sql.col('test'))], {
           name: 'myindex',
         }),
         {

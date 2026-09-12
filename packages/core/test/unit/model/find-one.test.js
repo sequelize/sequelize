@@ -7,19 +7,20 @@ const Support = require('../../support');
 
 const current = Support.sequelize;
 const sinon = require('sinon');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
+const { DataTypes, Model, Op } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   describe('method findOne', () => {
     before(function () {
-      this.oldFindAll = Sequelize.Model.findAll;
+      this.oldFindAll = Model.findAll;
     });
+
     after(function () {
-      Sequelize.Model.findAll = this.oldFindAll;
+      Model.findAll = this.oldFindAll;
     });
 
     beforeEach(function () {
-      this.stub = Sequelize.Model.findAll = sinon.stub().resolves();
+      this.stub = Model.findAll = sinon.stub().resolves();
     });
 
     it('should add limit when using { $ gt on the primary key', async function () {
@@ -44,8 +45,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await Model.findOne({ where: { unique1: 42 } });
       expect(this.stub.getCall(0).args[0]).to.be.an('object').to.have.property('limit');
     });
+
     it('should call internal findAll() method if findOne() is overridden', async () => {
-      const Model = current.define('model', {
+      const MyModel = current.define('MyModel', {
         unique1: {
           type: DataTypes.INTEGER,
           unique: 'unique',
@@ -55,11 +57,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           unique: 'unique',
         },
       });
-      Model.findAll = sinon.stub();
+      MyModel.findAll = sinon.stub();
 
-      await Model.findOne();
-      Model.findAll.should.not.have.been.called;
-      Sequelize.Model.findAll.should.have.been.called;
+      await MyModel.findOne();
+      MyModel.findAll.should.not.have.been.called;
+      Model.findAll.should.have.been.called;
     });
   });
 });

@@ -6,7 +6,7 @@ const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require('../support');
 
-const { DataTypes, Op } = require('@sequelize/core');
+const { DataTypes, Op, or } = require('@sequelize/core');
 
 describe(Support.getTestDialectTeaser('Include'), () => {
   before(function () {
@@ -376,7 +376,6 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     });
 
     it('should properly work with sequelize.function', async function () {
-      const sequelize = this.sequelize;
       const User = this.sequelize.define('User', {
         id: { type: DataTypes.INTEGER, allowNull: false, primaryKey: true, autoIncrement: true },
         first_name: { type: DataTypes.STRING },
@@ -407,7 +406,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       const result = await User.findAndCountAll({
         limit: 1,
         offset: 1,
-        where: sequelize.or(
+        where: or(
           { first_name: { [Op.like]: '%user-fname%' } },
           { last_name: { [Op.like]: '%user-lname%' } },
         ),
