@@ -482,7 +482,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template = attribute.type.toString();
 
       if (attribute.type && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
-        template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+        template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
       }
 
       if (!attribute.autoIncrement) {

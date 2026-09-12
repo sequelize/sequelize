@@ -219,7 +219,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       const { defaultValue } = attribute;
-      const escaped = this.escape(defaultValue);
+      const escaped = this.escape(defaultValue, { type: attribute.type });
       const needsParentheses =
         defaultValue instanceof BaseSqlExpression ||
         typeNeedingParenthesizedDefault.has(attributeTypeToDataTypeId(attribute.type));
