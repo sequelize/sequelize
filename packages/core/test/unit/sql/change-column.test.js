@@ -121,4 +121,26 @@ describe('QueryInterface#changeColumn', () => {
           EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE'; END;`,
     });
   });
+
+  it('properly generates alter queries for enums with a default value', async () => {
+    const { User } = vars;
+
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+      type: DataTypes.ENUM(['pending', 'complete']),
+      defaultValue: 'pending',
+    });
+
+    expectsql(sql, {
+      'mariadb mysql':
+        "ALTER TABLE `users` CHANGE `level_id` `level_id` ENUM('pending', 'complete') DEFAULT 'pending';",
+      postgres: `ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT 'pending';DO 'BEGIN CREATE TYPE "public"."enum_users_level_id" AS ENUM(''pending'', ''complete''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE "public"."enum_users_level_id" USING ("level_id"::"public"."enum_users_level_id");`,
+      snowflake: `ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT 'pending';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE VARCHAR(255);`,
+      db2: `ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) CHECK ("level_id" IN('pending', 'complete')) DEFAULT 'pending';`,
+      ibmi: `ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) ADD CHECK ("level_id" IN('pending', 'complete')) DEFAULT 'pending'`,
+      // MSSQL cannot set a default through ALTER COLUMN: this statement is rejected by the
+      // server. See https://github.com/sequelize/sequelize/issues/14294
+      mssql: `ALTER TABLE [users] ALTER COLUMN [level_id] NVARCHAR(255) DEFAULT N'pending' CHECK ([level_id] IN(N'pending', N'complete'));`,
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) DEFAULT ''pending'' CHECK ("level_id" IN(''pending'', ''complete''))'; EXCEPTION WHEN OTHERS THEN  IF SQLCODE = -1442 OR SQLCODE = -1451 THEN    EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) DEFAULT ''pending'' CHECK ("level_id" IN(''pending'', ''complete''))';  ELSE    RAISE;  END IF; END; END;`,
+    });
+  });
 });
