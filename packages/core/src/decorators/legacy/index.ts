@@ -13,6 +13,7 @@
 export { BelongsTo, BelongsToMany, HasMany, HasOne } from './associations.js';
 export * from './attribute.js';
 export * from './built-in-attributes.js';
+export * from './encrypted-attribute.js';
 export * from './model-hooks.js';
 export * from './table.js';
 export * from './validation.js';
