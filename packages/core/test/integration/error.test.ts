@@ -750,7 +750,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'postgres':
             expect(error.table).to.equal('Users');
-            expect(error.fields).to.be.null;
+            expect(error.fields).to.deep.equal(['id']);
+            expect(error.reltype).to.equal('parent');
             expect(error.cause.message).to.equal(
               'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
             );
@@ -835,7 +836,8 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
           case 'postgres':
             expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
+            expect(error.fields).to.deep.equal(['userId']);
+            expect(error.reltype).to.equal('child');
             expect(error.cause.message).to.equal(
               'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
             );
