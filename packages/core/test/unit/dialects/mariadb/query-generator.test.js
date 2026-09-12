@@ -13,7 +13,7 @@ const { MariaDbQueryGenerator } = require('@sequelize/mariadb');
 const { createSequelizeInstance } = require('../../../support');
 
 if (dialect === 'mariadb') {
-  describe('[MARIADB Specific] QueryGenerator', () => {
+  describe(Support.getTestDialectTeaser('QueryGenerator'), () => {
     const suites = {
       attributesToSQL: [
         {
@@ -346,109 +346,6 @@ if (dialect === 'mariadb') {
         },
       ],
 
-      bulkInsertQuery: [
-        {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }]],
-          expectation: "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar');",
-        },
-        {
-          arguments: ['myTable', [{ name: "foo';DROP TABLE myTable;" }, { name: 'bar' }]],
-          expectation:
-            "INSERT INTO `myTable` (`name`) VALUES ('foo\\';DROP TABLE myTable;'),('bar');",
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', birthday: new Date(Date.UTC(2011, 2, 27, 10, 1, 55)) },
-              { name: 'bar', birthday: new Date(Date.UTC(2012, 2, 27, 10, 1, 55)) },
-            ],
-          ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`birthday`) VALUES ('foo','2011-03-27 10:01:55.000'),('bar','2012-03-27 10:01:55.000');",
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', foo: 1 },
-              { name: 'bar', foo: 2 },
-            ],
-          ],
-          expectation: "INSERT INTO `myTable` (`name`,`foo`) VALUES ('foo',1),('bar',2);",
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', foo: 1, nullValue: null },
-              { name: 'bar', nullValue: null },
-            ],
-          ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',NULL,NULL);",
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', foo: 1, nullValue: null },
-              { name: 'bar', foo: 2, nullValue: null },
-            ],
-          ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: { options: { omitNull: false } },
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', foo: 1, nullValue: null },
-              { name: 'bar', foo: 2, nullValue: null },
-            ],
-          ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`) VALUES ('foo',1,NULL),('bar',2,NULL);",
-          context: { options: { omitNull: true } }, // Note: We don't honour this because it makes little sense when some rows may have nulls and others not
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', foo: 1, nullValue: undefined },
-              { name: 'bar', foo: 2, undefinedValue: undefined },
-            ],
-          ],
-          expectation:
-            "INSERT INTO `myTable` (`name`,`foo`,`nullValue`,`undefinedValue`) VALUES ('foo',1,NULL,NULL),('bar',2,NULL,NULL);",
-          context: { options: { omitNull: true } }, // Note: As above
-        },
-        {
-          arguments: [
-            'myTable',
-            [
-              { name: 'foo', value: true },
-              { name: 'bar', value: false },
-            ],
-          ],
-          expectation: "INSERT INTO `myTable` (`name`,`value`) VALUES ('foo',true),('bar',false);",
-        },
-        {
-          arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], { ignoreDuplicates: true }],
-          expectation: "INSERT IGNORE INTO `myTable` (`name`) VALUES ('foo'),('bar');",
-        },
-        {
-          arguments: [
-            'myTable',
-            [{ name: 'foo' }, { name: 'bar' }],
-            { updateOnDuplicate: ['name'] },
-          ],
-          expectation:
-            "INSERT INTO `myTable` (`name`) VALUES ('foo'),('bar') ON DUPLICATE KEY UPDATE `name`=VALUES(`name`);",
-        },
-      ],
-
       updateQuery: [
         {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],
@@ -531,7 +428,7 @@ if (dialect === 'mariadb') {
           const title =
             test.title ||
             `MariaDB correctly returns ${query} for ${JSON.stringify(test.arguments)}`;
-          it(title, () => {
+          it(title, async () => {
             const sequelize = createSequelizeInstance({
               ...test.sequelizeOptions,
               ...(test.context && test.context.options),
@@ -550,7 +447,11 @@ if (dialect === 'mariadb') {
             const queryGenerator = sequelize.dialect.queryGenerator;
 
             const conditions = queryGenerator[suiteTitle](...test.arguments);
-            expect(conditions).to.deep.equal(test.expectation);
+            try {
+              expect(conditions).to.deep.equal(test.expectation);
+            } finally {
+              await sequelize.close();
+            }
           });
         }
       });

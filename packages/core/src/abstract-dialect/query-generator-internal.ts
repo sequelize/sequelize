@@ -1,5 +1,6 @@
-import { EMPTY_ARRAY } from '@sequelize/utils';
+import { EMPTY_ARRAY, pojo } from '@sequelize/utils';
 import { Deferrable } from '../deferrable.js';
+import { ParameterStyle } from '../enums.js';
 import type { AssociationPath } from '../expression-builders/association-path.js';
 import type { Attribute } from '../expression-builders/attribute.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
@@ -11,11 +12,15 @@ import type { JsonPath } from '../expression-builders/json-path.js';
 import type { Literal } from '../expression-builders/literal.js';
 import type { Sequelize } from '../sequelize.js';
 import { extractModelDefinition } from '../utils/model-utils.js';
-import { injectReplacements } from '../utils/sql.js';
+import { createBindParamGenerator, injectReplacements } from '../utils/sql.js';
 import { attributeTypeToSql } from './data-types-utils.js';
 import type { AbstractDialect } from './dialect.js';
 import type { EscapeOptions } from './query-generator-typescript.js';
-import type { AddLimitOffsetOptions } from './query-generator.internal-types.js';
+import type {
+  AddLimitOffsetOptions,
+  ParameterStyleOptions,
+  ResolvedParameterStyle,
+} from './query-generator.internal-types.js';
 import type { GetConstraintSnippetQueryOptions, TableOrModel } from './query-generator.types.js';
 import { WhereSqlBuilder, wrapAmbiguousWhere } from './where-sql-builder.js';
 
@@ -41,6 +46,42 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
     this.dialect = dialect;
 
     this.whereSqlBuilder = new WhereSqlBuilder(dialect);
+  }
+
+  resolveParameterStyle(
+    options: ParameterStyleOptions,
+    defaultStyle: ParameterStyle,
+    {
+      bind,
+      forceReplacement = false,
+    }: { bind?: Record<string, unknown>; forceReplacement?: boolean } = {},
+  ): ResolvedParameterStyle {
+    if ('bindParam' in options) {
+      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+    }
+
+    let parameterStyle = options.parameterStyle ?? defaultStyle;
+
+    if (
+      forceReplacement ||
+      // Not currently supported with search path (requires output of multiple queries)
+      this.sequelize.options.prependSearchPath ||
+      options.searchPath
+    ) {
+      parameterStyle = ParameterStyle.REPLACEMENT;
+    }
+
+    if (parameterStyle !== ParameterStyle.BIND) {
+      return { parameterStyle };
+    }
+
+    const bindMap = bind ?? pojo<Record<string, unknown>>();
+
+    return {
+      parameterStyle,
+      bind: bindMap,
+      bindParam: createBindParamGenerator(bindMap, this.dialect.name === 'oracle'),
+    };
   }
 
   getTechnicalDatabaseNames(): readonly string[] {

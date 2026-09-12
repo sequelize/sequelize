@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, ParameterStyle } = require('@sequelize/core');
 const { expect } = require('chai');
 
 const expectsql = Support.expectsql;
@@ -356,24 +356,28 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         queryGenerator.bulkInsertQuery(
           User.table,
           [{ user_name: 'testuser', pass_word: '12345' }],
-          { updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'], upsertKeys: primaryKeys },
+          {
+            updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
+            upsertKeys: primaryKeys,
+            parameterStyle: ParameterStyle.BIND,
+          },
           User.fieldRawAttributesMap,
         ),
         {
           default: "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345');",
-          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\'))',
+          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2))',
           snowflake:
-            'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
+            'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2);',
           postgres:
-            'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\') ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
+            'INSERT INTO "users" ("user_name","pass_word") VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ("user_name") DO UPDATE SET "user_name"=EXCLUDED."user_name","pass_word"=EXCLUDED."pass_word","updated_at"=EXCLUDED."updated_at";',
           mssql: "INSERT INTO [users] ([user_name],[pass_word]) VALUES (N'testuser',N'12345');",
           db2: 'INSERT INTO "users" ("user_name","pass_word") VALUES (\'testuser\',\'12345\');',
           mariadb:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
+            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           mysql:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);",
+            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `user_name`=VALUES(`user_name`),`pass_word`=VALUES(`pass_word`),`updated_at`=VALUES(`updated_at`);',
           sqlite3:
-            "INSERT INTO `users` (`user_name`,`pass_word`) VALUES ('testuser','12345') ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;",
+            'INSERT INTO `users` (`user_name`,`pass_word`) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT (`user_name`) DO UPDATE SET `user_name`=EXCLUDED.`user_name`,`pass_word`=EXCLUDED.`pass_word`,`updated_at`=EXCLUDED.`updated_at`;',
           oracle: `INSERT INTO "users" ("user_name","pass_word") VALUES (:1,:2)`,
         },
       );
@@ -399,11 +403,14 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql:
               'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
+            mysql: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
+            mariadb: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
             postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
             db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
-            default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
+            sqlite3: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
+            default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1),($sequelize_2);',
           },
         },
       );
@@ -456,6 +463,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               updateOnDuplicate: ['user_name', 'pass_word', 'updated_at'],
               upsertKeys: primaryKeys,
               conflictWhere: { deleted_at: null },
+              parameterStyle: ParameterStyle.BIND,
             },
             User.fieldRawAttributesMap,
           );
@@ -464,9 +472,73 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         }
 
         expectsql(result, {
-          default: new Error(`conflictWhere not supported for dialect ${dialect.name}`),
-          'postgres sqlite3':
-            "INSERT INTO [users] ([user_name],[pass_word]) VALUES ('testuser','12345') ON CONFLICT ([user_name]) WHERE [deleted_at] IS NULL DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];",
+          query: {
+            default: new Error(`conflictWhere not supported for dialect ${dialect.name}`),
+            'postgres sqlite3':
+              'INSERT INTO [users] ([user_name],[pass_word]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [deleted_at] IS NULL DO UPDATE SET [user_name]=EXCLUDED.[user_name],[pass_word]=EXCLUDED.[pass_word],[updated_at]=EXCLUDED.[updated_at];',
+          },
+          bind: {
+            postgres: {
+              sequelize_1: 'testuser',
+              sequelize_2: '12345',
+            },
+            sqlite3: {
+              sequelize_1: 'testuser',
+              sequelize_2: '12345',
+            },
+            default: undefined,
+          },
+        });
+      });
+
+      it('does not bind conflictWhere values, even with parameterStyle BIND', () => {
+        const User = Support.sequelize.define(
+          'user',
+          {
+            username: {
+              type: DataTypes.STRING,
+              field: 'user_name',
+              primaryKey: true,
+            },
+            status: DataTypes.STRING,
+          },
+          { timestamps: false },
+        );
+
+        let result;
+
+        try {
+          result = queryGenerator.bulkInsertQuery(
+            User.table,
+            [{ user_name: 'testuser', status: 'active' }],
+            {
+              updateOnDuplicate: ['status'],
+              upsertKeys: ['user_name'],
+              conflictWhere: { status: 'active' },
+              parameterStyle: ParameterStyle.BIND,
+            },
+            User.fieldRawAttributesMap,
+          );
+        } catch (error) {
+          result = error;
+        }
+
+        expectsql(result, {
+          query: {
+            default: new Error(`conflictWhere not supported for dialect ${dialect.name}`),
+            'postgres sqlite3': `INSERT INTO [users] ([user_name],[status]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([user_name]) WHERE [status] = 'active' DO UPDATE SET [status]=EXCLUDED.[status];`,
+          },
+          bind: {
+            postgres: {
+              sequelize_1: 'testuser',
+              sequelize_2: 'active',
+            },
+            sqlite3: {
+              sequelize_1: 'testuser',
+              sequelize_2: 'active',
+            },
+            default: undefined,
+          },
         });
       });
     }

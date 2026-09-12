@@ -816,15 +816,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       ]);
     }
 
-    // Binding the bind variable to result
-    const result = query;
-    // Binding the bindParam to result
-    // Tuple has each row for the insert query
-    options.bind = tuples;
     // Setting options.inbindAttribute
     options.inbindAttributes = inBindBindDefMap;
 
-    return result;
+    return {
+      query,
+      bind: tuples,
+    };
   }
 
   deleteQuery(tableName, where, options = EMPTY_OBJECT, model) {

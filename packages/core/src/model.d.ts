@@ -32,7 +32,7 @@ import type { Col } from './expression-builders/col.js';
 import type { Fn } from './expression-builders/fn.js';
 import type { Literal } from './expression-builders/literal.js';
 import type { Where } from './expression-builders/where.js';
-import type { Lock, Op, TableHints, Transaction, WhereOptions } from './index';
+import type { Lock, Op, ParameterStyle, TableHints, Transaction, WhereOptions } from './index';
 import type { ValidationOptions } from './instance-validator';
 import type { ModelHooks } from './model-hooks.js';
 import { ModelTypeScript } from './model-typescript.js';
@@ -1217,6 +1217,14 @@ export interface BulkCreateOptions<TAttributes = any>
    * Only supported in Postgres >= 9.5 and SQLite >= 3.24.0
    */
   conflictAttributes?: Array<keyof TAttributes>;
+
+  /**
+   * Whether the values are sent as bind parameters ({@link ParameterStyle.BIND}) or inlined as literals
+   * ({@link ParameterStyle.REPLACEMENT}). Defaults to REPLACEMENT where supported; requesting an unsupported style
+   * throws, see `dialect.supports.inserts.bulkInsertParameterStyles`. Ignored when `searchPath` is used.
+   * Databases cap bind parameters per statement (65535 in postgres and mysql), so split very large BIND inserts.
+   */
+  parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 
 /**

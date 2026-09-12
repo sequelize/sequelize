@@ -3,7 +3,7 @@
 const { expect } = require('chai');
 const sinon = require('sinon');
 const { beforeAll2, sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, ParameterStyle } = require('@sequelize/core');
 
 describe('Model#bulkCreate', () => {
   const vars = beforeAll2(() => {
@@ -66,5 +66,49 @@ describe('Model#bulkCreate', () => {
         ).to.deep.equal(['account_id']);
       });
     }
+  });
+
+  describe('parameterStyle', () => {
+    const { bulkInsertParameterStyles } = sequelize.dialect.supports.inserts;
+    const unsupportedStyle = [ParameterStyle.REPLACEMENT, ParameterStyle.BIND].find(
+      style => !bulkInsertParameterStyles[style],
+    );
+
+    if (unsupportedStyle) {
+      it(`rejects parameterStyle ${unsupportedStyle} before running hooks`, async () => {
+        const { stub, TestModel } = vars;
+        const hook = sinon.spy();
+        TestModel.hooks.addListener('beforeBulkCreate', hook);
+
+        try {
+          await expect(
+            TestModel.bulkCreate([{ accountId: 42, purchaseCount: 4 }], {
+              parameterStyle: unsupportedStyle,
+            }),
+          ).to.be.rejectedWith(
+            Error,
+            `does not support the parameterStyle "${unsupportedStyle}" option for bulkCreate`,
+          );
+        } finally {
+          TestModel.hooks.removeListener('beforeBulkCreate', hook);
+        }
+
+        expect(hook.callCount).to.eq(0);
+        expect(stub.callCount).to.eq(0);
+      });
+    }
+
+    it('forwards a supported parameterStyle to bulkInsert', async () => {
+      const { stub, TestModel } = vars;
+      const style = bulkInsertParameterStyles[ParameterStyle.BIND]
+        ? ParameterStyle.BIND
+        : ParameterStyle.REPLACEMENT;
+
+      await TestModel.bulkCreate([{ accountId: 42, purchaseCount: 4 }], {
+        parameterStyle: style,
+      });
+
+      expect(stub.getCall(0).args[2].parameterStyle).to.eq(style);
+    });
   });
 });

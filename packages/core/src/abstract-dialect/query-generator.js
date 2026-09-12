@@ -5,7 +5,6 @@ import compact from 'lodash/compact';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
-import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
@@ -30,7 +29,6 @@ import { and } from '../sequelize';
 import { mapFinderOptions, removeNullishValuesFromHash } from '../utils/format';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
 import { isModelStatic } from '../utils/model-utils';
-import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
@@ -93,8 +91,25 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   insertQuery(table, valueHash, modelAttributes, options) {
     options ||= {};
     defaults(options, this.options);
-    if ('bindParam' in options) {
-      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
+
+    const { bind, bindParam, parameterStyle } = this.#internals.resolveParameterStyle(
+      options,
+      ParameterStyle.BIND,
+      {
+        // Not currently supported with bind parameters (requires output of multiple queries)
+        forceReplacement: Boolean(this.dialect.supports.EXCEPTION && options.exception),
+        bind: this.dialect.supports.returnIntoValues && options.bind ? options.bind : undefined,
+      },
+    );
+
+    if (
+      this.dialect.supports.returnIntoValues &&
+      options.returning &&
+      parameterStyle !== ParameterStyle.BIND
+    ) {
+      throw new Error(
+        `The ${this.dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+      );
     }
 
     const modelAttributeMap = {};
@@ -104,9 +119,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const returnAttributes = [];
     const values = pojo();
     const quotedTable = this.quoteTable(table);
-    let bind;
-    let bindParam;
-    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let query;
     let valueQuery = '';
     let emptyQuery = '';
@@ -145,31 +157,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returningFragment = returnValues.returningFragment;
       tmpTable = returnValues.tmpTable || '';
       outputFragment = returnValues.outputFragment || '';
-    }
-
-    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
-      // Not currently supported with search path (requires output of multiple queries)
-      parameterStyle = ParameterStyle.REPLACEMENT;
-    }
-
-    if (this.dialect.supports.EXCEPTION && options.exception) {
-      // Not currently supported with bind parameters (requires output of multiple queries)
-      parameterStyle = ParameterStyle.REPLACEMENT;
-    }
-
-    if (
-      this.dialect.supports.returnIntoValues &&
-      options.returning &&
-      parameterStyle !== ParameterStyle.BIND
-    ) {
-      throw new Error(
-        `The ${this.dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
-      );
-    }
-
-    if (parameterStyle === ParameterStyle.BIND) {
-      bind = this.dialect.supports.returnIntoValues && options.bind ? options.bind : pojo();
-      bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
     valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
@@ -336,16 +323,22 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   /**
    * Returns an insert into command for multiple values.
    *
-   * @param {string} tableName
+   * @param {TableOrModel} tableOrModel
    * @param {object} fieldValueHashes
    * @param {object} options
    * @param {object} fieldMappedAttributes
    *
    * @private
    */
-  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
+  bulkInsertQuery(tableOrModel, fieldValueHashes, options, fieldMappedAttributes) {
     options ||= {};
     fieldMappedAttributes ||= {};
+
+    // Note: bulkInsertQuery defaults to REPLACEMENT (unlike insertQuery/updateQuery which default to BIND)
+    const { bind, bindParam, parameterStyle } = this.#internals.resolveParameterStyle(
+      options,
+      ParameterStyle.REPLACEMENT,
+    );
 
     const tuples = [];
     const serials = {};
@@ -366,16 +359,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
           // model // TODO: make bulkInsertQuery accept model instead of fieldValueHashes
-          // bindParam // TODO: support bind params
           type: fieldMappedAttributes[key]?.type,
           replacements: options.replacements,
+          bindParam,
         });
       });
 
@@ -441,11 +437,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning += returnValues.returningFragment;
     }
 
-    return joinSQLFragments([
+    const query = joinSQLFragments([
       'INSERT',
       ignoreDuplicates,
       'INTO',
-      this.quoteTable(tableName),
+      this.quoteTable(tableOrModel),
       `(${attributes})`,
       'VALUES',
       tuples.join(','),
@@ -454,6 +450,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       returning,
       ';',
     ]);
+
+    const result = { query };
+    if (parameterStyle === ParameterStyle.BIND) {
+      result.bind = bind;
+    }
+
+    return result;
   }
 
   /**
@@ -481,30 +484,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   updateQuery(tableName, attrValueHash, where, options, columnDefinitions) {
     options ||= {};
     defaults(options, this.options);
-    if ('bindParam' in options) {
-      throw new Error('The bindParam option has been removed. Use parameterStyle instead.');
-    }
+
+    const { bind, bindParam, parameterStyle } = this.#internals.resolveParameterStyle(
+      options,
+      ParameterStyle.BIND,
+    );
 
     attrValueHash = removeNullishValuesFromHash(attrValueHash, options.omitNull, options);
 
     const values = [];
     const modelAttributeMap = {};
-    let bind;
-    let bindParam;
-    let parameterStyle = options?.parameterStyle ?? ParameterStyle.BIND;
     let outputFragment = '';
     let tmpTable = ''; // tmpTable declaration for trigger
     let suffix = '';
-
-    if (get(this, ['sequelize', 'options', 'prependSearchPath']) || options.searchPath) {
-      // Not currently supported with search path (requires output of multiple queries)
-      parameterStyle = ParameterStyle.REPLACEMENT;
-    }
-
-    if (parameterStyle === ParameterStyle.BIND) {
-      bind = pojo();
-      bindParam = createBindParamGenerator(bind);
-    }
 
     if (this.dialect.supports['LIMIT ON UPDATE'] && options.limit) {
       if (!['mssql', 'db2', 'oracle'].includes(this.dialect.name)) {

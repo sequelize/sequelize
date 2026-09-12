@@ -1,4 +1,5 @@
 import type { SetRequired } from 'type-fest';
+import type { ParameterStyle } from '../enums.js';
 import type { Col } from '../expression-builders/col.js';
 import type { Fn } from '../expression-builders/fn.js';
 import type { Literal } from '../expression-builders/literal.js';
@@ -33,6 +34,15 @@ interface QiOptionsWithReplacements extends QueryRawOptions, Replaceable {}
 
 export interface QiInsertOptions extends QueryRawOptions, Replaceable {
   returning?: boolean | Array<string | Literal | Col>;
+}
+
+export interface QiBulkInsertOptions extends QiOptionsWithReplacements {
+  /**
+   * Whether the values are sent as bind parameters ({@link ParameterStyle.BIND}) or inlined as literals
+   * ({@link ParameterStyle.REPLACEMENT}). Defaults to REPLACEMENT where supported; requesting an unsupported style
+   * throws, see `dialect.supports.inserts.bulkInsertParameterStyles`. Ignored when `searchPath` is used.
+   */
+  parameterStyle?: ParameterStyle.REPLACEMENT | ParameterStyle.BIND;
 }
 
 export interface QiSelectOptions extends QueryRawOptions, Filterable<any>, AddLimitOffsetOptions {
@@ -341,16 +351,6 @@ export class AbstractQueryInterface<
     where: object,
     options?: QiUpsertOptions<M>,
   ): Promise<object>;
-
-  /**
-   * Inserts multiple records at once
-   */
-  bulkInsert(
-    tableName: TableName,
-    records: object[],
-    options?: QiOptionsWithReplacements,
-    attributes?: Record<string, AttributeOptions>,
-  ): Promise<object | number>;
 
   /**
    * Updates a row
