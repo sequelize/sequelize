@@ -1,4 +1,9 @@
-import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  ModelStatic,
+} from '@sequelize/core';
 import { DataTypes, Model, QueryTypes } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import { expect } from 'chai';
@@ -25,6 +30,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
     });
 
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      declare id: CreationOptional<number>;
       declare name: string | null;
     }
 
