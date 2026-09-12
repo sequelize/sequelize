@@ -3013,7 +3013,7 @@ __metadata:
     lodash: "npm:^4.18.1"
     mocha: "npm:11.7.5"
     sinon: "npm:18.0.1"
-    tedious: "npm:^19.2.1"
+    tedious: "npm:^19.2.2"
   languageName: unknown
   linkType: soft
 
@@ -15240,7 +15240,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:^19.2.1":
+"tedious@npm:^19.2.2":
   version: 19.2.2
   resolution: "tedious@npm:19.2.2"
   dependencies:
