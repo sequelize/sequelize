@@ -2037,9 +2037,21 @@ ${associationOwner._getAssociationDebugList()}`);
         if (errFieldsWhereIntersects) {
           each(error.fields, (value, key) => {
             const name = modelDefinition.columns.get(key).attributeName;
-            if (value.toString() !== options.where[name].toString()) {
+            const whereValue = options.where[name];
+
+            // If both values are null, they are considered equal.
+            if (whereValue === null && value === null) {
+              return; // acts as a `continue` for the `each` loop
+            }
+
+            // Check for all other mismatch scenarios.
+            if (
+              whereValue === null ||
+              value === null ||
+              value.toString() !== whereValue.toString()
+            ) {
               throw new Error(
-                `${this.name}#findOrCreate: value used for ${name} was not equal for both the find and the create calls, '${options.where[name]}' vs '${value}'`,
+                `${this.name}#findOrCreate: value used for ${name} was not equal for both the find and the create calls, '${whereValue}' vs '${value}'`,
               );
             }
           });
