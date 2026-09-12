@@ -1,5 +1,5 @@
 import type { AllowIterable } from '@sequelize/utils';
-import { isPlainObject } from '@sequelize/utils';
+import { isIterable, isPlainObject } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import upperFirst from 'lodash/upperFirst';
 import type { WhereOptions } from '../abstract-dialect/where-sql-builder-types.js';
@@ -9,6 +9,7 @@ import { fn } from '../expression-builders/fn.js';
 import type {
   AttributeNames,
   Attributes,
+  BulkCreateOptions,
   CreateOptions,
   CreationAttributes,
   DestroyOptions,
@@ -228,6 +229,7 @@ export class HasManyAssociation<
         'remove',
         'removeMultiple',
         'create',
+        'createMany',
       ],
       {
         hasSingle: 'has',
@@ -402,18 +404,45 @@ export class HasManyAssociation<
   }
 
   /**
-   * Set the associated models by passing an array of persisted instances or their primary keys. Everything that is not in the passed array will be un-associated
+   * Set the associated models by passing an array of persisted instances, their primary keys,
+   * or raw attribute objects (which will be created automatically). Everything that is not in
+   * the passed array will be un-associated.
    *
    * @param sourceInstance source instance to associate new instances with
-   * @param targets An array of persisted instances or primary key of instances to associate with this. Pass `null` to remove all associations.
-   * @param options Options passed to `target.findAll` and `update`.
+   * @param targets An array of persisted instances, primary keys, or raw attribute objects to
+   *   associate with this. Pass `null` to remove all associations.
+   * @param options Options passed to `target.findAll`, `bulkCreate`, and `update`.
    */
   async set(
     sourceInstance: S,
-    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | CreationAttributes<T>> | null,
     options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
-    const normalizedTargets = this.toInstanceArray(targets);
+    // Separate raw attribute objects from instances/PKs and create them first
+    const inputArray = targets == null ? [] : (isIterable(targets) && isObject(targets) ? [...(targets as Iterable<any>)] : [targets]);
+    const rawObjects: CreationAttributes<T>[] = [];
+    const persistedOrPk: Array<T | Exclude<T[TargetPrimaryKey], any[]>> = [];
+    for (const item of inputArray) {
+      if (isPlainObject(item) && !(item instanceof this.target)) {
+        rawObjects.push(item as CreationAttributes<T>);
+      } else {
+        persistedOrPk.push(item as T | Exclude<T[TargetPrimaryKey], any[]>);
+      }
+    }
+
+    let createdInstances: T[] = [];
+    if (rawObjects.length > 0) {
+      const valuesWithScope = rawObjects.map(raw => ({
+        ...raw,
+        ...this.scope,
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      })) as CreationAttributes<T>[];
+      createdInstances = await this.target.bulkCreate(valuesWithScope, options);
+    }
+
+    // Merge created instances back with the persisted/pk items
+    const mergedInput = [...createdInstances, ...persistedOrPk];
+    const normalizedTargets = this.toInstanceArray(mergedInput.length === 0 ? null : mergedInput);
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
@@ -466,21 +495,54 @@ export class HasManyAssociation<
   }
 
   /**
-   * Associate one or more target rows with `this`. This method accepts a Model / string / number to associate a single row,
-   * or a mixed array of Model / string / numbers to associate multiple rows.
+   * Associate one or more target rows with `this`. This method accepts a Model / string / number
+   * to associate a single row, a mixed array of Model / string / numbers, or raw attribute objects
+   * (which will be created automatically).
    *
    * @param sourceInstance the source instance
-   * @param [rawTargetInstances] A single instance or primary key, or a mixed array of persisted instances or primary keys
-   * @param [options] Options passed to `target.update`.
+   * @param [rawTargetInstances] A single instance, primary key, raw attribute object, or a mixed
+   *   array of persisted instances, primary keys, and raw attribute objects
+   * @param [options] Options passed to `target.bulkCreate` and `target.update`.
    */
   async add(
     sourceInstance: S,
-    rawTargetInstances: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    rawTargetInstances: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | CreationAttributes<T>>,
     options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
-    const targetInstances = this.toInstanceArray(rawTargetInstances);
+    // Separate raw attribute objects from instances/PKs and create them first
+    const inputArray = isIterable(rawTargetInstances) && isObject(rawTargetInstances)
+      ? [...(rawTargetInstances as Iterable<any>)]
+      : [rawTargetInstances];
+    const rawObjects: CreationAttributes<T>[] = [];
+    const persistedOrPk: Array<T | Exclude<T[TargetPrimaryKey], any[]>> = [];
+    for (const item of inputArray) {
+      if (isPlainObject(item) && !(item instanceof this.target)) {
+        rawObjects.push(item as CreationAttributes<T>);
+      } else {
+        persistedOrPk.push(item as T | Exclude<T[TargetPrimaryKey], any[]>);
+      }
+    }
+
+    let createdInstances: T[] = [];
+    if (rawObjects.length > 0) {
+      const valuesWithScope = rawObjects.map(raw => ({
+        ...raw,
+        ...this.scope,
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      })) as CreationAttributes<T>[];
+      createdInstances = await this.target.bulkCreate(valuesWithScope, options);
+    }
+
+    // Merge and associate all persisted items via the usual update path
+    const targetInstances = this.toInstanceArray([...createdInstances, ...persistedOrPk]);
 
     if (targetInstances.length === 0) {
+      return;
+    }
+
+    // Only issue the FK update for items that already existed (not the newly created ones which already have the FK set)
+    const existingInstances = targetInstances.filter(inst => !createdInstances.includes(inst));
+    if (existingInstances.length === 0) {
       return;
     }
 
@@ -491,7 +553,7 @@ export class HasManyAssociation<
 
     const where = {
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject => {
+      [this.target.primaryKeyAttribute]: existingInstances.map(unassociatedObject => {
         // @ts-expect-error -- TODO: what if the target has no primary key?
         return unassociatedObject.get(this.target.primaryKeyAttribute);
       }),
@@ -605,6 +667,41 @@ export class HasManyAssociation<
       options,
     );
   }
+
+  /**
+   * Create multiple new instances of the associated model and associate them with this.
+   *
+   * @param sourceInstance source instance
+   * @param records array of attribute objects for the new target model instances
+   * @param options Options passed to `target.bulkCreate`
+   */
+  async createMany(
+    sourceInstance: S,
+    // @ts-expect-error -- {} is not always assignable to 'values', but Target.bulkCreate will enforce this, not us.
+    records: CreationAttributes<T>[],
+    options?: HasManyCreateAssociationsMixinOptions<T>,
+  ): Promise<T[]> {
+    if (!Array.isArray(records) || records.length === 0) {
+      return [];
+    }
+
+    const valuesWithScope = records.map(record => {
+      const values = { ...record };
+      if (this.scope) {
+        for (const attribute of Object.keys(this.scope)) {
+          // @ts-expect-error -- TODO: fix the typing of {@link AssociationScope}
+          values[attribute] = this.scope[attribute];
+        }
+      }
+
+      return {
+        ...values,
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+      };
+    }) as CreationAttributes<T>[];
+
+    return this.target.bulkCreate(valuesWithScope, options);
+  }
 }
 
 // workaround https://github.com/evanw/esbuild/issues/1260
@@ -634,12 +731,12 @@ export interface HasManyOptions<SourceKey extends string, TargetKey extends stri
    * The name of the inverse association, or an object for further association setup.
    */
   inverse?:
-    | string
-    | undefined
-    | {
-        as?: AssociationOptions<any>['as'];
-        scope?: AssociationOptions<any>['scope'];
-      };
+  | string
+  | undefined
+  | {
+    as?: AssociationOptions<any>['as'];
+    scope?: AssociationOptions<any>['scope'];
+  };
 }
 
 function normalizeHasManyOptions<SourceKey extends string, TargetKey extends string>(
@@ -705,7 +802,7 @@ export type HasManyGetAssociationsMixin<T extends Model> = (
  */
 export interface HasManySetAssociationsMixinOptions<T extends Model>
   extends FindOptions<Attributes<T>>,
-    InstanceUpdateOptions<Attributes<T>> {
+  InstanceUpdateOptions<Attributes<T>> {
   /**
    * Delete the previous associated model. Default to false.
    *
@@ -713,9 +810,9 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
    * the previous associated model is always deleted.
    */
   destroyPrevious?:
-    | boolean
-    | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'>
-    | undefined;
+  | boolean
+  | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'>
+  | undefined;
 }
 
 /**
@@ -733,7 +830,7 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Iterable<T | TModelPrimaryKey> | null,
+  newAssociations?: Iterable<T | TModelPrimaryKey | CreationAttributes<T>> | null,
   options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -743,7 +840,7 @@ export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
  * @see HasManyAddAssociationsMixin
  */
 export interface HasManyAddAssociationsMixinOptions<T extends Model>
-  extends InstanceUpdateOptions<Attributes<T>> {}
+  extends InstanceUpdateOptions<Attributes<T>> { }
 
 /**
  * The addAssociations mixin applied to models with hasMany.
@@ -760,7 +857,7 @@ export interface HasManyAddAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Iterable<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey | CreationAttributes<T>>,
   options?: HasManyAddAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -770,7 +867,7 @@ export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
  * @see HasManyAddAssociationMixin
  */
 export interface HasManyAddAssociationMixinOptions<T extends Model>
-  extends HasManyAddAssociationsMixinOptions<T> {}
+  extends HasManyAddAssociationsMixinOptions<T> { }
 
 /**
  * The addAssociation mixin applied to models with hasMany.
@@ -797,7 +894,7 @@ export type HasManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
  * @see HasManyCreateAssociationMixin
  */
 export interface HasManyCreateAssociationMixinOptions<T extends Model>
-  extends CreateOptions<Attributes<T>> {}
+  extends CreateOptions<Attributes<T>> { }
 
 /**
  * The createAssociation mixin applied to models with hasMany.
@@ -822,12 +919,44 @@ export type HasManyCreateAssociationMixin<
 ) => Promise<Target>;
 
 /**
+ * The options for the createAssociations mixin of the hasMany association.
+ *
+ * @see HasManyCreateAssociationsMixin
+ */
+export interface HasManyCreateAssociationsMixinOptions<T extends Model>
+  extends BulkCreateOptions<Attributes<T>> { }
+
+/**
+ * The createAssociations mixin applied to models with hasMany.
+ * Allows creating multiple associated instances at once.
+ *
+ * An example of usage is as follows:
+ *
+ * ```typescript
+ * class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+ *   declare createRoles: HasManyCreateAssociationsMixin<Role>;
+ * }
+ *
+ * User.hasMany(Role);
+ * ```
+ *
+ * @see Model.hasMany
+ */
+export type HasManyCreateAssociationsMixin<
+  Target extends Model,
+  ExcludedAttributes extends keyof CreationAttributes<Target> = never,
+> = (
+  records: Array<Omit<CreationAttributes<Target>, ExcludedAttributes>>,
+  options?: HasManyCreateAssociationsMixinOptions<Target>,
+) => Promise<Target[]>;
+
+/**
  * The options for the removeAssociation mixin of the hasMany association.
  *
  * @see HasManyRemoveAssociationMixin
  */
 export interface HasManyRemoveAssociationMixinOptions<T extends Model>
-  extends HasManyRemoveAssociationsMixinOptions<T> {}
+  extends HasManyRemoveAssociationsMixinOptions<T> { }
 
 /**
  * The removeAssociation mixin applied to models with hasMany.
@@ -862,9 +991,9 @@ export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
    * the associated model is always deleted.
    */
   destroy?:
-    | boolean
-    | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'>
-    | undefined;
+  | boolean
+  | Omit<DestroyOptions<Attributes<T>>, 'where' | 'transaction' | 'logging' | 'benchmark'>
+  | undefined;
 }
 
 /**
@@ -892,7 +1021,7 @@ export type HasManyRemoveAssociationsMixin<T extends Model, TModelPrimaryKey> = 
  * @see HasManyHasAssociationMixin
  */
 export interface HasManyHasAssociationMixinOptions<T extends Model>
-  extends HasManyGetAssociationsMixinOptions<T> {}
+  extends HasManyGetAssociationsMixinOptions<T> { }
 
 /**
  * The hasAssociation mixin applied to models with hasMany.
@@ -919,7 +1048,7 @@ export type HasManyHasAssociationMixin<TModel extends Model, TModelPrimaryKey> =
  * @see HasManyHasAssociationsMixin
  */
 export interface HasManyHasAssociationsMixinOptions<T extends Model>
-  extends HasManyGetAssociationsMixinOptions<T> {}
+  extends HasManyGetAssociationsMixinOptions<T> { }
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -950,7 +1079,7 @@ export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> 
  */
 export interface HasManyCountAssociationsMixinOptions<T extends Model>
   extends Transactionable,
-    Filterable<Attributes<T>> {
+  Filterable<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */

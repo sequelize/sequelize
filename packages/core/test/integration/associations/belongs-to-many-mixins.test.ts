@@ -2,6 +2,7 @@ import type {
   BelongsToManyAddAssociationsMixin,
   BelongsToManyCountAssociationsMixin,
   BelongsToManyCreateAssociationMixin,
+  BelongsToManyCreateAssociationsMixin,
   BelongsToManyGetAssociationsMixin,
   BelongsToManyHasAssociationsMixin,
   BelongsToManyRemoveAssociationsMixin,
@@ -30,6 +31,7 @@ describe('belongsToMany Mixins', () => {
       declare addAuthors: BelongsToManyAddAssociationsMixin<User, User['id']>;
       declare removeAuthors: BelongsToManyRemoveAssociationsMixin<User, User['id']>;
       declare createAuthor: BelongsToManyCreateAssociationMixin<User>;
+      declare createAuthors: BelongsToManyCreateAssociationsMixin<User>;
       declare hasAuthors: BelongsToManyHasAssociationsMixin<User, User['id']>;
       declare countAuthors: BelongsToManyCountAssociationsMixin<User>;
     }
@@ -235,6 +237,63 @@ describe('belongsToMany Mixins', () => {
       await article.setAuthors([user]);
 
       expect(await article.hasAuthors([user.id])).to.be.true;
+    });
+  });
+
+  describe('setAssociations with raw objects', () => {
+    it('creates and associates raw attribute objects', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      await article.setAuthors([{}] as any);
+
+      expect(await article.getAuthors()).to.have.length(1);
+    });
+
+    it('mixes instances and raw objects', async () => {
+      const { User, Article } = vars;
+
+      const article = await Article.create();
+      const existing = await User.create();
+
+      await article.setAuthors([existing, {}] as any);
+
+      expect(await article.getAuthors()).to.have.length(2);
+    });
+  });
+
+  describe('addAssociations with raw objects', () => {
+    it('creates and associates raw attribute objects', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      await article.addAuthors([{}, {}] as any);
+
+      expect(await article.getAuthors()).to.have.length(2);
+    });
+  });
+
+  describe('createManyAssociations', () => {
+    it('creates multiple associated instances at once', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      const created = await article.createAuthors([{}, {}] as any);
+
+      expect(created).to.have.length(2);
+      expect(await article.getAuthors()).to.have.length(2);
+    });
+
+    it('returns an empty array when given an empty records list', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      const created = await article.createAuthors([] as any);
+      expect(created).to.be.an('array').that.is.empty;
     });
   });
 });
