@@ -9,6 +9,7 @@ import get from 'lodash/get';
 import isEmpty from 'lodash/isEmpty';
 import isObject from 'lodash/isObject';
 import isPlainObject from 'lodash/isPlainObject';
+import omit from 'lodash/omit';
 import pick from 'lodash/pick';
 import reduce from 'lodash/reduce';
 import uniq from 'lodash/uniq';
@@ -1225,6 +1226,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (typeof options.groupedLimit.on === 'string') {
           whereKey = options.groupedLimit.on;
         } else if (options.groupedLimit.on instanceof HasManyAssociation) {
+          // TODO: revisit this whether we still need this or not
+
           whereKey = options.groupedLimit.on.identifierField;
         }
 
@@ -1313,34 +1316,67 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         ).replace(/;$/, '')}) ${this.#internals.getAliasToken()} sub`; // Every derived table must have its own alias
         const splicePos = baseQuery.indexOf(placeholder);
 
+        let tablesStr;
+        if (options.groupedLimit.values && Array.isArray(options.groupedLimit.values)) {
+          tablesStr = `(${options.groupedLimit.values
+            .map(value => {
+              let groupWhere;
+              if (whereKey) {
+                groupWhere = {
+                  [whereKey]: value,
+                };
+              }
+
+              if (include) {
+                groupWhere = {
+                  [options.groupedLimit.on.foreignIdentifierField]: value,
+                };
+              }
+
+              return spliceStr(
+                baseQuery,
+                splicePos,
+                placeholder.length,
+                this.whereItemsQuery(groupWhere, { ...options, mainAlias: groupedTableName }),
+              );
+            })
+            .join(this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')})`;
+        } else {
+          const valueKeys = Object.keys(omit(options.groupedLimit, ['on', 'should', 'limit']));
+
+          // TODO: check if all the arrays have the same length
+          const firstLength = options.groupedLimit[valueKeys[0]].length;
+          const whereSplices = [];
+          for (let i = 0; i < firstLength; i++) {
+            const groupWhere = {};
+            for (const key of valueKeys) {
+              groupWhere[key] = options.groupedLimit[key][i];
+
+              whereSplices.push(
+                spliceStr(
+                  baseQuery,
+                  splicePos,
+                  placeholder.length,
+                  this.whereItemsQuery(
+                    { [Op.and]: groupWhere },
+                    { ...options, mainAlias: groupedTableName },
+                  ),
+                ),
+              );
+            }
+
+            tablesStr = `(${whereSplices.join(
+              this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ',
+            )})`;
+          }
+        }
+
         mainQueryItems.push(
           this.selectFromTableFragment(
             options,
             mainTable.model,
             attributes.main,
-            `(${options.groupedLimit.values
-              .map(value => {
-                let groupWhere;
-                if (whereKey) {
-                  groupWhere = {
-                    [whereKey]: value,
-                  };
-                }
-
-                if (include) {
-                  groupWhere = {
-                    [options.groupedLimit.on.foreignIdentifierField]: value,
-                  };
-                }
-
-                return spliceStr(
-                  baseQuery,
-                  splicePos,
-                  placeholder.length,
-                  this.whereItemsQuery(groupWhere, { ...options, mainAlias: groupedTableName }),
-                );
-              })
-              .join(this.dialect.supports['UNION ALL'] ? ' UNION ALL ' : ' UNION ')})`,
+            tablesStr,
             mainTable.quotedAs,
           ),
         );
@@ -2105,24 +2141,39 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     /* Attributes for the left side */
     const left = association.source;
     const leftAttributes = left.modelDefinition.attributes;
+    const conditions = [];
 
-    const attrNameLeft =
-      association instanceof BelongsToAssociation
-        ? association.foreignKey
-        : association.sourceKeyAttribute;
-    const columnNameLeft =
-      association instanceof BelongsToAssociation
-        ? association.identifierField
-        : leftAttributes.get(association.sourceKeyAttribute).columnName;
     let asLeft;
     /* Attributes for the right side */
     const right = include.model;
     const rightAttributes = right.modelDefinition.attributes;
     const tableRight = right.table;
-    const fieldRight =
-      association instanceof BelongsToAssociation
-        ? rightAttributes.get(association.targetKey).columnName
-        : association.identifierField;
+
+    if (include.association.foreignKeys?.length > 0) {
+      for (const fKey of include.association.foreignKeys) {
+        const attrNameLeft =
+          association instanceof BelongsToAssociation ? fKey.targetKey : fKey.sourceKey;
+        const columnNameLeft = leftAttributes.get(fKey.sourceKey).columnName;
+        const fieldRight = rightAttributes.get(fKey.targetKey).columnName;
+        conditions.push({ attrNameLeft, columnNameLeft, fieldRight });
+      }
+    } else {
+      const attrNameLeft =
+        association instanceof BelongsToAssociation
+          ? association.foreignKey
+          : association.sourceKeyAttribute;
+      const columnNameLeft =
+        association instanceof BelongsToAssociation
+          ? association.identifierField
+          : leftAttributes.get(association.sourceKeyAttribute).columnName;
+
+      const fieldRight =
+        association instanceof BelongsToAssociation
+          ? rightAttributes.get(association.targetKey).columnName
+          : association.identifierField;
+      conditions.push({ attrNameLeft, columnNameLeft, fieldRight });
+    }
+
     let asRight = include.as;
 
     while (($parent = ($parent && $parent.parent) || include.parent) && $parent.association) {
@@ -2144,44 +2195,57 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       : this.#internals.quoteTableAlias(asLeft, topLevelInfo.options);
     const minifiedAsRight = this.#internals.getMinifiedTableAlias(asRight, topLevelInfo.options);
     const quotedAsRight = this.quoteIdentifier(minifiedAsRight, minifiedAsRight.startsWith('%'));
+    console.error('DEBUG generateJoin', {
+      parentIsTop,
+      asLeft,
+      quotedAsLeft,
+      namesQuotedAs: topLevelInfo.names?.quotedAs,
+    });
 
     // TODO: use whereItemsQuery to generate the entire "ON" condition.
-    let joinOn = `${quotedAsLeft}.${this.quoteIdentifier(columnNameLeft)}`;
+    let joinOn = '';
     const subqueryAttributes = [];
-
-    if (
-      (topLevelInfo.options.groupedLimit && parentIsTop) ||
-      (topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery)
-    ) {
-      if (parentIsTop) {
-        // The main model attributes is not aliased to a prefix
-        const tableName = topLevelInfo.names?.as || parent.as || parent.model.name;
-        const quotedTableName = topLevelInfo.names?.quotedAs || this.quoteIdentifier(tableName);
-
-        // Check for potential aliased JOIN condition
-        joinOn =
-          this._getAliasForField(tableName, attrNameLeft, topLevelInfo.options) ||
-          `${quotedTableName}.${this.quoteIdentifier(attrNameLeft)}`;
-
-        if (topLevelInfo.subQuery) {
-          const dbIdentifier = `${quotedTableName}.${this.quoteIdentifier(columnNameLeft)}`;
-          subqueryAttributes.push(
-            dbIdentifier !== joinOn
-              ? `${dbIdentifier} AS ${this.quoteIdentifier(attrNameLeft)}`
-              : dbIdentifier,
-          );
-        }
-      } else {
-        const joinSource = `${asLeft.replaceAll('->', '.')}.${attrNameLeft}`;
-
-        // Check for potential aliased JOIN condition
-        joinOn =
-          this._getAliasForField(asLeft, joinSource, topLevelInfo.options) ||
-          this.quoteIdentifier(joinSource);
+    for (const condition of conditions) {
+      if (joinOn?.length > 0) {
+        joinOn += ' AND ';
       }
-    }
 
-    joinOn += ` = ${quotedAsRight}.${this.quoteIdentifier(fieldRight)}`;
+      joinOn += `${quotedAsLeft}.${this.quoteIdentifier(condition.columnNameLeft)}`;
+
+      if (
+        (topLevelInfo.options.groupedLimit && parentIsTop) ||
+        (topLevelInfo.subQuery && include.parent.subQuery && !include.subQuery)
+      ) {
+        if (parentIsTop) {
+          // The main model attributes is not aliased to a prefix
+          const tableName = topLevelInfo.names?.as || parent.as || parent.model.name;
+          const quotedTableName = topLevelInfo.names?.quotedAs || this.quoteIdentifier(tableName);
+
+          // Check for potential aliased JOIN condition
+          joinOn =
+            this._getAliasForField(tableName, condition.attrNameLeft, topLevelInfo.options) ||
+            `${quotedTableName}.${this.quoteIdentifier(condition.attrNameLeft)}`;
+
+          if (topLevelInfo.subQuery) {
+            const dbIdentifier = `${quotedTableName}.${this.quoteIdentifier(condition.columnNameLeft)}`;
+            subqueryAttributes.push(
+              dbIdentifier !== joinOn
+                ? `${dbIdentifier} AS ${this.quoteIdentifier(condition.attrNameLeft)}`
+                : dbIdentifier,
+            );
+          }
+        } else {
+          const joinSource = `${asLeft.replaceAll('->', '.')}.${condition.attrNameLeft}`;
+
+          // Check for potential aliased JOIN condition
+          joinOn =
+            this._getAliasForField(asLeft, joinSource, topLevelInfo.options) ||
+            this.quoteIdentifier(joinSource);
+        }
+      }
+
+      joinOn += ` = ${quotedAsRight}.${this.quoteIdentifier(condition.fieldRight)}`;
+    }
 
     if (include.on) {
       joinOn = this.whereItemsQuery(include.on, {
@@ -2348,9 +2412,19 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     const association = include.association;
     const tableSource = parentTableName;
-    const identSource = association.identifierField;
-    const identTarget = association.foreignIdentifierField;
-    const attrTarget = association.targetKeyField;
+    const isCompositeKey = association.foreignKeys?.length > 1;
+
+    const identSources = isCompositeKey
+      ? association.identifierFields
+      : [association.identifierField];
+
+    const identTargets = isCompositeKey
+      ? association.foreignIdentifierFields
+      : [association.foreignIdentifierField];
+
+    const attrTargets = isCompositeKey ? association.targetKeyFields : [association.targetKeyField];
+
+    let attrSources = isCompositeKey ? association.sourceKeys : [association.sourceKey];
 
     const joinType = include.required
       ? 'INNER JOIN'
@@ -2363,7 +2437,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       main: [],
       subQuery: [],
     };
-    let attrSource = association.sourceKey;
     let sourceJoinOn;
     let targetJoinOn;
     let throughWhere;
@@ -2377,8 +2450,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Figure out if we need to use field or attribute
+
     if (!topLevelInfo.subQuery) {
-      attrSource = association.sourceKeyField;
+      attrSources = isCompositeKey ? association.sourceKeyFields : [association.sourceKeyField];
     }
 
     if (
@@ -2387,102 +2461,115 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       !include.parent.subQuery &&
       include.parent.model !== topLevelInfo.options.mainModel
     ) {
-      attrSource = association.sourceKeyField;
+      attrSources = isCompositeKey ? association.sourceKeyFields : [association.sourceKeyField];
     }
 
     // Build source side of the JOIN predicate for the through association.
     // This condition is reused by the actual JOIN and any subquery WHERE filters.
+    each(attrSources, (attrSource, i) => {
+      if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && isMinified) {
+        // When the parent include is also part of a subquery (especially with minified aliases),
+        // the source key may only be available under a projected alias. Thus, we resolve
+        // and reference the aliased attribute (or project it if missing) instead of the raw column
+        // name to avoid referencing a missing column.
+        const aliasCandidates = new Set();
 
-    if (topLevelInfo.subQuery && !include.subQuery && include.parent.subQuery && isMinified) {
-      // When the parent include is also part of a subquery (especially with minified aliases),
-      // the source key may only be available under a projected alias. Thus, we resolve
-      // and reference the aliased attribute (or project it if missing) instead of the raw column
-      // name to avoid referencing a missing column.
-      const aliasCandidates = new Set();
+        const dottedTableSource = tableSource.replaceAll('->', '.');
 
-      const dottedTableSource = tableSource.replaceAll('->', '.');
-
-      if (attrSource) {
-        aliasCandidates.add(attrSource);
-        aliasCandidates.add(`${tableSource}.${attrSource}`);
-        aliasCandidates.add(`${dottedTableSource}.${attrSource}`);
-      }
-
-      if (association.sourceKeyField && association.sourceKeyField !== attrSource) {
-        aliasCandidates.add(association.sourceKeyField);
-        aliasCandidates.add(`${tableSource}.${association.sourceKeyField}`);
-        aliasCandidates.add(`${dottedTableSource}.${association.sourceKeyField}`);
-      }
-
-      let aliasedSource = null;
-
-      for (const candidate of aliasCandidates) {
-        aliasedSource = this._getAliasForField(tableSource, candidate, topLevelInfo.options);
-
-        if (aliasedSource) {
-          break;
+        if (attrSource) {
+          aliasCandidates.add(attrSource);
+          aliasCandidates.add(`${tableSource}.${attrSource}`);
+          aliasCandidates.add(`${dottedTableSource}.${attrSource}`);
         }
-      }
 
-      if (!aliasedSource) {
-        const joinColumn = association.sourceKeyField || attrSource || identSource;
+        // Use the indexed plural getter for composite associations; the singular
+        // `sourceKeyField` getter throws when no single sourceKey is defined.
+        const sourceKeyField = isCompositeKey
+          ? association.sourceKeyFields?.[i]
+          : association.sourceKeyField;
 
-        if (isRootParent) {
-          sourceJoinOn = `${quotedParentTableName}.${this.quoteIdentifier(joinColumn)} = `;
-        } else {
-          const aliasBase = `${dottedTableSource}.${joinColumn}`;
+        if (sourceKeyField && sourceKeyField !== attrSource) {
+          aliasCandidates.add(sourceKeyField);
+          aliasCandidates.add(`${tableSource}.${sourceKeyField}`);
+          aliasCandidates.add(`${dottedTableSource}.${sourceKeyField}`);
+        }
 
-          aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
+        let aliasedSource = null;
 
-          const projection = `${quotedParentTableName}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+        for (const candidate of aliasCandidates) {
+          aliasedSource = this._getAliasForField(tableSource, candidate, topLevelInfo.options);
 
-          if (!attributes.subQuery.includes(projection)) {
-            attributes.subQuery.push(projection);
+          if (aliasedSource) {
+            break;
           }
         }
-      }
 
-      if (!sourceJoinOn) {
-        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
-      }
-    } else if (
-      topLevelInfo.subQuery &&
-      !include.subQuery &&
-      include.parent.subQuery &&
-      !isRootParent
-    ) {
-      // Subquery + non-root parent: when alias minification is enabled,
-      // the parent path's source key may have been projected under a generated alias.
-      // Resolve and use the projected alias for the source side of the JOIN;
-      // If no alias is found, fall back to the table-qualified column, prefixed
-      // by the main subquery alias when available.
-      const aliasedSource = this._getAliasForField(
-        tableSource,
-        `${tableSource}.${attrSource}`,
-        topLevelInfo.options,
-      );
+        if (!aliasedSource) {
+          const joinColumn = sourceKeyField || attrSource || identSources[i];
 
-      if (aliasedSource) {
-        sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
-      } else {
-        const mainAlias = topLevelInfo.names.quotedAs || topLevelInfo.names.quotedName;
+          if (isRootParent) {
+            sourceJoinOn = `${quotedParentTableName}.${this.quoteIdentifier(joinColumn)} = `;
+          } else {
+            const aliasBase = `${dottedTableSource}.${joinColumn}`;
 
-        if (mainAlias) {
-          sourceJoinOn = `${mainAlias}.${this.quoteIdentifier(`${tableSource}.${attrSource}`)} = `;
-        } else {
-          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+            aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
+
+            const projection = `${quotedParentTableName}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+
+            if (!attributes.subQuery.includes(projection)) {
+              attributes.subQuery.push(projection);
+            }
+          }
         }
-      }
-    } else {
-      sourceJoinOn = `${quotedParentTableName}.${this.quoteIdentifier(attrSource)} = `;
-    }
 
-    sourceJoinOn += `${quotedThroughAs}.${this.quoteIdentifier(identSource)}`;
+        if (!sourceJoinOn) {
+          sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+        }
+      } else if (
+        topLevelInfo.subQuery &&
+        !include.subQuery &&
+        include.parent.subQuery &&
+        !isRootParent
+      ) {
+        // Subquery + non-root parent: when alias minification is enabled,
+        // the parent path's source key may have been projected under a generated alias.
+        // Resolve and use the projected alias for the source side of the JOIN;
+        // If no alias is found, fall back to the table-qualified column, prefixed
+        // by the main subquery alias when available.
+        const aliasedSource = this._getAliasForField(
+          tableSource,
+          `${tableSource}.${attrSource}`,
+          topLevelInfo.options,
+        );
+
+        if (aliasedSource) {
+          sourceJoinOn = `${this.quoteIdentifier(aliasedSource)} = `;
+        } else {
+          const mainAlias = topLevelInfo.names.quotedAs || topLevelInfo.names.quotedName;
+
+          if (mainAlias) {
+            sourceJoinOn = `${mainAlias}.${this.quoteIdentifier(`${tableSource}.${attrSource}`)} = `;
+          } else {
+            sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+          }
+        }
+      } else {
+        sourceJoinOn = `${quotedParentTableName}.${this.quoteIdentifier(attrSource)} = `;
+      }
+
+      sourceJoinOn += `${quotedThroughAs}.${this.quoteIdentifier(identSources[i])}`;
+    });
 
     // Filter statement for right side of through
     // Used by both join and subquery where
-    targetJoinOn = `${quotedIncludeAs}.${this.quoteIdentifier(attrTarget)} = `;
-    targetJoinOn += `${quotedThroughAs}.${this.quoteIdentifier(identTarget)}`;
+    each(attrTargets, (attrTarget, i) => {
+      if (targetJoinOn?.length > 0) {
+        targetJoinOn += ' AND ';
+      }
+
+      targetJoinOn = `${quotedIncludeAs}.${this.quoteIdentifier(attrTarget)} = `;
+      targetJoinOn += `${quotedThroughAs}.${this.quoteIdentifier(identTargets[i])}`;
+    });
 
     if (through.where) {
       throughWhere = this.whereItemsQuery(through.where, {
@@ -2601,26 +2688,47 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       );
     } else {
       const isBelongsTo = topAssociation.associationType === 'BelongsTo';
-      const sourceField = isBelongsTo
-        ? topAssociation.identifierField
-        : topAssociation.sourceKeyField || topParent.model.primaryKeyField;
-      const targetField = isBelongsTo
-        ? topAssociation.sourceKeyField || topInclude.model.primaryKeyField
-        : topAssociation.identifierField;
+      const hasCompositeReference = topAssociation.foreignKeys?.length > 1;
+      const sourceFields = isBelongsTo
+        ? [topAssociation.identifierField]
+        : hasCompositeReference
+          ? topAssociation.foreignKeys.map(fk => fk.sourceKey)
+          : [topAssociation.sourceKeyField || topParent.model.primaryKeyField];
+
+      const targetFields = isBelongsTo
+        ? [topAssociation.sourceKeyField || topInclude.model.primaryKeyField]
+        : hasCompositeReference
+          ? topAssociation.foreignKeys.map(fk => fk.targetKey)
+          : [topAssociation.identifierField];
 
       const minifiedTopIncludeAs = this.#internals.getMinifiedTableAlias(
         topInclude.as,
         topLevelInfo.options,
       );
-      const join = [
-        `${this.quoteIdentifier(minifiedTopIncludeAs, minifiedTopIncludeAs.startsWith('%'))}.${this.quoteIdentifier(targetField)}`,
-        `${this.quoteIdentifier(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
-      ].join(' = ');
+      const quotedTopIncludeAs = this.quoteIdentifier(
+        minifiedTopIncludeAs,
+        minifiedTopIncludeAs.startsWith('%'),
+      );
+      const quotedTopParentAs = this.quoteIdentifier(topParent.as || topParent.model.name);
+
+      const join = hasCompositeReference
+        ? topAssociation.foreignKeys
+            .map(fk => {
+              return [
+                `${quotedTopIncludeAs}.${this.quoteIdentifier(fk.targetKey)}`,
+                `${quotedTopParentAs}.${this.quoteIdentifier(fk.sourceKey)}`,
+              ].join(' = ');
+            })
+            .join(' AND ')
+        : [
+            `${quotedTopIncludeAs}.${this.quoteIdentifier(targetFields[0])}`,
+            `${quotedTopParentAs}.${this.quoteIdentifier(sourceFields[0])}`,
+          ].join(' = ');
 
       query = this.selectQuery(
         topInclude.model.table,
         {
-          attributes: [targetField],
+          attributes: [targetFields[0]],
           include: _validateIncludedElements(topInclude).include,
           model: topInclude.model,
           where: {

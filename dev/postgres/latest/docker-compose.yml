@@ -10,6 +10,7 @@ services:
       - 23010:5432
     volumes:
       - postgres-latest:/var/lib/postgresql/data
+    command: ['postgres', '-c', 'log_statement=all']
     healthcheck:
       # -h forces a TCP probe. During initdb the entrypoint runs a temporary server that only
       # listens on the unix socket, so a socket probe reports healthy before the real server is up.

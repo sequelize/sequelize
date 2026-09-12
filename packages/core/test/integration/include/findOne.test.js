@@ -136,6 +136,45 @@ describe(Support.getTestDialectTeaser('Include'), () => {
       expect(user.tasks.length).to.equal(1);
     });
 
+    it('should include a model with a where clause with a composite key', async function () {
+      const User = this.sequelize.define('User', {
+        userId: {
+          type: DataTypes.UUID,
+          defaultValue: sql.uuidV4,
+          primaryKey: true,
+        },
+        tenantId: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+        },
+      });
+      const Task = this.sequelize.define('Task', {
+        taskId: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        searchString: { type: DataTypes.STRING },
+      });
+
+      User.hasMany(Task, { foreignKey: { keys: ['userId', 'tenantId'] } });
+      Task.belongsTo(User, { foreignKey: { keys: ['userId', 'tenantId'] } });
+
+      await this.sequelize.sync({
+        force: true,
+      });
+
+      const user0 = await User.create({ tenantId: 1 });
+
+      await Task.bulkCreate([
+        { userId: user0.userId, searchString: 'one', tenantId: user0.tenantId },
+        { userId: user0.userId, searchString: 'two', tenantId: user0.tenantId },
+      ]);
+
+      const user = await User.findOne({
+        include: [{ model: Task, where: { searchString: 'one' } }],
+      });
+
+      expect(user).to.be.ok;
+      expect(user.tasks.length).to.equal(1);
+    });
+
     it('should include a model with a through.where and required true clause when the PK field name and attribute name are different', async function () {
       const A = this.sequelize.define('a', {});
       const B = this.sequelize.define('b', {});

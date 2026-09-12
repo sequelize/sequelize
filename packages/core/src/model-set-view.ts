@@ -1,5 +1,7 @@
 import { map, SetView } from '@sequelize/utils';
+import isEmpty from 'lodash/isEmpty.js';
 import { inspect } from 'node:util';
+
 // @ts-expect-error -- toposort-class definition will be added to sequelize/toposort later
 import Toposort from 'toposort-class';
 import type { AbstractDialect } from './abstract-dialect/dialect.js';
@@ -49,6 +51,7 @@ export class ModelSetView<Dialect extends AbstractDialect> extends SetView<Model
    *
    * If there is a cyclic dependency, this returns null.
    */
+  // TODO: fix toposort with composite foreign keys to remove hack in hasOne
   getModelsTopoSortedByForeignKey(): ModelStatic[] | null {
     const models = new Map();
     const sorter = new Toposort();
@@ -61,7 +64,20 @@ export class ModelSetView<Dialect extends AbstractDialect> extends SetView<Model
 
       models.set(tableName, model);
 
-      const { attributes } = model.modelDefinition;
+      const { attributes, associations } = model.modelDefinition;
+
+      for (const association of Object.values(associations).filter(
+        a => a.associationType === 'BelongsTo',
+      )) {
+        if (
+          !isEmpty(association.options.foreignKey) &&
+          Array.isArray(association.options.foreignKey.keys)
+        ) {
+          const dep = queryGenerator.quoteTable(association.target);
+          deps.push(dep);
+        }
+      }
+
       for (const attrName of attributes.keys()) {
         const attribute = attributes.get(attrName);
 
