@@ -138,6 +138,9 @@ export class PostgresDialect extends AbstractDialect<
     globalTimeZoneConfig: true,
     uuidV1Generation: true,
     uuidV4Generation: true,
+    uuidV7Generation: {
+      minimumDatabaseVersion: '18.0.0',
+    },
     dropTable: {
       cascade: true,
     },
