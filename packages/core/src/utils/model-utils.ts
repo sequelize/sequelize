@@ -4,6 +4,9 @@ import type { TableNameWithSchema } from '../abstract-dialect/query-interface.js
 import type { Model, ModelStatic } from '../model';
 import { ModelDefinition } from '../model-definition.js';
 
+// Cache for the lazily-required Model class, see isModelStatic below.
+let cachedModelClass: ModelStatic | undefined;
+
 /**
  * Returns true if the value is a model subclass.
  *
@@ -11,9 +14,13 @@ import { ModelDefinition } from '../model-definition.js';
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
   // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
-  const { Model: TmpModel } = require('../model');
+  // The result of this require() is cached after the first call: isModelStatic runs on a hot path (it is called
+  // once per association while building queries), and re-running require() on every call adds non-trivial
+  // module-resolution overhead under some loaders. The resolved Model class never changes once the module graph
+  // is initialized, so caching it is safe.
+  cachedModelClass ??= require('../model').Model as ModelStatic;
 
-  return typeof val === 'function' && val.prototype instanceof TmpModel;
+  return typeof val === 'function' && val.prototype instanceof cachedModelClass;
 }
 
 /**
