@@ -120,7 +120,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [20, 22, 24, 26]
+        # Node 26 is missing here because ibm_db does not publish a prebuilt binary for it on
+        # Windows and building it from source fails there
+        node-version: [20, 22, 24]
     name: Build and test on Windows (Node ${{ matrix.node-version }})
     runs-on: windows-latest
     needs: lint # don't bother running if lint tests fail
