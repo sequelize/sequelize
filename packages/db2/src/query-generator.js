@@ -602,7 +602,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
           `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_fidx`,
         );
 
-        template += `, CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
+        template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
