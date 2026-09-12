@@ -8,16 +8,27 @@ import type {
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
+import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import type { NormalizedDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import type {
+  AttributesToSqlColumns,
+  AttributeToSqlColumn,
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import isPlainObject from 'lodash/isPlainObject';
 import type { MariaDbDialect } from './dialect.js';
 import { MariaDbQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -197,5 +208,98 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   getRandomFloatFunctionCall(): string {
     return 'RAND()';
+  }
+
+  attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
+    const attribute: AttributeToSqlColumn = isPlainObject(column)
+      ? (column as AttributeToSqlColumn)
+      : { type: column as NormalizedDataType };
+
+    let template = attributeTypeToSql(attribute.type);
+
+    if (attribute.allowNull === false) {
+      template += ' NOT NULL';
+    }
+
+    if (attribute.autoIncrement) {
+      template += ' auto_increment';
+    }
+
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      const { defaultValue } = attribute;
+      const escaped = this.escape(defaultValue, { type: attribute.type });
+
+      // MariaDB only accepts an expression default if it is wrapped in parentheses
+      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
+    }
+
+    if (attribute.unique === true) {
+      template += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      template += ' PRIMARY KEY';
+    }
+
+    if (attribute.comment) {
+      template += ` COMMENT ${this.escape(attribute.comment)}`;
+    }
+
+    if (attribute.first) {
+      template += ' FIRST';
+    }
+
+    if (attribute.after) {
+      template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
+    }
+
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && options.tableOrModel && attribute.field) {
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
+        );
+
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
+      }
+
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+
+      if (attribute.references.key) {
+        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
+      } else {
+        template += ` (${this.quoteIdentifier('id')})`;
+      }
+
+      if (attribute.onDelete) {
+        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+      }
+
+      if (attribute.onUpdate) {
+        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+      }
+    }
+
+    return template;
+  }
+
+  attributesToSql(
+    columns: AttributesToSqlColumns,
+    options?: AttributeToSqlOptions,
+  ): Record<string, string> {
+    const result: Record<string, string> = Object.create(null);
+
+    for (const key of Object.keys(columns)) {
+      const rawColumn = columns[key];
+      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
+        ? { ...(rawColumn as AttributeToSqlColumn) }
+        : { type: rawColumn as NormalizedDataType };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSql(attribute, options);
+    }
+
+    return result;
   }
 }

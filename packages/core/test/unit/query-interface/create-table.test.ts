@@ -23,8 +23,8 @@ describe('QueryInterface#createTable', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       postgres: 'CREATE TABLE IF NOT EXISTS "table" ("value" REAL DEFAULT RANDOM());',
-      mysql: 'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT (RAND())) ENGINE=InnoDB;',
-      mariadb: 'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT RAND()) ENGINE=InnoDB;',
+      'mariadb mysql':
+        'CREATE TABLE IF NOT EXISTS `table` (`value` FLOAT DEFAULT (RAND())) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([value] REAL DEFAULT RAND());`,
       sqlite3:
         'CREATE TABLE IF NOT EXISTS `table` (`value` REAL DEFAULT ((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0));',
@@ -110,10 +110,8 @@ describe('QueryInterface#createTable', () => {
     expectsql(firstCall.args[0], {
       postgres:
         'CREATE TABLE IF NOT EXISTS "table" ("id" UUID DEFAULT uuid_generate_v1(), PRIMARY KEY ("id"));',
-      mysql:
+      'mariadb mysql':
         'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT (UUID()), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
-      mariadb:
-        'CREATE TABLE IF NOT EXISTS `table` (`id` CHAR(36) BINARY DEFAULT UUID(), PRIMARY KEY (`id`)) ENGINE=InnoDB;',
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([id] UNIQUEIDENTIFIER, PRIMARY KEY ([id]));`,
       sqlite3: 'CREATE TABLE IF NOT EXISTS `table` (`id` TEXT PRIMARY KEY);',
       snowflake: 'CREATE TABLE IF NOT EXISTS "table" ("id" VARCHAR(36), PRIMARY KEY ("id"));',
@@ -141,7 +139,9 @@ describe('QueryInterface#createTable', () => {
     const firstCall = stub.getCall(0);
     expectsql(firstCall.args[0], {
       postgres: `CREATE TABLE IF NOT EXISTS "table" ("json" JSON DEFAULT 'null');`,
-      'mariadb mysql': 'CREATE TABLE IF NOT EXISTS `table` (`json` JSON) ENGINE=InnoDB;',
+      mariadb: "CREATE TABLE IF NOT EXISTS `table` (`json` JSON DEFAULT ('null')) ENGINE=InnoDB;",
+      mysql:
+        "CREATE TABLE IF NOT EXISTS `table` (`json` JSON DEFAULT (CAST('null' AS JSON))) ENGINE=InnoDB;",
       mssql: `IF OBJECT_ID(N'[table]', 'U') IS NULL CREATE TABLE [table] ([json] NVARCHAR(MAX) DEFAULT N'null');`,
       sqlite3: "CREATE TABLE IF NOT EXISTS `table` (`json` TEXT DEFAULT 'null');",
       // oracle uses BLOB with CHECK constraint and JSON_NULL isn't allowed.
