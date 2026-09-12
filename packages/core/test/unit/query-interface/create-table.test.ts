@@ -148,4 +148,39 @@ describe('QueryInterface#createTable', () => {
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
+
+  // ENUM has no "supports" flag, but the only dialect that supports ARRAY (postgres) also supports ENUM.
+  if (dialect.supports.dataTypes.ARRAY) {
+    it('supports default values on ARRAY(ENUM) columns', async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], []] as any);
+
+      await sequelize.queryInterface.createTable('table', {
+        value: {
+          type: DataTypes.ARRAY(DataTypes.ENUM(['foo', 'bar'])),
+          allowNull: false,
+          defaultValue: ['foo'],
+        },
+      });
+
+      expectsql(stub.lastCall.args[0], {
+        postgres: `CREATE TABLE IF NOT EXISTS "table" ("value" "public"."enum_table_value"[] NOT NULL DEFAULT ARRAY['foo']::"public"."enum_table_value"[]);`,
+      });
+    });
+
+    it('supports default values on ARRAY(ENUM) columns that use a custom column name', async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], []] as any);
+
+      await sequelize.queryInterface.createTable('table', {
+        value: {
+          field: 'custom_value',
+          type: DataTypes.ARRAY(DataTypes.ENUM(['foo', 'bar'])),
+          defaultValue: ['foo'],
+        },
+      });
+
+      expectsql(stub.lastCall.args[0], {
+        postgres: `CREATE TABLE IF NOT EXISTS "table" ("custom_value" "public"."enum_table_custom_value"[] DEFAULT ARRAY['foo']::"public"."enum_table_custom_value"[]);`,
+      });
+    });
+  }
 });

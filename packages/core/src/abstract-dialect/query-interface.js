@@ -15,6 +15,32 @@ import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 /**
+ * Attaches the column this attribute will be used for to its DataType, unless it already has a usage context
+ * (which happens when the attribute comes from a Model).
+ *
+ * Some DataTypes, such as postgres ENUMs, need to know which column they belong to to be able to produce their SQL.
+ *
+ * @param {AbstractQueryInterface} queryInterface
+ * @param {object} attribute a normalized attribute. Mutated in place.
+ * @param {string | object} tableName
+ * @param {string} columnName
+ *
+ * @returns {object} the attribute
+ * @private
+ */
+function attachColumnUsageContext(queryInterface, attribute, tableName, columnName) {
+  if (attribute.type instanceof AbstractDataType && !attribute.type.usageContext) {
+    attribute.type = attribute.type.withUsageContext({
+      tableName: queryInterface.queryGenerator.extractTableDetails(tableName),
+      columnName,
+      sequelize: queryInterface.sequelize,
+    });
+  }
+
+  return attribute;
+}
+
+/**
  * The interface that Sequelize uses to talk to all databases
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
@@ -95,6 +121,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       tableName.schema = modelTable?.schema || options.schema;
     }
 
+    attributes = mapValues(attributes, (attribute, key) =>
+      attachColumnUsageContext(this, attribute, tableName, attribute.field || key),
+    );
+
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
@@ -131,19 +161,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       );
     }
 
-    attribute = this.sequelize.normalizeAttribute(attribute);
-
-    if (
-      attribute.type instanceof AbstractDataType &&
-      // we don't give a context if it already has one, because it could come from a Model.
-      !attribute.type.usageContext
-    ) {
-      attribute.type.attachUsageContext({
-        tableName: table,
-        columnName: key,
-        sequelize: this.sequelize,
-      });
-    }
+    attribute = attachColumnUsageContext(
+      this,
+      this.sequelize.normalizeAttribute(attribute),
+      table,
+      key,
+    );
 
     const { ifNotExists, ...rawQueryOptions } = options;
     const addColumnQueryOptions = ifNotExists ? { ifNotExists } : undefined;
@@ -209,7 +232,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const query = this.queryGenerator.attributesToSQL(
       {
-        [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
+        [attributeName]: attachColumnUsageContext(
+          this,
+          this.normalizeAttribute(dataTypeOrOptions),
+          tableName,
+          attributeName,
+        ),
       },
       {
         context: 'changeColumn',

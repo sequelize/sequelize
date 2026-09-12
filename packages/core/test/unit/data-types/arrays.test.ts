@@ -173,5 +173,57 @@ describe('DataTypes.ARRAY', () => {
         );
       });
     }
+
+    it('escapes array of ENUM using the enum type of the column it is attached to', () => {
+      const type = DataTypes.ARRAY(DataTypes.ENUM(['foo', 'bar'])).withUsageContext({
+        tableName: { tableName: 'myTable' },
+        columnName: 'myColumn',
+        sequelize,
+      });
+
+      expectsql(queryGenerator.escape(['foo'], { type }), {
+        postgres: `ARRAY['foo']::"public"."enum_myTable_myColumn"[]`,
+      });
+    });
+  });
+
+  describe('usage context', () => {
+    if (!dialect.supports.dataTypes.ARRAY) {
+      return;
+    }
+
+    it('propagates the usage context to the element type', () => {
+      const type = DataTypes.ARRAY(DataTypes.ENUM(['foo', 'bar'])).withUsageContext({
+        tableName: { tableName: 'myTable' },
+        columnName: 'myColumn',
+        sequelize,
+      });
+
+      expect(type.options.type).to.have.property('usageContext');
+    });
+
+    it('does not attach the usage context to the element type of the receiver', () => {
+      const elementType = DataTypes.ENUM(['foo', 'bar']);
+      const type = DataTypes.ARRAY(elementType);
+
+      type.withUsageContext({
+        tableName: { tableName: 'myTable' },
+        columnName: 'myColumn',
+        sequelize,
+      });
+
+      expect(type.usageContext).to.equal(undefined);
+      expect(elementType.usageContext).to.equal(undefined);
+      expect(type.options.type).to.have.property('usageContext', undefined);
+    });
+
+    it('can be re-used across multiple columns', () => {
+      const type = DataTypes.ARRAY(DataTypes.ENUM(['foo', 'bar']));
+
+      expect(() => {
+        type.withUsageContext({ tableName: { tableName: 'myTable' }, columnName: 'a', sequelize });
+        type.withUsageContext({ tableName: { tableName: 'myTable' }, columnName: 'b', sequelize });
+      }).not.to.throw();
+    });
   });
 });
