@@ -265,6 +265,20 @@ export class Model extends ModelTypeScript {
       }
     }
 
+    if (!options.isNewRecord && this.modelDefinition.readOnlyAttributeNames.size > 0) {
+      const modelDef = this.modelDefinition;
+
+      for (const attr of modelDef.readOnlyAttributeNames) {
+        const value = values[attr];
+        if (value === undefined) {
+          continue;
+        }
+
+        this.set(attr, value, { ...options, raw: true });
+        delete values[attr];
+      }
+    }
+
     this.set(values, options);
   }
 
