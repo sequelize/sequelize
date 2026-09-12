@@ -675,6 +675,14 @@ ${associationOwner._getAssociationDebugList()}`);
 
     model._injectScope(include);
 
+    // Mirror the top-level default from _findAll, so get() on the included instance also runs its virtual getters.
+    if (include.originalAttributes === undefined && !options.raw) {
+      include.model._expandAttributes(include);
+      include.originalAttributes = include.model._injectDependentVirtualAttributes(
+        include.attributes ?? Array.from(include.model.modelDefinition.attributes.keys()),
+      );
+    }
+
     // This check should happen after injecting the scope, since the scope may contain a .attributes
     if (!include.attributes) {
       include.attributes = Object.keys(include.model.tableAttributes);
