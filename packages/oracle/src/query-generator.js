@@ -836,7 +836,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // delete with limit <l> and optional condition <e> on Oracle: DELETE FROM <t> WHERE rowid in (SELECT rowid FROM <t> WHERE <e> AND rownum <= <l>)
     // Note that the condition <e> has to be in the subquery; otherwise, the subquery would select <l> arbitrary rows.
     if (options.limit) {
-      const whereTmpl = whereClause ? ` AND ${whereClause}` : '';
+      const whereTmpl = whereClause ? ` AND (${whereClause})` : '';
       queryTmpl = `DELETE FROM ${this.quoteTable(table)} WHERE rowid IN (SELECT rowid FROM ${this.quoteTable(table)} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl})`;
     } else {
       const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';

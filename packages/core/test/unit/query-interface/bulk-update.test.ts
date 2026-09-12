@@ -1,4 +1,4 @@
-import { DataTypes, Op, literal } from '@sequelize/core';
+import { DataTypes, Op, literal, sql } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { beforeAll2, expectsql, sequelize } from '../../support';
@@ -141,5 +141,46 @@ describe('QueryInterface#bulkUpdate', () => {
       sequelize_1: 'newName',
       1: 'bind1',
     });
+  });
+
+  it('refuses a where that was derived to be true for every row', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await expect(
+      sequelize.queryInterface.bulkUpdate(
+        User.table,
+        { firstName: 'John' },
+        { firstName: { [Op.notIn]: [] } },
+      ),
+    ).to.be.rejectedWith(/is true for every row/);
+
+    expect(stub.callCount).to.eq(0);
+  });
+
+  it('accepts a where the caller wrote to be true for every row', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await sequelize.queryInterface.bulkUpdate(User.table, { firstName: 'John' }, sql`1 = 1`);
+
+    expect(stub.callCount).to.eq(1);
+    expectsql(stub.getCall(0).args[0], {
+      default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE 1 = 1`,
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE 1 = 1);`,
+    });
+  });
+
+  it('does not pass rejectAlwaysTrueWhere on to queryRaw', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    await sequelize.queryInterface.bulkUpdate(
+      User.table,
+      { firstName: 'John' },
+      { firstName: 'foo' },
+    );
+
+    expect(stub.getCall(0).args[1]).to.not.have.property('rejectAlwaysTrueWhere');
   });
 });

@@ -950,7 +950,10 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    */
   async bulkDelete(tableOrModel: TableOrModel, options?: QiBulkDeleteOptions): Promise<number> {
     const bulkDeleteOptions = { ...options };
-    const sql = this.queryGenerator.bulkDeleteQuery(tableOrModel, bulkDeleteOptions);
+    const sql = this.queryGenerator.bulkDeleteQuery(tableOrModel, {
+      ...bulkDeleteOptions,
+      rejectAlwaysTrueWhere: 'DELETE',
+    });
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete bulkDeleteOptions.replacements;
 

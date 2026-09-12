@@ -1,5 +1,5 @@
 import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, Model, sql } from '@sequelize/core';
+import { DataTypes, Model, Op, sql } from '@sequelize/core';
 import { Attribute, ColumnName, PrimaryKey, Table } from '@sequelize/core/decorators-legacy';
 import chai from 'chai';
 import sinon from 'sinon';
@@ -68,6 +68,34 @@ describe('Model.update', () => {
         Error,
         'Missing where attribute in the options parameter',
       );
+    });
+
+    it('refuses a where that was derived to be true for every row', async () => {
+      const { User } = vars;
+
+      await User.bulkCreate([{ username: 'Peter' }, { username: 'Paul' }]);
+
+      await expect(
+        User.update({ username: 'Bob' }, { where: { id: { [Op.notIn]: [] } } }),
+      ).to.be.rejectedWith(/is true for every row/);
+
+      await expect(
+        User.update({ username: 'Bob' }, { where: { [Op.not]: { id: { [Op.in]: [] } } } }),
+      ).to.be.rejectedWith(/is true for every row/);
+
+      const users = await User.findAll({ order: [['username', 'ASC']] });
+      expect(users.map(user => user.username)).to.deep.equal(['Paul', 'Peter']);
+    });
+
+    it('updates no rows for a where that can never be satisfied', async () => {
+      const { User } = vars;
+
+      await User.bulkCreate([{ username: 'Peter' }, { username: 'Paul' }]);
+      const [affectedRows] = await User.update(
+        { username: 'Bob' },
+        { where: { id: { [Op.in]: [] } } },
+      );
+      expect(affectedRows).to.equal(0);
     });
 
     it('only updates rows that match where', async () => {

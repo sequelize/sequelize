@@ -124,6 +124,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
       });
 
+      it('returns no rows for an empty Op.in, and every row including NULL for its negation', async function () {
+        await this.User.create({ username: 'nullval', intVal: null });
+        const emptyList = [];
+
+        const none = await this.User.findAll({ where: { intVal: { [Op.in]: emptyList } } });
+        expect(none).to.have.length(0);
+
+        const all = await this.User.findAll({
+          where: { [Op.not]: { intVal: { [Op.in]: emptyList } } },
+        });
+        expect(all.map(u => u.username).sort()).to.deep.equal(['boo', 'boo2', 'nullval']);
+
+        const inferred = await this.User.findAll({ where: { [Op.not]: { intVal: emptyList } } });
+        expect(inferred).to.have.length(3);
+      });
+
+      it('returns every row including NULL for an empty Op.notIn, and none for its negation', async function () {
+        await this.User.create({ username: 'nullval', intVal: null });
+
+        const all = await this.User.findAll({ where: { intVal: { [Op.notIn]: [] } } });
+        expect(all.map(u => u.username).sort()).to.deep.equal(['boo', 'boo2', 'nullval']);
+
+        const none = await this.User.findAll({
+          where: { [Op.not]: { intVal: { [Op.notIn]: [] } } },
+        });
+        expect(none).to.have.length(0);
+      });
+
+      it('matches NULL rows for a list containing null', async function () {
+        await this.User.create({ username: 'nullval', intVal: null });
+
+        const notIn = await this.User.findAll({ where: { intVal: { [Op.notIn]: [5, null] } } });
+        expect(notIn.map(u => u.username)).to.deep.equal(['boo2']);
+
+        const isIn = await this.User.findAll({ where: { intVal: { [Op.in]: [5, null] } } });
+        expect(isIn.map(u => u.username).sort()).to.deep.equal(['boo', 'nullval']);
+      });
+
       it('should be able to find rows where attribute is in a list of values', async function () {
         const users = await this.User.findAll({
           where: {

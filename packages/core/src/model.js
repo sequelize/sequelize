@@ -2720,6 +2720,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
     setTransactionFromCls(options, this.sequelize);
 
+    if (options.where !== undefined) {
+      this.queryGenerator.assertNotAlwaysTrueWhere(options.where, 'DELETE', { model: this });
+    }
+
     this._injectScope(options);
 
     if (options && 'truncate' in options) {
@@ -2915,6 +2919,10 @@ ${associationOwner._getAssociationDebugList()}`);
     options = cloneDeep(options) ?? {};
 
     setTransactionFromCls(options, this.sequelize);
+
+    if (options.where !== undefined) {
+      this.queryGenerator.assertNotAlwaysTrueWhere(options.where, 'UPDATE', { model: this });
+    }
 
     this._injectScope(options);
     this._optionsMustContainWhere(options);
@@ -3287,6 +3295,10 @@ Instead of specifying a Model, either:
 
         return rawFields;
       }, {});
+    }
+
+    if (options.where !== undefined) {
+      this.queryGenerator.assertNotAlwaysTrueWhere(options.where, 'UPDATE', { model: this });
     }
 
     this._injectScope(options);

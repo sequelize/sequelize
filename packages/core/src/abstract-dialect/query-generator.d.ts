@@ -17,7 +17,11 @@ import type {
   ParameterOptions,
 } from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
-import type { BoundQuery, TableOrModel } from './query-generator.types.js';
+import type {
+  BoundQuery,
+  RejectAlwaysTrueWhereOption,
+  TableOrModel,
+} from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -43,11 +47,12 @@ type BulkInsertOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
 };
 
-type UpdateOptions = ParameterOptions;
+type UpdateOptions = ParameterOptions & RejectAlwaysTrueWhereOption;
 
-type ArithmeticQueryOptions = ParameterOptions & {
-  returning?: boolean | Array<string | Literal | Col>;
-};
+type ArithmeticQueryOptions = ParameterOptions &
+  RejectAlwaysTrueWhereOption & {
+    returning?: boolean | Array<string | Literal | Col>;
+  };
 
 // keep CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface CreateTableQueryOptions {

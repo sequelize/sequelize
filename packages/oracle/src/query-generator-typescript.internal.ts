@@ -366,7 +366,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         );
       }
 
-      const whereTmpl = whereClause ? ` AND ${whereClause}` : '';
+      const whereTmpl = whereClause ? ` AND (${whereClause})` : '';
       queryTmpl = `DELETE FROM ${table} WHERE rowid IN (SELECT rowid FROM ${table} WHERE rownum <= ${this.escape(options.limit)}${whereTmpl})`;
     } else {
       const whereTmpl = whereClause ? ` WHERE${whereClause}` : '';

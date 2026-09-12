@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
@@ -64,6 +64,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User[method](['aNumber'], { by: 2, where: { id: 1 } });
         const user3 = await this.User.findByPk(2);
         expect(user3.aNumber).to.equal(this.assert(0, 0));
+      });
+
+      it('refuses a where that was derived to be true for every row', async function () {
+        await expect(
+          this.User[method](['aNumber'], { by: 2, where: { id: { [Op.notIn]: [] } } }),
+        ).to.be.rejectedWith(/is true for every row/);
+
+        const user = await this.User.findByPk(1);
+        expect(user.aNumber).to.equal(0);
       });
 
       it('uses correct column names for where conditions', async function () {

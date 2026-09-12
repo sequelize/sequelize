@@ -186,9 +186,23 @@ export interface QuoteTableOptions extends IndexHintable {
   tableHints?: TableHints[] | undefined;
 }
 
+export interface RejectAlwaysTrueWhereOption {
+  /**
+   * Set by the query interface methods that modify rows. When set, a `where` that Sequelize
+   * derived to be true for every row is rejected rather than compiled, because that is almost
+   * always a list that turned out to be empty rather than an intent to rewrite the whole table.
+   * The value is the SQL keyword used in the error message.
+   *
+   * A condition the caller wrote to be true for every row (sql`1 = 1`) is a plain SQL fragment
+   * rather than a derived truth value, so it is still accepted, as is an empty `where`.
+   */
+  readonly rejectAlwaysTrueWhere?: 'DELETE' | 'UPDATE' | undefined;
+}
+
 export interface BulkDeleteQueryOptions<TAttributes = any>
   extends AddLimitOffsetOptions,
-    Filterable<TAttributes> {}
+    Filterable<TAttributes>,
+    RejectAlwaysTrueWhereOption {}
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {
