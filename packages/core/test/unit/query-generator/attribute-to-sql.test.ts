@@ -574,7 +574,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
       snowflake:
         'INTEGER, ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      db2: 'INTEGER, CONSTRAINT "myTable_myColumn_fidx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+      db2: 'INTEGER ADD CONSTRAINT "myTable_myColumn_fidx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
       ibmi: 'INTEGER ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
@@ -591,7 +591,7 @@ describe('QueryGenerator#attributeToSQL', () => {
       sqlite3: 'INTEGER REFERENCES `Bar` (`id`)',
       snowflake:
         'INTEGER, ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
-      db2: 'INTEGER, CONSTRAINT "myTable_myColumn_fidx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
+      db2: 'INTEGER ADD CONSTRAINT "myTable_myColumn_fidx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
       ibmi: 'INTEGER ADD CONSTRAINT "myTable_myColumn_foreign_idx" FOREIGN KEY ("myColumn") REFERENCES "Bar" ("id")',
       oracle: 'INTEGER NULL REFERENCES "Bar" ("id")',
     },
