@@ -31,7 +31,11 @@ import isPlainObject from 'lodash/isPlainObject';
 import type { SnowflakeDialect } from './dialect.js';
 import { SnowflakeQueryGeneratorInternal } from './query-generator.internal.js';
 
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+// Snowflake has no BLOB type at all: its binary types are BINARY and VARBINARY, and binary
+// literals are written TO_BINARY(..., 'HEX') rather than X'...'. Until DataTypes.BLOB maps to
+// one of those, a BLOB column cannot be created here, so there is nothing to default.
+// TODO [+snowflake]: map DataTypes.BLOB to BINARY and escape it with TO_BINARY
+const typeWithoutDefault = new Set(['BLOB']);
 
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>([
   'constraintName',
@@ -215,7 +219,6 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template += ' AUTOINCREMENT';
     }
 
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
       !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)

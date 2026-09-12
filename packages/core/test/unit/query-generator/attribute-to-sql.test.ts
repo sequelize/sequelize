@@ -326,7 +326,6 @@ describe('QueryGenerator#attributeToSql', () => {
       default: "TEXT DEFAULT 'abc'",
       mysql: "TEXT DEFAULT ('abc')",
       mssql: "TEXT DEFAULT N'abc'",
-      snowflake: 'TEXT',
     },
   );
 
@@ -337,7 +336,6 @@ describe('QueryGenerator#attributeToSql', () => {
       'db2 ibmi': "CLOB(2147483647) DEFAULT 'abc'",
       mysql: "TEXT DEFAULT ('abc')",
       mssql: "NVARCHAR(MAX) DEFAULT N'abc'",
-      snowflake: 'TEXT',
       oracle: "CLOB DEFAULT 'abc'",
     },
   );
@@ -346,7 +344,7 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'BLOB', defaultValue: [] },
     {
       default: new Error('Could not guess type of value [] because it is an empty array'),
-      'snowflake ibmi': 'BLOB',
+      snowflake: 'BLOB',
     },
   );
 
@@ -359,7 +357,7 @@ describe('QueryGenerator#attributeToSql', () => {
       mssql: 'VARBINARY(MAX) DEFAULT 0x616263',
       snowflake: 'BLOB',
       db2: "BLOB(1M) DEFAULT BLOB('abc')",
-      ibmi: 'BLOB(1M)',
+      ibmi: "BLOB(1M) DEFAULT BLOB(X'616263')",
       oracle: "BLOB DEFAULT '616263'",
     },
   );
@@ -368,7 +366,6 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'GEOMETRY', defaultValue: [] },
     {
       default: new Error('Could not guess type of value [] because it is an empty array'),
-      snowflake: 'GEOMETRY',
     },
   );
 
@@ -376,7 +373,6 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'JSON', defaultValue: [] },
     {
       default: new Error('Could not guess type of value [] because it is an empty array'),
-      snowflake: 'JSON',
     },
   );
 
