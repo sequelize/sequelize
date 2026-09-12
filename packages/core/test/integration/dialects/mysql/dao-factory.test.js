@@ -20,8 +20,8 @@ if (dialect === 'mysql') {
           { timestamps: false },
         );
 
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
-          // note: UNIQUE is not specified here because it is only specified if the option passed to attributesToSQL is
+        expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
+          // note: UNIQUE is not specified here because it is only specified if the option passed to attributesToSql is
           //  'unique: true'.
           // Model.init normalizes the 'unique' to ensure a consistent index, and createTableQuery handles adding
           //  a named UNIQUE constraint
@@ -38,7 +38,7 @@ if (dialect === 'mysql') {
           },
           { timestamps: false },
         );
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           username: "VARCHAR(255) DEFAULT 'foo'",
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
         });
@@ -52,7 +52,7 @@ if (dialect === 'mysql') {
           },
           { timestamps: false },
         );
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           username: 'VARCHAR(255) NOT NULL',
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
         });
@@ -66,7 +66,7 @@ if (dialect === 'mysql') {
           },
           { timestamps: false },
         );
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           username: 'VARCHAR(255) PRIMARY KEY',
         });
       });
@@ -75,12 +75,12 @@ if (dialect === 'mysql') {
         const User1 = this.sequelize.define(`User${Support.rand()}`, {});
         const User2 = this.sequelize.define(`User${Support.rand()}`, {}, { timestamps: true });
 
-        expect(this.sequelize.queryGenerator.attributesToSQL(User1.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User1.getAttributes())).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
           updatedAt: 'DATETIME(6) NOT NULL',
           createdAt: 'DATETIME(6) NOT NULL',
         });
-        expect(this.sequelize.queryGenerator.attributesToSQL(User2.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User2.getAttributes())).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
           updatedAt: 'DATETIME(6) NOT NULL',
           createdAt: 'DATETIME(6) NOT NULL',
@@ -89,7 +89,7 @@ if (dialect === 'mysql') {
 
       it('adds deletedAt if paranoid', function () {
         const User = this.sequelize.define(`User${Support.rand()}`, {}, { paranoid: true });
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
           deletedAt: 'DATETIME(6)',
           updatedAt: 'DATETIME(6) NOT NULL',
@@ -103,7 +103,7 @@ if (dialect === 'mysql') {
           {},
           { paranoid: true, underscored: true },
         );
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.getAttributes())).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
           deleted_at: 'DATETIME(6)',
           updated_at: 'DATETIME(6) NOT NULL',
@@ -132,7 +132,7 @@ if (dialect === 'mysql') {
           foo: { type: DataTypes.STRING, primaryKey: true },
           bar: DataTypes.STRING,
         });
-        expect(this.sequelize.queryGenerator.attributesToSQL(User.primaryKeys)).to.deep.equal({
+        expect(this.sequelize.queryGenerator.attributesToSql(User.primaryKeys)).to.deep.equal({
           foo: 'VARCHAR(255) PRIMARY KEY',
         });
       });
