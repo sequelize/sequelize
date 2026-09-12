@@ -157,7 +157,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       this.quoteTable(table),
       'ADD',
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, { context: 'addColumn' }),
+      this.attributeToSQL(dataType, { context: 'addColumn', tableOrModel: table }),
       ';',
       commentStr,
     ]);
@@ -485,7 +485,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       return template;
     }
 
-    template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+    template = attributeTypeToSql(attribute.type);
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
@@ -500,12 +500,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       template += ' IDENTITY(1,1)';
     }
 
-    // Blobs/texts cannot have a defaultValue
-    if (
-      attribute.type !== 'TEXT' &&
-      attribute.type._binary !== true &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 
@@ -520,7 +515,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       template += ' PRIMARY KEY';
     }
 
-    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
@@ -550,11 +545,15 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     const existingConstraints = [];
 
     for (const key of Object.keys(attributes)) {
-      const attribute = { ...attributes[key] };
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
 
       if (attribute.references) {
         if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
-          // no cascading constraints to a table more than once
+          // mssql rejects more than one cascading constraint to the same table
           attribute.onDelete = '';
           attribute.onUpdate = '';
         } else {
@@ -567,11 +566,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         }
       }
 
-      if (key && !attribute.field) {
-        attribute.field = key;
-      }
-
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;

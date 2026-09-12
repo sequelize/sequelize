@@ -362,7 +362,7 @@ describe('QueryGenerator#createTableQuery', () => {
     // ColumnsDescription and NormalizedAttributeOptions in practice (JS implementation).
     // The type declaration is too narrow, so we cast here to prevent TypeScript errors, this should really be fixed upstream.
     const attributes = queryGenerator.attributesToSQL(UuidArrayModel.getAttributes() as any, {
-      table: UuidArrayModel.table.tableName,
+      tableOrModel: UuidArrayModel.table.tableName,
       context: 'createTable',
     });
 
