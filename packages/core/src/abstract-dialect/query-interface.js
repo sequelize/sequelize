@@ -481,6 +481,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    */
   async bulkInsert(tableName, records, options, attributes) {
     options = { ...options, type: QueryTypes.INSERT };
+    options.hasTrigger = options.model?.modelDefinition?.options.hasTrigger;
 
     const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
 

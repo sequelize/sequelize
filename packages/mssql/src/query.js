@@ -107,6 +107,14 @@ export class MsSqlQuery extends AbstractQuery {
         }
       }
 
+      request.on('columnMetadata', () => {
+        if (!this.options.hasTrigger || !this.options.returning) {
+          return;
+        }
+
+        rows.length = 0;
+      });
+
       request.on('row', columns => {
         rows.push(columns);
       });
