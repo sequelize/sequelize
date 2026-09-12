@@ -6,7 +6,7 @@ const {
   createMultiTransactionalTestSequelizeInstance,
   sequelize,
 } = require('../support');
-const { col, DataTypes, Op } = require('@sequelize/core');
+const { col, DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -1314,6 +1314,33 @@ describe('Model', () => {
         });
       });
     }
+
+    it('should not return raw Literal objects for default values (#10966)', async function () {
+      const User = this.customSequelize.define('User', {
+        name: DataTypes.STRING,
+        code: { type: DataTypes.INTEGER, defaultValue: Sequelize.literal(2020) },
+      });
+
+      await User.sync({ force: true });
+
+      const users = await User.bulkCreate([{ name: 'Alice' }, { name: 'Bob' }]);
+
+      for (const user of users) {
+        expect(user.name).to.be.a('string');
+        if (dialect.supports.returnValues) {
+          expect(user.code).to.equal(2020);
+        } else {
+          // without RETURNING the literal can't be resolved, but it
+          // shouldn't stay as a raw expression object either
+          expect(user.code).not.to.be.an('object');
+        }
+      }
+
+      // the DB should always have the right value though
+      const stored = await User.findAll({ order: [['name', 'ASC']] });
+      expect(stored[0].code).to.equal(2020);
+      expect(stored[1].code).to.equal(2020);
+    });
 
     describe('enums', () => {
       it('correctly restores enum values', async function () {
