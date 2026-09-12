@@ -75,6 +75,7 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
     indexHints: true,
     dataTypes: {
       COLLATE_BINARY: true,
+      VARBINARY: true,
       GEOMETRY: true,
       INTS: numericOptions,
       FLOAT: { ...numericOptions, scaleAndPrecision: true },

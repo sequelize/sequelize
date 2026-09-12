@@ -29,6 +29,7 @@ export type {
   RangeOptions,
   TextOptions,
   TimeOptions,
+  VarBinaryOptions,
   VirtualOptions,
 } from './abstract-dialect/data-types.js';
 export {

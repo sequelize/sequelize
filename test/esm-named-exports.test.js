@@ -56,6 +56,7 @@ const ignoredCjsKeysMap = {
     'UUID',
     'UUIDV1',
     'UUIDV4',
+    'VARBINARY',
     'VIRTUAL',
   ],
   '@sequelize/core/decorators-legacy': ['__esModule'],
