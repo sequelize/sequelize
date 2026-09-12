@@ -687,6 +687,14 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       });
       expect(results).to.have.length(1);
     });
+
+    it('should create a schema if the schema does not exist when syncing', async () => {
+      const before = await sequelize.queryInterface.listSchemas();
+      await sequelize.sync({ schema: 'temp' });
+      const after = await sequelize.queryInterface.listSchemas();
+      const difference = after.length - before.length;
+      expect(difference).to.equal(1);
+    });
   }
 
   // TODO add support for db2 and mssql dialects
