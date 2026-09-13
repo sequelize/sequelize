@@ -14,7 +14,7 @@
     "@sequelize/utils": "workspace:*",
     "ansis": "^3.17.0",
     "cosmiconfig": "^9.0.2",
-    "umzug": "^3.8.2",
+    "umzug": "^3.8.3",
     "zod": "^4.6.4"
   },
   "description": "The Sequelize CLI\nDocumentation: https://sequelize.org/docs/v7/cli/",
