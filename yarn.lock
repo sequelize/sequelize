@@ -2862,7 +2862,7 @@ __metadata:
     mocha: "npm:11.7.5"
     oclif: "npm:4.22.96"
     rimraf: "npm:5.0.10"
-    umzug: "npm:^3.8.2"
+    umzug: "npm:^3.8.3"
     zod: "npm:^4.6.4"
   bin:
     sequelize: ./bin/run.js
@@ -15801,7 +15801,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"umzug@npm:^3.8.2":
+"umzug@npm:^3.8.3":
   version: 3.8.3
   resolution: "umzug@npm:3.8.3"
   dependencies:
