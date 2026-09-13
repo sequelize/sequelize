@@ -617,6 +617,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     // pseudo include just needed the attribute logic, return
     if (include._pseudo) {
+      if (include.originalAttributes === undefined && !options.raw) {
+        include.originalAttributes = include.model._injectDependentVirtualAttributes(
+          Array.from(include.model.modelDefinition.attributes.keys()),
+        );
+      }
+
       if (!include.attributes) {
         include.attributes = Object.keys(include.model.tableAttributes);
       }

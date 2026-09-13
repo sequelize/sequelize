@@ -197,6 +197,35 @@ Instead of specifying a Model, either:
       expect(user.toJSON().avatar.url).to.equal('/img/a.png');
     });
 
+    it('resolves VIRTUAL attributes on an included through model (#18059)', async function () {
+      const User = this.sequelize.define('User', {});
+      const Group = this.sequelize.define('Group', {});
+      const Membership = this.sequelize.define('Membership', {
+        role: { type: DataTypes.STRING, allowNull: false },
+        since: { type: DataTypes.INTEGER, allowNull: false },
+        label: {
+          type: DataTypes.VIRTUAL(DataTypes.STRING, ['role', 'since']),
+          get() {
+            return `${this.role}@${this.since}`;
+          },
+        },
+      });
+      User.belongsToMany(Group, { through: Membership, as: 'groups' });
+      Group.belongsToMany(User, { through: Membership, as: 'users' });
+
+      await this.sequelize.sync({ force: true });
+
+      const user = await User.create();
+      const group = await Group.create();
+      await user.addGroup(group, { through: { role: 'admin', since: 2020 } });
+
+      const found = await User.findOne({ include: ['groups'] });
+      const membership = found.groups[0].Membership;
+
+      expect(membership.get('label')).to.equal('admin@2020');
+      expect(found.toJSON().groups[0].Membership.label).to.equal('admin@2020');
+    });
+
     it('should support to use associations with Sequelize.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
