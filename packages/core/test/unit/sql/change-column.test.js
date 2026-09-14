@@ -85,6 +85,7 @@ describe('QueryInterface#changeColumn', () => {
       snowflake:
         'ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT \'pending\';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE VARCHAR(255);',
       oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) CHECK ("level_id" IN(''pending'', ''complete''))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) CHECK ("level_id" IN(''pending'', ''complete''))'; ELSE RAISE; END IF; END; END;`,
+      hana: `ALTER TABLE "users" ALTER ("level_id" NVARCHAR(255) DEFAULT 'pending');`,
     });
   });
 
