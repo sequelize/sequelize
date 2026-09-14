@@ -120,17 +120,11 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
       this.sequelize.setDatabaseVersion(semver.coerce(connection.serverVersion())!.version);
 
       debug('connection acquired');
-      connection.on('error', error => {
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
+
+      // Temporary no-op placeholder: the driver can emit 'error' before afterConnect()
+      // attaches the real handler below. Without a listener here, that error would
+      // crash the process instead of waiting to be handled.
+      connection.on('error', () => {});
 
       return connection;
     } catch (error: unknown) {
@@ -156,6 +150,20 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
+  }
+
+  async afterConnect(connection: MariaDbConnection): Promise<void> {
+    connection.removeAllListeners('error').on('error', error => {
+      switch (error.code) {
+        case 'ESOCKET':
+        case 'ECONNRESET':
+        case 'EPIPE':
+        case 'PROTOCOL_CONNECTION_LOST':
+          void this.sequelize.pool.destroy(connection);
+          break;
+        default:
+      }
+    });
   }
 
   async disconnect(connection: MariaDbConnection) {

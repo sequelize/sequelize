@@ -19,6 +19,29 @@ import type { MySqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mysql');
 
+function convertError(error: unknown): never {
+  if (!isError(error)) {
+    throw error;
+  }
+
+  const code = isNodeError(error) ? error.code : null;
+
+  switch (code) {
+    case 'ECONNREFUSED':
+      throw new ConnectionRefusedError(error);
+    case 'ER_ACCESS_DENIED_ERROR':
+      throw new AccessDeniedError(error);
+    case 'ENOTFOUND':
+      throw new HostNotFoundError(error);
+    case 'EHOSTUNREACH':
+      throw new HostNotReachableError(error);
+    case 'EINVAL':
+      throw new InvalidConnectionError(error);
+    default:
+      throw new ConnectionError(error);
+  }
+}
+
 export type MySql2Module = typeof MySql2;
 
 export interface MySqlConnection extends MySql2.Connection, AbstractConnection {}
@@ -107,51 +130,49 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      connection.on('error', (error: unknown) => {
-        if (!isNodeError(error)) {
-          return;
-        }
-
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
-
-      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
-        // set timezone for this connection
-        // but named timezone are not directly supported in mysql, so get its offset first
-        let tzOffset = this.sequelize.options.timezone;
-        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
-        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
-      }
+      // Temporary no-op placeholder: mysql2 can emit 'error' before afterConnect()
+      // attaches the real handler below. Without a listener here, that error would
+      // crash the process instead of waiting to be handled.
+      connection.on('error', () => {});
 
       return connection;
     } catch (error) {
-      if (!isError(error)) {
-        throw error;
+      convertError(error);
+    }
+  }
+
+  async afterConnect(connection: MySqlConnection): Promise<void> {
+    connection.removeAllListeners('error').on('error', (error: unknown) => {
+      if (!isNodeError(error)) {
+        return;
       }
 
-      const code = isNodeError(error) ? error.code : null;
-
-      switch (code) {
-        case 'ECONNREFUSED':
-          throw new ConnectionRefusedError(error);
-        case 'ER_ACCESS_DENIED_ERROR':
-          throw new AccessDeniedError(error);
-        case 'ENOTFOUND':
-          throw new HostNotFoundError(error);
-        case 'EHOSTUNREACH':
-          throw new HostNotReachableError(error);
-        case 'EINVAL':
-          throw new InvalidConnectionError(error);
+      switch (error.code) {
+        case 'ESOCKET':
+        case 'ECONNRESET':
+        case 'EPIPE':
+        case 'PROTOCOL_CONNECTION_LOST':
+          void this.sequelize.pool.destroy(connection);
+          break;
         default:
-          throw new ConnectionError(error);
+      }
+    });
+
+    if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
+      // set timezone for this connection
+      // but named timezone are not directly supported in mysql, so get its offset first
+      let tzOffset = this.sequelize.options.timezone;
+      tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
+
+      try {
+        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
+      } catch (error) {
+        // The pool never receives a connection whose setup failed, so it must
+        // be closed here or its socket would be leaked. Use destroy() rather
+        // than end(): the failed setup query leaves the connection state
+        // uncertain, and end() may reject and mask the original setup error.
+        connection.destroy();
+        convertError(error);
       }
     }
   }
@@ -192,7 +213,6 @@ async function createConnection(
     const errorHandler = (e: unknown) => {
       // clean up connect & error event if there is error
       connection.removeListener('connect', connectHandler);
-      connection.removeListener('error', connectHandler);
       reject(e);
     };
 
