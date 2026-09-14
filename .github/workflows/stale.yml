@@ -19,7 +19,7 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
       - name: Draft unfinished PRs
         uses: sequelize/draft-unfinished-prs@dcded35052048b01a1c925cfd8fb7cda473f9b96
