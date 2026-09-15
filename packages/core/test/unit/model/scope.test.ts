@@ -1,5 +1,5 @@
 import type { FindOptions } from '@sequelize/core';
-import { DataTypes, Op, Sequelize, col, literal, where } from '@sequelize/core';
+import { col, DataTypes, literal, Op, sql, where } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
 import { beforeEach2, getTestDialectTeaser, resetSequelizeInstance } from '../../support';
@@ -564,7 +564,7 @@ describe(getTestDialectTeaser('Model'), () => {
       });
 
       describe('sequelize where', () => {
-        it('should group 2 sequelize.where with an Op.and', () => {
+        it('should group 2 sql.where with an Op.and', () => {
           const { TestModel } = vars;
 
           const scope = TestModel.withScope([
@@ -579,7 +579,7 @@ describe(getTestDialectTeaser('Model'), () => {
           expect(scope).to.deep.equal(expected);
         });
 
-        it('should group 2 sequelize.where and other scopes with an Op.and', () => {
+        it('should group 2 sql.where and other scopes with an Op.and', () => {
           const { TestModel } = vars;
 
           const scope = TestModel.withScope([
@@ -595,7 +595,7 @@ describe(getTestDialectTeaser('Model'), () => {
                 { field: 1 },
                 { field: 1 },
                 { [Op.or]: [{ field: 1 }, { field: 1 }] },
-                Sequelize.where(col('field'), Op.is, 1),
+                sql.where(sql.col('field'), Op.is, 1),
               ],
             },
           };

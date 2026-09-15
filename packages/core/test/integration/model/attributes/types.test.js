@@ -1,7 +1,7 @@
 'use strict';
 
 const chai = require('chai');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -117,7 +117,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
 
           const post = await Post.findOne({
-            attributes: ['id', 'text', Sequelize.literal(boolQuery)],
+            attributes: ['id', 'text', sql.literal(boolQuery)],
           });
           expect(post.get('someBoolean')).to.be.ok;
           expect(post.get().someBoolean).to.be.ok;

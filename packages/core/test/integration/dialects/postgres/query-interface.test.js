@@ -8,7 +8,7 @@ const expect = chai.expect;
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, QueryTypes, sql } = require('@sequelize/core');
 
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] QueryInterface', () => {
@@ -45,7 +45,7 @@ if (dialect.startsWith('postgres')) {
       it('renames a function', async function () {
         await this.queryInterface.renameFunction('rftest1', [], 'rftest2');
         const res = await this.sequelize.query('select rftest2();', {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: QueryTypes.SELECT,
         });
         expect(res[0].rftest2).to.be.eql('testreturn');
       });
@@ -85,7 +85,7 @@ if (dialect.startsWith('postgres')) {
         );
         // validate
         const res = await this.sequelize.query("select create_job('test');", {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: QueryTypes.SELECT,
         });
         expect(res[0].create_job).to.be.eql('test');
       });
@@ -104,7 +104,7 @@ if (dialect.startsWith('postgres')) {
         );
         // validate
         const res = await this.sequelize.query("select create_job('test');", {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: QueryTypes.SELECT,
         });
         expect(res[0].create_job).to.be.eql('test');
       });
@@ -221,7 +221,7 @@ if (dialect.startsWith('postgres')) {
         );
         // validate
         const res = await this.sequelize.query("select create_job('abc');", {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: QueryTypes.SELECT,
         });
         expect(res[0].create_job).to.be.eql('second');
       });
@@ -262,7 +262,7 @@ if (dialect.startsWith('postgres')) {
           options,
         );
         const res = await this.sequelize.query('select add_one();', {
-          type: this.sequelize.QueryTypes.SELECT,
+          type: QueryTypes.SELECT,
         });
         expect(res[0].add_one).to.be.eql(101);
       });
@@ -293,7 +293,7 @@ if (dialect.startsWith('postgres')) {
         await expect(
           // now call the function we attempted to drop.. if dropFunction worked as expect it should produce an error.
           this.sequelize.query("select droptest('test');", {
-            type: this.sequelize.QueryTypes.SELECT,
+            type: QueryTypes.SELECT,
           }),
           // test that we did get the expected error indicating that droptest was properly removed.
         ).to.be.rejectedWith(/.*function droptest.* does not exist/);
@@ -329,7 +329,7 @@ if (dialect.startsWith('postgres')) {
         await this.queryInterface.addIndex(
           'Group',
           [
-            this.sequelize.literal(`(
+            sql.literal(`(
             CASE "username"
               WHEN 'foo' THEN 'bar'
               ELSE 'baz'
@@ -346,13 +346,9 @@ if (dialect.startsWith('postgres')) {
       });
 
       it('adds, reads and removes a named functional index to the table', async function () {
-        await this.queryInterface.addIndex(
-          'Group',
-          [this.sequelize.fn('lower', this.sequelize.col('username'))],
-          {
-            name: 'group_username_lower',
-          },
-        );
+        await this.queryInterface.addIndex('Group', [sql.fn('lower', sql.col('username'))], {
+          name: 'group_username_lower',
+        });
 
         const indexes0 = await this.queryInterface.showIndex('Group');
         const indexColumns0 = uniq(indexes0.map(index => index.name));

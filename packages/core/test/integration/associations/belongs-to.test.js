@@ -5,7 +5,7 @@ const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, ForeignKeyConstraintError } = require('@sequelize/core');
 const assert = require('node:assert');
 
 const current = Support.sequelize;
@@ -260,13 +260,13 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
       await this.sequelize.sync({ force: true });
       await expect(Task.create({ title: 'task', userXYZId: 5 })).to.be.rejectedWith(
-        Sequelize.ForeignKeyConstraintError,
+        ForeignKeyConstraintError,
       );
       const task = await Task.create({ title: 'task' });
 
       await expect(
         Task.update({ title: 'taskUpdate', userXYZId: 5 }, { where: { id: task.id } }),
-      ).to.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+      ).to.be.rejectedWith(ForeignKeyConstraintError);
     });
 
     it('supports passing the primary key instead of an object', async function () {
@@ -639,9 +639,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
         const user = await User.create({ username: 'foo' });
         const task = await Task.create({ title: 'task' });
         await task.setUser(user);
-        await expect(user.destroy()).to.eventually.be.rejectedWith(
-          Sequelize.ForeignKeyConstraintError,
-        );
+        await expect(user.destroy()).to.eventually.be.rejectedWith(ForeignKeyConstraintError);
         const tasks = await Task.findAll();
         expect(tasks).to.have.length(1);
       });
@@ -665,7 +663,7 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
 
         await expect(
           user.sequelize.queryInterface.update(user, tableName, { id: 999 }, { id: user.id }),
-        ).to.eventually.be.rejectedWith(Sequelize.ForeignKeyConstraintError);
+        ).to.eventually.be.rejectedWith(ForeignKeyConstraintError);
 
         // Should fail due to FK restriction
         const tasks = await Task.findAll();

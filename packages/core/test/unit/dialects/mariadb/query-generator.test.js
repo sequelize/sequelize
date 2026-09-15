@@ -8,7 +8,7 @@ const expect = chai.expect;
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
-const { Op } = require('@sequelize/core');
+const { Op, sql } = require('@sequelize/core');
 const { MariaDbQueryGenerator } = require('@sequelize/mariadb');
 const { createSequelizeInstance } = require('../../../support');
 
@@ -200,10 +200,8 @@ if (dialect === 'mariadb') {
           title: 'functions work for group by',
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                group: [sequelize.fn('YEAR', sequelize.col('createdAt'))],
-              };
+            {
+              group: [sql.fn('YEAR', sql.col('createdAt'))],
             },
           ],
           expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`);',
@@ -211,13 +209,11 @@ if (dialect === 'mariadb') {
           needsSequelize: true,
         },
         {
-          title: 'It is possible to mix sequelize.fn and string arguments to group by',
+          title: 'It is possible to mix sql.fn and string arguments to group by',
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                group: [sequelize.fn('YEAR', sequelize.col('createdAt')), 'title'],
-              };
+            {
+              group: [sql.fn('YEAR', sql.col('createdAt')), 'title'],
             },
           ],
           expectation: 'SELECT * FROM `myTable` GROUP BY YEAR(`createdAt`), `title`;',
@@ -332,10 +328,8 @@ if (dialect === 'mariadb') {
         {
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                foo: sequelize.fn('NOW'),
-              };
+            {
+              foo: sql.fn('NOW'),
             },
           ],
           expectation: {
@@ -492,10 +486,8 @@ if (dialect === 'mariadb') {
         {
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                bar: sequelize.fn('NOW'),
-              };
+            {
+              bar: sql.fn('NOW'),
             },
             { name: 'foo' },
           ],
@@ -508,10 +500,8 @@ if (dialect === 'mariadb') {
         {
           arguments: [
             'myTable',
-            function (sequelize) {
-              return {
-                bar: sequelize.col('foo'),
-              };
+            {
+              bar: sql.col('foo'),
             },
             { name: 'foo' },
           ],
