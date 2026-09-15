@@ -63,6 +63,37 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
       });
+
+      if (dialect.startsWith('postgres')) {
+        it('reads the enum values of the requested schema when two schemas share a table name', async function () {
+          // Enum types are named enum_<table>_<column>, so two schemas holding a
+          // table of the same name end up with a same-named enum type in each.
+          const MyTable1 = this.sequelize.define('my_enum_table', {
+            state: DataTypes.ENUM('one', 'two'),
+          });
+
+          const MyTable2 = this.sequelize.define(
+            'my_enum_table',
+            {
+              state: DataTypes.ENUM('three', 'four', 'five'),
+            },
+            { schema: 'test_meta' },
+          );
+
+          await this.sequelize.createSchema('test_meta');
+          await MyTable1.sync({ force: true });
+          await MyTable2.sync({ force: true });
+
+          const defaultSchema = await this.queryInterface.describeTable('my_enum_tables');
+          const otherSchema = await this.queryInterface.describeTable({
+            tableName: 'my_enum_tables',
+            schema: 'test_meta',
+          });
+
+          expect(defaultSchema.state.special).to.deep.equal(['one', 'two']);
+          expect(otherSchema.state.special).to.deep.equal(['three', 'four', 'five']);
+        });
+      }
     }
 
     it('rejects when no data is available', async function () {
