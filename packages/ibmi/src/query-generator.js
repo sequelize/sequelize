@@ -150,7 +150,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         const foreignKey = this.quoteIdentifier(`${attributeName}`);
         constraintString.push(`${foreignKey} FOREIGN KEY (${attrName}) ${definition}`);
       } else {
-        attrString.push(`"${attributeName}" SET DATA TYPE ${definition}`);
+        attrString.push(`${this.quoteIdentifier(attributeName)} SET DATA TYPE ${definition}`);
       }
     }
 
@@ -171,11 +171,10 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     const attrString = [];
 
     for (const attrName in attributes) {
-      const definition = attributes[attrName];
-      attrString.push(`\`${attrBefore}\` \`${attrName}\` ${definition}`);
+      attrString.push(`${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(attrName)}`);
     }
 
-    return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${attrString.join(', ')};`;
+    return `ALTER TABLE ${this.quoteTable(tableName)} RENAME COLUMN ${attrString.join(', ')}`;
   }
 
   /*
