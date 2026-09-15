@@ -2472,6 +2472,13 @@ ${associationOwner._getAssociationDebugList()}`);
           });
 
           if (options.conflictAttributes) {
+            if (
+              !Array.isArray(options.conflictAttributes) ||
+              options.conflictAttributes.length === 0
+            ) {
+              throw new Error('conflictAttributes option must be a non-empty array.');
+            }
+
             options.upsertKeys = options.conflictAttributes.map(attrName =>
               modelDefinition.getColumnName(attrName),
             );
@@ -2490,6 +2497,10 @@ ${associationOwner._getAssociationDebugList()}`);
                 ? upsertKeys
                 : Object.values(model.primaryKeys).map(x => x.field);
           }
+        }
+
+        if (!options.updateOnDuplicate && options.conflictAttributes) {
+          logger.warn('conflictAttributes option is ignored because updateOnDuplicate is not set');
         }
 
         // Map returning attributes to fields
