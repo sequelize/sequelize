@@ -183,6 +183,24 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         }
       });
 
+      it('applies the default value of an enum column', async function () {
+        await this.queryInterface.createTable('SomeTable', {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          someEnum: {
+            type: DataTypes.ENUM(['pending', 'complete']),
+            defaultValue: 'pending',
+          },
+        });
+
+        await this.queryInterface.insert(null, 'SomeTable', { id: 1 });
+
+        const [rows] = await this.sequelize.query(
+          `SELECT ${this.queryInterface.queryGenerator.quoteIdentifier('someEnum')} FROM ${this.queryInterface.queryGenerator.quoteTable('SomeTable')}`,
+        );
+
+        expect(rows[0].someEnum).to.equal('pending');
+      });
+
       it('should work with multiple enums', async function () {
         await this.queryInterface.createTable('SomeTable', {
           someEnum: DataTypes.ENUM('value1', 'value2', 'value3'),

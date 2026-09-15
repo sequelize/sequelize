@@ -95,6 +95,30 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
     }
 
+    it('keeps the default value of an enum column', () => {
+      return expectsql(
+        queryGenerator.addColumnQuery(
+          User.table,
+          'level_id',
+          current.normalizeAttribute({
+            type: DataTypes.ENUM(['pending', 'complete']),
+            defaultValue: 'pending',
+          }),
+        ),
+        {
+          'mariadb mysql':
+            "ALTER TABLE `Users` ADD `level_id` ENUM('pending', 'complete') DEFAULT 'pending';",
+          postgres: `DO 'BEGIN CREATE TYPE "public"."enum_Users_level_id" AS ENUM(''pending'', ''complete''); EXCEPTION WHEN duplicate_object THEN null; END';ALTER TABLE "Users" ADD COLUMN  "level_id" "public"."enum_Users_level_id" DEFAULT 'pending';`,
+          sqlite3: "ALTER TABLE `Users` ADD `level_id` TEXT DEFAULT 'pending';",
+          snowflake: `ALTER TABLE "Users" ADD "level_id" VARCHAR(255) DEFAULT 'pending';`,
+          db2: `ALTER TABLE "Users" ADD "level_id" VARCHAR(255) CHECK ("level_id" IN('pending', 'complete')) DEFAULT 'pending';`,
+          ibmi: `ALTER TABLE "Users" ADD "level_id" VARCHAR(255) CHECK ("level_id" IN('pending', 'complete')) DEFAULT 'pending'`,
+          mssql: `ALTER TABLE [Users] ADD [level_id] NVARCHAR(255) DEFAULT N'pending' CHECK ([level_id] IN(N'pending', N'complete'));`,
+          oracle: `ALTER TABLE "Users" ADD "level_id" VARCHAR2(512) DEFAULT 'pending' CHECK ("level_id" IN('pending', 'complete'));`,
+        },
+      );
+    });
+
     it('defaults the schema to the one set in the Sequelize options', () => {
       const User = customSequelize.define('User', {}, { timestamps: false });
 
