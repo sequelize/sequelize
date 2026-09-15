@@ -66,8 +66,6 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (dialect.startsWith('postgres')) {
         it('reads the enum values of the requested schema when two schemas share a table name', async function () {
-          // Enum types are named enum_<table>_<column>, so two schemas holding a
-          // table of the same name end up with a same-named enum type in each.
           const MyTable1 = this.sequelize.define('my_enum_table', {
             state: DataTypes.ENUM('one', 'two'),
           });
