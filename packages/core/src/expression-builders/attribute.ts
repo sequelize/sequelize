@@ -6,7 +6,7 @@ import type { DialectAwareFn } from './dialect-aware-fn.js';
 import type { JsonPath } from './json-path.js';
 
 /**
- * Use {@link sql.attribute} instead.
+ * Use {@link @sequelize/core!sql.attribute} instead.
  */
 export class Attribute extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'attribute';

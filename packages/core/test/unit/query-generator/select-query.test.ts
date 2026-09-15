@@ -2254,6 +2254,31 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
   });
 
   describe('minifyAliases', () => {
+    const { maxTableAliasLength } = sequelize.dialect.supports;
+
+    function selectWithAliasOfLength(length: number): string {
+      const localSequelize = createSequelizeInstance({ minifyAliases: true });
+      const Project = localSequelize.define('Project', {}, { timestamps: false });
+      const User = localSequelize.define('User', { age: DataTypes.INTEGER }, { timestamps: false });
+      const as = 'a'.repeat(length);
+
+      Project.hasMany(User, { as, foreignKey: 'projectId' });
+
+      return localSequelize.queryGenerator.selectQuery(
+        Project.table,
+        {
+          model: Project,
+          include: _validateIncludedElements({
+            model: Project,
+            include: [{ association: Project.associations[as], attributes: [] }],
+          }).include,
+          order: [[Project.associations[as], 'age', 'ASC']],
+          minifyAliases: true,
+        },
+        Project,
+      );
+    }
+
     it('minifies custom attributes', () => {
       const { User } = vars;
 
@@ -2274,6 +2299,29 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         oracle: `SELECT 1 AS "_0" FROM "Users" "User" GROUP BY "_0" ORDER BY "_0";`,
       });
     });
+
+    if (maxTableAliasLength < Number.MAX_SAFE_INTEGER) {
+      it('does not minify a table alias at the dialect limit', () => {
+        const sql = selectWithAliasOfLength(maxTableAliasLength);
+
+        expect(sql).to.include('a'.repeat(maxTableAliasLength));
+        expect(sql).to.not.include('%0');
+      });
+
+      it('minifies a table alias one character over the dialect limit', () => {
+        const sql = selectWithAliasOfLength(maxTableAliasLength + 1);
+
+        expect(sql).to.not.include('a'.repeat(maxTableAliasLength + 1));
+        expect(sql).to.include('%0');
+      });
+    } else {
+      it('never minifies table aliases when the dialect has no limit', () => {
+        const sql = selectWithAliasOfLength(1000);
+
+        expect(sql).to.include('a'.repeat(1000));
+        expect(sql).to.not.include('%0');
+      });
+    }
   });
 
   describe('optimizer hints', () => {
