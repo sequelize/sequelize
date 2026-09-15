@@ -471,6 +471,35 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       });
     });
 
+    if (dialect === 'sqlite3') {
+      it('preserves AUTOINCREMENT after sync alter recreates a sqlite table', async function () {
+        this.sequelize.define(
+          'auto_increment_alter',
+          {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            name: DataTypes.STRING,
+          },
+          {
+            tableName: 'auto_increment_alter',
+            timestamps: false,
+          },
+        );
+
+        await this.sequelize.sync({ force: true });
+        await this.sequelize.sync({ alter: true });
+
+        const [rows] = await this.sequelize.query(
+          "SELECT sql FROM sqlite_master WHERE tbl_name='auto_increment_alter'",
+        );
+
+        expect(rows[0].sql).to.include('AUTOINCREMENT');
+      });
+    }
+
     describe("doesn't emit logging when explicitly saying not to", () => {
       const vars = beforeEach2(() => {
         const spy = sinon.spy();
