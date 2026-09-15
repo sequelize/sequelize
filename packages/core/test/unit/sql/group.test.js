@@ -3,14 +3,14 @@
 const { DataTypes } = require('@sequelize/core');
 const { beforeAll2, expectsql, sequelize } = require('../../support');
 
-const sql = sequelize.dialect.queryGenerator;
+const queryGenerator = sequelize.dialect.queryGenerator;
 
 describe('QueryGenerator#selectQuery with "group"', () => {
   function expectSelect(options, expectation) {
     const model = options.model;
 
     return expectsql(
-      sql.selectQuery(options.table || (model && model.table), options, options.model),
+      queryGenerator.selectQuery(options.table || (model && model.table), options, options.model),
       expectation,
     );
   }
@@ -42,6 +42,7 @@ describe('QueryGenerator#selectQuery with "group"', () => {
         ibmi: 'SELECT * FROM "Users" AS "User" GROUP BY "name"',
         mssql: 'SELECT * FROM [Users] AS [User] GROUP BY [name];',
         snowflake: 'SELECT * FROM "Users" AS "User" GROUP BY "name";',
+        oracle: `SELECT * FROM "Users" "User" GROUP BY "name";`,
       },
     );
   });
@@ -61,6 +62,7 @@ describe('QueryGenerator#selectQuery with "group"', () => {
         ibmi: 'SELECT * FROM "Users" AS "User"',
         mssql: 'SELECT * FROM [Users] AS [User];',
         snowflake: 'SELECT * FROM "Users" AS "User";',
+        oracle: `SELECT * FROM "Users" "User";`,
       },
     );
   });

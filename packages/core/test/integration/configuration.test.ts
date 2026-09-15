@@ -1,6 +1,6 @@
 'use strict';
 
-import type { AbstractDialect, DialectName } from '@sequelize/core';
+import type { AbstractDialect } from '@sequelize/core';
 import {
   ConnectionRefusedError,
   HostNotReachableError,
@@ -12,6 +12,7 @@ import { expect } from 'chai';
 import type { Class } from 'type-fest';
 import type { DialectConfigs } from '../config/config';
 import { CONFIG } from '../config/config';
+import type { DialectName } from './support';
 import {
   destroySequelizeAfterTest,
   getSqliteDatabasePath,
@@ -62,6 +63,10 @@ describe('Configuration', () => {
         storage: '/path/to/no/where/land',
         mode: OPEN_READONLY,
       },
+      oracle: {
+        ...CONFIG.oracle,
+        port: 19_999,
+      },
     };
 
     const errorByDialect: Record<DialectName, Class<Error>> = {
@@ -73,6 +78,7 @@ describe('Configuration', () => {
       snowflake: HostNotReachableError,
       db2: ConnectionRefusedError,
       sqlite3: InvalidConnectionError,
+      oracle: ConnectionRefusedError,
     };
 
     const seq = new Sequelize<AbstractDialect>(badHostConfigs[dialectName]);
@@ -121,6 +127,10 @@ describe('Configuration', () => {
       },
       ibmi: {
         ...CONFIG.ibmi,
+        password: 'wrongpassword',
+      },
+      oracle: {
+        ...CONFIG.oracle,
         password: 'wrongpassword',
       },
     };

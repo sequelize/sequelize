@@ -109,6 +109,15 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           ],
           { genericQuotes: true },
         ),
+        oracle: toMatchSql([
+          'BEGIN TRANSACTION',
+          'SELECT "id", "ownerId", "createdAt", "updatedAt" FROM "Projects" "Project" WHERE "Project"."ownerId" IN (1);',
+          'SELECT "id", "projectId", "createdAt", "updatedAt" FROM "Tasks" "Task" WHERE "Task"."projectId" IN (1);',
+          'DELETE FROM "Tasks" WHERE "id" = 1',
+          'DELETE FROM "Projects" WHERE "id" = 1',
+          'DELETE FROM "Users" WHERE "id" = 1',
+          'COMMIT TRANSACTION',
+        ]),
       });
     });
 
@@ -143,6 +152,13 @@ describe('ModelRepository#_UNSTABLE_destroy', () => {
           'DELETE FROM [Tasks] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
           'DELETE FROM [Projects] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
           'DELETE FROM [Users] WHERE [id] = 1; SELECT @@ROWCOUNT AS AFFECTEDROWS;',
+        ]),
+        oracle: toMatchSql([
+          'SELECT "id", "ownerId", "createdAt", "updatedAt" FROM "Projects" "Project" WHERE "Project"."ownerId" IN (1);',
+          'SELECT "id", "projectId", "createdAt", "updatedAt" FROM "Tasks" "Task" WHERE "Task"."projectId" IN (1);',
+          'DELETE FROM "Tasks" WHERE "id" = 1',
+          'DELETE FROM "Projects" WHERE "id" = 1',
+          'DELETE FROM "Users" WHERE "id" = 1',
         ]),
       });
     });

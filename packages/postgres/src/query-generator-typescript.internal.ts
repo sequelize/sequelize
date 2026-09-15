@@ -199,7 +199,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       options?.constraintType
         ? `AND c.constraint_type = ${this.escape(options.constraintType)}`
         : '',
-      'ORDER BY c.constraint_name, kcu.ordinal_position',
+      'ORDER BY c.constraint_name, kcu.ordinal_position, ccu.column_name',
     ]);
   }
 
@@ -282,6 +282,10 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     // uuid_generate_v4 requires the uuid-ossp extension, which is not installed by default.
     // This has broader support, as it is part of the core Postgres distribution, but is only available since Postgres 13.
     return 'gen_random_uuid()';
+  }
+
+  getRandomFloatFunctionCall(): string {
+    return 'RANDOM()';
   }
 
   versionQuery() {

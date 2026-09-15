@@ -353,4 +353,20 @@ export async function dropTestSchemas(customSequelize: Sequelize = sequelize) {
   });
 }
 
+/*
+ * It is used by oracle dialect to identify the DB slim docker version used
+ * for CI supports JSON constraints on BLOB column.
+ */
+export async function isOracleJSONConstraintsSupported(): Promise<boolean> {
+  const dbVersion = sequelize.getDatabaseVersion(); // e.g. "23.9.0"
+  const [major, minor] = dbVersion.split('.').map(Number);
+
+  // Check JSON constraint support > 21.3 slim XE version
+  if (major < 21 || (major === 21 && minor < 3)) {
+    return false;
+  }
+
+  return true;
+}
+
 export * from '../support';

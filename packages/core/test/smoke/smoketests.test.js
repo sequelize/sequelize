@@ -397,6 +397,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       username: { type: DataTypes.STRING },
       uuidv1: { type: DataTypes.UUID, defaultValue: sql.uuidV1 },
       uuidv4: { type: DataTypes.UUID, defaultValue: sql.uuidV4 },
+      uuidv7: { type: DataTypes.UUID, defaultValue: sql.uuidV7 },
       touchedAt: { type: DataTypes.DATE, defaultValue: DataTypes.NOW },
       aNumber: { type: DataTypes.INTEGER },
       bNumber: { type: DataTypes.INTEGER },

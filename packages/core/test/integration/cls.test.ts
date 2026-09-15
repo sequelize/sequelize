@@ -1,4 +1,9 @@
-import type { InferAttributes, InferCreationAttributes, ModelStatic } from '@sequelize/core';
+import type {
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  ModelStatic,
+} from '@sequelize/core';
 import { DataTypes, Model, QueryTypes } from '@sequelize/core';
 import type { ModelHooks } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-hooks.js';
 import { expect } from 'chai';
@@ -7,6 +12,7 @@ import sinon from 'sinon';
 import {
   beforeAll2,
   createMultiTransactionalTestSequelizeInstance,
+  getTestDialect,
   sequelize,
   setResetMode,
 } from './support';
@@ -24,6 +30,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
     });
 
     class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+      declare id: CreationOptional<number>;
       declare name: string | null;
     }
 
@@ -173,7 +180,10 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
 
   it('promises returned by sequelize.query are correctly patched', async () => {
     await vars.clsSequelize.transaction(async t => {
-      await vars.clsSequelize.query('select 1', { type: QueryTypes.SELECT });
+      await vars.clsSequelize.query(
+        `select 1 ${getTestDialect() === 'oracle' ? 'FROM DUAL' : ''}`,
+        { type: QueryTypes.SELECT },
+      );
 
       return expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(t);
     });

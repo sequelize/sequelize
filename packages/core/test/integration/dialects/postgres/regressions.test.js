@@ -41,5 +41,29 @@ if (dialect.startsWith('postgres')) {
       const user = await User.findOne({ raw: true });
       expect(user.active).to.be.true;
     });
+
+    it('backfills an enum type that already exists but has no values yet', async function () {
+      const Media = this.sequelize.define(
+        'Media',
+        {
+          type: DataTypes.ENUM(['image', 'video', 'audio']),
+        },
+        { tableName: 'regression_empty_enum_media' },
+      );
+
+      const enumTypeName = this.sequelize.dialect.queryGenerator.pgEnumName(Media.table, 'type', {
+        noEscape: true,
+      });
+
+      await this.sequelize.queryInterface.dropTable(Media.table, { cascade: true });
+      await this.sequelize.query(`DROP TYPE IF EXISTS "${enumTypeName}"`);
+      await this.sequelize.query(`CREATE TYPE "${enumTypeName}" AS ENUM ()`);
+
+      await Media.sync();
+
+      const enums = await this.sequelize.queryInterface.pgListEnums(Media.table);
+      const enumRow = enums.find(enumType => enumType.enum_name === enumTypeName);
+      expect(enumRow.enum_value).to.deep.equal(['image', 'video', 'audio']);
+    });
   });
 }

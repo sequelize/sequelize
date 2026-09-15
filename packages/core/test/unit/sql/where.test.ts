@@ -58,6 +58,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare stringAttr: string;
   declare binaryAttr: Buffer;
   declare dateAttr: Date;
+  declare dateOnlyAttr: string | null;
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
 
@@ -93,6 +94,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         stringAttr: DataTypes.STRING,
         binaryAttr: DataTypes.BLOB,
         dateAttr: DataTypes.DATE(3),
+        dateOnlyAttr: DataTypes.DATEONLY,
         booleanAttr: DataTypes.BOOLEAN,
         ...(dialectSupportsBigInt() && { bigIntAttr: DataTypes.BIGINT }),
 
@@ -124,8 +126,14 @@ describe(getTestDialectTeaser('SQL'), () => {
       });
     });
 
-    it('returns an empty string if the input results in an empty query', () => {
+    it('returns WHERE 1 = 1 if the input is an always true Op.notIn: [] query', () => {
       expectsql(queryGen.whereQuery({ firstName: { [Op.notIn]: [] } }), {
+        default: 'WHERE 1 = 1',
+      });
+    });
+
+    it('returns an empty string if the input results in an empty query', () => {
+      expectsql(queryGen.whereQuery({}), {
         default: '',
       });
     });
@@ -412,6 +420,7 @@ Caused by: "undefined" cannot be escaped`),
           db2: '"stringAttr" = \'here is a null char: \0\'',
           ibmi: '"stringAttr" = \'here is a null char: \0\'',
           sqlite3: "`stringAttr` = 'here is a null char: \0'",
+          oracle: `"stringAttr" = 'here is a null char: \0'`,
         },
       );
 
@@ -424,8 +433,105 @@ Caused by: "undefined" cannot be escaped`),
           'mariadb mysql': `\`dateAttr\` = '2013-01-01 00:00:00.000'`,
           mssql: `[dateAttr] = N'2013-01-01 00:00:00.000 +00:00'`,
           'db2 snowflake ibmi': `"dateAttr" = '2013-01-01 00:00:00.000'`,
+          oracle: `"dateAttr" = TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
         },
       );
+
+      // Temporal values used inline (i.e. not as bind parameters) go through DataType#escape,
+      // which is a completely separate code path from DataType#getBindParamSql.
+      // The tests below pin the inline path down for both DATEONLY and DATE, on every dialect.
+      describe('DATEONLY', () => {
+        testSql(
+          { dateOnlyAttr: '2022-01-01' },
+          {
+            default: `[dateOnlyAttr] = '2022-01-01'`,
+            mssql: `[dateOnlyAttr] = N'2022-01-01'`,
+            oracle: `"dateOnlyAttr" = TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: new Date('2022-01-01T12:13:14.123Z') },
+          {
+            default: `[dateOnlyAttr] = '2022-01-01'`,
+            mssql: `[dateOnlyAttr] = N'2022-01-01'`,
+            oracle: `"dateOnlyAttr" = TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: { [Op.gt]: '2022-01-01' } },
+          {
+            default: `[dateOnlyAttr] > '2022-01-01'`,
+            mssql: `[dateOnlyAttr] > N'2022-01-01'`,
+            oracle: `"dateOnlyAttr" > TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: { [Op.between]: ['2022-01-01', '2022-12-31'] } },
+          {
+            default: `[dateOnlyAttr] BETWEEN '2022-01-01' AND '2022-12-31'`,
+            mssql: `[dateOnlyAttr] BETWEEN N'2022-01-01' AND N'2022-12-31'`,
+            oracle: `"dateOnlyAttr" BETWEEN TO_DATE('2022/01/01', 'YYYY/MM/DD') AND TO_DATE('2022/12/31', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: { [Op.in]: ['2022-01-01', '2022-12-31'] } },
+          {
+            default: `[dateOnlyAttr] IN ('2022-01-01', '2022-12-31')`,
+            mssql: `[dateOnlyAttr] IN (N'2022-01-01', N'2022-12-31')`,
+            oracle: `"dateOnlyAttr" IN (TO_DATE('2022/01/01', 'YYYY/MM/DD'), TO_DATE('2022/12/31', 'YYYY/MM/DD'))`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: null },
+          {
+            default: `[dateOnlyAttr] IS NULL`,
+          },
+        );
+      });
+
+      describe('DATE', () => {
+        testSql(
+          { dateAttr: { [Op.gt]: new Date('2021-01-01T00:00:00Z') } },
+          {
+            default: `[dateAttr] > '2021-01-01 00:00:00.000 +00:00'`,
+            mssql: `[dateAttr] > N'2021-01-01 00:00:00.000 +00:00'`,
+            'mariadb mysql': `\`dateAttr\` > '2021-01-01 00:00:00.000'`,
+            'db2 ibmi snowflake': `"dateAttr" > '2021-01-01 00:00:00.000'`,
+            oracle: `"dateAttr" > TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+          },
+        );
+
+        testSql(
+          {
+            dateAttr: {
+              [Op.between]: [new Date('2021-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')],
+            },
+          },
+          {
+            default: `[dateAttr] BETWEEN '2021-01-01 00:00:00.000 +00:00' AND '2022-01-01 00:00:00.000 +00:00'`,
+            mssql: `[dateAttr] BETWEEN N'2021-01-01 00:00:00.000 +00:00' AND N'2022-01-01 00:00:00.000 +00:00'`,
+            'mariadb mysql': `\`dateAttr\` BETWEEN '2021-01-01 00:00:00.000' AND '2022-01-01 00:00:00.000'`,
+            'db2 ibmi snowflake': `"dateAttr" BETWEEN '2021-01-01 00:00:00.000' AND '2022-01-01 00:00:00.000'`,
+            oracle: `"dateAttr" BETWEEN TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM') AND TO_TIMESTAMP_TZ('2022-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+          },
+        );
+
+        testSql(
+          { dateAttr: { [Op.in]: [new Date('2021-01-01T00:00:00Z')] } },
+          {
+            default: `[dateAttr] IN ('2021-01-01 00:00:00.000 +00:00')`,
+            mssql: `[dateAttr] IN (N'2021-01-01 00:00:00.000 +00:00')`,
+            'mariadb mysql': `\`dateAttr\` IN ('2021-01-01 00:00:00.000')`,
+            'db2 ibmi snowflake': `"dateAttr" IN ('2021-01-01 00:00:00.000')`,
+            oracle: `"dateAttr" IN (TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'))`,
+          },
+        );
+      });
 
       describe('Buffer', () => {
         testSql(
@@ -437,6 +543,7 @@ Caused by: "undefined" cannot be escaped`),
             db2: `"binaryAttr" = BLOB('Sequelize')`,
             snowflake: `"binaryAttr" = X'53657175656c697a65'`,
             mssql: '[binaryAttr] = 0x53657175656c697a65',
+            oracle: `"binaryAttr" = '53657175656c697a65'`,
           },
         );
 
@@ -451,6 +558,7 @@ Caused by: "undefined" cannot be escaped`),
             db2: `"binaryAttr" IN (BLOB('Seque''lize1'), BLOB('Sequelize2'))`,
             snowflake: `"binaryAttr" IN (X'5365717565276c697a6531', X'53657175656c697a6532')`,
             mssql: '[binaryAttr] IN (0x5365717565276c697a6531, 0x53657175656c697a6532)',
+            oracle: `"binaryAttr" IN ('5365717565276c697a6531', '53657175656c697a6532')`,
           },
         );
       });
@@ -533,7 +641,7 @@ Caused by: "undefined" cannot be escaped`),
           default: `[booleanAttr] = true`,
           mssql: '[booleanAttr] = 1',
           sqlite3: '`booleanAttr` = 1',
-          ibmi: '"booleanAttr" = 1',
+          'ibmi oracle': '"booleanAttr" = 1',
         },
       );
 
@@ -571,6 +679,7 @@ Caused by: "undefined" cannot be escaped`),
           mssql: `[dateAttr] = N'2021-01-01 00:00:00.000 +00:00'`,
           'mariadb mysql': `\`dateAttr\` = '2021-01-01 00:00:00.000'`,
           'db2 ibmi snowflake': `"dateAttr" = '2021-01-01 00:00:00.000'`,
+          oracle: `"dateAttr" = TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
         },
       );
 
@@ -789,7 +898,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.eq]: true } },
         {
           default: '[booleanAttr] = true',
-          'mssql sqlite3 ibmi': '[booleanAttr] = 1',
+          'mssql sqlite3 ibmi oracle': '[booleanAttr] = 1',
         },
       );
 
@@ -825,7 +934,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.ne]: true } },
         {
           default: '[booleanAttr] != true',
-          'mssql ibmi sqlite3': '[booleanAttr] != 1',
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] != 1',
         },
       );
 
@@ -862,7 +971,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.is]: false } },
         {
           default: '[booleanAttr] IS false',
-          'mssql ibmi sqlite3': '[booleanAttr] IS 0',
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS 0',
         },
       );
 
@@ -870,7 +979,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.is]: true } },
         {
           default: '[booleanAttr] IS true',
-          'mssql ibmi sqlite3': '[booleanAttr] IS 1',
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS 1',
         },
       );
 
@@ -966,7 +1075,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.isNot]: false } },
         {
           default: '[booleanAttr] IS NOT false',
-          'mssql ibmi sqlite3': '[booleanAttr] IS NOT 0',
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS NOT 0',
         },
       );
 
@@ -974,7 +1083,7 @@ Caused by: "undefined" cannot be escaped`),
         { booleanAttr: { [Op.isNot]: true } },
         {
           default: '[booleanAttr] IS NOT true',
-          'mssql ibmi sqlite3': '[booleanAttr] IS NOT 1',
+          'mssql ibmi sqlite3 oracle': '[booleanAttr] IS NOT 1',
         },
       );
     });
@@ -1024,7 +1133,7 @@ Caused by: "undefined" cannot be escaped`),
         {
           default: 'NOT ([booleanAttr] = false)',
           mssql: 'NOT ([booleanAttr] = 0)',
-          ibmi: 'NOT ("booleanAttr" = 0)',
+          'ibmi oracle': 'NOT ("booleanAttr" = 0)',
           sqlite3: 'NOT (`booleanAttr` = 0)',
         },
       );
@@ -1034,7 +1143,7 @@ Caused by: "undefined" cannot be escaped`),
         {
           default: 'NOT ([booleanAttr] = true)',
           mssql: 'NOT ([booleanAttr] = 1)',
-          ibmi: 'NOT ("booleanAttr" = 1)',
+          'ibmi oracle': 'NOT ("booleanAttr" = 1)',
           sqlite3: 'NOT (`booleanAttr` = 1)',
         },
       );
@@ -1088,6 +1197,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `NOT (json_extract(\`data\`,'$.key') = '10')`,
             mariadb: `NOT (json_compact(json_extract(\`data\`,'$.key')) = '10')`,
             mysql: `NOT (json_extract(\`data\`,'$.key') = CAST('10' AS JSON))`,
+            oracle: `NOT (json_value("data",'$."key"') = '10')`,
           },
         );
       }
@@ -1530,7 +1640,28 @@ Caused by: "undefined" cannot be escaped`),
       testSql(
         { intAttr1: { [Op.notIn]: [] } },
         {
-          default: '',
+          default: '1 = 1',
+        },
+      );
+
+      testSql(
+        { [Op.or]: [{ intAttr1: { [Op.notIn]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '1 = 1 OR [intAttr2] = 5',
+        },
+      );
+
+      testSql(
+        { [Op.not]: { intAttr1: { [Op.notIn]: [] } } },
+        {
+          default: 'NOT (1 = 1)',
+        },
+      );
+
+      testSql(
+        { [Op.and]: [{ intAttr1: { [Op.notIn]: [] } }, { intAttr2: 5 }] },
+        {
+          default: '1 = 1 AND [intAttr2] = 5',
         },
       );
     });
@@ -1641,7 +1772,7 @@ Caused by: "undefined" cannot be escaped`),
             testSql(
               { intArrayAttr: { [operator]: [{ [Op.col]: 'col' }] } },
               {
-                default: new Error(`{ [Symbol(col)]: 'col' } is not a valid integer`),
+                default: new Error(`${util.inspect({ [Op.col]: 'col' })} is not a valid integer`),
               },
             );
           }
@@ -1993,7 +2124,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.startsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2003,7 +2134,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.startsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2115,7 +2246,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.endsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2125,7 +2256,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.endsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2244,7 +2375,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.substring]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2254,7 +2385,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.substring]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2366,7 +2497,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notStartsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2376,7 +2507,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notStartsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2488,7 +2619,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notEndsWith]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2498,7 +2629,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notEndsWith]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2610,7 +2741,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notSubstring]: { [Op.any]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(any)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.any]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2620,7 +2751,7 @@ Caused by: "undefined" cannot be escaped`),
         { stringAttr: { [Op.notSubstring]: { [Op.all]: ['test'] } } },
         {
           default: new Error(
-            `{ [Symbol(all)]: [ 'test' ] } is not a valid string. Only the string type is accepted for non-binary strings.`,
+            `${util.inspect({ [Op.all]: ['test'] })} is not a valid string. Only the string type is accepted for non-binary strings.`,
           ),
         },
       );
@@ -2889,6 +3020,7 @@ Caused by: "undefined" cannot be escaped`),
             default: `[jsonAttr] = '"value"'`,
             mysql: `\`jsonAttr\` = CAST('"value"' AS JSON)`,
             mssql: `[jsonAttr] = N'"value"'`,
+            oracle: `"jsonAttr" = 'value'`,
           },
         );
 
@@ -2939,6 +3071,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"') = 'value'`,
             },
           );
 
@@ -2956,6 +3089,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = 'null'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = 'null'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('null' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"') = 'null'`,
             },
           );
 
@@ -2966,6 +3100,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) IS NULL`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
+              oracle: `json_value("jsonAttr",'$."nested"') IS NULL`,
             },
           );
 
@@ -2976,6 +3111,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = 'null'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = 'null'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('null' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"') = 'null'`,
             },
           );
 
@@ -2986,6 +3122,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) IS NULL`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
+              oracle: `json_value("jsonAttr",'$."nested"') IS NULL`,
             },
           );
 
@@ -2994,6 +3131,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
             mariadb: `'"value"' = json_compact(json_extract(\`jsonAttr\`,'$.nested'))`,
             mysql: `CAST('"value"' AS JSON) = json_extract(\`jsonAttr\`,'$.nested')`,
+            oracle: `'value' = json_value("jsonAttr",'$."nested"')`,
           });
 
           testSql(
@@ -3003,6 +3141,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"."twice"') = 'value'`,
             },
           );
 
@@ -3015,6 +3154,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"') = 'value'`,
             },
           );
 
@@ -3027,6 +3167,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"."twice"') = 'value'`,
             },
           );
 
@@ -3049,6 +3190,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) != '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') != CAST('"value"' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"') != 'value'`,
             },
           );
 
@@ -3061,6 +3203,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"') = 'value'`,
             },
           );
 
@@ -3073,6 +3216,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
+              oracle: `json_value("association"."jsonAttr",'$."nested"') = 'value'`,
             },
           );
 
@@ -3085,6 +3229,7 @@ Caused by: "undefined" cannot be escaped`),
               postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
               mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
               'sqlite3 mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+              oracle: `CAST(json_value("jsonAttr",'$."nested"') AS STRING) = 'value'`,
             },
           );
 
@@ -3095,7 +3240,7 @@ Caused by: "undefined" cannot be escaped`),
               },
             },
             {
-              default: new Error(`Could not guess type of value { attribute: 'value' }`),
+              default: new TypeError(`Could not guess type of value { attribute: 'value' }`),
             },
           );
 
@@ -3107,6 +3252,7 @@ Caused by: "undefined" cannot be escaped`),
               postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep']::VARCHAR(255)[] AS STRING) = 'value'`,
               mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
               'sqlite3 mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
+              oracle: `CAST(json_value("association"."jsonAttr",'$."nested"."deep"') AS STRING) = 'value'`,
             },
           );
 
@@ -3118,6 +3264,7 @@ Caused by: "undefined" cannot be escaped`),
               postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
               mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
               'sqlite3 mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
+              oracle: `CAST(json_value("jsonAttr",'$."nested"') AS STRING) = 'value'`,
             },
           );
 
@@ -3128,6 +3275,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."nested"."attribute"') = '4'`,
             },
           );
 
@@ -3139,6 +3287,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0"')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$."0"') = CAST('4' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$[0]') = '4'`,
             },
           );
 
@@ -3152,6 +3301,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$[0]') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0]')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$[0]') = CAST('4' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$[0]') = '4'`,
             },
           );
 
@@ -3162,6 +3312,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$[0]."attribute"') = '4'`,
             },
           );
 
@@ -3173,6 +3324,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."hyphenated-key"')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$."hyphenated-key"') = CAST('4' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$."hyphenated-key"') = '4'`,
             },
           );
 
@@ -3184,6 +3336,7 @@ Caused by: "undefined" cannot be escaped`),
               mysql: `json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = CAST('1' AS JSON)`,
               sqlite3: `json_extract(\`jsonAttr\`,'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."a\\')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "')) = '1'`,
+              oracle: `json_value("jsonAttr",'$."a'')) AS DECIMAL) = 1 DELETE YOLO INJECTIONS; -- "') = '1'`,
             },
           );
 
@@ -3196,6 +3349,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0].nested.attribute')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = CAST('4' AS JSON)`,
+              oracle: `json_value("jsonAttr",'$[0]."nested"."attribute"') = '4'`,
             },
           );
 
@@ -3207,6 +3361,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
               mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
+              oracle: `json_value("aliased_json",'$."nested"."attribute"') = '4'`,
             },
           );
         }
@@ -3670,7 +3825,7 @@ Caused by: "undefined" cannot be escaped`),
         // @ts-expect-error -- cannot be used after operator
         { intAttr1: { [Op.gt]: { [Op.and]: [1, 2] } } },
         {
-          default: new Error(`{ [Symbol(and)]: [ 1, 2 ] } is not a valid integer`),
+          default: new Error(`${util.inspect({ [Op.and]: [1, 2] })} is not a valid integer`),
         },
       );
     });
@@ -3717,7 +3872,7 @@ Caused by: "undefined" cannot be escaped`),
         // @ts-expect-error -- cannot be used after operator
         { intAttr1: { [Op.gt]: { [Op.or]: [1, 2] } } },
         {
-          default: new Error(`{ [Symbol(or)]: [ 1, 2 ] } is not a valid integer`),
+          default: new Error(`${util.inspect({ [Op.or]: [1, 2] })} is not a valid integer`),
         },
       );
 
@@ -3947,7 +4102,9 @@ Caused by: "undefined" cannot be escaped`),
         });
 
         testSql(where(col('col'), Op.eq, { [Op.in]: [1, 2] }), {
-          default: new Error('Could not guess type of value { [Symbol(in)]: [ 1, 2 ] }'),
+          default: new TypeError(
+            `Could not guess type of value ${util.inspect({ [Op.in]: [1, 2] }, { depth: 1 })}`,
+          ),
         });
       });
 
@@ -4002,6 +4159,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `json_extract(\`col\`,'$.jsonPath') = '"value"'`,
             mariadb: `json_compact(json_extract(\`col\`,'$.jsonPath')) = '"value"'`,
             mysql: `json_extract(\`col\`,'$.jsonPath') = CAST('"value"' AS JSON)`,
+            oracle: `json_value("col",'$."jsonPath"') = 'value'`,
           });
         }
       });

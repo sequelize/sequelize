@@ -37,6 +37,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<IBMiConnectionOptions>({
 
 export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
+    maxTableAliasLength: 128,
     'VALUES ()': true,
     'ON DUPLICATE KEY': false,
     connectionTransactionMethods: true,
@@ -54,6 +55,10 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     groupedLimit: false,
     upserts: false,
     schemas: true,
+    inserts: {
+      updateOnDuplicate: '',
+      ignoreDuplicates: false,
+    },
     dataTypes: {
       COLLATE_BINARY: true,
     },
@@ -71,6 +76,7 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
       cascade: true,
       ifExists: true,
     },
+    select: { dummyTable: 'SYSIBM.SYSDUMMY1' },
   });
 
   readonly connectionManager: IBMiConnectionManager;

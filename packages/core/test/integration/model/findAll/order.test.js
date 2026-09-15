@@ -24,7 +24,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           });
         });
 
-        if (current.dialect.name !== 'mssql' && current.dialect.name !== 'ibmi') {
+        if (!['oracle', 'ibmi', 'mssql'].includes(current.dialect.name)) {
           const email = current.dialect.name === 'db2' ? '"email"' : 'email';
           it('should work with order: literal()', async function () {
             const users = await this.User.findAll({
@@ -96,7 +96,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }
 
         it('should not throw on a literal', async function () {
-          if (['db2', 'ibmi'].includes(current.dialect.name)) {
+          if (['db2', 'ibmi', 'oracle'].includes(current.dialect.name)) {
             await this.User.findAll({
               order: [['id', this.sequelize.literal('ASC, "name" DESC')]],
             });

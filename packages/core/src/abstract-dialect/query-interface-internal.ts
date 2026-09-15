@@ -1,5 +1,5 @@
 import assert from 'node:assert';
-import { QueryTypes } from '../query-types.js';
+import { QueryTypes } from '../enums.js';
 import type { QueryRawOptions, Sequelize } from '../sequelize.js';
 import type { AbstractDialect } from './dialect.js';
 import type { AbstractQueryGenerator } from './query-generator.js';

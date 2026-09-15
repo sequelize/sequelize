@@ -56,6 +56,34 @@ describe('QueryInterface#changeColumn', () => {
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL;',
       snowflake:
         'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT NOT NULL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT '; ELSE RAISE; END IF; END; END;`,
+    });
+  });
+
+  it('properly generates alter queries for enums with a default value', async () => {
+    const { User } = vars;
+
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+      type: DataTypes.ENUM(['pending', 'complete']),
+      defaultValue: 'pending',
+    });
+
+    // mssql and oracle drop the default: their attributeToSQL never emits a DEFAULT clause
+    // for changeColumn, so the column keeps whatever default it had.
+    expectsql(sql, {
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) ADD CHECK ("level_id" IN(\'pending\', \'complete\')) DEFAULT \'pending\'',
+      mssql:
+        "ALTER TABLE [users] ALTER COLUMN [level_id] NVARCHAR(255) CHECK ([level_id] IN(N'pending', N'complete'));",
+      db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) CHECK ("level_id" IN(\'pending\', \'complete\')) DEFAULT \'pending\';',
+      mariadb:
+        "ALTER TABLE `users` CHANGE `level_id` `level_id` ENUM('pending', 'complete') DEFAULT 'pending';",
+      mysql:
+        "ALTER TABLE `users` CHANGE `level_id` `level_id` ENUM('pending', 'complete') DEFAULT 'pending';",
+      postgres:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;DO \'BEGIN CREATE TYPE "public"."enum_users_level_id" AS ENUM(\'\'pending\'\', \'\'complete\'\'); EXCEPTION WHEN duplicate_object THEN null; END\';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE "public"."enum_users_level_id" USING ("level_id"::"public"."enum_users_level_id");ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT \'pending\';',
+      snowflake:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT \'pending\';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE VARCHAR(255);',
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) CHECK ("level_id" IN(''pending'', ''complete''))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) CHECK ("level_id" IN(''pending'', ''complete''))'; ELSE RAISE; END IF; END; END;`,
     });
   });
 
@@ -85,6 +113,12 @@ describe('QueryInterface#changeColumn', () => {
         'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
       snowflake:
         'ALTER TABLE "users"  ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE ON UPDATE CASCADE;',
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN SELECT constraint_name INTO cons_name
+        FROM
+          (SELECT DISTINCT cc.owner, cc.table_name, cc.constraint_name, cc.column_name AS cons_columns FROM all_cons_columns cc, all_constraints c WHERE cc.owner = c.owner AND cc.table_name = c.table_name AND cc.constraint_name = c.constraint_name AND c.constraint_type = 'R' GROUP BY cc.owner, cc.table_name, cc.constraint_name, cc.column_name)
+          WHERE owner = '${sequelize.dialect.getDefaultSchema()}' AND table_name = 'users' AND cons_columns = 'level_id' ;
+          EXCEPTION WHEN NO_DATA_FOUND THEN CONS_NAME := NULL; END; IF CONS_NAME IS NOT NULL THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" DROP CONSTRAINT "'||CONS_NAME||'"'; END IF; 
+          EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE'; END;`,
     });
   });
 });

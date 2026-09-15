@@ -1,6 +1,6 @@
 import { isPlainObject } from '@sequelize/utils';
 import util from 'node:util';
-import { validator as Validator } from './utils/validator-extras.js';
+import { Validator } from './utils/validator-extras.js';
 
 export enum GeoJsonType {
   Point = 'Point',

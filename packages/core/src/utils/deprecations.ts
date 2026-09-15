@@ -117,7 +117,7 @@ export const showAllToListTables = deprecate(
 );
 export const noDataTypesUuid = deprecate(
   noop,
-  'Do not use DataTypes.UUIDV1 or DataTypes.UUIDV4. Use sql.uuidV1 or sql.uuidV4 instead.',
+  'Do not use DataTypes.UUIDV1 or DataTypes.UUIDV4. Use sql.uuidV1, sql.uuidV4 or sql.uuidV7 instead.',
   'SEQUELIZE0026',
 );
 export const noSequelizeModel = deprecate(
@@ -139,4 +139,9 @@ export const noGetDialect = deprecate(
   noop,
   'Do not use sequelize.getDialect(). Use sequelize.dialect.name instead.',
   'SEQUELIZE0031',
+);
+export const noSequelizeRandom = deprecate(
+  noop,
+  'Do not use sequelize.random(). Use sql.random instead, as it can be used without needing a reference to sequelize.',
+  'SEQUELIZE0032',
 );

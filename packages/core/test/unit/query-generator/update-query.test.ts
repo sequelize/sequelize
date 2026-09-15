@@ -1,9 +1,10 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+  const dialect = sequelize.dialect;
 
   const vars = beforeAll2(() => {
     const User = sequelize.define(
@@ -66,7 +67,102 @@ describe('QueryGenerator#updateQuery', () => {
     });
   });
 
-  it('does not generate extra bind params with bindParams: false', async () => {
+  it('still binds conditions that follow an Op.is/Op.isNot comparison in the same WHERE clause', async () => {
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.updateQuery(
+      User.table,
+      {
+        firstName: 'John',
+      },
+      {
+        lastName: null,
+        username: 'jd',
+      },
+    );
+
+    expectsql(query, {
+      default: `UPDATE [Users] SET [firstName]=$sequelize_1 WHERE [lastName] IS NULL AND [username] = $sequelize_2`,
+      db2: `SELECT * FROM FINAL TABLE (UPDATE "Users" SET "firstName"=$sequelize_1 WHERE "lastName" IS NULL AND "username" = $sequelize_2);`,
+    });
+    expect(bind).to.deep.eq({
+      sequelize_1: 'John',
+      sequelize_2: 'jd',
+    });
+  });
+
+  if (dialect.supports.jsonExtraction.quoted) {
+    it('binds a scalar compared against a JSON path extraction as a plain value, not as a JSON document', () => {
+      const { query, bind } = queryGenerator.updateQuery(
+        'JsonUsers',
+        {
+          name: 'John',
+        },
+        {
+          data: {
+            field: {
+              deep: true,
+            },
+          },
+        },
+      );
+
+      expectsql(query, {
+        postgres: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE "data"#>ARRAY['field','deep']::VARCHAR(255)[] = $sequelize_2`,
+        mysql: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_extract(\`data\`,'$.field.deep') = CAST($sequelize_2 AS JSON)`,
+        mariadb: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_compact(json_extract(\`data\`,'$.field.deep')) = $sequelize_2`,
+        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."field"."deep"') = $sequelize_2`,
+      });
+      expect(bind).to.deep.eq({
+        sequelize_1: 'John',
+        sequelize_2: 'true',
+      });
+    });
+
+    it('applies the same JSON path extraction type to every value of an Op.in comparison', () => {
+      const { query, bind } = queryGenerator.updateQuery(
+        'JsonUsers',
+        {
+          name: 'John',
+        },
+        {
+          'data.status': ['a', 'b'],
+        },
+      );
+
+      expectsql(query, {
+        postgres: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE "data"->'status' IN ($sequelize_2, $sequelize_3)`,
+        mysql: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_extract(\`data\`,'$.status') IN (CAST($sequelize_2 AS JSON), CAST($sequelize_3 AS JSON))`,
+        mariadb: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_compact(json_extract(\`data\`,'$.status')) IN ($sequelize_2, $sequelize_3)`,
+        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."status"') IN ($sequelize_2, $sequelize_3)`,
+      });
+      expect(bind).to.deep.eq({
+        sequelize_1: 'John',
+        sequelize_2: dialect.name === 'oracle' ? 'a' : '"a"',
+        sequelize_3: dialect.name === 'oracle' ? 'b' : '"b"',
+      });
+    });
+  }
+
+  it('throws an error if the bindParam option is used', () => {
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.updateQuery(
+        User.table,
+        {
+          firstName: 'John',
+          lastName: literal('$1'),
+          username: 'jd',
+        },
+        literal('first_name = $2'),
+        // @ts-expect-error -- intentionally testing deprecated option
+        { bindParam: false },
+      );
+    }).to.throw('The bindParam option has been removed. Use parameterStyle instead.');
+  });
+
+  it('does not generate extra bind params with parameterStyle: REPLACEMENT', async () => {
     const { User } = vars;
 
     const { query, bind } = queryGenerator.updateQuery(
@@ -78,7 +174,7 @@ describe('QueryGenerator#updateQuery', () => {
       },
       literal('first_name = $2'),
       {
-        bindParam: false,
+        parameterStyle: ParameterStyle.REPLACEMENT,
       },
     );
 
@@ -137,6 +233,10 @@ describe('QueryGenerator#updateQuery', () => {
         },
         mssql: {
           sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          sequelize_2: 2,
+        },
+        oracle: {
+          sequelize_1: new Date('2011-03-27T10:01:55Z'),
           sequelize_2: 2,
         },
       },
@@ -198,6 +298,11 @@ describe('QueryGenerator#updateQuery', () => {
         snowflake: {
           sequelize_1: true,
           sequelize_2: false,
+          sequelize_3: 2,
+        },
+        oracle: {
+          sequelize_1: '1',
+          sequelize_2: '0',
           sequelize_3: 2,
         },
       },

@@ -22,13 +22,13 @@ describe('Sequelize constructor', () => {
     }).to.throw(Error);
   });
 
-  it('throws when an invalid dialect is supplied', () => {
+  it('throws when a string dialect is supplied', () => {
     expect(() => {
       // @ts-expect-error -- testing that this throws
-      new Sequelize({ dialect: 'some-fancy-dialect' });
+      new Sequelize({ dialect: 'postgres' });
     }).to.throw(
       Error,
-      'The dialect some-fancy-dialect is not natively supported. Native dialects: mariadb, mssql, mysql, postgres, sqlite3, ibmi, db2 and snowflake.',
+      'The "dialect" option must be a dialect class. Pass the class exported by your dialect package instead.',
     );
   });
 
@@ -165,6 +165,54 @@ describe('Sequelize constructor', () => {
         user: 'username2',
       });
       expect(replication.read).to.deep.eq([]);
+    });
+  });
+
+  describe('retry option', () => {
+    const defaultMatch = ['SQLITE_BUSY: database is locked'];
+
+    it('uses the default retry policy when no retry option is supplied', () => {
+      const localSequelize = createSequelizeInstance();
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 5,
+        match: defaultMatch,
+      });
+    });
+
+    it('keeps the default match when only backoff options are overridden', () => {
+      const localSequelize = createSequelizeInstance({
+        retry: { max: 5, backoffBase: 1000, backoffExponent: 1.5 },
+      });
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 5,
+        match: defaultMatch,
+        backoffBase: 1000,
+        backoffExponent: 1.5,
+      });
+    });
+
+    it('lets an explicit match override the default', () => {
+      const localSequelize = createSequelizeInstance({
+        retry: { max: 3, match: ['ER_LOCK_DEADLOCK'] },
+      });
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 3,
+        match: ['ER_LOCK_DEADLOCK'],
+      });
+    });
+
+    it('preserves an explicit empty match (opt-in to retrying all errors)', () => {
+      const localSequelize = createSequelizeInstance({
+        retry: { max: 5, match: [] },
+      });
+
+      expect(localSequelize.options.retry).to.deep.equal({
+        max: 5,
+        match: [],
+      });
     });
   });
 });

@@ -29,6 +29,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type 
+        FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+        WHERE i.table_name = 'myTable' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
     });
   });
 
@@ -58,6 +63,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type
+        FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+        WHERE i.table_name = 'MyModels' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
     });
   });
 
@@ -88,6 +98,9 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'MyModels'`,
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name) WHERE i.table_name = 'MyModels' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
     });
   });
 
@@ -115,6 +128,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = 'mySchema'
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type
+        FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+        WHERE i.table_name = 'myTable' AND u.table_owner = 'mySchema' ORDER BY index_name, column_position`,
     });
   });
 
@@ -148,6 +166,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = CURRENT SCHEMA
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+        oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type
+        FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+        WHERE i.table_name = 'myTable' AND u.table_owner = '${dialect.getDefaultSchema()}' ORDER BY index_name, column_position`,
       },
     );
   });
@@ -179,6 +202,11 @@ describe('QueryGenerator#showIndexesQuery', () => {
         QSYS2.SYSKEYS.COLUMN_NAME, CAST('INDEX' AS VARCHAR(11)), QSYS2.SYSINDEXES.TABLE_SCHEMA, QSYS2.SYSINDEXES.TABLE_NAME from QSYS2.SYSKEYS
         left outer join QSYS2.SYSINDEXES on QSYS2.SYSKEYS.INDEX_NAME = QSYS2.SYSINDEXES.INDEX_NAME where QSYS2.SYSINDEXES.TABLE_SCHEMA = 'mySchema'
         and QSYS2.SYSINDEXES.TABLE_NAME = 'myTable'`,
+      oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type
+        FROM all_ind_columns i
+        INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+        LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+        WHERE i.table_name = 'myTable' AND u.table_owner = 'mySchema' ORDER BY index_name, column_position`,
     });
   });
 

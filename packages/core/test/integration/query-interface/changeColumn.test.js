@@ -51,6 +51,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         if (['postgres', 'postgres-native', 'mssql', 'db2'].includes(dialect)) {
           expect(table.currency.type).to.equal('REAL');
+        } else if (dialect === 'oracle') {
+          expect(table.currency.type).to.equal('BINARY_FLOAT');
         } else {
           expect(table.currency.type).to.equal('FLOAT');
         }
@@ -89,6 +91,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
       if (['postgres', 'postgres-native', 'mssql', 'sqlite3', 'db2'].includes(dialect)) {
         expect(table.currency.type).to.equal('REAL');
+      } else if (dialect === 'oracle') {
+        expect(table.currency.type).to.equal('BINARY_FLOAT');
       } else {
         expect(table.currency.type).to.equal('FLOAT');
       }
@@ -124,6 +128,58 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         await this.queryInterface.changeColumn('users', 'firstName', {
           type: DataTypes.ENUM(['value1', 'value2', 'value3']),
+        });
+      });
+
+      if (Support.sequelize.dialect.supports.dataTypes.ARRAY) {
+        it('should work with arrays of enums', async function () {
+          await this.queryInterface.createTable('users', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            tags: DataTypes.ARRAY(DataTypes.STRING),
+          });
+
+          await this.queryInterface.changeColumn('users', 'tags', {
+            type: DataTypes.ARRAY(DataTypes.ENUM(['x', 'y'])),
+          });
+
+          const table = await this.queryInterface.describeTable('users');
+
+          expect(table.tags.type).to.equal('ARRAY');
+
+          const insert = values =>
+            this.sequelize.query(
+              `INSERT INTO "users" ("tags") VALUES (ARRAY[${values}]::"enum_users_tags"[])`,
+            );
+
+          await insert(`'x', 'y'`);
+
+          await expect(insert(`'nope'`)).to.be.rejected;
+        });
+      }
+
+      it('should work with enums that are unique', async function () {
+        await this.queryInterface.createTable('users', {
+          status: DataTypes.STRING,
+        });
+
+        await this.queryInterface.changeColumn('users', 'status', {
+          type: DataTypes.ENUM(['pending', 'complete']),
+          unique: true,
+        });
+      });
+
+      it('should work with enums with a default value', async function () {
+        await this.queryInterface.createTable('users', {
+          status: DataTypes.STRING,
+        });
+
+        await this.queryInterface.changeColumn('users', 'status', {
+          type: DataTypes.ENUM(['pending', 'complete']),
+          defaultValue: 'pending',
         });
       });
 
@@ -251,7 +307,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(describedTable.level_id.allowNull).to.equal(true);
       });
 
-      if (!['db2', 'ibmi', 'sqlite3'].includes(dialect)) {
+      if (!['db2', 'ibmi', 'sqlite3', 'oracle'].includes(dialect)) {
         it('should change the comment of column', async function () {
           const describedTable = await this.queryInterface.describeTable({
             tableName: 'users',
@@ -536,10 +592,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
         ];
 
-        await Promise.all([
-          this.queryInterface.bulkInsert('level', levels),
-          this.queryInterface.bulkInsert('users', users),
-        ]);
+        await this.queryInterface.bulkInsert('level', levels);
+        await this.queryInterface.bulkInsert('users', users);
 
         await this.queryInterface.changeColumn('level', 'name', {
           type: DataTypes.STRING,

@@ -20,7 +20,7 @@ import { makeBufferFromTypedArray } from '../utils/buffer.js';
 import { isValidTimeZone } from '../utils/dayjs.js';
 import { doNotUseRealDataType } from '../utils/deprecations.js';
 import { joinSQLFragments } from '../utils/join-sql-fragments';
-import { validator as Validator } from '../utils/validator-extras';
+import { Validator } from '../utils/validator-extras';
 import {
   attributeTypeToSql,
   dataTypeClassOrInstanceToInstance,
@@ -1723,6 +1723,18 @@ export class JSONB extends JSON {
 }
 
 /**
+ * The type of a value produced by a JSON path extraction (e.g. `data.field` in a WHERE clause). Not a
+ * valid column type. Defaults to {@link JSON}'s behavior; dialects can override it via
+ * `dataTypeOverrides` if their extraction function doesn't return a re-encoded JSON document.
+ *
+ * @category DataTypes
+ */
+export class JsonPathExtractionResult extends JSON {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'JSON_PATH_EXTRACTION_RESULT';
+}
+
+/**
  * A default value of the current timestamp. Not a valid type.
  *
  * @example
@@ -1966,7 +1978,7 @@ export class RANGE<
 }
 
 export interface UuidOptions {
-  version: 1 | 4 | 'all';
+  version: 1 | 4 | 7 | 'all';
 }
 
 /**
@@ -2000,6 +2012,17 @@ export class UUID extends AbstractDataType<string> {
     this.options = {
       version: options?.version ?? 'all',
     };
+  }
+
+  get V7() {
+    return this._construct<typeof UUID>({
+      ...this.options,
+      version: 7,
+    });
+  }
+
+  static get V7() {
+    return new this({ version: 7 });
   }
 
   get V4() {

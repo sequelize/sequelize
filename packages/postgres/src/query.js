@@ -12,32 +12,21 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
-import escapeRegExp from 'lodash/escapeRegExp';
+import { pojo } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import isEmpty from 'lodash/isEmpty';
 import isEqual from 'lodash/isEqual';
 import mapKeys from 'lodash/mapKeys';
-import toPairs from 'lodash/toPairs';
 import zipObject from 'lodash/zipObject';
 
 const debug = logger.debugContext('sql:pg');
 
 export class PostgresQuery extends AbstractQuery {
-  async run(sql, parameters, options) {
+  async run(sql, parameters) {
     const { connection } = this;
 
     if (!isEmpty(this.options.searchPath)) {
       sql = this.sequelize.queryGenerator.setSearchPath(this.options.searchPath) + sql;
-    }
-
-    if (options?.minifyAliases && this.options.includeAliases) {
-      for (const [alias, original] of toPairs(this.options.includeAliases)
-        // Sorting to replace the longest aliases first to prevent alias collision
-        .sort((a, b) => b[1].length - a[1].length)) {
-        const reg = new RegExp(escapeRegExp(original), 'g');
-
-        sql = sql.replace(reg, alias);
-      }
     }
 
     this.sql = sql;
@@ -80,7 +69,7 @@ export class PostgresQuery extends AbstractQuery {
 
     complete();
 
-    let rows = Array.isArray(queryResult)
+    const rows = Array.isArray(queryResult)
       ? queryResult.reduce((allRows, r) => allRows.concat(r.rows || []), [])
       : queryResult.rows;
     const rowCount = Array.isArray(queryResult)
@@ -89,17 +78,6 @@ export class PostgresQuery extends AbstractQuery {
           0,
         )
       : queryResult.rowCount || 0;
-
-    if (options?.minifyAliases && this.options.aliasesMapping) {
-      rows = rows.map(row =>
-        toPairs(row).reduce((acc, [key, value]) => {
-          const mapping = this.options.aliasesMapping.get(key);
-          acc[mapping || key] = value;
-
-          return acc;
-        }, {}),
-      );
-    }
 
     const isTableNameQuery = sql.startsWith('SELECT table_name FROM information_schema.tables');
     const isRelNameQuery = sql.startsWith('SELECT relname FROM pg_class WHERE oid IN');
@@ -204,7 +182,7 @@ export class PostgresQuery extends AbstractQuery {
       // of the returned values to match attributes
       // TODO [>7]: remove this.sequelize.options.quoteIdentifiers === false
       if (this.options.raw === false && this.sequelize.options.quoteIdentifiers === false) {
-        const attrsMap = Object.create(null);
+        const attrsMap = pojo();
 
         for (const attrName of this.model.modelDefinition.attributes.keys()) {
           attrsMap[attrName.toLowerCase()] = attrName;
@@ -338,8 +316,12 @@ export class PostgresQuery extends AbstractQuery {
     const errDetail = err.detail || err.messageDetail;
 
     switch (code) {
+      // postgres 18 reports RESTRICT violations as 23001 (restrict_violation) instead of 23503
+      case '23001':
       case '23503':
-        index = errMessage.match(/violates foreign key constraint "(.+?)"/);
+        index = errMessage.match(
+          /violates (?:RESTRICT setting of )?foreign key constraint "(.+?)"/,
+        );
         index = index ? index[1] : undefined;
         table = errMessage.match(/on table "(.+?)"/);
         table = table ? table[1] : undefined;

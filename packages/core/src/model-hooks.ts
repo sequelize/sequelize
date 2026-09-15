@@ -1,3 +1,4 @@
+import type { WritableDeep } from 'type-fest';
 import type {
   AfterAssociateEventData,
   AssociationOptions,
@@ -75,26 +76,26 @@ export interface ModelHooks<M extends Model = Model, TAttributes = any> {
   /**
    * A hook that is run at the start of {@link Model.count}
    */
-  beforeCount(options: CountOptions<TAttributes>): AsyncHookReturn;
+  beforeCount(options: WritableDeep<CountOptions<TAttributes>>): AsyncHookReturn;
 
   /**
    * A hook that is run before a find (select) query
    */
-  beforeFind(options: FindOptions<TAttributes>): AsyncHookReturn;
+  beforeFind(options: WritableDeep<FindOptions<TAttributes>>): AsyncHookReturn;
 
   /**
    * A hook that is run before a find (select) query, after any `{ include: {all: ...} }` options are expanded
    *
    * @deprecated use `beforeFind` instead
    */
-  beforeFindAfterExpandIncludeAll(options: FindOptions<TAttributes>): AsyncHookReturn;
+  beforeFindAfterExpandIncludeAll(options: WritableDeep<FindOptions<TAttributes>>): AsyncHookReturn;
 
   /**
    * A hook that is run before a find (select) query, after all option have been normalized
    *
    * @deprecated use `beforeFind` instead
    */
-  beforeFindAfterOptions(options: FindOptions<TAttributes>): AsyncHookReturn;
+  beforeFindAfterOptions(options: WritableDeep<FindOptions<TAttributes>>): AsyncHookReturn;
   /**
    * A hook that is run after a find (select) query
    */

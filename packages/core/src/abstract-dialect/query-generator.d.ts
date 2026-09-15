@@ -12,17 +12,15 @@ import type {
 } from '../model.js';
 import type { DataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
-import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript.js';
+import type {
+  AbstractQueryGeneratorTypeScript,
+  ParameterOptions,
+} from './query-generator-typescript.js';
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
-import type { TableOrModel } from './query-generator.types.js';
+import type { BoundQuery, TableOrModel } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
-
-type ParameterOptions = {
-  // only named replacements are allowed
-  replacements?: { [key: string]: unknown };
-};
 
 type SelectOptions<M extends Model> = FindOptions<M> & {
   model: ModelStatic<M>;
@@ -31,8 +29,6 @@ type SelectOptions<M extends Model> = FindOptions<M> & {
 type InsertOptions = ParameterOptions &
   SearchPathable & {
     exception?: boolean;
-    bindParam?: false | ((value: unknown) => string);
-
     updateOnDuplicate?: string[];
     ignoreDuplicates?: boolean;
     upsertKeys?: string[];
@@ -41,16 +37,13 @@ type InsertOptions = ParameterOptions &
 
 type BulkInsertOptions = ParameterOptions & {
   hasTrigger?: boolean;
-
   updateOnDuplicate?: string[];
   ignoreDuplicates?: boolean;
   upsertKeys?: string[];
   returning?: boolean | Array<string | Literal | Col>;
 };
 
-type UpdateOptions = ParameterOptions & {
-  bindParam?: false | ((value: unknown) => string);
-};
+type UpdateOptions = ParameterOptions;
 
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
@@ -96,7 +89,7 @@ export class AbstractQueryGenerator<
     valueHash: object,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
     options?: InsertOptions,
-  ): { query: string; bind?: unknown[] };
+  ): BoundQuery;
   bulkInsertQuery(
     tableName: TableName,
     newEntries: object[],
@@ -117,7 +110,7 @@ export class AbstractQueryGenerator<
     where: WhereOptions,
     options?: UpdateOptions,
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): { query: string; bind?: unknown[] };
+  ): BoundQuery;
 
   arithmeticQuery(
     operator: string,
@@ -134,13 +127,6 @@ export class AbstractQueryGenerator<
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions,
   ): string;
-
-  /**
-   * Creates a function that can be used to collect bind parameters.
-   *
-   * @param bind A mutable object to which bind parameters will be added.
-   */
-  bindParam(bind: Record<string, unknown>): (newBind: unknown) => string;
 
   attributesToSQL(
     attributes: ColumnsDescription,

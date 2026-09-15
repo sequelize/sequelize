@@ -1,9 +1,10 @@
-import { DataTypes, literal } from '@sequelize/core';
+import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+  const dialect = sequelize.dialect;
 
   const vars = beforeAll2(() => {
     const User = sequelize.define(
@@ -85,7 +86,25 @@ describe('QueryGenerator#insertQuery', () => {
     });
   });
 
-  it('parses bind parameters in literals even with bindParams: false', () => {
+  it('throws an error if the bindParam option is used', () => {
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.insertQuery(
+        User.table,
+        {
+          firstName: 'John',
+          lastName: literal('$1'),
+          username: 'jd',
+        },
+        {},
+        // @ts-expect-error -- intentionally testing deprecated option
+        { bindParam: false },
+      );
+    }).to.throw('The bindParam option has been removed. Use parameterStyle instead.');
+  });
+
+  it('parses bind parameters in literals even with parameterStyle: REPLACEMENT', () => {
     const { User } = vars;
 
     const { query, bind } = queryGenerator.insertQuery(
@@ -97,7 +116,7 @@ describe('QueryGenerator#insertQuery', () => {
       },
       {},
       {
-        bindParam: false,
+        parameterStyle: ParameterStyle.REPLACEMENT,
       },
     );
 
@@ -108,6 +127,25 @@ describe('QueryGenerator#insertQuery', () => {
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
     });
     expect(bind).to.be.undefined;
+  });
+
+  it('throws an error if returning is used with parameterStyle: REPLACEMENT on a dialect that returns into binds', () => {
+    if (!dialect.supports.returnIntoValues) {
+      return;
+    }
+
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.insertQuery(
+        User.table,
+        { firstName: 'John' },
+        {},
+        { returning: true, parameterStyle: ParameterStyle.REPLACEMENT },
+      );
+    }).to.throw(
+      `The ${dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+    );
   });
 
   // This test was added due to a regression where these values were being converted to strings
@@ -157,10 +195,16 @@ describe('QueryGenerator#insertQuery', () => {
           'INSERT INTO [Users] ([firstName]) OUTPUT INSERTED.[id], INSERTED.[firstName] VALUES ($sequelize_1);',
         db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));',
         ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))',
+        oracle: `INSERT INTO "Users" ("firstName") VALUES ($sequelize_1) RETURNING "id", "firstName" INTO :2,:3;`,
       });
     });
 
     it('supports array of strings (column names)', () => {
+      // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       const { User } = vars;
 
       const { query } = queryGenerator.insertQuery(
@@ -189,6 +233,11 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
+      // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
+      if (dialect.name === 'oracle') {
+        return;
+      }
+
       const { User } = vars;
 
       expectsql(
@@ -229,6 +278,7 @@ describe('QueryGenerator#insertQuery', () => {
           default: 'INSERT INTO [myTable] ([birthday]) VALUES ($sequelize_1);',
           'db2 ibmi':
             'SELECT * FROM FINAL TABLE (INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1));',
+          oracle: `INSERT INTO "myTable" ("birthday") VALUES ($sequelize_1);`,
         },
         bind: {
           mysql: {
@@ -254,6 +304,9 @@ describe('QueryGenerator#insertQuery', () => {
           },
           mssql: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
+          },
+          oracle: {
+            sequelize_1: new Date('2011-03-27T10:01:55Z'),
           },
         },
       });
@@ -300,6 +353,10 @@ describe('QueryGenerator#insertQuery', () => {
           snowflake: {
             sequelize_1: true,
             sequelize_2: false,
+          },
+          oracle: {
+            sequelize_1: '1',
+            sequelize_2: '0',
           },
         },
       });
