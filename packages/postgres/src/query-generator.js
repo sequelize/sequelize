@@ -170,28 +170,38 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
       }
 
+      let setDefaultSql = '';
       if (definition.includes('DEFAULT')) {
-        attrSql += query(
+        setDefaultSql = query(
           `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
         );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      }
+
+      if (!definition.includes('REFERENCES')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
-      if (rawDefinition.startsWith('ENUM(')) {
-        attrSql += this.pgEnum(tableName, attributeName, rawDefinition);
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
-      }
-
+      let uniqueSql = '';
       if (/UNIQUE;*$/.test(definition)) {
-        definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql += query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace(
+        definition = definition.replace(/UNIQUE;*$/, '').trim();
+        uniqueSql = query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace(
           'ALTER COLUMN',
           '',
         );
       }
+
+      if (rawDefinition.startsWith('ENUM(')) {
+        attrSql += this.pgEnum(tableName, attributeName, rawDefinition);
+        const enumType = definition.endsWith('[]')
+          ? `${this.pgEnumName(tableName, attributeName)}[]`
+          : this.pgEnumName(tableName, attributeName);
+
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${enumType})`;
+      }
+
+      attrSql += uniqueSql;
 
       if (definition.includes('REFERENCES')) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
@@ -202,7 +212,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
 
-      sql.push(attrSql + columnComment);
+      sql.push(attrSql + setDefaultSql + columnComment);
     }
 
     return sql.join('');
