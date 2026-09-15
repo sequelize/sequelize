@@ -7,6 +7,8 @@ describe('PostgresConnectionManager#connect', () => {
     static lastInstance: FakePgClient | null = null;
     static queryImpl: ((this: FakePgClient, sql: string) => Promise<unknown>) | null = null;
 
+    static endError: Error | null = null;
+
     readonly connectionConfig: unknown;
     readonly connection = {
       on() {},
@@ -43,6 +45,9 @@ describe('PostgresConnectionManager#connect', () => {
 
     async end() {
       this.endCalls += 1;
+      if (FakePgClient.endError) {
+        throw FakePgClient.endError;
+      }
     }
   }
 
@@ -64,6 +69,7 @@ describe('PostgresConnectionManager#connect', () => {
   beforeEach(() => {
     FakePgClient.lastInstance = null;
     FakePgClient.queryImpl = null;
+    FakePgClient.endError = null;
   });
 
   it('runs timezone setup after connecting', async () => {
@@ -93,6 +99,33 @@ describe('PostgresConnectionManager#connect', () => {
     expect(FakePgClient.lastInstance?.endCalls).to.equal(1);
     expect(FakePgClient.lastInstance?.queryCalls).to.deep.equal(["SET TIME ZONE 'Asia/Kolkata';"]);
   });
+
+  for (const stage of ['timezone setup', 'OID refresh']) {
+    it(`reports both errors when ${stage} and connection teardown fail`, async () => {
+      const sequelize = createSequelize();
+      const setupError = new Error(`${stage} failed`);
+      const teardownError = new Error('connection teardown failed');
+      FakePgClient.endError = teardownError;
+      FakePgClient.queryImpl = async sql => {
+        if (stage === 'timezone setup' || sql.includes('WITH ranges AS')) {
+          throw setupError;
+        }
+
+        return { rows: [] };
+      };
+
+      try {
+        await sequelize.dialect.connectionManager.connect({} as any);
+        expect.fail('Expected connect() to fail');
+      } catch (error) {
+        expect(error).to.be.instanceOf(AggregateError);
+        expect((error as AggregateError).errors).to.deep.equal([setupError, teardownError]);
+        expect((error as AggregateError).cause).to.equal(teardownError);
+      }
+
+      expect(FakePgClient.lastInstance?.endCalls).to.equal(1);
+    });
+  }
 
   it('best-effort closes the connection when OID refresh fails', async () => {
     const sequelize = createSequelize();

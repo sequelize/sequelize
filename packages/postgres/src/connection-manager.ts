@@ -237,12 +237,15 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
       await this.#refreshOidMap(connection);
     } catch (error) {
-      // The connection is already open here. Make a best-effort attempt to close it before
-      // propagating the original setup error so failed connects do not leak sockets.
+      // The connection is already open here. Close it before propagating the setup error.
       try {
         await connection.end();
-      } catch {
-        // ignore teardown failures
+      } catch (teardownError) {
+        throw new AggregateError(
+          [error, teardownError],
+          'Postgres connection setup failed and the connection could not be closed',
+          { cause: teardownError },
+        );
       }
 
       throw error;
