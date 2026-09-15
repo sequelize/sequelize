@@ -16,6 +16,8 @@ import each from 'lodash/each';
 import isObject from 'lodash/isObject';
 import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
+const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['strict']);
+
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
     // TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
@@ -24,7 +26,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
         'createTableQuery',
         this.dialect,
         CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
+        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
         options,
       );
     }
@@ -97,7 +99,8 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       attrStr += `, PRIMARY KEY (${pkString})`;
     }
 
-    const sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr});`;
+    const strict = options.strict ? ' STRICT' : '';
+    const sql = `CREATE TABLE IF NOT EXISTS ${table} (${attrStr})${strict};`;
 
     return this.replaceBooleanDefaults(sql);
   }
