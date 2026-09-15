@@ -1,6 +1,8 @@
 import type {
   CreationOptional,
   HasManyAddAssociationsMixin,
+  HasManyCreateAssociationsMixin,
+  HasManyGetAssociationsMixin,
   HasManyHasAssociationsMixin,
   HasManyRemoveAssociationsMixin,
   HasManySetAssociationsMixin,
@@ -33,6 +35,8 @@ describe('hasMany Mixins', () => {
       declare removeLabels: HasManyRemoveAssociationsMixin<Label, Label['id']>;
       declare hasLabels: HasManyHasAssociationsMixin<Label, Label['id']>;
       declare addLabels: HasManyAddAssociationsMixin<Label, Label['id']>;
+      declare getLabels: HasManyGetAssociationsMixin<Label>;
+      declare createLabels: HasManyCreateAssociationsMixin<Label>;
 
       @HasMany(() => NonNullLabel, 'articleId')
       declare nonNullLabels?: NonNullLabel[];
@@ -302,7 +306,82 @@ describe('hasMany Mixins', () => {
       expect(await article.hasLabels([label.id])).to.equal(true);
     });
   });
+
+  describe('setAssociations with raw objects', () => {
+    it('creates and associates raw attribute objects', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      await article.setLabels([{}, {}] as any);
+
+      const labels = await article.getLabels!();
+      expect(labels).to.have.length(2);
+      for (const label of labels) {
+        expect(label.articleId).to.equal(article.id);
+      }
+    });
+
+    it('mixes instances and raw objects', async () => {
+      const { Label, Article } = vars;
+
+      const article = await Article.create();
+      const existing = await Label.create();
+
+      await article.setLabels([existing, {}] as any);
+
+      const labels = await article.getLabels!();
+      expect(labels).to.have.length(2);
+      for (const label of labels) {
+        expect(label.articleId).to.equal(article.id);
+      }
+    });
+  });
+
+  describe('addAssociations with raw objects', () => {
+    it('creates and associates raw attribute objects', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      await article.addLabels([{}, {}] as any);
+
+      const labels = await article.getLabels!();
+      expect(labels).to.have.length(2);
+      for (const label of labels) {
+        expect(label.articleId).to.equal(article.id);
+      }
+    });
+  });
+
+  describe('createManyAssociations', () => {
+    it('creates multiple associated instances at once', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      const created = await article.createLabels!([{}, {}] as any);
+
+      expect(created).to.have.length(2);
+      for (const label of created) {
+        expect(label.articleId).to.equal(article.id);
+      }
+
+      const fetched = await article.getLabels!();
+      expect(fetched).to.have.length(2);
+    });
+
+    it('returns an empty array when given an empty records list', async () => {
+      const { Article } = vars;
+
+      const article = await Article.create();
+
+      const created = await article.createLabels!([] as any);
+      expect(created).to.be.an('array').that.is.empty;
+    });
+  });
 });
+
 
 describe('hasMany Mixins + transaction', () => {
   if (!dialect.supports.transactions) {
