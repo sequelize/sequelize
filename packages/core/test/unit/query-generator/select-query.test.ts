@@ -75,6 +75,56 @@ describe('QueryGenerator#selectQuery', () => {
     return { User, Project, ProjectContributor };
   });
 
+  it('renders a constant include.where into the JOIN condition', () => {
+    const { Project } = vars;
+
+    const sql = queryGenerator.selectQuery(
+      Project.table,
+      {
+        model: Project,
+        attributes: ['id'],
+        include: _validateIncludedElements({
+          model: Project,
+          include: [
+            {
+              association: Project.associations.owner,
+              where: { id: { [Op.notIn]: [] } },
+              required: true,
+            },
+          ],
+        }).include,
+      },
+      Project,
+    );
+
+    expect(sql).to.include('AND 1 = 1');
+  });
+
+  it('brackets an include.where that compiles to a disjunction', () => {
+    const { Project } = vars;
+
+    const sql = queryGenerator.selectQuery(
+      Project.table,
+      {
+        model: Project,
+        attributes: ['id'],
+        include: _validateIncludedElements({
+          model: Project,
+          include: [
+            {
+              association: Project.associations.contributors,
+              where: { id: { [Op.in]: [1, null] } },
+              required: true,
+            },
+          ],
+        }).include,
+      },
+      Project,
+    );
+
+    expect(sql).to.match(/AND \(\[?[`"]?contributors[`"\]]?\.\[?[`"]?id[`"\]]? IN \(1\) OR /);
+  });
+
   describe('limit/offset', () => {
     it('supports offset without limit', () => {
       const { User } = vars;
@@ -601,7 +651,7 @@ describe('QueryGenerator#selectQuery', () => {
             [ProjectContributors] AS [contributors->ProjectContributor]
             INNER JOIN [Users] AS [contributors]
             ON [contributors].[id] = [contributors->ProjectContributor].[userId]
-            AND 'where'
+            AND ('where')
           )
           ON [Project].[id] = [contributors->ProjectContributor].[projectId];
         `,
@@ -616,7 +666,7 @@ describe('QueryGenerator#selectQuery', () => {
             [ProjectContributors] AS [contributors->ProjectContributor]
             INNER JOIN [Users] AS [contributors]
             ON [contributors].[id] = [contributors->ProjectContributor].[userId]
-            AND N'where'
+            AND (N'where')
           )
           ON [Project].[id] = [contributors->ProjectContributor].[projectId];
         `,
@@ -631,7 +681,7 @@ describe('QueryGenerator#selectQuery', () => {
               "ProjectContributors" "contributors->ProjectContributor"
               INNER JOIN "Users" "contributors"
               ON "contributors"."id" = "contributors->ProjectContributor"."userId"
-              AND 'where'
+              AND ('where')
             )
           ON "Project"."id" = "contributors->ProjectContributor"."projectId";
         `,

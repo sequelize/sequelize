@@ -57,6 +57,55 @@ describe('destroy', () => {
       expect(await User.findAll()).to.have.lengthOf(0);
     });
 
+    it('refuses a where that was derived to be true for every row', async () => {
+      const { User } = vars;
+
+      await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
+
+      await expect(User.destroy({ where: { username: { [Op.notIn]: [] } } })).to.be.rejectedWith(
+        /is true for every row/,
+      );
+
+      await expect(
+        User.destroy({ where: { [Op.not]: { username: { [Op.in]: [] } } } }),
+      ).to.be.rejectedWith(/is true for every row/);
+
+      expect(await User.findAll()).to.have.lengthOf(2);
+    });
+
+    it('refuses a derived always-true where even when a paranoid clause is added', async () => {
+      const { ParanoidUser } = vars;
+
+      await ParanoidUser.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
+
+      await expect(
+        ParanoidUser.destroy({ where: { username: { [Op.notIn]: [] } } }),
+      ).to.be.rejectedWith(/is true for every row/);
+
+      expect(await ParanoidUser.findAll()).to.have.lengthOf(2);
+    });
+
+    it('allows a derived always-true condition alongside a real one', async () => {
+      const { User } = vars;
+
+      await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
+
+      expect(
+        await User.destroy({
+          where: { [Op.and]: [{ username: 'user1' }, { username: { [Op.notIn]: [] } }] },
+        }),
+      ).to.equal(1);
+      expect(await User.findAll()).to.have.lengthOf(1);
+    });
+
+    it('deletes no rows for a where that can never be satisfied', async () => {
+      const { User } = vars;
+
+      await User.bulkCreate([{ username: 'user1' }, { username: 'user2' }]);
+      expect(await User.destroy({ where: { username: { [Op.in]: [] } } })).to.equal(0);
+      expect(await User.findAll()).to.have.lengthOf(2);
+    });
+
     it('deletes values that match filter', async () => {
       const { User } = vars;
 
