@@ -114,14 +114,24 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   addColumnQuery(table, key, attribute, options) {
     options ||= {};
 
-    const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
+    let dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
     const dataType = attribute.type || attribute;
-    const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(table);
     const ifNotExists = options.ifNotExists ? ' IF NOT EXISTS' : '';
 
-    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
+    let columnComment = '';
+    const commentPrefix = `; COMMENT ON COLUMN ${quotedTable}.${quotedKey} IS `;
+    const commentIndex = dbDataType.indexOf(commentPrefix);
+    if (commentIndex !== -1) {
+      // Move comment to a separate query
+      columnComment = `${dbDataType.slice(commentIndex + 1)};`;
+      dbDataType = dbDataType.slice(0, commentIndex);
+    }
+
+    const definition = this.dataTypeMapping(table, key, dbDataType);
+
+    let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};${columnComment}`;
 
     if (dataType instanceof DataTypes.ENUM) {
       query = this.pgEnum(table, key, dataType) + query;
@@ -139,7 +149,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     const query = subQuery => `ALTER TABLE ${this.quoteTable(tableName)} ALTER COLUMN ${subQuery};`;
     const sql = [];
     for (const attributeName in attributes) {
-      let definition = this.dataTypeMapping(tableName, attributeName, attributes[attributeName]);
+      let rawDefinition = attributes[attributeName];
+      let columnComment = '';
+      const commentPrefix = `; COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(attributeName)} IS `;
+      const i = rawDefinition.indexOf(commentPrefix);
+      if (i !== -1) {
+        // Move comment to a separate query
+        columnComment = `${rawDefinition.slice(i + 1)};`;
+        rawDefinition = rawDefinition.slice(0, i);
+      }
+
+      let definition = this.dataTypeMapping(tableName, attributeName, rawDefinition);
       let attrSql = '';
 
       if (definition.includes('NOT NULL')) {
@@ -172,12 +192,8 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         );
       }
 
-      if (attributes[attributeName].startsWith('ENUM(')) {
-        attrSql += this.pgEnum(tableName, attributeName, attributes[attributeName]);
-        definition = definition.replace(
-          /^ENUM\(.+\)/,
-          this.pgEnumName(tableName, attributeName, { schema: false }),
-        );
+      if (rawDefinition.startsWith('ENUM(')) {
+        attrSql += this.pgEnum(tableName, attributeName, rawDefinition);
         const enumType = definition.endsWith('[]')
           ? `${this.pgEnumName(tableName, attributeName)}[]`
           : this.pgEnumName(tableName, attributeName);
@@ -196,7 +212,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
 
-      sql.push(attrSql + setDefaultSql);
+      sql.push(attrSql + setDefaultSql + columnComment);
     }
 
     return sql.join('');
