@@ -859,6 +859,38 @@ describe(getTestDialectTeaser('Model'), () => {
       });
     });
 
+    it('should not prepend scope order when findAll provides an explicit order', () => {
+      const MyModel = sequelize.define('model');
+      MyModel.addScope('defaultScope', {
+        order: [['scopeField', 'ASC']],
+      });
+
+      const options = {
+        order: [['queryField', 'DESC']],
+      };
+
+      MyModel._normalizeIncludes(options, MyModel);
+      MyModel._injectScope(options);
+
+      expect(options.order).to.deep.equal([['queryField', 'DESC']]);
+    });
+
+    it('should apply scope order when findAll does not provide an order', () => {
+      const MyModel = sequelize.define('model');
+      MyModel.addScope('defaultScope', {
+        order: [['scopeField', 'ASC']],
+      });
+
+      const options = {};
+
+      MyModel._normalizeIncludes(options, MyModel);
+      MyModel._injectScope(options);
+
+      expect(options).to.deep.equal({
+        order: [['scopeField', 'ASC']],
+      });
+    });
+
     it('should be able to merge scope and having', () => {
       const MyModel = sequelize.define('model');
       MyModel.addScope('defaultScope', {
