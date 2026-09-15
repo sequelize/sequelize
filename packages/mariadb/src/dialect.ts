@@ -79,6 +79,7 @@ export class MariaDbDialect extends AbstractDialect<
     indexHints: true,
     dataTypes: {
       COLLATE_BINARY: true,
+      VARBINARY: true,
       GEOMETRY: true,
       INTS: numericOptions,
       FLOAT: { ...numericOptions, scaleAndPrecision: true },

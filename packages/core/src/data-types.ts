@@ -47,6 +47,8 @@ export const NOW = classToInvokable(DataTypes.NOW);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const BLOB = classToInvokable(DataTypes.BLOB);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
+export const VARBINARY = classToInvokable(DataTypes.VARBINARY);
+/** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const DECIMAL = classToInvokable(DataTypes.DECIMAL);
 /** This is a simple wrapper to make the DataType constructable without `new`. See the return type for all available options. */
 export const UUID = classToInvokable(DataTypes.UUID);
