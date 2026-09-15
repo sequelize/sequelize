@@ -28,7 +28,8 @@ export type DialectName =
   | 'db2'
   | 'snowflake'
   | 'ibmi'
-  | 'oracle';
+  | 'oracle'
+  | 'hana';
 
 const expect = chai.expect;
 

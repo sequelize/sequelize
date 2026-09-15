@@ -67,6 +67,10 @@ describe('Configuration', () => {
         ...CONFIG.oracle,
         port: 19_999,
       },
+      hana: {
+        ...CONFIG.hana,
+        port: 19_999,
+      },
     };
 
     const errorByDialect: Record<DialectName, Class<Error>> = {
@@ -79,6 +83,7 @@ describe('Configuration', () => {
       db2: ConnectionRefusedError,
       sqlite3: InvalidConnectionError,
       oracle: ConnectionRefusedError,
+      hana: ConnectionRefusedError,
     };
 
     const seq = new Sequelize<AbstractDialect>(badHostConfigs[dialectName]);
@@ -131,6 +136,10 @@ describe('Configuration', () => {
       },
       oracle: {
         ...CONFIG.oracle,
+        password: 'wrongpassword',
+      },
+      hana: {
+        ...CONFIG.hana,
         password: 'wrongpassword',
       },
     };

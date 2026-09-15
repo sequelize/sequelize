@@ -364,6 +364,11 @@ describe('Model', () => {
     describe('with defaultTimestampPrecision', () => {
       describe('not specified', () => {
         it('should add the automatic timestamp columns with the default precision of 6', async () => {
+          if (dialectName === 'hana') {
+            // HANA does not support timestamp precision
+            return;
+          }
+
           const newSequelize = createSequelizeInstance();
           const MyModel = newSequelize.define('MyModel', {}, { paranoid: true });
 
@@ -385,6 +390,11 @@ describe('Model', () => {
 
       describe('set to a number', () => {
         it('should add the automatic timestamp columns with the specified precision', async () => {
+          if (dialectName === 'hana') {
+            // HANA does not support timestamp precision
+            return;
+          }
+
           const newSequelize = createSequelizeInstance({
             defaultTimestampPrecision: 4,
           });

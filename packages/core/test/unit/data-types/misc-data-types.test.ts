@@ -55,7 +55,7 @@ describe('DataTypes.ENUM', () => {
       postgres: '"public"."enum_Users_anEnum"',
       'mysql mariadb': `ENUM('value 1', 'value 2')`,
       // SQL Server does not support enums, we use text + a check constraint instead
-      mssql: `NVARCHAR(255)`,
+      'mssql hana': `NVARCHAR(255)`,
       sqlite3: 'TEXT',
       'db2 ibmi snowflake': 'VARCHAR(255)',
       oracle: 'VARCHAR2(512)',
@@ -191,6 +191,7 @@ describe('DataTypes.JSON', () => {
     mssql: 'NVARCHAR(MAX)',
     sqlite3: 'TEXT',
     oracle: 'BLOB',
+    hana: 'NVARCHAR(5000)',
   });
 
   describe('escape', () => {

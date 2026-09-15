@@ -20,7 +20,9 @@ describe('QueryGenerator#dropSchemaQuery', () => {
   it('produces a DROP SCHEMA IF EXISTS query in supported dialects', () => {
     expectsql(() => queryGenerator.dropSchemaQuery('mySchema', { ifExists: true }), {
       default: 'DROP SCHEMA IF EXISTS [mySchema]',
-      'db2 mssql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['ifExists']),
+      'db2 mssql hana': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, [
+        'ifExists',
+      ]),
       sqlite3: notSupportedError,
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "mySchema" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
     });
@@ -47,6 +49,7 @@ describe('QueryGenerator#dropSchemaQuery', () => {
       'mariadb mysql': buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['cascade']),
       sqlite3: notSupportedError,
       oracle: `BEGIN EXECUTE IMMEDIATE 'DROP USER "mySchema" CASCADE' ; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -1918 THEN RAISE; END IF; END;`,
+      hana: buildInvalidOptionReceivedError('dropSchemaQuery', dialectName, ['ifExists']),
     });
   });
 });

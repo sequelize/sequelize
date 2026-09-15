@@ -18,6 +18,7 @@ describe('DataTypes.BLOB', () => {
     postgres: 'BYTEA',
     sqlite3: 'BLOB',
     oracle: 'BLOB',
+    hana: 'BLOB',
   });
 
   testDataTypeSql('BLOB("medium")', DataTypes.BLOB('medium'), {
@@ -28,6 +29,7 @@ describe('DataTypes.BLOB', () => {
     postgres: 'BYTEA',
     sqlite3: 'BLOB',
     oracle: 'BLOB',
+    hana: 'BLOB',
   });
 
   testDataTypeSql('BLOB({ length: "medium" })', DataTypes.BLOB({ length: 'medium' }), {
@@ -38,6 +40,7 @@ describe('DataTypes.BLOB', () => {
     postgres: 'BYTEA',
     sqlite3: 'BLOB',
     oracle: 'BLOB',
+    hana: 'BLOB',
   });
 
   testDataTypeSql('BLOB("long")', DataTypes.BLOB('long'), {
@@ -48,6 +51,7 @@ describe('DataTypes.BLOB', () => {
     postgres: 'BYTEA',
     sqlite3: 'BLOB',
     oracle: 'BLOB',
+    hana: 'BLOB',
   });
 
   describe('validate', () => {
