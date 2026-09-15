@@ -114,7 +114,10 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   addColumnQuery(table, key, attribute, options) {
     options ||= {};
 
-    const dbDataType = this.attributeToSQL(attribute, { context: 'addColumn', table, key });
+    const dbDataType = this.attributeToSQL(
+      { ...attribute, field: attribute.field || key },
+      { context: 'addColumn', tableOrModel: table },
+    );
     const dataType = attribute.type || attribute;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
@@ -283,23 +286,18 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (attribute.references) {
-      let schema;
-
-      if (options.schema) {
-        schema = options.schema;
-      } else if (
-        (!attribute.references.table || typeof attribute.references.table === 'string') &&
-        options.table &&
-        options.table.schema
-      ) {
-        schema = options.table.schema;
-      }
+      // an unqualified reference target lives in the same schema as the table that references it
+      const schema =
+        options?.tableOrModel &&
+        (!attribute.references.table || typeof attribute.references.table === 'string')
+          ? this.extractTableDetails(options.tableOrModel).schema
+          : undefined;
 
       const referencesTable = this.extractTableDetails(attribute.references.table, { schema });
 
       let referencesKey;
 
-      if (!options.withoutForeignKeyConstraints) {
+      if (!options?.withoutForeignKeyConstraints) {
         if (attribute.references.key) {
           referencesKey = this.quoteIdentifiers(attribute.references.key);
         } else {
@@ -323,10 +321,10 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     if (attribute.comment && typeof attribute.comment === 'string') {
-      if (options && ['addColumn', 'changeColumn'].includes(options.context)) {
-        const quotedAttr = this.quoteIdentifier(options.key);
+      if (options?.context === 'addColumn' || options?.context === 'changeColumn') {
+        const quotedAttr = this.quoteIdentifier(attribute.field);
         const escapedCommentText = this.escape(attribute.comment);
-        sql += `; COMMENT ON COLUMN ${this.quoteTable(options.table)}.${quotedAttr} IS ${escapedCommentText}`;
+        sql += `; COMMENT ON COLUMN ${this.quoteTable(options.tableOrModel)}.${quotedAttr} IS ${escapedCommentText}`;
       } else {
         // for createTable event which does it's own parsing
         // TODO: centralize creation of comment statements here
@@ -340,9 +338,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, { key, ...options });
+    for (const key of Object.keys(attributes)) {
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;

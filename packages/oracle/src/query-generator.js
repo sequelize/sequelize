@@ -441,8 +441,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     const attribute = joinSQLFragments([
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
-        attributeName: key,
         context: 'addColumn',
+        tableOrModel: table,
       }),
     ]);
 
@@ -871,7 +871,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
         .map(value => {
           return this.escape(value, undefined, {});
         })
@@ -882,14 +882,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
     if (attribute.type instanceof DataTypes.JSON) {
       template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IS JSON)`;
 
       return template;
     }
 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
+      template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN('1', '0'))`;
 
       return template;
     }
@@ -903,18 +903,12 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       let unsignedTemplate = '';
       if (attribute.type?.options?.unsigned) {
         attribute.type.options.unsigned = false;
-        unsignedTemplate += ` CHECK(${this.quoteIdentifier(options.attributeName)} >= 0)`;
+        unsignedTemplate += ` CHECK(${this.quoteIdentifier(attribute.field)} >= 0)`;
       }
 
       template = attribute.type.toString();
 
-      // Blobs/texts cannot have a defaultValue
-      if (
-        attribute.type &&
-        attribute.type !== 'TEXT' &&
-        attribute.type._binary !== true &&
-        defaultValueSchemable(attribute.defaultValue, this.dialect)
-      ) {
+      if (attribute.type && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
         template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
       }
 
@@ -939,7 +933,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       template += ' PRIMARY KEY';
     }
 
-    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
 
       if (attribute.references.key) {
@@ -959,10 +953,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      const attributeName = attribute.field || key;
-      result[attributeName] = this.attributeToSQL(attribute, { attributeName, ...options });
+    for (const key of Object.keys(attributes)) {
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;

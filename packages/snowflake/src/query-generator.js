@@ -1,6 +1,10 @@
 'use strict';
 
 import {
+  attributeTypeToDataTypeId,
+  normalizeDataType,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
@@ -130,6 +134,12 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       );
     }
 
+    dataType = {
+      ...dataType,
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
+
     return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
@@ -137,8 +147,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       this.quoteIdentifier(key),
       this.attributeToSQL(dataType, {
         context: 'addColumn',
-        tableName: table,
-        foreignKey: key,
+        tableOrModel: table,
       }),
       ';',
     ]);
@@ -245,8 +254,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
 
     // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
@@ -272,12 +280,13 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if (attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && attribute.field) {
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
+        );
 
-        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
@@ -303,9 +312,14 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
   attributesToSQL(attributes, options) {
     const result = {};
 
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+    for (const key of Object.keys(attributes)) {
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
+
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;
