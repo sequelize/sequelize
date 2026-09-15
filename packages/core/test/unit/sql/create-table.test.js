@@ -29,7 +29,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           queryGenerator.createTableQuery(
             FooUser.table,
-            queryGenerator.attributesToSQL(FooUser.getAttributes()),
+            queryGenerator.attributesToSql(FooUser.getAttributes()),
             {},
           ),
           {
@@ -78,7 +78,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           queryGenerator.createTableQuery(
             BarProject.table,
-            queryGenerator.attributesToSQL(BarProject.getAttributes()),
+            queryGenerator.attributesToSql(BarProject.getAttributes()),
             {},
           ),
           {
@@ -125,7 +125,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         expectsql(
           queryGenerator.createTableQuery(
             Image.table,
-            queryGenerator.attributesToSQL(Image.getAttributes()),
+            queryGenerator.attributesToSql(Image.getAttributes()),
             {},
           ),
           {

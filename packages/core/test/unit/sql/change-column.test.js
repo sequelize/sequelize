@@ -47,7 +47,7 @@ describe('QueryInterface#changeColumn', () => {
     });
 
     expectsql(sql, {
-      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL NOT NULL',
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL',
       mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
       db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
       mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',

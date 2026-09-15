@@ -106,6 +106,16 @@ export function attributeTypeToSql(type: AbstractDataType<any> | string): string
   );
 }
 
+/**
+ * Returns the dialect-independent identity of a data type, such as `BLOB` for `DataTypes.BLOB('long')`,
+ * regardless of how the dialect renders it. Raw SQL strings are returned as-is.
+ *
+ * @param type
+ */
+export function attributeTypeToDataTypeId(type: AbstractDataType<any> | string): string {
+  return typeof type === 'string' ? type : type.getDataTypeId();
+}
+
 export function getDataTypeParser(
   dialect: AbstractDialect,
   dataType: DataTypeClassOrInstance,

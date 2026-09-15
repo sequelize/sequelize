@@ -1,6 +1,7 @@
 'use strict';
 
 import { ParameterStyle } from '@sequelize/core';
+import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -8,12 +9,10 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { pojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
-import isObject from 'lodash/isObject';
 import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
@@ -113,12 +112,18 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
       );
     }
 
-    const attributes = {};
-    attributes[key] = dataType;
-    const fields = this.attributesToSQL(attributes, { context: 'addColumn' });
-    const attribute = `${this.quoteIdentifier(key)} ${fields[key]}`;
+    dataType = {
+      ...dataType,
+      field: key,
+      type: normalizeDataType(dataType.type, this.dialect),
+    };
 
-    const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${attribute};`;
+    const definition = this.attributeToSql(dataType, {
+      context: 'addColumn',
+      tableOrModel: table,
+    });
+
+    const sql = `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition};`;
 
     return this.replaceBooleanDefaults(sql);
   }
@@ -189,68 +194,6 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
     const result = { query };
     if (parameterStyle === ParameterStyle.BIND) {
       result.bind = bind;
-    }
-
-    return result;
-  }
-
-  attributesToSQL(attributes, options) {
-    const result = {};
-    for (const name in attributes) {
-      const attribute = attributes[name];
-      const columnName = attribute.field || attribute.columnName || name;
-
-      if (isObject(attribute)) {
-        let sql = attribute.type.toString();
-
-        if (attribute.allowNull === false) {
-          sql += ' NOT NULL';
-        }
-
-        if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
-          // TODO thoroughly check that DataTypes.NOW will properly
-          // get populated on all databases as DEFAULT value
-          // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
-          sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
-        }
-
-        if (attribute.unique === true) {
-          sql += ' UNIQUE';
-        }
-
-        if (attribute.primaryKey) {
-          sql += ' PRIMARY KEY';
-
-          if (attribute.autoIncrement) {
-            sql += ' AUTOINCREMENT';
-          }
-        }
-
-        if (attribute.references) {
-          const referencesTable = this.quoteTable(attribute.references.table);
-
-          let referencesKey;
-          if (attribute.references.key) {
-            referencesKey = this.quoteIdentifier(attribute.references.key);
-          } else {
-            referencesKey = this.quoteIdentifier('id');
-          }
-
-          sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
-
-          if (attribute.onDelete) {
-            sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-          }
-
-          if (attribute.onUpdate) {
-            sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
-          }
-        }
-
-        result[columnName] = sql;
-      } else {
-        result[columnName] = attribute;
-      }
     }
 
     return result;
