@@ -58,6 +58,7 @@ class TestModel extends Model<InferAttributes<TestModel>> {
   declare stringAttr: string;
   declare binaryAttr: Buffer;
   declare dateAttr: Date;
+  declare dateOnlyAttr: string | null;
   declare booleanAttr: boolean;
   declare bigIntAttr: bigint;
 
@@ -93,6 +94,7 @@ describe(getTestDialectTeaser('SQL'), () => {
         stringAttr: DataTypes.STRING,
         binaryAttr: DataTypes.BLOB,
         dateAttr: DataTypes.DATE(3),
+        dateOnlyAttr: DataTypes.DATEONLY,
         booleanAttr: DataTypes.BOOLEAN,
         ...(dialectSupportsBigInt() && { bigIntAttr: DataTypes.BIGINT }),
 
@@ -434,6 +436,102 @@ Caused by: "undefined" cannot be escaped`),
           oracle: `"dateAttr" = TO_TIMESTAMP_TZ('2013-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
         },
       );
+
+      // Temporal values used inline (i.e. not as bind parameters) go through DataType#escape,
+      // which is a completely separate code path from DataType#getBindParamSql.
+      // The tests below pin the inline path down for both DATEONLY and DATE, on every dialect.
+      describe('DATEONLY', () => {
+        testSql(
+          { dateOnlyAttr: '2022-01-01' },
+          {
+            default: `[dateOnlyAttr] = '2022-01-01'`,
+            mssql: `[dateOnlyAttr] = N'2022-01-01'`,
+            oracle: `"dateOnlyAttr" = TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: new Date('2022-01-01T12:13:14.123Z') },
+          {
+            default: `[dateOnlyAttr] = '2022-01-01'`,
+            mssql: `[dateOnlyAttr] = N'2022-01-01'`,
+            oracle: `"dateOnlyAttr" = TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: { [Op.gt]: '2022-01-01' } },
+          {
+            default: `[dateOnlyAttr] > '2022-01-01'`,
+            mssql: `[dateOnlyAttr] > N'2022-01-01'`,
+            oracle: `"dateOnlyAttr" > TO_DATE('2022/01/01', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: { [Op.between]: ['2022-01-01', '2022-12-31'] } },
+          {
+            default: `[dateOnlyAttr] BETWEEN '2022-01-01' AND '2022-12-31'`,
+            mssql: `[dateOnlyAttr] BETWEEN N'2022-01-01' AND N'2022-12-31'`,
+            oracle: `"dateOnlyAttr" BETWEEN TO_DATE('2022/01/01', 'YYYY/MM/DD') AND TO_DATE('2022/12/31', 'YYYY/MM/DD')`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: { [Op.in]: ['2022-01-01', '2022-12-31'] } },
+          {
+            default: `[dateOnlyAttr] IN ('2022-01-01', '2022-12-31')`,
+            mssql: `[dateOnlyAttr] IN (N'2022-01-01', N'2022-12-31')`,
+            oracle: `"dateOnlyAttr" IN (TO_DATE('2022/01/01', 'YYYY/MM/DD'), TO_DATE('2022/12/31', 'YYYY/MM/DD'))`,
+          },
+        );
+
+        testSql(
+          { dateOnlyAttr: null },
+          {
+            default: `[dateOnlyAttr] IS NULL`,
+          },
+        );
+      });
+
+      describe('DATE', () => {
+        testSql(
+          { dateAttr: { [Op.gt]: new Date('2021-01-01T00:00:00Z') } },
+          {
+            default: `[dateAttr] > '2021-01-01 00:00:00.000 +00:00'`,
+            mssql: `[dateAttr] > N'2021-01-01 00:00:00.000 +00:00'`,
+            'mariadb mysql': `\`dateAttr\` > '2021-01-01 00:00:00.000'`,
+            'db2 ibmi snowflake': `"dateAttr" > '2021-01-01 00:00:00.000'`,
+            oracle: `"dateAttr" > TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+          },
+        );
+
+        testSql(
+          {
+            dateAttr: {
+              [Op.between]: [new Date('2021-01-01T00:00:00Z'), new Date('2022-01-01T00:00:00Z')],
+            },
+          },
+          {
+            default: `[dateAttr] BETWEEN '2021-01-01 00:00:00.000 +00:00' AND '2022-01-01 00:00:00.000 +00:00'`,
+            mssql: `[dateAttr] BETWEEN N'2021-01-01 00:00:00.000 +00:00' AND N'2022-01-01 00:00:00.000 +00:00'`,
+            'mariadb mysql': `\`dateAttr\` BETWEEN '2021-01-01 00:00:00.000' AND '2022-01-01 00:00:00.000'`,
+            'db2 ibmi snowflake': `"dateAttr" BETWEEN '2021-01-01 00:00:00.000' AND '2022-01-01 00:00:00.000'`,
+            oracle: `"dateAttr" BETWEEN TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM') AND TO_TIMESTAMP_TZ('2022-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
+          },
+        );
+
+        testSql(
+          { dateAttr: { [Op.in]: [new Date('2021-01-01T00:00:00Z')] } },
+          {
+            default: `[dateAttr] IN ('2021-01-01 00:00:00.000 +00:00')`,
+            mssql: `[dateAttr] IN (N'2021-01-01 00:00:00.000 +00:00')`,
+            'mariadb mysql': `\`dateAttr\` IN ('2021-01-01 00:00:00.000')`,
+            'db2 ibmi snowflake': `"dateAttr" IN ('2021-01-01 00:00:00.000')`,
+            oracle: `"dateAttr" IN (TO_TIMESTAMP_TZ('2021-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM'))`,
+          },
+        );
+      });
 
       describe('Buffer', () => {
         testSql(

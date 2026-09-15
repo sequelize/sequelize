@@ -150,14 +150,26 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
       }
 
+      let setDefaultSql = '';
       if (definition.includes('DEFAULT')) {
-        attrSql += query(
+        setDefaultSql = query(
           `${this.quoteIdentifier(attributeName)} SET DEFAULT ${definition.match(/DEFAULT ([^;]+)/)[1]}`,
         );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!definition.includes('REFERENCES')) {
+      }
+
+      if (!definition.includes('REFERENCES')) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
+      }
+
+      let uniqueSql = '';
+      if (/UNIQUE;*$/.test(definition)) {
+        definition = definition.replace(/UNIQUE;*$/, '').trim();
+        uniqueSql = query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace(
+          'ALTER COLUMN',
+          '',
+        );
       }
 
       if (attributes[attributeName].startsWith('ENUM(')) {
@@ -166,16 +178,14 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           /^ENUM\(.+\)/,
           this.pgEnumName(tableName, attributeName, { schema: false }),
         );
-        definition += ` USING (${this.quoteIdentifier(attributeName)}::${this.pgEnumName(tableName, attributeName)})`;
+        const enumType = definition.endsWith('[]')
+          ? `${this.pgEnumName(tableName, attributeName)}[]`
+          : this.pgEnumName(tableName, attributeName);
+
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${enumType})`;
       }
 
-      if (/UNIQUE;*$/.test(definition)) {
-        definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql += query(`ADD UNIQUE (${this.quoteIdentifier(attributeName)})`).replace(
-          'ALTER COLUMN',
-          '',
-        );
-      }
+      attrSql += uniqueSql;
 
       if (definition.includes('REFERENCES')) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
@@ -186,7 +196,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} TYPE ${definition}`);
       }
 
-      sql.push(attrSql);
+      sql.push(attrSql + setDefaultSql);
     }
 
     return sql.join('');
@@ -532,10 +542,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     return (
-      'SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value FROM pg_type t ' +
-      'JOIN pg_enum e ON t.oid = e.enumtypid ' +
+      'SELECT t.typname enum_name, ' +
+      'COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value ' +
+      'FROM pg_type t ' +
+      'LEFT JOIN pg_enum e ON t.oid = e.enumtypid ' +
       'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
-      `WHERE n.nspname = ${this.escape(tableDetails.schema)}${enumName} GROUP BY 1`
+      `WHERE n.nspname = ${this.escape(tableDetails.schema)} AND t.typtype = 'e'${enumName} GROUP BY 1`
     );
   }
 
