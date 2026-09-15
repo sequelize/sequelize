@@ -592,10 +592,8 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           },
         ];
 
-        await Promise.all([
-          this.queryInterface.bulkInsert('level', levels),
-          this.queryInterface.bulkInsert('users', users),
-        ]);
+        await this.queryInterface.bulkInsert('level', levels);
+        await this.queryInterface.bulkInsert('users', users);
 
         await this.queryInterface.changeColumn('level', 'name', {
           type: DataTypes.STRING,
