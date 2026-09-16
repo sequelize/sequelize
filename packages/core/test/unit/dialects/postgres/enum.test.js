@@ -312,6 +312,20 @@ describe('PostgresQueryGenerator', () => {
       // auto-generated name in the custom schema
       expect(result).to.include('USING ("mood"::"shared"."enum_users_mood")');
     });
+
+    it('adds USING cast for custom-named ARRAY(ENUM)', () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        moods: DataTypes.ARRAY(DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' })),
+      });
+      const qg = sq.dialect.queryGenerator;
+      const attrs = qg.attributesToSQL(
+        { moods: User.modelDefinition.attributes.get('moods') },
+        { context: 'changeColumn', table: User.table },
+      );
+      const result = qg.changeColumnQuery(User.table, attrs);
+      expect(result).to.include('USING ("moods"::"public"."mood_type"[])');
+    });
   });
 
   describe('pgEnumAdd', () => {
@@ -498,6 +512,42 @@ describe('PostgresQueryGenerator', () => {
     });
   });
 
+  describe('ensureEnums (enum value sync)', () => {
+    it('populates a shared named enum that exists but has no values yet, using its custom name', async () => {
+      const sq = createSequelizeInstance();
+      const User = sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'shared' }),
+      });
+
+      const stub = sinon.stub(sq, 'queryRaw').callsFake(sql => {
+        if (sql.startsWith('SELECT')) {
+          // The type already exists (e.g. CREATE TYPE ... AS ENUM ()) but has no values yet.
+          return Promise.resolve({ enum_name: 'mood_type', enum_value: '{}' });
+        }
+
+        return Promise.resolve([[], 0]);
+      });
+      // Not under test here; avoids issuing a real OID-refresh query.
+      const refreshStub = sinon.stub(sq.dialect.connectionManager, 'refreshDynamicOids').resolves();
+
+      try {
+        const attributes = Object.fromEntries(User.modelDefinition.physicalAttributes);
+        await sq.queryInterface.ensureEnums('users', attributes, {}, User);
+
+        const addValueSqls = stub.args
+          .map(([sql]) => sql)
+          .filter(sql => sql?.includes('ADD VALUE'));
+        expect(addValueSqls).to.have.length(2);
+        for (const sql of addValueSqls) {
+          expect(sql).to.include('"shared"."mood_type"');
+        }
+      } finally {
+        refreshStub.restore();
+        stub.restore();
+      }
+    });
+  });
+
   describe('dropTable (enum cleanup)', () => {
     let stub;
 
@@ -515,6 +565,20 @@ describe('PostgresQueryGenerator', () => {
       const drops = getDropTypeSqls(stub);
       expect(drops).to.have.length(1);
       expect(drops[0]).to.equal('DROP TYPE IF EXISTS "public"."enum_users_mood"; ');
+    });
+
+    it('drops a schema-only enum (no custom name) from its declared schema', async () => {
+      const sq = createSequelizeInstance();
+      sq.define('user', {
+        mood: DataTypes.ENUM({ values: ['happy', 'sad'], schema: 'shared' }),
+      });
+      stub = sinon.stub(sq, 'queryRaw').resolves([[], 0]);
+
+      await sq.queryInterface.dropTable('users');
+
+      const drops = getDropTypeSqls(stub);
+      expect(drops).to.have.length(1);
+      expect(drops[0]).to.equal('DROP TYPE IF EXISTS "shared"."enum_users_mood"; ');
     });
 
     it('drops a named enum when used only by the dropped model', async () => {

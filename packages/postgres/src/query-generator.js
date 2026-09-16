@@ -261,14 +261,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           enumName: enumType.options.name,
           enumSchema: enumType.options.schema,
         });
-        if (attribute.type instanceof DataTypes.ARRAY) {
-          // Arrays don't need a USING cast in changeColumnQuery, emit the type directly.
-          type = `${qualifiedName}[]`;
-        } else {
-          // Wrap in a sentinel so changeColumnQuery can detect this is an ENUM type and add
-          // the required USING cast. dataTypeMapping strips the wrapper before emitting SQL.
-          type = `ENUM_NAMED(${qualifiedName})`;
-        }
+        // Wrap in a sentinel so changeColumnQuery can detect this is an ENUM type and add
+        // the required USING cast. dataTypeMapping strips the wrapper before emitting SQL.
+        type =
+          attribute.type instanceof DataTypes.ARRAY
+            ? `ENUM_NAMED(${qualifiedName})[]`
+            : `ENUM_NAMED(${qualifiedName})`;
       } else if (Array.isArray(values) && values.length > 0) {
         type = `ENUM(${values.map(value => this.escape(value)).join(', ')})`;
 

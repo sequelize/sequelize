@@ -172,13 +172,17 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
           if (enumVals.length === 0) {
             for (const val of vals) {
               promises.push(() => {
+                const valueOptions = {
+                  ...options,
+                  enumName: customEnumName,
+                  enumSchema: customEnumSchema,
+                  before: null,
+                  after: null,
+                };
+
                 return this.sequelize.queryRaw(
-                  this.queryGenerator.pgEnumAdd(tableName, field, val, {
-                    ...options,
-                    before: null,
-                    after: null,
-                  }),
-                  options,
+                  this.queryGenerator.pgEnumAdd(tableName, field, val, valueOptions),
+                  valueOptions,
                 );
               });
             }
@@ -406,6 +410,13 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
           { tableName, schema: options?.schema },
           attribute.attributeName,
           { enumName: enumType.options.name, enumSchema: currentEnumSchema },
+        );
+        sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
+      } else if (enumType.options.schema !== undefined) {
+        const fullEnumName = this.queryGenerator.pgEnumName(
+          { tableName, schema: options?.schema },
+          attribute.attributeName,
+          { enumSchema: enumType.options.schema },
         );
         sql = this.queryGenerator.pgEnumDrop(null, null, fullEnumName);
       } else {
