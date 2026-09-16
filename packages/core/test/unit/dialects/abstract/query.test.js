@@ -486,6 +486,64 @@ describe('[ABSTRACT]', () => {
     });
   });
 
+  describe('handleSelectQuery', () => {
+    it('restores minified aliases in raw results', () => {
+      const query = new Query({}, current, {
+        aliasesMapping: new Map([
+          ['_0', 'tasks.id'],
+          ['_1', 'tasks.title'],
+        ]),
+        raw: true,
+      });
+
+      expect(query.handleSelectQuery([{ _0: 1, _1: 'task', untouched: true }])).to.deep.equal([
+        { 'tasks.id': 1, 'tasks.title': 'task', untouched: true },
+      ]);
+    });
+
+    it('restores magic property names without changing the row prototype', () => {
+      const value = { injected: true };
+      const query = new Query({}, current, {
+        aliasesMapping: new Map([['_0', '__proto__']]),
+        raw: true,
+      });
+
+      const [row] = query.handleSelectQuery([{ _0: value }]);
+
+      expect(Object.getPrototypeOf(row)).to.equal(Object.prototype);
+      expect(Object.hasOwn(row, '__proto__')).to.be.true;
+      expect(Object.getOwnPropertyDescriptor(row, '__proto__').value).to.equal(value);
+    });
+
+    it('restores minified aliases before grouping joined results', () => {
+      const User = current.define('AliasMappingUser', {}, { timestamps: false });
+      const Task = current.define(
+        'AliasMappingTask',
+        { title: DataTypes.STRING },
+        { timestamps: false },
+      );
+      const tasks = User.hasMany(Task, { as: 'tasks', foreignKey: 'userId' });
+      const include = { association: tasks, as: 'tasks', model: Task };
+      const query = new Query({}, current, {
+        aliasesMapping: new Map([
+          ['_0', 'tasks.id'],
+          ['_1', 'tasks.title'],
+        ]),
+        hasJoin: true,
+        hasMultiAssociation: true,
+        include: [include],
+        includeMap: { tasks: include },
+        includeNames: ['tasks'],
+        model: User,
+      });
+
+      const [user] = query.handleSelectQuery([{ id: 1, _0: 2, _1: 'task' }]);
+
+      expect(user.tasks).to.have.length(1);
+      expect(user.tasks[0].get({ plain: true })).to.include({ id: 2, title: 'task' });
+    });
+  });
+
   describe('_logQuery', () => {
     beforeEach(function () {
       this.cls = class MyQuery extends Query {};

@@ -1723,6 +1723,18 @@ export class JSONB extends JSON {
 }
 
 /**
+ * The type of a value produced by a JSON path extraction (e.g. `data.field` in a WHERE clause). Not a
+ * valid column type. Defaults to {@link JSON}'s behavior; dialects can override it via
+ * `dataTypeOverrides` if their extraction function doesn't return a re-encoded JSON document.
+ *
+ * @category DataTypes
+ */
+export class JsonPathExtractionResult extends JSON {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'JSON_PATH_EXTRACTION_RESULT';
+}
+
+/**
  * A default value of the current timestamp. Not a valid type.
  *
  * @example
