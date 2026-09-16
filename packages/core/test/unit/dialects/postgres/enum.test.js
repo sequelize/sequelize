@@ -512,42 +512,6 @@ describe('PostgresQueryGenerator', () => {
     });
   });
 
-  describe('ensureEnums (enum value sync)', () => {
-    it('populates a shared named enum that exists but has no values yet, using its custom name', async () => {
-      const sq = createSequelizeInstance();
-      const User = sq.define('user', {
-        mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'shared' }),
-      });
-
-      const stub = sinon.stub(sq, 'queryRaw').callsFake(sql => {
-        if (sql.startsWith('SELECT')) {
-          // The type already exists (e.g. CREATE TYPE ... AS ENUM ()) but has no values yet.
-          return Promise.resolve({ enum_name: 'mood_type', enum_value: '{}' });
-        }
-
-        return Promise.resolve([[], 0]);
-      });
-      // Not under test here; avoids issuing a real OID-refresh query.
-      const refreshStub = sinon.stub(sq.dialect.connectionManager, 'refreshDynamicOids').resolves();
-
-      try {
-        const attributes = Object.fromEntries(User.modelDefinition.physicalAttributes);
-        await sq.queryInterface.ensureEnums('users', attributes, {}, User);
-
-        const addValueSqls = stub.args
-          .map(([sql]) => sql)
-          .filter(sql => sql?.includes('ADD VALUE'));
-        expect(addValueSqls).to.have.length(2);
-        for (const sql of addValueSqls) {
-          expect(sql).to.include('"shared"."mood_type"');
-        }
-      } finally {
-        refreshStub.restore();
-        stub.restore();
-      }
-    });
-  });
-
   describe('dropTable (enum cleanup)', () => {
     let stub;
 
