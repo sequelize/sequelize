@@ -745,7 +745,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         inBindPosition = tempBindPositions;
       }
 
-      tuple = Object.values(bindMap).map(value => (isPlainObject(value) ? value.val : value));
+      tuple = Object.values(bindMap).map(value => (isTypedBind(value) ? value.val : value));
       // Adding the row to the array of rows that will be supplied to executeMany()
       tuples.push(tuple);
     }
@@ -1163,6 +1163,10 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       return `:${Object.keys(bind).length + posOffset}`;
     };
   }
+}
+
+function isTypedBind(value) {
+  return isPlainObject(value) && 'type' in value && 'val' in value;
 }
 
 /* istanbul ignore next */

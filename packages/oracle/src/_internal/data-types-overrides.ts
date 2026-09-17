@@ -5,10 +5,9 @@ import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-r
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { DB_TYPE_TIMESTAMP_LTZ } from 'oracledb';
+import oracledbLib from 'oracledb';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('oracledb');
+type Lib = typeof oracledbLib;
 
 dayjs.extend(utc);
 
@@ -157,10 +156,7 @@ export class DATE extends BaseTypes.DATE {
    * @override
    */
   getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
-    return options.bindParam({
-      type: DB_TYPE_TIMESTAMP_LTZ,
-      val: this._sanitize(value),
-    });
+    return options.bindParam({ ...this._getBindDef(oracledbLib), val: this._sanitize(value) });
   }
 
   _sanitize(value: any) {
