@@ -4,6 +4,11 @@ import sinon from 'sinon';
 import { sequelize } from './support';
 
 describe('ConnectionManager', () => {
+  // pg-native's Client#end() calls the global setImmediate, so it never resolves under fake timers
+  if (process.env.DIALECT === 'postgres-native') {
+    return;
+  }
+
   let clock: SinonFakeTimers | undefined;
 
   afterEach(() => {
