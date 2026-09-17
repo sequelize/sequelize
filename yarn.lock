@@ -2839,12 +2839,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@sap/hana-client@npm:^2.19.21":
-  version: 2.23.27
-  resolution: "@sap/hana-client@npm:2.23.27"
+"@sap/hana-client@npm:^2.20.23":
+  version: 2.30.24
+  resolution: "@sap/hana-client@npm:2.30.24"
   dependencies:
     debug: "npm:3.1.0"
-  checksum: 10c0/fe49ed205a24c3d1937eaad6ca82e81970e11725f4f3548a4e9f43178ef76adaf522b00402908e7daa85a292274b703d709c400108140ad707f533d946ec5c7c
+  checksum: 10c0/cf55882793f360273dc3fb83b504d3924491d746a1083c888e21c39f00b541aa14ab3dd12e1c4b98308e1852be233f8b474cc17fb2ac8f7e50a2675a8a61d1d7
   languageName: node
   linkType: hard
 
@@ -2955,7 +2955,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/hana@workspace:packages/hana"
   dependencies:
-    "@sap/hana-client": "npm:^2.19.21"
+    "@sap/hana-client": "npm:^2.20.23"
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:4.3.20"

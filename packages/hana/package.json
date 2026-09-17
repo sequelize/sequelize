@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@sap/hana-client": "^2.19.21",
+    "@sap/hana-client": "^2.20.23",
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.23",
