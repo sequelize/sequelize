@@ -42,9 +42,7 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
     migrations: false,
     schemas: true,
     finalTable: true,
-    autoIncrement: {
-      defaultValue: false,
-    },
+    bulkDefault: true,
     alterColumn: {
       unique: false,
     },

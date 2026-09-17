@@ -171,17 +171,10 @@ describe('Model', () => {
             switch (dialectName) {
               case 'postgres':
               case 'oracle':
-              case 'ibmi': {
-                expect(sql).to.include(
-                  'INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT',
-                );
-
-                break;
-              }
-
+              case 'ibmi':
               case 'db2': {
                 expect(sql).to.include(
-                  'INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES',
+                  'INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT',
                 );
 
                 break;
@@ -1217,6 +1210,25 @@ describe('Model', () => {
         }
       });
     }
+
+    it('inserts rows that only use default values', async function () {
+      const Model = this.customSequelize.define(
+        'DefaultValuesOnly',
+        { day: DataTypes.DATEONLY },
+        { timestamps: false },
+      );
+
+      await Model.sync({ force: true });
+      await Model.bulkCreate([{}, {}]);
+      await Model.create({});
+
+      const rows = await Model.findAll({ order: [['id', 'ASC']], raw: true });
+      expect(rows).to.deep.equal([
+        { id: 1, day: null },
+        { id: 2, day: null },
+        { id: 3, day: null },
+      ]);
+    });
 
     if (dialect.supports.returnValues) {
       describe('return values', () => {

@@ -18,8 +18,6 @@ import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your
 import { pojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import each from 'lodash/each';
-import forEach from 'lodash/forEach';
-import forOwn from 'lodash/forOwn';
 import includes from 'lodash/includes';
 import isPlainObject from 'lodash/isPlainObject';
 import isString from 'lodash/isString';
@@ -35,12 +33,6 @@ function throwMethodUndefined(methodName) {
 }
 
 export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
-  constructor(dialect, internals) {
-    super(dialect, internals);
-
-    this.autoGenValue = 1;
-  }
-
   createTableQuery(tableName, attributes, options) {
     if (options) {
       rejectInvalidOptions(
@@ -269,83 +261,18 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     });
   }
 
-  bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
-    options ||= {};
-    attributes ||= {};
-    let query = 'INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>;';
-    if (options.returning) {
-      query =
-        'SELECT * FROM FINAL TABLE (INSERT INTO <%= table %> (<%= attributes %>)<%= output %> VALUES <%= tuples %>);';
+  bulkInsertQuery(tableName, fieldValueHashes, options, fieldMappedAttributes) {
+    const query = super.bulkInsertQuery(
+      tableName,
+      fieldValueHashes,
+      options,
+      fieldMappedAttributes,
+    );
+    if (!options?.returning) {
+      return query;
     }
 
-    const emptyQuery = 'INSERT INTO <%= table %>';
-    const tuples = [];
-    const allAttributes = [];
-    const allQueries = [];
-
-    let outputFragment;
-    const valuesForEmptyQuery = [];
-
-    if (options.returning) {
-      outputFragment = '';
-    }
-
-    forEach(attrValueHashes, attrValueHash => {
-      // special case for empty objects with primary keys
-      const fields = Object.keys(attrValueHash);
-      const firstAttr = attributes[fields[0]];
-      if (
-        fields.length === 1 &&
-        firstAttr &&
-        firstAttr.autoIncrement &&
-        attrValueHash[fields[0]] === null
-      ) {
-        valuesForEmptyQuery.push(`(${this.autoGenValue++})`);
-
-        return;
-      }
-
-      // normal case
-      forOwn(attrValueHash, (value, key) => {
-        if (!allAttributes.includes(key)) {
-          if (value === null && attributes[key] && attributes[key].autoIncrement) {
-            return;
-          }
-
-          allAttributes.push(key);
-        }
-      });
-    });
-    if (valuesForEmptyQuery.length > 0) {
-      allQueries.push(`${emptyQuery} VALUES ${valuesForEmptyQuery.join(',')}`);
-    }
-
-    if (allAttributes.length > 0) {
-      forEach(attrValueHashes, attrValueHash => {
-        tuples.push(
-          `(${
-            // TODO: pass type of attribute & model
-            allAttributes
-              .map(key =>
-                this.escape(attrValueHash[key] ?? null, { replacements: options.replacements }),
-              )
-              .join(',')
-          })`,
-        );
-      });
-      allQueries.push(query);
-    }
-
-    const replacements = {
-      table: this.quoteTable(tableName),
-      attributes: allAttributes.map(attr => this.quoteIdentifier(attr)).join(','),
-      tuples,
-      output: outputFragment,
-    };
-
-    const generatedQuery = template(allQueries.join(';'), this._templateSettings)(replacements);
-
-    return generatedQuery;
+    return `SELECT * FROM FINAL TABLE (${removeTrailingSemicolon(query)});`;
   }
 
   updateQuery(tableName, attrValueHash, where, options, attributes) {
