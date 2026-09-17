@@ -23,7 +23,10 @@ import {
   EMPTY_SET,
   getObjectFromMap,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import {
+  defaultValueSchemable,
+  isWhereEmpty,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { pojo } from '@sequelize/utils';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
 
@@ -620,6 +623,15 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   upsertQuery(tableName, insertValues, updateValues, where, model, options) {
     const modelDefinition = model.modelDefinition;
     const rawAttributes = getObjectFromMap(modelDefinition.attributes);
+    if (where == null || isWhereEmpty(where)) {
+      const insertQuery = this.insertQuery(tableName, insertValues, rawAttributes, options);
+      if (options.bindParam !== false) {
+        options.bind = insertQuery.bind;
+      }
+
+      return `BEGIN ${insertQuery.query} :isUpdate := 0; END;`;
+    }
+
     const updateQuery = this.updateQuery(tableName, updateValues, where, options, rawAttributes);
     // This bind is passed so that the insert query starts appending to this same bind array
     options.bind = updateQuery.bind;
