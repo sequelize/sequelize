@@ -22,6 +22,22 @@ const ER_NO_REFERENCED_ROW = 1452;
 
 const debug = logger.debugContext('sql:snowflake');
 
+function parseRows(dialect, rows, columns) {
+  for (const column of columns) {
+    const parse = dialect.getParserForDatabaseDataType(column.getType());
+    if (!parse) {
+      continue;
+    }
+
+    const name = column.getName();
+    for (const row of rows) {
+      if (row[name] != null) {
+        row[name] = parse(row[name]);
+      }
+    }
+  }
+}
+
 export class SnowflakeQuery extends AbstractQuery {
   async run(sql, parameters) {
     this.sql = sql;
@@ -36,16 +52,18 @@ export class SnowflakeQuery extends AbstractQuery {
     }
 
     let results;
+    let columns;
 
     try {
       results = await new Promise((resolve, reject) => {
         connection.execute({
           sqlText: sql,
           binds: parameters,
-          complete(err, _stmt, rows) {
+          complete(err, stmt, rows) {
             if (err) {
               reject(err);
             } else {
+              columns = stmt?.getColumns?.();
               resolve(rows);
             }
           },
@@ -69,6 +87,10 @@ export class SnowflakeQuery extends AbstractQuery {
 
     if (showWarnings && results && results.warningStatus > 0) {
       await this.logWarnings(results);
+    }
+
+    if (Array.isArray(results) && columns) {
+      parseRows(this.sequelize.dialect, results, columns);
     }
 
     return this.formatResults(results);

@@ -1,7 +1,7 @@
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
 import type { DialectName } from '../../support';
-import { expectsql, sequelize, useProcessTimezone } from '../../support';
+import { createSequelizeInstance, expectsql, sequelize, useProcessTimezone } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
@@ -120,34 +120,78 @@ describe('DataTypes.DATE', () => {
   describe('parseDatabaseValue', () => {
     useProcessTimezone('Europe/Amsterdam');
 
+    interface DriverTimestampCase {
+      driverValue: unknown;
+      expected: string;
+      timezone?: string;
+    }
+
     const driverTimestamps: Partial<
-      Record<DialectName, { databaseDataType: unknown; cases: Array<[unknown, string]> }>
+      Record<DialectName, { databaseDataType: unknown; cases: DriverTimestampCase[] }>
     > = {
       db2: {
         databaseDataType: 'TIMESTAMP',
         cases: [
-          ['2022-01-15 10:20:30.123456', '2022-01-15T10:20:30.123Z'],
-          ['2022-07-15 10:20:30.123456', '2022-07-15T10:20:30.123Z'],
+          { driverValue: '2022-01-15 10:20:30.123456', expected: '2022-01-15T10:20:30.123Z' },
+          { driverValue: '2022-07-15 10:20:30.123456', expected: '2022-07-15T10:20:30.123Z' },
         ],
       },
       ibmi: {
         databaseDataType: 93,
         cases: [
-          ['2022-01-15 10:20:30.123456', '2022-01-15T10:20:30.123Z'],
-          ['2022-07-15 10:20:30.123456', '2022-07-15T10:20:30.123Z'],
-          ['2022-01-15 10:20:30', '2022-01-15T10:20:30.000Z'],
-          ['2022-01-15-10.20.30.123456', '2022-01-15T10:20:30.123Z'],
-          ['2022-07-15-10.20.30.123456', '2022-07-15T10:20:30.123Z'],
+          { driverValue: '2022-01-15 10:20:30.123456', expected: '2022-01-15T10:20:30.123Z' },
+          { driverValue: '2022-07-15 10:20:30.123456', expected: '2022-07-15T10:20:30.123Z' },
+          { driverValue: '2022-01-15 10:20:30', expected: '2022-01-15T10:20:30.000Z' },
+          { driverValue: '2022-01-15-10.20.30.123456', expected: '2022-01-15T10:20:30.123Z' },
+          { driverValue: '2022-07-15-10.20.30.123456', expected: '2022-07-15T10:20:30.123Z' },
+        ],
+      },
+      snowflake: {
+        databaseDataType: 'timestamp_ntz',
+        cases: [
+          {
+            driverValue: new Date('2022-01-15T10:20:30.123Z'),
+            expected: '2022-01-15T10:20:30.123Z',
+          },
+          {
+            driverValue: new Date('2022-07-15T10:20:30.123Z'),
+            expected: '2022-07-15T10:20:30.123Z',
+          },
+          {
+            timezone: 'Asia/Tokyo',
+            driverValue: new Date('2022-01-15T10:20:30.123Z'),
+            expected: '2022-01-15T01:20:30.123Z',
+          },
+          {
+            timezone: 'America/New_York',
+            driverValue: new Date('2022-01-15T10:20:30.123Z'),
+            expected: '2022-01-15T15:20:30.123Z',
+          },
+          {
+            timezone: 'America/New_York',
+            driverValue: new Date('2022-07-15T10:20:30.123Z'),
+            expected: '2022-07-15T14:20:30.123Z',
+          },
+          {
+            timezone: '-05:00',
+            driverValue: new Date('2022-07-15T10:20:30.123Z'),
+            expected: '2022-07-15T15:20:30.123Z',
+          },
         ],
       },
     };
 
     const driverTimestamp = driverTimestamps[dialect.name as DialectName];
 
-    for (const [driverValue, expected] of driverTimestamp?.cases ?? []) {
-      it(`parses the TIMESTAMP driver value ${String(driverValue)} independently of the process time zone`, () => {
-        const parse = dialect.getParserForDatabaseDataType(driverTimestamp!.databaseDataType);
-        const value = type.parseDatabaseValue(parse ? parse(driverValue) : driverValue);
+    for (const { driverValue, expected, timezone } of driverTimestamp?.cases ?? []) {
+      const driverValueString =
+        driverValue instanceof Date ? driverValue.toISOString() : String(driverValue);
+
+      it(`parses the TIMESTAMP driver value ${driverValueString} with timezone option ${timezone ?? 'default'} independently of the process time zone`, () => {
+        const localDialect = timezone ? createSequelizeInstance({ timezone }).dialect : dialect;
+        const localType = DataTypes.DATE().toDialectDataType(localDialect);
+        const parse = localDialect.getParserForDatabaseDataType(driverTimestamp!.databaseDataType);
+        const value = localType.parseDatabaseValue(parse ? parse(driverValue) : driverValue);
 
         expect(value).to.be.instanceOf(Date);
         expect((value as Date).toISOString()).to.equal(expected);
