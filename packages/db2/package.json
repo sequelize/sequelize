@@ -27,6 +27,7 @@
     "build": "../../build-packages.mjs db2",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
@@ -41,5 +42,11 @@
     "dayjs": "^1.11.23",
     "ibm_db": "^4.0.1",
     "lodash": "^4.18.1"
+  },
+  "devDependencies": {
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.10",
+    "chai": "4.5.0",
+    "mocha": "11.7.5"
   }
 }
