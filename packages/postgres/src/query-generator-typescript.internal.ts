@@ -97,7 +97,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'c.column_default as "Default",',
       'c.is_nullable as "Null",',
       `(CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",`,
-      '(SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",',
+      '(SELECT array_agg(e.enumlabel ORDER BY e.enumsortorder) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid JOIN pg_catalog.pg_namespace n ON n.oid=t.typnamespace WHERE t.typname=c.udt_name AND n.nspname=c.udt_schema) AS "special",',
       '(SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"',
       'FROM information_schema.columns c',
       'LEFT JOIN (SELECT tc.table_schema, tc.table_name,',
