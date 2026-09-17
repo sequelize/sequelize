@@ -18,7 +18,7 @@ export declare const SQL_IDENTIFIER: unique symbol;
 
 /**
  * Utility functions for representing SQL functions, and columns that should be escaped.
- * Please do not use these functions directly, use Sequelize.fn and Sequelize.col instead.
+ * Please do not use these functions directly.
  *
  * @private
  */

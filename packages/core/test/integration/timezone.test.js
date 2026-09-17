@@ -4,6 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
+const { QueryTypes } = require('@sequelize/core');
 
 const dialectName = Support.getTestDialect();
 const dialect = Support.sequelize.dialect;
@@ -35,9 +36,9 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
     const query = `SELECT ${now} as ${queryGenerator.quoteIdentifier('now')}`;
 
     const [now1, now2, now3] = await Promise.all([
-      this.sequelize.query(query, { type: this.sequelize.QueryTypes.SELECT }),
-      this.sequelizeWithTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT }),
-      this.sequelizeWithNamedTimezone.query(query, { type: this.sequelize.QueryTypes.SELECT }),
+      this.sequelize.query(query, { type: QueryTypes.SELECT }),
+      this.sequelizeWithTimezone.query(query, { type: QueryTypes.SELECT }),
+      this.sequelizeWithNamedTimezone.query(query, { type: QueryTypes.SELECT }),
     ]);
 
     const elapsedQueryTime = Date.now() - startQueryTime + 1001;

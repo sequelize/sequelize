@@ -488,7 +488,7 @@ export interface WhereOperators<AttributeType = any> {
    */
   [Op.notIRegexp]?: WhereOperators<AttributeType>[typeof Op.regexp];
 
-  /** @example `[Op.match]: Sequelize.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
+  /** @example `[Op.match]: sql.fn('to_tsquery', 'fat & rat')` becomes `@@ to_tsquery('fat & rat')` */
   [Op.match]?: AllowAnyAll<DynamicValues<AttributeType>>;
 
   /**

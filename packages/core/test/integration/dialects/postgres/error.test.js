@@ -5,7 +5,7 @@ const each = require('lodash/each');
 const chai = require('chai');
 
 const expect = chai.expect;
-const { DataTypes, Sequelize } = require('@sequelize/core');
+const { DataTypes, ExclusionConstraintError } = require('@sequelize/core');
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
@@ -34,7 +34,7 @@ if (dialect.startsWith('postgres')) {
         table: 'table_name',
         cause: new Error('Test error'),
       };
-      const err = new Sequelize.ExclusionConstraintError(errDetails);
+      const err = new ExclusionConstraintError(errDetails);
 
       each(errDetails, (value, key) => {
         expect(err[key]).to.be.deep.equal(value, `Value for key ${key} is invalid`);
@@ -56,7 +56,7 @@ if (dialect.startsWith('postgres')) {
           guestName: 'Frequent Visitor',
           period: [new Date(2015, 0, 2), new Date(2015, 0, 5)],
         }),
-      ).to.eventually.be.rejectedWith(Sequelize.ExclusionConstraintError);
+      ).to.eventually.be.rejectedWith(ExclusionConstraintError);
     });
   });
 }
