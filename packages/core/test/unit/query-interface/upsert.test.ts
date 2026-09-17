@@ -324,6 +324,42 @@ describe('QueryInterface#upsert', () => {
     });
   });
 
+  if (sequelize.dialect.supports.inserts.conflictFields) {
+    it('uses conflictFields as the upsert condition', async () => {
+      const Membership = sequelize.define(
+        'Membership',
+        {
+          userId: DataTypes.INTEGER,
+          groupId: DataTypes.INTEGER,
+          role: DataTypes.STRING,
+        },
+        { timestamps: false },
+      );
+      const stub = sinon.stub(sequelize, 'queryRaw');
+      const options = { model: Membership, conflictFields: ['userId', 'groupId'] };
+
+      await sequelize.queryInterface.upsert(
+        Membership.tableName,
+        { userId: 1, groupId: 2, role: 'admin' },
+        { userId: 1, groupId: 2, role: 'admin' },
+        {},
+        options,
+      );
+
+      expect(stub.callCount).to.eq(1);
+      expectsql(stub.getCall(0).args[0], {
+        'postgres sqlite3':
+          'INSERT INTO [Memberships] ([userId],[groupId],[role]) VALUES ($sequelize_1,$sequelize_2,$sequelize_3) ON CONFLICT ([userId],[groupId]) DO UPDATE SET [userId]=EXCLUDED.[userId],[groupId]=EXCLUDED.[groupId],[role]=EXCLUDED.[role];',
+        oracle: `
+          DECLARE BEGIN UPDATE "Memberships" SET "userId"=$sequelize_1,"groupId"=$sequelize_2,"role"=$sequelize_3
+          WHERE "userId" = $sequelize_4 AND "groupId" = $sequelize_5;
+          IF (SQL%ROWCOUNT = 0) THEN INSERT INTO "Memberships" ("userId","groupId","role") VALUES ($sequelize_6,$sequelize_7,$sequelize_8);
+          :isUpdate := 0; ELSE :isUpdate := 1; END IF; END;
+        `,
+      });
+    });
+  }
+
   if (sequelize.dialect.supports.returnValues || sequelize.dialect.supports.returnIntoValues) {
     it('returns the upserted row when returning is set', async () => {
       const Member = sequelize.define(

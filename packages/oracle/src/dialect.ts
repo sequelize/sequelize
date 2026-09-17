@@ -44,6 +44,7 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     schemas: true,
     inserts: {
       ignoreDuplicates: false,
+      conflictFields: true,
     },
     indexViaAlter: false,
     dataTypes: {
