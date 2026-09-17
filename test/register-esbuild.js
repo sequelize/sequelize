@@ -29,13 +29,13 @@ function compileFor(loader) {
   return (source, sourcefile) => {
     const { code, map } = esbuild.transformSync(source, {
       sourcemap: true,
-      target: 'node20',
+      target: 'node22',
       format: 'cjs',
       sourcefile,
       loader,
       tsconfigRaw: {
         compilerOptions: {
-          target: 'node20',
+          target: 'node22',
           useDefineForClassFields: true,
           experimentalDecorators: true,
         },
