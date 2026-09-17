@@ -35,6 +35,10 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<IBMiConnectionOptions>({
   password: undefined,
 });
 
+const SQL_TYPE_TIMESTAMP = 93;
+
+const TIMESTAMP_REGEX = /^(\d{4}-\d{2}-\d{2})[ .-](\d{2})[:.](\d{2})[:.](\d{2})(\.\d+)?$/;
+
 export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
     maxTableAliasLength: 128,
@@ -103,6 +107,17 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
     this.connectionManager = new IBMiConnectionManager(this);
     this.queryGenerator = new IBMiQueryGenerator(this);
     this.queryInterface = new IBMiQueryInterface(this);
+
+    this.registerDataTypeParser([SQL_TYPE_TIMESTAMP], (value: string) => {
+      const match = TIMESTAMP_REGEX.exec(value);
+      if (!match) {
+        return value;
+      }
+
+      const [, date, hours, minutes, seconds, fraction = ''] = match;
+
+      return `${date} ${hours}:${minutes}:${seconds}${fraction}+00`;
+    });
   }
 
   createBindCollector() {
