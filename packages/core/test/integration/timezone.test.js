@@ -104,35 +104,49 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
     });
   }
 
+  const sessionTimeZoneDateType = ['mysql', 'mariadb'].includes(dialectName)
+    ? 'TIMESTAMP NULL'
+    : DataTypes.DATE;
+
+  async function setupEventTable(type, timezone) {
+    const sequelize = Support.createSingleTestSequelizeInstance({ timezone });
+    const Event = sequelize.define('Event', { at: type }, { timestamps: false });
+    await Event.sync({ force: true });
+
+    const table = sequelize.queryGenerator.quoteTable(Event);
+    const column = sequelize.queryGenerator.quoteIdentifier('at');
+
+    return { sequelize, Event, table, column };
+  }
+
+  async function getInstants(sequelize, table, column) {
+    const rows = await sequelize.query(`SELECT ${column} FROM ${table} ORDER BY ${column} ASC`, {
+      type: sequelize.QueryTypes.SELECT,
+    });
+
+    return rows.map(row => new Date(row.at).toISOString());
+  }
+
+  describe('offset timezone', () => {
+    it('writes wall-clock times using the offset', async () => {
+      const { column, sequelize, table } = await setupEventTable(sessionTimeZoneDateType, '-05:00');
+
+      await sequelize.query(`INSERT INTO ${table} (${column}) VALUES ('2024-01-15 07:00:00')`);
+
+      expect(await getInstants(Support.sequelize, table, column)).to.deep.equal([
+        '2024-01-15T12:00:00.000Z',
+      ]);
+    });
+  });
+
   describe('named timezone in both DST periods', () => {
     Support.useProcessTimezone('Asia/Tokyo');
 
     const january = new Date('2024-01-15T12:00:00.000Z');
     const july = new Date('2024-07-15T12:00:00.000Z');
 
-    const sessionTimeZoneDateType = ['mysql', 'mariadb'].includes(dialectName)
-      ? 'TIMESTAMP NULL'
-      : DataTypes.DATE;
-
     async function setup(type) {
-      const sequelize = Support.createSingleTestSequelizeInstance({
-        timezone: 'Europe/Amsterdam',
-      });
-      const Event = sequelize.define('Event', { at: type }, { timestamps: false });
-      await Event.sync({ force: true });
-
-      const table = sequelize.queryGenerator.quoteTable(Event);
-      const column = sequelize.queryGenerator.quoteIdentifier('at');
-
-      return { sequelize, Event, table, column };
-    }
-
-    async function getInstants(sequelize, table, column) {
-      const rows = await sequelize.query(`SELECT ${column} FROM ${table} ORDER BY ${column} ASC`, {
-        type: sequelize.QueryTypes.SELECT,
-      });
-
-      return rows.map(row => new Date(row.at).toISOString());
+      return setupEventTable(type, 'Europe/Amsterdam');
     }
 
     it('writes wall-clock times using the offset of their own DST period', async () => {
