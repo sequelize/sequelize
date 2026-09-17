@@ -91,11 +91,11 @@ export class AbstractQueryGenerator<
     options?: InsertOptions,
   ): BoundQuery;
   bulkInsertQuery(
-    tableName: TableName,
-    newEntries: object[],
+    tableOrModel: TableOrModel,
+    newEntries: ReadonlyArray<Record<string, unknown>>,
     options?: BulkInsertOptions,
-    columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
-  ): string;
+    columnDefinitions?: { [columnName: string]: AttributeOptions },
+  ): BoundQuery;
 
   addColumnQuery(
     table: TableName,

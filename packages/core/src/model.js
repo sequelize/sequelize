@@ -2327,6 +2327,15 @@ ${associationOwner._getAssociationDebugList()}`);
         throw new Error(`${dialect} does not support the updateOnDuplicate option.`);
       }
 
+      if (
+        options.parameterStyle != null &&
+        !model.sequelize.dialect.supports.inserts.bulkInsertParameterStyles[options.parameterStyle]
+      ) {
+        throw new Error(
+          `${dialect} does not support the parameterStyle "${options.parameterStyle}" option for bulkCreate.`,
+        );
+      }
+
       const modelDefinition = model.modelDefinition;
 
       options.fields = options.fields || Array.from(modelDefinition.attributes.keys());
