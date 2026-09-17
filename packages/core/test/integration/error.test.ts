@@ -492,15 +492,12 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         await expect(User.create({ name: 'jan' })).to.be.rejectedWith(UniqueConstraintError);
 
         // And when the model is not passed at all
-        if (['db2', 'ibmi', 'oracle'].includes(dialect)) {
-          await expect(
-            sequelize.query('INSERT INTO "users" ("name") VALUES (\'jan\')'),
-          ).to.be.rejectedWith(UniqueConstraintError);
-        } else {
-          await expect(
-            sequelize.query("INSERT INTO users (name) VALUES ('jan')"),
-          ).to.be.rejectedWith(UniqueConstraintError);
-        }
+        const { queryGenerator } = sequelize;
+        await expect(
+          sequelize.query(
+            `INSERT INTO ${queryGenerator.quoteIdentifier('users')} (${queryGenerator.quoteIdentifier('name')}) VALUES ('jan')`,
+          ),
+        ).to.be.rejectedWith(UniqueConstraintError);
       });
     }
 

@@ -379,333 +379,331 @@ describe(Support.getTestDialectTeaser('associations'), () => {
       });
     });
 
-    if (Support.getTestDialect() !== 'sqlite3') {
-      describe('N:M', () => {
-        describe('on the target', () => {
-          beforeEach(function () {
-            this.Post = this.sequelize.define('post', {});
-            this.Tag = this.sequelize.define('tag', {
-              type: DataTypes.STRING,
-            });
-            this.PostTag = this.sequelize.define('post_tag');
+    describe('N:M', () => {
+      describe('on the target', () => {
+        beforeEach(function () {
+          this.Post = this.sequelize.define('post', {});
+          this.Tag = this.sequelize.define('tag', {
+            type: DataTypes.STRING,
+          });
+          this.PostTag = this.sequelize.define('post_tag');
 
-            this.Post.belongsToMany(this.Tag, {
-              as: 'categories',
-              through: this.PostTag,
-              scope: { type: 'category' },
-            });
-            this.Post.belongsToMany(this.Tag, {
-              as: 'tags',
-              through: this.PostTag,
-              scope: { type: 'tag' },
-            });
-
-            return this.sequelize.sync({ force: true });
+          this.Post.belongsToMany(this.Tag, {
+            as: 'categories',
+            through: this.PostTag,
+            scope: { type: 'category' },
+          });
+          this.Post.belongsToMany(this.Tag, {
+            as: 'tags',
+            through: this.PostTag,
+            scope: { type: 'tag' },
           });
 
-          it('should create, find and include associations with scope values', async function () {
-            const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
-              this.Post.create(),
-              this.Post.create(),
-              this.Post.create(),
-              this.Tag.create({ type: 'category' }),
-              this.Tag.create({ type: 'category' }),
-              this.Tag.create({ type: 'tag' }),
-              this.Tag.create({ type: 'tag' }),
-            ]);
-
-            this.postA = postA0;
-            this.postB = postB0;
-            this.postC = postC0;
-
-            await Promise.all([
-              postA0.addCategory(categoryA),
-              postA0.createTag(),
-              postB0.addTag(tagA),
-              postC0.createCategory(),
-            ]);
-
-            // we're calling 'setX' methods after the different 'addX' methods because
-            // setCategories is not supposed to overwrite tags and vice-versa.
-            // tags & categories use the same through table so this could happen is the association scope is not handled correctly.
-            await postB0.setCategories([categoryB]);
-            await postC0.setTags([tagB]);
-
-            const [
-              postACategories,
-              postBCategories,
-              postCCategories,
-              postATags,
-              postBTags,
-              postCTags,
-            ] = await Promise.all([
-              this.postA.getCategories(),
-              this.postB.getCategories(),
-              this.postC.getCategories(),
-              this.postA.getTags(),
-              this.postB.getTags(),
-              this.postC.getTags(),
-            ]);
-
-            expect([
-              postACategories.length,
-              postATags.length,
-              postBCategories.length,
-              postBTags.length,
-              postCCategories.length,
-              postCTags.length,
-            ]).to.eql([1, 1, 1, 1, 1, 1]);
-
-            expect([
-              postACategories[0].get('type'),
-              postATags[0].get('type'),
-              postBCategories[0].get('type'),
-              postBTags[0].get('type'),
-              postCCategories[0].get('type'),
-              postCTags[0].get('type'),
-            ]).to.eql(['category', 'tag', 'category', 'tag', 'category', 'tag']);
-
-            const [postA, postB, postC] = await Promise.all([
-              this.Post.findOne({
-                where: {
-                  id: this.postA.get('id'),
-                },
-                include: [
-                  { model: this.Tag, as: 'tags' },
-                  { model: this.Tag, as: 'categories' },
-                ],
-              }),
-              this.Post.findOne({
-                where: {
-                  id: this.postB.get('id'),
-                },
-                include: [
-                  { model: this.Tag, as: 'tags' },
-                  { model: this.Tag, as: 'categories' },
-                ],
-              }),
-              this.Post.findOne({
-                where: {
-                  id: this.postC.get('id'),
-                },
-                include: [
-                  { model: this.Tag, as: 'tags' },
-                  { model: this.Tag, as: 'categories' },
-                ],
-              }),
-            ]);
-
-            expect(postA.get('categories').length).to.equal(1);
-            expect(postA.get('tags').length).to.equal(1);
-            expect(postB.get('categories').length).to.equal(1);
-            expect(postB.get('tags').length).to.equal(1);
-            expect(postC.get('categories').length).to.equal(1);
-            expect(postC.get('tags').length).to.equal(1);
-
-            expect(postA.get('categories')[0].get('type')).to.equal('category');
-            expect(postA.get('tags')[0].get('type')).to.equal('tag');
-            expect(postB.get('categories')[0].get('type')).to.equal('category');
-            expect(postB.get('tags')[0].get('type')).to.equal('tag');
-            expect(postC.get('categories')[0].get('type')).to.equal('category');
-            expect(postC.get('tags')[0].get('type')).to.equal('tag');
-          });
+          return this.sequelize.sync({ force: true });
         });
 
-        describe('on the through model', () => {
-          beforeEach(function () {
-            this.Post = this.sequelize.define('post', {});
-            this.Image = this.sequelize.define('image', {});
-            this.Question = this.sequelize.define('question', {});
+        it('should create, find and include associations with scope values', async function () {
+          const [postA0, postB0, postC0, categoryA, categoryB, tagA, tagB] = await Promise.all([
+            this.Post.create(),
+            this.Post.create(),
+            this.Post.create(),
+            this.Tag.create({ type: 'category' }),
+            this.Tag.create({ type: 'category' }),
+            this.Tag.create({ type: 'tag' }),
+            this.Tag.create({ type: 'tag' }),
+          ]);
 
-            this.ItemTag = this.sequelize.define('item_tag', {
-              id: {
-                type: DataTypes.INTEGER,
-                primaryKey: true,
-                autoIncrement: true,
+          this.postA = postA0;
+          this.postB = postB0;
+          this.postC = postC0;
+
+          await Promise.all([
+            postA0.addCategory(categoryA),
+            postA0.createTag(),
+            postB0.addTag(tagA),
+            postC0.createCategory(),
+          ]);
+
+          // we're calling 'setX' methods after the different 'addX' methods because
+          // setCategories is not supposed to overwrite tags and vice-versa.
+          // tags & categories use the same through table so this could happen is the association scope is not handled correctly.
+          await postB0.setCategories([categoryB]);
+          await postC0.setTags([tagB]);
+
+          const [
+            postACategories,
+            postBCategories,
+            postCCategories,
+            postATags,
+            postBTags,
+            postCTags,
+          ] = await Promise.all([
+            this.postA.getCategories(),
+            this.postB.getCategories(),
+            this.postC.getCategories(),
+            this.postA.getTags(),
+            this.postB.getTags(),
+            this.postC.getTags(),
+          ]);
+
+          expect([
+            postACategories.length,
+            postATags.length,
+            postBCategories.length,
+            postBTags.length,
+            postCCategories.length,
+            postCTags.length,
+          ]).to.eql([1, 1, 1, 1, 1, 1]);
+
+          expect([
+            postACategories[0].get('type'),
+            postATags[0].get('type'),
+            postBCategories[0].get('type'),
+            postBTags[0].get('type'),
+            postCCategories[0].get('type'),
+            postCTags[0].get('type'),
+          ]).to.eql(['category', 'tag', 'category', 'tag', 'category', 'tag']);
+
+          const [postA, postB, postC] = await Promise.all([
+            this.Post.findOne({
+              where: {
+                id: this.postA.get('id'),
               },
-              tag_id: {
-                type: DataTypes.INTEGER,
-                unique: 'item_tag_taggable',
+              include: [
+                { model: this.Tag, as: 'tags' },
+                { model: this.Tag, as: 'categories' },
+              ],
+            }),
+            this.Post.findOne({
+              where: {
+                id: this.postB.get('id'),
               },
-              taggable: {
-                type: DataTypes.STRING,
-                unique: 'item_tag_taggable',
+              include: [
+                { model: this.Tag, as: 'tags' },
+                { model: this.Tag, as: 'categories' },
+              ],
+            }),
+            this.Post.findOne({
+              where: {
+                id: this.postC.get('id'),
               },
-              taggable_id: {
-                type: DataTypes.INTEGER,
-                unique: 'item_tag_taggable',
-                references: null,
-              },
-            });
-            this.Tag = this.sequelize.define('tag', {
-              name: DataTypes.STRING,
-            });
+              include: [
+                { model: this.Tag, as: 'tags' },
+                { model: this.Tag, as: 'categories' },
+              ],
+            }),
+          ]);
 
-            this.Post.belongsToMany(this.Tag, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
-                scope: {
-                  taggable: 'post',
-                },
-              },
-              foreignKey: 'taggable_id',
-              otherKey: 'tag_id',
-              foreignKeyConstraints: false,
-              inverse: {
-                foreignKeyConstraints: false,
-              },
-            });
+          expect(postA.get('categories').length).to.equal(1);
+          expect(postA.get('tags').length).to.equal(1);
+          expect(postB.get('categories').length).to.equal(1);
+          expect(postB.get('tags').length).to.equal(1);
+          expect(postC.get('categories').length).to.equal(1);
+          expect(postC.get('tags').length).to.equal(1);
 
-            this.Image.belongsToMany(this.Tag, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
-                scope: {
-                  taggable: 'image',
-                },
-              },
-              foreignKey: 'taggable_id',
-              otherKey: 'tag_id',
-              foreignKeyConstraints: false,
-              inverse: {
-                foreignKeyConstraints: false,
-              },
-            });
-
-            this.Question.belongsToMany(this.Tag, {
-              through: {
-                model: this.ItemTag,
-                unique: false,
-                scope: {
-                  taggable: 'question',
-                },
-              },
-              foreignKey: 'taggable_id',
-              otherKey: 'tag_id',
-              foreignKeyConstraints: false,
-              inverse: {
-                foreignKeyConstraints: false,
-              },
-            });
-          });
-
-          it('should create, find and include associations with scope values', async function () {
-            await Promise.all([
-              this.Post.sync({ force: true }),
-              this.Image.sync({ force: true }),
-              this.Question.sync({ force: true }),
-              this.Tag.sync({ force: true }),
-            ]);
-
-            await this.ItemTag.sync({ force: true });
-
-            const [post0, image0, question0, tagA, tagB, tagC] = await Promise.all([
-              this.Post.create(),
-              this.Image.create(),
-              this.Question.create(),
-              this.Tag.create({ name: 'tagA' }),
-              this.Tag.create({ name: 'tagB' }),
-              this.Tag.create({ name: 'tagC' }),
-            ]);
-
-            this.post = post0;
-            this.image = image0;
-            this.question = question0;
-
-            await Promise.all([
-              post0.setTags([tagA]).then(async () => {
-                return Promise.all([post0.createTag({ name: 'postTag' }), post0.addTag(tagB)]);
-              }),
-              image0.setTags([tagB]).then(async () => {
-                return Promise.all([image0.createTag({ name: 'imageTag' }), image0.addTag(tagC)]);
-              }),
-              question0.setTags([tagC]).then(async () => {
-                return Promise.all([
-                  question0.createTag({ name: 'questionTag' }),
-                  question0.addTag(tagA),
-                ]);
-              }),
-            ]);
-
-            const [postTags, imageTags, questionTags] = await Promise.all([
-              this.post.getTags(),
-              this.image.getTags(),
-              this.question.getTags(),
-            ]);
-            expect(postTags.length).to.equal(3);
-            expect(imageTags.length).to.equal(3);
-            expect(questionTags.length).to.equal(3);
-
-            expect(
-              postTags
-                .map(tag => {
-                  return tag.name;
-                })
-                .sort(),
-            ).to.deep.equal(['postTag', 'tagA', 'tagB']);
-
-            expect(
-              imageTags
-                .map(tag => {
-                  return tag.name;
-                })
-                .sort(),
-            ).to.deep.equal(['imageTag', 'tagB', 'tagC']);
-
-            expect(
-              questionTags
-                .map(tag => {
-                  return tag.name;
-                })
-                .sort(),
-            ).to.deep.equal(['questionTag', 'tagA', 'tagC']);
-
-            const [post, image, question] = await Promise.all([
-              this.Post.findOne({
-                where: {},
-                include: [this.Tag],
-              }),
-              this.Image.findOne({
-                where: {},
-                include: [this.Tag],
-              }),
-              this.Question.findOne({
-                where: {},
-                include: [this.Tag],
-              }),
-            ]);
-
-            expect(post.tags.length).to.equal(3);
-            expect(image.tags.length).to.equal(3);
-            expect(question.tags.length).to.equal(3);
-
-            expect(
-              post.tags
-                .map(tag => {
-                  return tag.name;
-                })
-                .sort(),
-            ).to.deep.equal(['postTag', 'tagA', 'tagB']);
-
-            expect(
-              image.tags
-                .map(tag => {
-                  return tag.name;
-                })
-                .sort(),
-            ).to.deep.equal(['imageTag', 'tagB', 'tagC']);
-
-            expect(
-              question.tags
-                .map(tag => {
-                  return tag.name;
-                })
-                .sort(),
-            ).to.deep.equal(['questionTag', 'tagA', 'tagC']);
-          });
+          expect(postA.get('categories')[0].get('type')).to.equal('category');
+          expect(postA.get('tags')[0].get('type')).to.equal('tag');
+          expect(postB.get('categories')[0].get('type')).to.equal('category');
+          expect(postB.get('tags')[0].get('type')).to.equal('tag');
+          expect(postC.get('categories')[0].get('type')).to.equal('category');
+          expect(postC.get('tags')[0].get('type')).to.equal('tag');
         });
       });
-    }
+
+      describe('on the through model', () => {
+        beforeEach(function () {
+          this.Post = this.sequelize.define('post', {});
+          this.Image = this.sequelize.define('image', {});
+          this.Question = this.sequelize.define('question', {});
+
+          this.ItemTag = this.sequelize.define('item_tag', {
+            id: {
+              type: DataTypes.INTEGER,
+              primaryKey: true,
+              autoIncrement: true,
+            },
+            tag_id: {
+              type: DataTypes.INTEGER,
+              unique: 'item_tag_taggable',
+            },
+            taggable: {
+              type: DataTypes.STRING,
+              unique: 'item_tag_taggable',
+            },
+            taggable_id: {
+              type: DataTypes.INTEGER,
+              unique: 'item_tag_taggable',
+              references: null,
+            },
+          });
+          this.Tag = this.sequelize.define('tag', {
+            name: DataTypes.STRING,
+          });
+
+          this.Post.belongsToMany(this.Tag, {
+            through: {
+              model: this.ItemTag,
+              unique: false,
+              scope: {
+                taggable: 'post',
+              },
+            },
+            foreignKey: 'taggable_id',
+            otherKey: 'tag_id',
+            foreignKeyConstraints: false,
+            inverse: {
+              foreignKeyConstraints: false,
+            },
+          });
+
+          this.Image.belongsToMany(this.Tag, {
+            through: {
+              model: this.ItemTag,
+              unique: false,
+              scope: {
+                taggable: 'image',
+              },
+            },
+            foreignKey: 'taggable_id',
+            otherKey: 'tag_id',
+            foreignKeyConstraints: false,
+            inverse: {
+              foreignKeyConstraints: false,
+            },
+          });
+
+          this.Question.belongsToMany(this.Tag, {
+            through: {
+              model: this.ItemTag,
+              unique: false,
+              scope: {
+                taggable: 'question',
+              },
+            },
+            foreignKey: 'taggable_id',
+            otherKey: 'tag_id',
+            foreignKeyConstraints: false,
+            inverse: {
+              foreignKeyConstraints: false,
+            },
+          });
+        });
+
+        it('should create, find and include associations with scope values', async function () {
+          await Promise.all([
+            this.Post.sync({ force: true }),
+            this.Image.sync({ force: true }),
+            this.Question.sync({ force: true }),
+            this.Tag.sync({ force: true }),
+          ]);
+
+          await this.ItemTag.sync({ force: true });
+
+          const [post0, image0, question0, tagA, tagB, tagC] = await Promise.all([
+            this.Post.create(),
+            this.Image.create(),
+            this.Question.create(),
+            this.Tag.create({ name: 'tagA' }),
+            this.Tag.create({ name: 'tagB' }),
+            this.Tag.create({ name: 'tagC' }),
+          ]);
+
+          this.post = post0;
+          this.image = image0;
+          this.question = question0;
+
+          await Promise.all([
+            post0.setTags([tagA]).then(async () => {
+              return Promise.all([post0.createTag({ name: 'postTag' }), post0.addTag(tagB)]);
+            }),
+            image0.setTags([tagB]).then(async () => {
+              return Promise.all([image0.createTag({ name: 'imageTag' }), image0.addTag(tagC)]);
+            }),
+            question0.setTags([tagC]).then(async () => {
+              return Promise.all([
+                question0.createTag({ name: 'questionTag' }),
+                question0.addTag(tagA),
+              ]);
+            }),
+          ]);
+
+          const [postTags, imageTags, questionTags] = await Promise.all([
+            this.post.getTags(),
+            this.image.getTags(),
+            this.question.getTags(),
+          ]);
+          expect(postTags.length).to.equal(3);
+          expect(imageTags.length).to.equal(3);
+          expect(questionTags.length).to.equal(3);
+
+          expect(
+            postTags
+              .map(tag => {
+                return tag.name;
+              })
+              .sort(),
+          ).to.deep.equal(['postTag', 'tagA', 'tagB']);
+
+          expect(
+            imageTags
+              .map(tag => {
+                return tag.name;
+              })
+              .sort(),
+          ).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+
+          expect(
+            questionTags
+              .map(tag => {
+                return tag.name;
+              })
+              .sort(),
+          ).to.deep.equal(['questionTag', 'tagA', 'tagC']);
+
+          const [post, image, question] = await Promise.all([
+            this.Post.findOne({
+              where: {},
+              include: [this.Tag],
+            }),
+            this.Image.findOne({
+              where: {},
+              include: [this.Tag],
+            }),
+            this.Question.findOne({
+              where: {},
+              include: [this.Tag],
+            }),
+          ]);
+
+          expect(post.tags.length).to.equal(3);
+          expect(image.tags.length).to.equal(3);
+          expect(question.tags.length).to.equal(3);
+
+          expect(
+            post.tags
+              .map(tag => {
+                return tag.name;
+              })
+              .sort(),
+          ).to.deep.equal(['postTag', 'tagA', 'tagB']);
+
+          expect(
+            image.tags
+              .map(tag => {
+                return tag.name;
+              })
+              .sort(),
+          ).to.deep.equal(['imageTag', 'tagB', 'tagC']);
+
+          expect(
+            question.tags
+              .map(tag => {
+                return tag.name;
+              })
+              .sort(),
+          ).to.deep.equal(['questionTag', 'tagA', 'tagC']);
+        });
+      });
+    });
   });
 });

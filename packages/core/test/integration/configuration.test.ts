@@ -139,8 +139,8 @@ describe('Configuration', () => {
 
     destroySequelizeAfterTest(seq);
 
-    const query =
-      dialectName === 'ibmi' ? 'select 1 as hello from SYSIBM.SYSDUMMY1' : 'select 1 as hello';
+    const { dummyTable } = seq.dialect.supports.select;
+    const query = `select 1 as hello${dummyTable ? ` from ${dummyTable}` : ''}`;
 
     await expect(seq.query(query)).to.be.rejectedWith(ConnectionRefusedError);
   });

@@ -1058,7 +1058,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.ARRAY) {
       it('does not cast arrays for postgresql insert', async function () {
         const User = this.customSequelize.define('UserWithArray', {
           myvals: { type: DataTypes.ARRAY(DataTypes.INTEGER) },
@@ -1150,7 +1150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.TSVECTOR) {
       it('allows the creation of a TSVECTOR field', async function () {
         const User = this.customSequelize.define('UserWithTSVECTOR', {
           name: DataTypes.TSVECTOR,

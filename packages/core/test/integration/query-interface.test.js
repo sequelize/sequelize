@@ -379,7 +379,7 @@ describe('QueryInterface', () => {
       });
     }
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.ARRAY) {
       it('should be able to add a column of type of array of enums', async function () {
         await this.queryInterface.addColumn('users', 'tags', {
           allowNull: false,
