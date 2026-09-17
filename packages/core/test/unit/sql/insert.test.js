@@ -3,6 +3,7 @@
 const Support = require('../../support');
 const { DataTypes } = require('@sequelize/core');
 const { expect } = require('chai');
+const oracledb = require('oracledb');
 
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
@@ -187,7 +188,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               mariadb: { sequelize_1: '2015-01-20 01:00:00.000' },
               // These dialects do specify the offset, so they can use whichever offset they want.
               postgres: { sequelize_1: '2015-01-20 01:00:00.000 +01:00' },
-              oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20)) },
+              oracle: {
+                sequelize_1: {
+                  type: oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                  val: new Date(Date.UTC(2015, 0, 20)),
+                },
+              },
             },
           },
         );
@@ -233,7 +239,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             mssql: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
             postgres: { sequelize_1: '2015-01-20 00:00:00.000 +00:00' },
-            oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20)) },
+            oracle: {
+              sequelize_1: {
+                type: oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                val: new Date(Date.UTC(2015, 0, 20)),
+              },
+            },
           },
         },
       );
@@ -278,7 +289,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             sqlite3: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             postgres: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
             mssql: { sequelize_1: '2015-01-20 01:02:03.089 +00:00' },
-            oracle: { sequelize_1: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)) },
+            oracle: {
+              sequelize_1: {
+                type: oracledb.DB_TYPE_TIMESTAMP_LTZ,
+                val: new Date(Date.UTC(2015, 0, 20, 1, 2, 3, 89)),
+              },
+            },
           },
         },
       );
