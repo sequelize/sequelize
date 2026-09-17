@@ -323,4 +323,49 @@ describe('QueryInterface#upsert', () => {
       `,
     });
   });
+
+  if (sequelize.dialect.supports.returnValues || sequelize.dialect.supports.returnIntoValues) {
+    it('returns the upserted row when returning is set', async () => {
+      const Member = sequelize.define(
+        'Member',
+        {
+          name: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+        },
+        { timestamps: false },
+      );
+      const stub = sinon.stub(sequelize, 'queryRaw');
+      const options = { model: Member, returning: true };
+
+      await sequelize.queryInterface.upsert(
+        Member.tableName,
+        { name: 'january' },
+        { name: 'january' },
+        {},
+        options,
+      );
+
+      expect(stub.callCount).to.eq(1);
+      expectsql(stub.getCall(0).args[0], {
+        'postgres sqlite3':
+          'INSERT INTO [Members] ([name]) VALUES ($sequelize_1) ON CONFLICT ([name]) DO UPDATE SET [name]=EXCLUDED.[name] RETURNING [id], [name];',
+        mssql: `
+          MERGE INTO [Members] WITH(HOLDLOCK) AS [Members_target]
+          USING (VALUES(N'january')) AS [Members_source]([name])
+          ON [Members_target].[name] = [Members_source].[name]
+          WHEN MATCHED THEN UPDATE SET [Members_target].[name] = N'january'
+          WHEN NOT MATCHED THEN INSERT ([name]) VALUES(N'january') OUTPUT $action, INSERTED.*;
+        `,
+        oracle: `
+          DECLARE sequelize_returned_1 "Members"."id"%TYPE; sequelize_returned_2 "Members"."name"%TYPE;
+          BEGIN UPDATE "Members" SET "name"=$sequelize_1 WHERE "name" = $sequelize_2
+          RETURNING "id", "name" INTO sequelize_returned_1,sequelize_returned_2;
+          IF (SQL%ROWCOUNT = 0) THEN INSERT INTO "Members" ("name") VALUES ($sequelize_3) RETURNING "id", "name" INTO :4,:5;
+          :isUpdate := 0; ELSE :4 := sequelize_returned_1; :5 := sequelize_returned_2; :isUpdate := 1; END IF; END;
+        `,
+      });
+    });
+  }
 });

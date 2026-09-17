@@ -455,6 +455,23 @@ describe('Model', () => {
         ]);
       });
 
+      it('works with returning: false', async function () {
+        const User = this.sequelize.define('User', {
+          name: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+          city: DataTypes.STRING,
+        });
+        await User.sync({ force: true });
+
+        await User.upsert({ name: 'january', city: 'Amsterdam' }, { returning: false });
+        await User.upsert({ name: 'january', city: 'Brussels' }, { returning: false });
+
+        const users = await User.findAll();
+        expect(users.map(user => [user.name, user.city])).to.deep.equal([['january', 'Brussels']]);
+      });
+
       it('works when indexes are created via indexes array', async function () {
         const User = this.sequelize.define(
           'User',
@@ -630,7 +647,7 @@ describe('Model', () => {
         });
       }
 
-      if (sequelize.dialect.supports.returnValues) {
+      if (sequelize.dialect.supports.returnValues || sequelize.dialect.supports.returnIntoValues) {
         describe('returns values', () => {
           it('works with upsert on id', async function () {
             const [user0, created0] = await this.User.upsert(
@@ -734,6 +751,50 @@ describe('Model', () => {
               expect(created).to.be.false;
             }
           });
+
+          it('returns the generated primary key when upserting on a unique key', async function () {
+            const User = this.sequelize.define('User', {
+              name: {
+                type: DataTypes.STRING,
+                unique: true,
+              },
+              city: DataTypes.STRING,
+            });
+            await User.sync({ force: true });
+
+            await User.upsert({ name: 'january', city: 'Amsterdam' }, { returning: true });
+            const [inserted] = await User.upsert(
+              { name: 'july', city: 'Brussels' },
+              { returning: true },
+            );
+            expect(inserted).to.be.instanceOf(User);
+            expect(inserted.id).to.equal(2);
+            expect(inserted.city).to.equal('Brussels');
+
+            const [updated] = await User.upsert(
+              { name: 'july', city: 'Copenhagen' },
+              { returning: true },
+            );
+            expect(updated).to.be.instanceOf(User);
+            expect(updated.id).to.equal(2);
+            expect(updated.city).to.equal('Copenhagen');
+          });
+
+          if (dialectName !== 'mssql') {
+            it('returns the generated primary key when no key identifies the row', async function () {
+              const User = this.sequelize.define('User', {
+                name: DataTypes.STRING,
+              });
+              await User.sync({ force: true });
+
+              await User.upsert({ name: 'january' }, { returning: true });
+              const [user] = await User.upsert({ name: 'july' }, { returning: true });
+
+              expect(user).to.be.instanceOf(User);
+              expect(user.id).to.equal(2);
+              expect(user.name).to.equal('july');
+            });
+          }
 
           it('should return default value set by the database (upsert)', async function () {
             const User = this.sequelize.define('User', {
