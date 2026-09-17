@@ -5,9 +5,10 @@ import {
   ConnectionRefusedError,
 } from '@sequelize/core';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { inspect } from '@sequelize/utils';
+import { inspect, isError } from '@sequelize/utils';
 import type { ConnStr } from 'ibm_db';
 import * as IbmDb from 'ibm_db';
+import { callIbmDb } from './_internal/call-ibm-db.js';
 import type { Db2Dialect } from './dialect.js';
 
 export interface Db2Connection extends AbstractConnection, IbmDb.Database {}
@@ -105,20 +106,24 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
     // TODO: add relevant Database options to the connection options of this dialect
     const connection: Db2Connection = new this.#lib.Database();
 
-    return new Promise((resolve, reject) => {
+    try {
       // ibm_db's typings for the OBDC connection string are missing many properties
-      connection.open(connectionConfig as unknown as ConnStr, error => {
-        if (error) {
-          if (error.message && error.message.includes('SQL30081N')) {
-            return void reject(new ConnectionRefusedError(error));
-          }
+      await callIbmDb(callback =>
+        connection.open(connectionConfig as unknown as ConnStr, callback),
+      );
+    } catch (error) {
+      if (!isError(error)) {
+        throw error;
+      }
 
-          return void reject(new ConnectionError(error));
-        }
+      if (error.message.includes('SQL30081N')) {
+        throw new ConnectionRefusedError(error);
+      }
 
-        return void resolve(connection);
-      });
-    });
+      throw new ConnectionError(error);
+    }
+
+    return connection;
   }
 
   async disconnect(connection: Db2Connection) {
@@ -127,7 +132,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
       return;
     }
 
-    await connection.close();
+    await callIbmDb(callback => connection.close(callback));
   }
 
   validate(connection: Db2Connection): boolean {
