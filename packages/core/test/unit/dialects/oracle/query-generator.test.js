@@ -17,6 +17,7 @@ if (dialect.startsWith('oracle')) {
     const sequelize = Support.createSequelizeInstance();
     const dialect = sequelize.dialect;
     const integerDialect = new DataTypes.INTEGER().toDialectDataType(dialect);
+    const dateDialect = new DataTypes.DATE().toDialectDataType(dialect);
 
     const suites = {
       attributesToSQL: [
@@ -503,6 +504,19 @@ if (dialect.startsWith('oracle')) {
           arguments: ['myTable', [{ name: 'foo' }, { name: 'bar' }], {}],
           expectation: `INSERT INTO "myTable" ("name") VALUES (:1)`,
           expectBind: [['foo'], ['bar']],
+        },
+        {
+          arguments: [
+            'myTable',
+            [
+              { date: new Date('2012-11-10T09:10:10Z') },
+              { date: new Date('2012-07-10T09:10:10Z') },
+            ],
+            {},
+            { date: { type: dateDialect } },
+          ],
+          expectation: `INSERT INTO "myTable" ("date") VALUES (:1)`,
+          expectBind: [[new Date('2012-11-10T09:10:10Z')], [new Date('2012-07-10T09:10:10Z')]],
         },
         {
           arguments: [
