@@ -87,6 +87,29 @@ describe('QueryInterface#changeColumn', () => {
     });
   });
 
+  it('uses the column name when it differs from the attribute name', async () => {
+    const { User } = vars;
+
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'levelId', {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      field: 'level_id',
+    });
+
+    expectsql(sql, {
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL',
+      mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
+      db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
+      mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
+      mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
+      postgres:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL;',
+      snowflake:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT NOT NULL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT '; ELSE RAISE; END IF; END; END;`,
+    });
+  });
+
   it('properly generate alter queries for foreign keys', async () => {
     const { User } = vars;
 

@@ -36,6 +36,17 @@ describe('QueryGenerator#addColumnQuery', () => {
     );
   });
 
+  it('accepts a bare data type', () => {
+    const { User } = vars;
+
+    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', DataTypes.INTEGER), {
+      default: new Error(
+        'Expected type to be a string, a DataType class, or a DataType instance, but got undefined.',
+      ),
+      postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
+    });
+  });
+
   it('generates a ADD COLUMN IF NOT EXISTS query in supported dialects', () => {
     const { User } = vars;
 

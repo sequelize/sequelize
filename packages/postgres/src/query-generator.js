@@ -114,11 +114,12 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   addColumnQuery(table, key, attribute, options) {
     options ||= {};
 
+    const column = attribute.type ? attribute : { type: attribute };
     const dbDataType = this.attributeToSQL(
-      { ...attribute, field: attribute.field || key },
+      { ...column, field: column.field || key },
       { context: 'addColumn', tableOrModel: table },
     );
-    const dataType = attribute.type || attribute;
+    const dataType = column.type;
     const definition = this.dataTypeMapping(table, key, dbDataType);
     const quotedKey = this.quoteIdentifier(key);
     const quotedTable = this.quoteTable(table);
