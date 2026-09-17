@@ -142,6 +142,10 @@ jobs:
         run: yarn sscce-sqlite3
       - name: Integration tests (sqlite3)
         run: yarn lerna run test-integration-sqlite3 --scope=@sequelize/core
+      - name: Smoke tests (sqlite3)
+        run: yarn lerna run test-smoke --scope=@sequelize/core
+        env:
+          DIALECT: sqlite3
   docs:
     name: Generate TypeDoc
     runs-on: ubuntu-latest
@@ -204,6 +208,8 @@ jobs:
         run: tar -xf install-build-node-${{ matrix.node-version }}.tar
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   test-postgres:
     strategy:
       fail-fast: false
@@ -235,6 +241,8 @@ jobs:
       - run: yarn start-postgres-${{ matrix.postgres-version }}
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   test-oldest-latest:
     strategy:
       fail-fast: false
@@ -261,6 +269,8 @@ jobs:
       - run: yarn start-${{ matrix.dialect }}-${{ matrix.database-version }}
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   test-mssql-latest:
     strategy:
       fail-fast: false
@@ -285,6 +295,8 @@ jobs:
       - run: yarn start-mssql-latest
       - name: Integration Tests
         run: yarn lerna run test-integration --scope=@sequelize/core
+      - name: Smoke Tests
+        run: yarn lerna run test-smoke --scope=@sequelize/core
   # TODO: the following CI job is disabled due to mssql 2017 Docker image not working with ubuntu-22.04 or later. See https://github.com/sequelize/sequelize/pull/17772
   # test-mssql-oldest:
   #   strategy:
@@ -310,6 +322,8 @@ jobs:
   #     - run: yarn start-mssql-oldest
   #     - name: Integration Tests
   #       run: yarn lerna run test-integration --scope=@sequelize/core
+  #     - name: Smoke Tests
+  #       run: yarn lerna run test-smoke --scope=@sequelize/core
   release:
     name: Release
     runs-on: ubuntu-latest
