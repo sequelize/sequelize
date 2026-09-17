@@ -314,6 +314,27 @@ describe('QueryGenerator#insertQuery', () => {
       });
     });
 
+    it('binds date-only values', () => {
+      const Event = sequelize.define('Event', { day: DataTypes.DATEONLY }, { timestamps: false });
+
+      for (const day of ['2011-03-27', new Date('2011-03-27T22:01:55Z')]) {
+        const result = queryGenerator.insertQuery(Event.table, { day }, Event.getAttributes());
+        expectsql(result, {
+          query: {
+            default: 'INSERT INTO [Events] ([day]) VALUES ($sequelize_1);',
+            'db2 ibmi':
+              'SELECT * FROM FINAL TABLE (INSERT INTO "Events" ("day") VALUES ($sequelize_1));',
+          },
+          bind: {
+            default: { sequelize_1: '2011-03-27' },
+            oracle: {
+              sequelize_1: { type: oracledb.DB_TYPE_DATE, val: new Date(2011, 2, 27) },
+            },
+          },
+        });
+      }
+    });
+
     it('binds boolean values', () => {
       const result = queryGenerator.insertQuery('myTable', { positive: true, negative: false });
       expectsql(result, {
