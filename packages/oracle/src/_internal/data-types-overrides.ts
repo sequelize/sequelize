@@ -383,6 +383,10 @@ export class DATEONLY extends BaseTypes.DATEONLY {
   }
 
   parseDatabaseValue(value: any) {
+    if (value instanceof Date) {
+      return dayjs(value).format('YYYY-MM-DD');
+    }
+
     if (value) {
       return dayjs.utc(value).format('YYYY-MM-DD');
     }
@@ -400,10 +404,11 @@ export class DATEONLY extends BaseTypes.DATEONLY {
    * @override
    */
   getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
-    if (typeof value === 'string') {
-      return options.bindParam(new Date(value));
-    }
+    const [year, month, day] = this.toBindableValue(value).split('-').map(Number);
+    const localMidnight = new Date(0);
+    localMidnight.setFullYear(year, month - 1, day);
+    localMidnight.setHours(0, 0, 0, 0);
 
-    return options.bindParam(value);
+    return options.bindParam({ ...this._getBindDef(oracledbLib), val: localMidnight });
   }
 }
