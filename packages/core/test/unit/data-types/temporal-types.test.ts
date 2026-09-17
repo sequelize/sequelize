@@ -51,7 +51,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape(new Date('2022-01-01T12:13:14.123Z')), {
         default: `'2022-01-01 12:13:14.123 +00:00'`,
         'mariadb mysql': `'2022-01-01 12:13:14'`,
-        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        'db2 ibmi': `'2022-01-01 12:13:14.123'`,
         mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -61,7 +61,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape('2022-01-01T12:13:14.123Z'), {
         default: `'2022-01-01 12:13:14.123 +00:00'`,
         'mariadb mysql': `'2022-01-01 12:13:14'`,
-        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        'db2 ibmi': `'2022-01-01 12:13:14.123'`,
         mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -71,7 +71,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape(0), {
         default: `'1970-01-01 00:00:00.000 +00:00'`,
         'mariadb mysql': `'1970-01-01 00:00:00'`,
-        'db2 ibmi snowflake': `'1970-01-01 00:00:00.000'`,
+        'db2 ibmi': `'1970-01-01 00:00:00.000'`,
         mssql: `N'1970-01-01 00:00:00.000 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('1970-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -205,6 +205,25 @@ describe('DataTypes.DATE', () => {
         expect(type.toBindableValue(Number.POSITIVE_INFINITY)).to.equal('infinity');
         expect(type.toBindableValue(Number.NEGATIVE_INFINITY)).to.equal('-infinity');
       });
+    }
+
+    if (dialect.supports.globalTimeZoneConfig) {
+      for (const keepDefaultTimezone of [false, true]) {
+        it(`formats the value in the timezone option with keepDefaultTimezone ${keepDefaultTimezone}`, () => {
+          const localType = DataTypes.DATE().toDialectDataType(
+            createSequelizeInstance({ timezone: 'America/New_York', keepDefaultTimezone }).dialect,
+          );
+
+          expectsql(localType.toBindableValue(new Date('2022-01-15T10:20:30.123Z')), {
+            default: '2022-01-15 05:20:30.123 -05:00',
+            'mariadb mysql': '2022-01-15 05:20:30',
+          });
+          expectsql(localType.toBindableValue(new Date('2022-07-15T10:20:30.123Z')), {
+            default: '2022-07-15 06:20:30.123 -04:00',
+            'mariadb mysql': '2022-07-15 06:20:30',
+          });
+        });
+      }
     }
   });
 });

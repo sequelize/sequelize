@@ -295,7 +295,7 @@ describe('QueryGenerator#insertQuery', () => {
             sequelize_1: '2011-03-27 10:01:55.000',
           },
           snowflake: {
-            sequelize_1: '2011-03-27 10:01:55.000',
+            sequelize_1: '2011-03-27 10:01:55.000 +00:00',
           },
           sqlite3: {
             sequelize_1: '2011-03-27 10:01:55.000 +00:00',
