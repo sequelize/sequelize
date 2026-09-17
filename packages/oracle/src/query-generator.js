@@ -431,12 +431,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       );
     }
 
+    const column = isPlainObject(dataType) ? dataType : { type: dataType };
+
     dataType = {
-      ...dataType,
+      ...column,
       field: key,
-      type: normalizeDataType(dataType.type, this.dialect),
+      type: normalizeDataType(column.type, this.dialect),
     };
-    dataType.field = key;
 
     const attribute = joinSQLFragments([
       this.quoteIdentifier(key),

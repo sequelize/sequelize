@@ -225,7 +225,8 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
-    const columns = { [attributeName]: this.normalizeAttribute(dataTypeOrOptions) };
+    const column = this.normalizeAttribute(dataTypeOrOptions);
+    const columns = { [column.field || column.columnName || attributeName]: column };
     const query = this.queryGenerator.attributesToSQL(columns, {
       context: 'changeColumn',
       tableOrModel: tableName,

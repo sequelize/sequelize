@@ -98,10 +98,12 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   addColumnQuery(table, key, dataType, options = {}) {
     const ifNotExists = options.ifNotExists ? 'IF NOT EXISTS' : '';
 
+    const column = isPlainObject(dataType) ? dataType : { type: dataType };
+
     dataType = {
-      ...dataType,
+      ...column,
       field: key,
-      type: normalizeDataType(dataType.type, this.dialect),
+      type: normalizeDataType(column.type, this.dialect),
     };
 
     return joinSQLFragments([

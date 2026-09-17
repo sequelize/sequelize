@@ -134,12 +134,14 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       );
     }
 
+    const column = isPlainObject(dataType) ? dataType : { type: dataType };
+
     dataType = {
-      ...dataType,
+      ...column,
       // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
       //       but instead we need to pass the key along as the field here
       field: key,
-      type: normalizeDataType(dataType.type, this.dialect),
+      type: normalizeDataType(column.type, this.dialect),
     };
 
     let commentStr = '';
