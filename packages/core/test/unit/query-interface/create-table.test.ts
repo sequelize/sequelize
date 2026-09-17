@@ -148,4 +148,57 @@ describe('QueryInterface#createTable', () => {
       oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "table" ("json" BLOB CHECK ("json" IS JSON))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
     });
   });
+
+  it('rejects the removed "schema" option', async () => {
+    await expect(
+      sequelize.queryInterface.createTable(
+        'tasks',
+        { id: DataTypes.INTEGER },
+        // @ts-expect-error -- "schema" has been removed from the option bag on purpose
+        { schema: 'tenant' },
+      ),
+    ).to.be.rejectedWith(TypeError, 'The "schema" option has been removed');
+  });
+
+  if (dialect.supports.schemas) {
+    it("moves references to the default schema into the table's schema", async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw');
+      await sequelize.queryInterface.createTable(
+        { tableName: 'tasks', schema: 'tenant' },
+        {
+          userId: { type: DataTypes.INTEGER, references: { table: 'users', key: 'id' } },
+          auditorId: {
+            type: DataTypes.INTEGER,
+            references: { table: { tableName: 'auditors' }, key: 'id' },
+          },
+          // associations resolve their reference through the model definition, which always
+          // spells out the default schema. Such references must still follow the table.
+          memberId: {
+            type: DataTypes.INTEGER,
+            references: {
+              table: { tableName: 'members', schema: dialect.getDefaultSchema() },
+              key: 'id',
+            },
+          },
+          ownerId: {
+            type: DataTypes.INTEGER,
+            references: { table: { tableName: 'owners', schema: 'shared' }, key: 'id' },
+          },
+        },
+      );
+
+      expect(stub.callCount).to.eq(1);
+      const { queryGenerator } = sequelize;
+      const query = stub.getCall(0).args[0];
+      for (const tableName of ['users', 'auditors', 'members']) {
+        expect(query).to.include(
+          `REFERENCES ${queryGenerator.quoteTable({ tableName, schema: 'tenant' })}`,
+        );
+      }
+
+      expect(query).to.include(
+        `REFERENCES ${queryGenerator.quoteTable({ tableName: 'owners', schema: 'shared' })}`,
+      );
+    });
+  }
 });

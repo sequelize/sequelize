@@ -285,9 +285,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     if (attribute.references) {
       let schema;
 
-      if (options.schema) {
-        schema = options.schema;
-      } else if (
+      if (
         (!attribute.references.table || typeof attribute.references.table === 'string') &&
         options.table &&
         options.table.schema
