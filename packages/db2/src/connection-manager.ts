@@ -107,7 +107,7 @@ export class Db2ConnectionManager extends AbstractConnectionManager<Db2Dialect, 
     const connection: Db2Connection = new this.#lib.Database();
 
     try {
-      // ibm_db's typings for the OBDC connection string are missing many properties
+      // ibm_db's ConnStr type requires PROTOCOL and has no index signature, but open() accepts any ODBC keywords
       await callIbmDb(callback =>
         connection.open(connectionConfig as unknown as ConnStr, callback),
       );
