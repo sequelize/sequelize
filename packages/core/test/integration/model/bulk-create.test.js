@@ -1197,6 +1197,25 @@ describe('Model', () => {
       });
     }
 
+    it('inserts rows that only use default values', async function () {
+      const Model = this.customSequelize.define(
+        'DefaultValuesOnly',
+        { day: DataTypes.DATEONLY },
+        { timestamps: false },
+      );
+
+      await Model.sync({ force: true });
+      await Model.bulkCreate([{}, {}]);
+      await Model.create({});
+
+      const rows = await Model.findAll({ order: [['id', 'ASC']], raw: true });
+      expect(rows).to.deep.equal([
+        { id: 1, day: null },
+        { id: 2, day: null },
+        { id: 3, day: null },
+      ]);
+    });
+
     if (dialect.supports.returnValues) {
       describe('return values', () => {
         it('should make the auto incremented values available on the returned instances', async function () {

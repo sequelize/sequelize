@@ -399,8 +399,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           query: {
             mssql:
               'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
-            postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
-            db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
+            'postgres db2': 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
             ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
             snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
             default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
