@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const { DataTypes } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
@@ -69,6 +70,20 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
       );
     });
 
+    it('does not change the session time zone if keepDefaultTimezone is true', async () => {
+      const sequelize = Support.createSingleTestSequelizeInstance({
+        timezone: 'Europe/Amsterdam',
+        keepDefaultTimezone: true,
+      });
+
+      const [result] = await sequelize.query(
+        'SELECT @@session.time_zone AS session, @@global.time_zone AS global',
+        { type: sequelize.QueryTypes.SELECT },
+      );
+
+      expect(result.session).to.equal(result.global);
+    });
+
     it('handles named timezones', async function () {
       const NormalUser = this.sequelize.define('user', {});
       const TimezonedUser = this.sequelizeWithNamedTimezone.define('user', {});
@@ -88,4 +103,90 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
       );
     });
   }
+
+  describe('named timezone in both DST periods', () => {
+    Support.useProcessTimezone('Asia/Tokyo');
+
+    const january = new Date('2024-01-15T12:00:00.000Z');
+    const july = new Date('2024-07-15T12:00:00.000Z');
+
+    const sessionTimeZoneDateType = ['mysql', 'mariadb'].includes(dialectName)
+      ? 'TIMESTAMP NULL'
+      : DataTypes.DATE;
+
+    async function setup(type) {
+      const sequelize = Support.createSingleTestSequelizeInstance({
+        timezone: 'Europe/Amsterdam',
+      });
+      const Event = sequelize.define('Event', { at: type }, { timestamps: false });
+      await Event.sync({ force: true });
+
+      const table = sequelize.queryGenerator.quoteTable(Event);
+      const column = sequelize.queryGenerator.quoteIdentifier('at');
+
+      return { sequelize, Event, table, column };
+    }
+
+    async function getInstants(sequelize, table, column) {
+      const rows = await sequelize.query(`SELECT ${column} FROM ${table} ORDER BY ${column} ASC`, {
+        type: sequelize.QueryTypes.SELECT,
+      });
+
+      return rows.map(row => new Date(row.at).toISOString());
+    }
+
+    it('writes wall-clock times using the offset of their own DST period', async () => {
+      const { column, sequelize, table } = await setup(sessionTimeZoneDateType);
+
+      await sequelize.query(
+        `INSERT INTO ${table} (${column}) VALUES ('2024-01-15 13:00:00'), ('2024-07-15 14:00:00')`,
+      );
+
+      expect(await getInstants(Support.sequelize, table, column)).to.deep.equal([
+        january.toISOString(),
+        july.toISOString(),
+      ]);
+    });
+
+    it('reads wall-clock times using the offset of their own DST period', async () => {
+      const { column, sequelize, table } = await setup(sessionTimeZoneDateType);
+
+      await Support.sequelize.query(
+        `INSERT INTO ${table} (${column}) VALUES ('2024-01-15 12:00:00'), ('2024-07-15 12:00:00')`,
+      );
+
+      expect(await getInstants(sequelize, table, column)).to.deep.equal([
+        january.toISOString(),
+        july.toISOString(),
+      ]);
+    });
+
+    it('stores Date bind parameters of raw queries as the right instant', async () => {
+      const { column, sequelize, table } = await setup(sessionTimeZoneDateType);
+
+      await sequelize.query(`INSERT INTO ${table} (${column}) VALUES ($1), ($2)`, {
+        bind: [january, july],
+      });
+
+      expect(await getInstants(Support.sequelize, table, column)).to.deep.equal([
+        january.toISOString(),
+        july.toISOString(),
+      ]);
+    });
+
+    it('stores Date bind parameters of raw queries as the right wall-clock time', async () => {
+      const { column, Event, sequelize, table } = await setup(DataTypes.DATE(3));
+
+      await sequelize.query(`INSERT INTO ${table} (${column}) VALUES ($1), ($2)`, {
+        bind: [january, july],
+      });
+
+      const events = await Event.findAll({ order: [['at', 'ASC']] });
+
+      expect(events.map(event => event.at.toISOString())).to.deep.equal([
+        january.toISOString(),
+        july.toISOString(),
+      ]);
+    });
+  });
 });
