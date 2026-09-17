@@ -122,7 +122,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
     const connection: PostgresConnection = new this.#lib.Client(connectionConfig);
 
-    // Temporary no-op placeholder: node-postgres can emit 'error' before afterConnect()
+    // Temporary no-op placeholder: node-postgres can emit 'error' before initializeConnection()
     // attaches the real handler below. Without a listener here, that error would
     // crash the process instead of waiting to be handled.
     connection.on('error', () => {});
@@ -205,7 +205,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     return connection;
   }
 
-  async afterConnect(connection: PostgresConnection): Promise<void> {
+  async initializeConnection(connection: PostgresConnection): Promise<void> {
     // Don't let a Postgres restart (or error) to take down the whole app.
     connection.removeAllListeners('error').on('error', (error: any) => {
       connection._invalid = true;

@@ -130,7 +130,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      // Temporary no-op placeholder: mysql2 can emit 'error' before afterConnect()
+      // Temporary no-op placeholder: mysql2 can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
       // crash the process instead of waiting to be handled.
       connection.on('error', () => {});
@@ -141,7 +141,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  async afterConnect(connection: MySqlConnection): Promise<void> {
+  async initializeConnection(connection: MySqlConnection): Promise<void> {
     connection.removeAllListeners('error').on('error', (error: unknown) => {
       if (!isNodeError(error)) {
         return;
@@ -161,10 +161,9 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
     if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
       // set timezone for this connection
       // but named timezone are not directly supported in mysql, so get its offset first
-      let tzOffset = this.sequelize.options.timezone;
-      tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
-
       try {
+        let tzOffset = this.sequelize.options.timezone;
+        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
         await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       } catch (error) {
         // The pool never receives a connection whose setup failed, so it must

@@ -679,7 +679,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
 
         register(connection);
 
-        await this.dialect.connectionManager.afterConnect(connection);
+        await this.dialect.connectionManager.initializeConnection(connection);
         await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
 
         if (!this.getDatabaseVersionIfExist()) {

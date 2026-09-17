@@ -121,7 +121,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      // Temporary no-op placeholder: the driver can emit 'error' before afterConnect()
+      // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
       // crash the process instead of waiting to be handled.
       connection.on('error', () => {});
@@ -152,7 +152,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  async afterConnect(connection: MariaDbConnection): Promise<void> {
+  async initializeConnection(connection: MariaDbConnection): Promise<void> {
     connection.removeAllListeners('error').on('error', error => {
       switch (error.code) {
         case 'ESOCKET':

@@ -64,7 +64,7 @@ describe('sequelize.pool', () => {
       });
       sandbox = sinon.createSandbox();
       sandbox.stub(sequelize2.dialect.connectionManager, 'connect').resolves(connection);
-      sandbox.stub(sequelize2.dialect.connectionManager, 'afterConnect').resolves();
+      sandbox.stub(sequelize2.dialect.connectionManager, 'initializeConnection').resolves();
     });
 
     afterEach(() => {
@@ -106,11 +106,12 @@ describe('sequelize.pool', () => {
       expect(spy.firstCall.args[1]).to.deep.equal(sequelize2.options.replication.write);
     });
 
-    it('does not throw when pool.destroy is called during the afterConnect hook', async () => {
+    it('does not throw when pool.destroy is called during initializeConnection', async () => {
       let destroyError: unknown;
 
-      sequelize2.hooks.addListener('afterConnect', async connection => {
-        // Simulate the dialect's error handler calling pool.destroy() during setup
+      const initializeConnection = sequelize2.dialect.connectionManager
+        .initializeConnection as SinonStub;
+      initializeConnection.callsFake(async connection => {
         try {
           await sequelize2.pool.destroy(connection);
         } catch (error) {
@@ -120,7 +121,7 @@ describe('sequelize.pool', () => {
 
       await sequelize2.pool.acquire();
 
-      expect(destroyError, 'pool.destroy() must not throw during afterConnect').to.equal(undefined);
+      expect(destroyError).to.equal(undefined);
     });
 
     it('round robins calls to the read pool', async () => {
@@ -206,7 +207,7 @@ describe('sequelize.pool', () => {
         .stub(sequelize3.dialect.connectionManager, 'connect')
         .resolves(connection);
 
-      sandbox.stub(connectionManager, 'afterConnect').resolves();
+      sandbox.stub(connectionManager, 'initializeConnection').resolves();
       sandbox.stub(connectionManager, 'disconnect').resolves();
       sandbox
         .stub(sequelize3, 'fetchDatabaseVersion')
@@ -275,7 +276,7 @@ describe('sequelize.pool', () => {
       const connectionManager = sequelize3.dialect.connectionManager;
       const connectStub = sandbox.stub(connectionManager, 'connect').resolves(res);
 
-      sandbox.stub(connectionManager, 'afterConnect').resolves();
+      sandbox.stub(connectionManager, 'initializeConnection').resolves();
       sandbox.stub(connectionManager, 'disconnect').resolves();
 
       await sequelize3.pool.acquire({
@@ -292,7 +293,7 @@ describe('sequelize.pool', () => {
   describe('destroy', () => {
     let sequelize2: Sequelize;
     let connectStub: SinonStub;
-    let afterConnectStub: SinonStub;
+    let initializeConnectionStub: SinonStub;
     let disconnectStub: SinonStub;
 
     beforeEach(() => {
@@ -304,14 +305,14 @@ describe('sequelize.pool', () => {
         .stub(sequelize2.dialect.connectionManager, 'connect')
         .resolves(connection);
       disconnectStub = sinon.stub(sequelize2.dialect.connectionManager, 'disconnect');
-      afterConnectStub = sinon
-        .stub(sequelize2.dialect.connectionManager, 'afterConnect')
+      initializeConnectionStub = sinon
+        .stub(sequelize2.dialect.connectionManager, 'initializeConnection')
         .resolves();
     });
 
     afterEach(() => {
       connectStub.reset();
-      afterConnectStub.reset();
+      initializeConnectionStub.reset();
       disconnectStub.reset();
     });
 

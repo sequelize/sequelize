@@ -146,7 +146,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  async afterConnect(connection: MsSqlConnection): Promise<void> {
+  async initializeConnection(connection: MsSqlConnection): Promise<void> {
     // Replace default error handler with one that destroys the connection from the pool.
     connection.removeAllListeners('error').on('error', (error: unknown) => {
       if (isErrorWithStringCode(error) && ['ESOCKET', 'ECONNRESET'].includes(error.code)) {

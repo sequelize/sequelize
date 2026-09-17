@@ -100,7 +100,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      // Temporary no-op placeholder: the driver can emit 'error' before afterConnect()
+      // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
       // crash the process instead of waiting to be handled.
       connection.on('error', () => {});
@@ -144,7 +144,7 @@ export class OracleConnectionManager extends AbstractConnectionManager<
     }
   }
 
-  async afterConnect(connection: OracleConnection): Promise<void> {
+  async initializeConnection(connection: OracleConnection): Promise<void> {
     connection.removeAllListeners('error').on('error', error => {
       switch (error.code) {
         case 'ESOCKET':
