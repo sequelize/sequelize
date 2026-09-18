@@ -337,7 +337,7 @@ describe('QueryGenerator#createTableQuery', () => {
   });
 
   it('creates UUID array columns with the correct default in postgres', () => {
-    if (dialectName !== 'postgres') {
+    if (!dialect.supports.dataTypes.ARRAY) {
       return;
     }
 

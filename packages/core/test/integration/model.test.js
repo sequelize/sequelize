@@ -872,48 +872,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(user.equals(user)).to.be.ok;
     });
 
-    // sqlite3 can't handle multiple primary keys
-    if (dialectName !== 'sqlite3') {
-      it('correctly determines equality with multiple primary keys', async function () {
-        const userKeys = this.sequelize.define('userkeys', {
-          foo: { type: DataTypes.STRING, primaryKey: true },
-          bar: { type: DataTypes.STRING, primaryKey: true },
-          name: DataTypes.STRING,
-          bio: DataTypes.TEXT,
-        });
-
-        await userKeys.sync({ force: true });
-        const user = await userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
-        expect(user.equals(user)).to.be.ok;
+    it('correctly determines equality with multiple primary keys', async function () {
+      const userKeys = this.sequelize.define('userkeys', {
+        foo: { type: DataTypes.STRING, primaryKey: true },
+        bar: { type: DataTypes.STRING, primaryKey: true },
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
       });
-    }
+
+      await userKeys.sync({ force: true });
+      const user = await userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
+      expect(user.equals(user)).to.be.ok;
+    });
   });
 
-  // sqlite can't handle multiple primary keys
-  if (dialectName !== 'sqlite3') {
-    describe('equalsOneOf', () => {
-      beforeEach(async function () {
-        this.userKey = this.sequelize.define('userKeys', {
-          foo: { type: DataTypes.STRING, primaryKey: true },
-          bar: { type: DataTypes.STRING, primaryKey: true },
-          name: DataTypes.STRING,
-          bio: DataTypes.TEXT,
-        });
-
-        await this.userKey.sync({ force: true });
+  describe('equalsOneOf', () => {
+    beforeEach(async function () {
+      this.userKey = this.sequelize.define('userKeys', {
+        foo: { type: DataTypes.STRING, primaryKey: true },
+        bar: { type: DataTypes.STRING, primaryKey: true },
+        name: DataTypes.STRING,
+        bio: DataTypes.TEXT,
       });
 
-      it('determines equality if one is matching', async function () {
-        const u = await this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
-        expect(u.equalsOneOf([u, { a: 1 }])).to.be.ok;
-      });
-
-      it("doesn't determine equality if none is matching", async function () {
-        const u = await this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
-        expect(u.equalsOneOf([{ b: 2 }, { a: 1 }])).to.not.be.ok;
-      });
+      await this.userKey.sync({ force: true });
     });
-  }
+
+    it('determines equality if one is matching', async function () {
+      const u = await this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
+      expect(u.equalsOneOf([u, { a: 1 }])).to.be.ok;
+    });
+
+    it("doesn't determine equality if none is matching", async function () {
+      const u = await this.userKey.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
+      expect(u.equalsOneOf([{ b: 2 }, { a: 1 }])).to.not.be.ok;
+    });
+  });
 
   describe('sum', () => {
     beforeEach(async function () {
@@ -1712,8 +1706,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     });
 
     it('should correctly set identifiers in a column with autoIncrement with bigint values', async function () {
-      // sqlite returns bigints as numbers https://github.com/sequelize/sequelize/issues/11400
-      if (dialectName === 'sqlite3') {
+      if (!dialect.supports.dataTypes.BIGINT) {
         return;
       }
 
