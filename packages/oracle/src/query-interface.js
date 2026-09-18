@@ -1,8 +1,10 @@
 // Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
+import { isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import intersection from 'lodash/intersection.js';
+import pick from 'lodash/pick.js';
 import uniq from 'lodash/uniq.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
@@ -52,20 +54,12 @@ export class OracleQueryInterface extends AbstractQueryInterface {
 
     options.upsertKeys = uniq(options.upsertKeys);
 
-    let whereHasNull = false;
+    if (isWhereEmpty(where)) {
+      const canIdentifyRow =
+        options.upsertKeys.length > 0 &&
+        options.upsertKeys.every(attribute => insertValues[attribute] != null);
 
-    primaryKeys.forEach(element => {
-      if (where[element] === null) {
-        whereHasNull = true;
-      }
-    });
-
-    if (whereHasNull === true) {
-      where = options.upsertKeys.reduce((result, attribute) => {
-        result[attribute] = insertValues[attribute];
-
-        return result;
-      }, {});
+      where = canIdentifyRow ? pick(insertValues, options.upsertKeys) : null;
     }
 
     if (typeof tableName === 'object') {

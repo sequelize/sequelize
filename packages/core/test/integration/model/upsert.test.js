@@ -434,6 +434,27 @@ describe('Model', () => {
         expect(user.city).to.equal('New City');
       });
 
+      it('only updates the row matching the unique key when no primary key is provided', async function () {
+        const User = this.sequelize.define('User', {
+          name: {
+            type: DataTypes.STRING,
+            unique: true,
+          },
+          city: DataTypes.STRING,
+        });
+        await User.sync({ force: true });
+
+        await User.upsert({ name: 'january', city: 'Amsterdam' });
+        await User.upsert({ name: 'july', city: 'Brussels' });
+        await User.upsert({ name: 'january', city: 'Copenhagen' });
+
+        const users = await User.findAll({ order: [['name', 'ASC']] });
+        expect(users.map(user => [user.name, user.city])).to.deep.equal([
+          ['january', 'Copenhagen'],
+          ['july', 'Brussels'],
+        ]);
+      });
+
       it('works when indexes are created via indexes array', async function () {
         const User = this.sequelize.define(
           'User',

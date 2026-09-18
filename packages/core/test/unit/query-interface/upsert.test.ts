@@ -270,7 +270,57 @@ describe('QueryInterface#upsert', () => {
         ON "Users_target"."id" = "Users_source"."id" WHEN MATCHED THEN UPDATE SET "Users_target"."counter" = \`counter\` + 1
         WHEN NOT MATCHED THEN INSERT ("firstName", "counter") VALUES('Jonh', \`counter\` + 1);
         `,
-      oracle: `DECLARE BEGIN UPDATE "Users" SET "counter"=\`counter\` + 1; IF (SQL%ROWCOUNT = 0) THEN INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,\`counter\` + 1); :isUpdate := 0; ELSE :isUpdate := 1; END IF; END;`,
+      oracle: `BEGIN INSERT INTO "Users" ("firstName","counter") VALUES ($sequelize_1,\`counter\` + 1); :isUpdate := 0; END;`,
+    });
+  });
+
+  it('uses the unique key as the upsert condition when no primary key is provided', async () => {
+    const Member = sequelize.define(
+      'Member',
+      {
+        name: {
+          type: DataTypes.STRING,
+          unique: true,
+        },
+        city: DataTypes.STRING,
+      },
+      { timestamps: false },
+    );
+    const stub = sinon.stub(sequelize, 'queryRaw');
+
+    await sequelize.queryInterface.upsert(
+      Member.tableName,
+      { name: 'january', city: 'Amsterdam' },
+      { name: 'january', city: 'Amsterdam' },
+      {},
+      { model: Member },
+    );
+
+    expect(stub.callCount).to.eq(1);
+    expectsql(stub.getCall(0).args[0], {
+      'postgres sqlite3':
+        'INSERT INTO [Members] ([name],[city]) VALUES ($sequelize_1,$sequelize_2) ON CONFLICT ([name]) DO UPDATE SET [name]=EXCLUDED.[name],[city]=EXCLUDED.[city];',
+      'mariadb mysql':
+        'INSERT INTO `Members` (`name`,`city`) VALUES ($sequelize_1,$sequelize_2) ON DUPLICATE KEY UPDATE `name`=$sequelize_1,`city`=$sequelize_2;',
+      mssql: `
+        MERGE INTO [Members] WITH(HOLDLOCK) AS [Members_target]
+        USING (VALUES(N'january', N'Amsterdam')) AS [Members_source]([name], [city])
+        ON [Members_target].[name] = [Members_source].[name]
+        WHEN MATCHED THEN UPDATE SET [Members_target].[name] = N'january', [Members_target].[city] = N'Amsterdam'
+        WHEN NOT MATCHED THEN INSERT ([name], [city]) VALUES(N'january', N'Amsterdam') OUTPUT $action, INSERTED.*;
+      `,
+      db2: `
+        MERGE INTO "Members" AS "Members_target"
+        USING (VALUES('january', 'Amsterdam')) AS "Members_source"("name", "city")
+        ON "Members_target"."name" = "Members_source"."name"
+        WHEN MATCHED THEN UPDATE SET "Members_target"."name" = 'january', "Members_target"."city" = 'Amsterdam'
+        WHEN NOT MATCHED THEN INSERT ("name", "city") VALUES('january', 'Amsterdam');
+      `,
+      oracle: `
+        DECLARE BEGIN UPDATE "Members" SET "name"=$sequelize_1,"city"=$sequelize_2 WHERE "name" = $sequelize_3;
+        IF (SQL%ROWCOUNT = 0) THEN INSERT INTO "Members" ("name","city") VALUES ($sequelize_4,$sequelize_5);
+        :isUpdate := 0; ELSE :isUpdate := 1; END IF; END;
+      `,
     });
   });
 });
