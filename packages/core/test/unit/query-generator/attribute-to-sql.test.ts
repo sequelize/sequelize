@@ -1,5 +1,6 @@
 import { DataTypes, fn, literal } from '@sequelize/core';
 import type { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import { expect } from 'chai';
 import util from 'node:util';
 import type { ExpectationRecord } from '../../support';
 import {
@@ -753,6 +754,40 @@ describe('QueryGenerator#attributeToSQL', () => {
       },
     );
   }
+
+  it('does not modify the attribute it is given', () => {
+    const Foo = sequelize.define('Foo', {}, { tableName: 'foo' });
+    const attribute = {
+      type: 'INTEGER',
+      field: 'fooId',
+      Model: Foo,
+      references: { table: 'foo', key: 'id' },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    };
+
+    // @ts-expect-error -- attributeToSQL is not typed yet
+    sequelize.dialect.queryGenerator.attributeToSQL(attribute, {
+      context: 'createTable',
+      tableOrModel: 'foo',
+    });
+
+    expect(attribute).to.include({ onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+  });
+
+  it('generates the same SQL each time it is given the same data type', () => {
+    const queryGenerator = sequelize.dialect.queryGenerator;
+    const attribute = {
+      type: sequelize.normalizeDataType(DataTypes.INTEGER.UNSIGNED),
+      field: 'foo',
+    };
+
+    // @ts-expect-error -- attributeToSQL is not typed yet
+    const first = queryGenerator.attributeToSQL(attribute);
+
+    // @ts-expect-error -- attributeToSQL is not typed yet
+    expect(queryGenerator.attributeToSQL(attribute)).to.equal(first);
+  });
 
   describe('quoteIdentifiers: false', () => {
     allowDeprecationsInSuite(['SEQUELIZE0023']);
