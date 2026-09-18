@@ -52,9 +52,10 @@ export class OracleQueryInterface extends AbstractQueryInterface {
       options.upsertKeys = primaryKeys;
     }
 
-    options.upsertKeys = uniq(options.upsertKeys);
+    const hasConflictFields = Boolean(options.conflictFields?.length);
+    options.upsertKeys = uniq(hasConflictFields ? options.conflictFields : options.upsertKeys);
 
-    if (isWhereEmpty(where)) {
+    if (hasConflictFields || isWhereEmpty(where)) {
       const canIdentifyRow =
         options.upsertKeys.length > 0 &&
         options.upsertKeys.every(attribute => insertValues[attribute] != null);
