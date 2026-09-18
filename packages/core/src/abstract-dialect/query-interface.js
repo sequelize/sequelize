@@ -115,7 +115,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     // Snowflake requires special SQL commands for SEQUENCES
     await this.ensureSequences(tableName, attributes, options);
 
-    attributes = this.queryGenerator.attributesToSQL(attributes, {
+    attributes = this.queryGenerator.attributesToSql(attributes, {
       tableOrModel: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
@@ -227,7 +227,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const column = this.normalizeAttribute(dataTypeOrOptions);
     const columns = { [column.field || column.columnName || attributeName]: column };
-    const query = this.queryGenerator.attributesToSQL(columns, {
+    const query = this.queryGenerator.attributesToSql(columns, {
       context: 'changeColumn',
       tableOrModel: tableName,
     });
@@ -287,7 +287,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.renameColumnQuery(
       tableName,
       attrNameBefore,
-      this.queryGenerator.attributesToSQL(_options),
+      this.queryGenerator.attributesToSql(_options),
     );
 
     return await this.sequelize.queryRaw(sql, options);
