@@ -3413,7 +3413,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const [worker, tasks0] = await Promise.all([
-          dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
+          Worker.create({}),
           Task.bulkCreate([{}, {}, {}]).then(() => {
             return Task.findAll();
           }),
@@ -3440,7 +3440,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await this.sequelize.sync({ force: true });
 
         const [worker, tasks0] = await Promise.all([
-          dialect === 'db2' ? Worker.create({ id: 1 }) : Worker.create({}),
+          Worker.create({}),
           Task.bulkCreate([{}, {}, {}, {}, {}]).then(() => {
             return Task.findAll();
           }),

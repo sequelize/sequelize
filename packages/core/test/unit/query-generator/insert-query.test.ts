@@ -15,7 +15,15 @@ describe('QueryGenerator#insertQuery', () => {
       { timestamps: false },
     );
 
-    return { User };
+    const AutoIncrementModel = sequelize.define(
+      'AutoIncrementModel',
+      {
+        day: DataTypes.DATEONLY,
+      },
+      { timestamps: false },
+    );
+
+    return { User, AutoIncrementModel };
   });
 
   // you'll find more replacement tests in query-generator tests
@@ -149,6 +157,24 @@ describe('QueryGenerator#insertQuery', () => {
   });
 
   // This test was added due to a regression where these values were being converted to strings
+  it('inserts the default value of auto-increment attributes set to null', () => {
+    const { AutoIncrementModel } = vars;
+
+    const { query } = queryGenerator.insertQuery(
+      AutoIncrementModel.table,
+      { id: null },
+      AutoIncrementModel.getAttributes(),
+    );
+
+    expectsql(query, {
+      default: 'INSERT INTO [AutoIncrementModels] ([id]) VALUES (DEFAULT);',
+      sqlite3: 'INSERT INTO `AutoIncrementModels` (`id`) VALUES (NULL);',
+      mssql: 'INSERT INTO [AutoIncrementModels] DEFAULT VALUES;',
+      db2: 'SELECT * FROM FINAL TABLE (INSERT INTO "AutoIncrementModels" ("id") VALUES (DEFAULT));',
+      ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "AutoIncrementModels" ("id") VALUES (DEFAULT))',
+    });
+  });
+
   it('binds number values', () => {
     if (!sequelize.dialect.supports.dataTypes.ARRAY) {
       return;

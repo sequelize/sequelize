@@ -1607,6 +1607,27 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     expect(m.id).to.be.eql(1);
   });
 
+  it('creates rows that only use default values', async function () {
+    const Model = this.customSequelize.define(
+      'DefaultValuesOnly',
+      { day: DataTypes.DATEONLY },
+      { timestamps: false },
+    );
+
+    await Model.sync({ force: true });
+    const first = await Model.create({});
+    const second = await Model.create({});
+
+    expect(first.id).to.equal(1);
+    expect(second.id).to.equal(2);
+
+    const rows = await Model.findAll({ order: [['id', 'ASC']], raw: true });
+    expect(rows).to.deep.equal([
+      { id: 1, day: null },
+      { id: 2, day: null },
+    ]);
+  });
+
   it('should support logging', async function () {
     const spy = sinon.spy();
 
