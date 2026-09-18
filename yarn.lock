@@ -2945,9 +2945,13 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:4.3.20"
+    "@types/mocha": "npm:10.0.10"
+    chai: "npm:4.5.0"
     dayjs: "npm:^1.11.23"
     ibm_db: "npm:^4.0.1"
     lodash: "npm:^4.18.1"
+    mocha: "npm:11.7.5"
   languageName: unknown
   linkType: soft
 
@@ -2996,7 +3000,7 @@ __metadata:
     "@types/chai": "npm:4.3.20"
     "@types/lodash": "npm:4.17.25"
     "@types/mocha": "npm:10.0.10"
-    "@types/node": "npm:22.19.17"
+    "@types/node": "npm:22.20.3"
     chai: "npm:4.5.0"
     concurrently: "npm:9.2.4"
     cross-env: "npm:10.1.0"
@@ -3948,21 +3952,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:22.19.17":
-  version: 22.19.17
-  resolution: "@types/node@npm:22.19.17"
+"@types/node@npm:22.20.3, @types/node@npm:^22.5.5":
+  version: 22.20.3
+  resolution: "@types/node@npm:22.20.3"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10c0/b66c484c0a9f6d88b1ef360b0f487717234ee1a482cb2551ff73d9f3c43a42a777daf4c8a5eee970960728f8fe1f3877d3d8c6ffabcbca74cb401a59db700fa4
-  languageName: node
-  linkType: hard
-
-"@types/node@npm:^22.5.5":
-  version: 22.20.2
-  resolution: "@types/node@npm:22.20.2"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/1940dbec0c65a454c3651a282970fbfc998e0f0a5492bf5e067d8d9185f0c47cacc0d028153c481c4e6ecd19381ab03bf3f2efadb0cfacd702e74b6d5e4b212e
+  checksum: 10c0/27034f3f66d7044494f0be7b20b17eecbb1f6deab9e2ea8b004d79e896f4a90cde954da9a433a145e800f3db3e5c5c4761a65366434997c77102ba364dcbedd0
   languageName: node
   linkType: hard
 
