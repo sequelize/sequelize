@@ -110,15 +110,15 @@ export class OracleQuery extends AbstractQuery {
 
     // When this.options.bindAttributes exists then it is an insertQuery/upsertQuery
     // So we insert the return bind direction and type
-    if (
-      this.options.outBindAttributes &&
-      (Array.isArray(parameters) || isPlainObject(parameters))
-    ) {
-      this._convertBindAttributes('outBindAttributes');
-      outParameters.push(...Object.values(this.options.outBindAttributes));
+    if (Array.isArray(parameters) || isPlainObject(parameters)) {
+      if (this.options.outBindAttributes) {
+        this._convertBindAttributes('outBindAttributes');
+        outParameters.push(...Object.values(this.options.outBindAttributes));
+      }
+
       // For upsertQuery we need to push the bindDef for isUpdate
       if (this.isUpsertQuery()) {
-        outParameters.push({ dir: oracledb.BIND_OUT });
+        outParameters.push({ dir: oracledb.BIND_OUT, type: oracledb.NUMBER });
       }
     }
 
@@ -523,19 +523,29 @@ export class OracleQuery extends AbstractQuery {
     } else if (this.isDeleteQuery()) {
       result = data.rowsAffected;
     } else if (this.isUpsertQuery()) {
-      // Upsert Query, will return nothing
-      data = data.outBinds;
-      const keys = Object.keys(this.options.outBindAttributes);
-      const obj = {};
-      for (const k in keys) {
-        obj[keys[k]] = data[k];
+      const outBinds = data.outBinds;
+      const created = outBinds.at(-1) === 0;
+      const returningKeys = Object.keys(this.options.outBindAttributes ?? {});
+      const returnedValues = pojo();
+      for (const [index, key] of returningKeys.entries()) {
+        returnedValues[key] = outBinds[index];
       }
 
-      // eslint-disable-next-line unicorn/prefer-at
-      obj.isUpdate = data[data.length - 1];
-      data = obj;
-      // eslint-disable-next-line eqeqeq
-      result = [{ isNewRecord: data.isUpdate, value: data }, data.isUpdate == 0];
+      const hasReturnedRow = Object.values(returnedValues).some(value => value != null);
+      const returnedRow = hasReturnedRow ? returnedValues : undefined;
+      if (returnedRow && this.instance) {
+        const modelDefinition = this.model.modelDefinition;
+        for (const [columnName, value] of Object.entries(returnedRow)) {
+          const attribute = modelDefinition.columns.get(columnName);
+          this.instance.set(
+            attribute?.attributeName ?? columnName,
+            this._parseDatabaseValue(value, attribute?.type),
+            { raw: true, comesFromDatabase: true },
+          );
+        }
+      }
+
+      result = [this.instance ?? returnedRow, created];
     } else if (this.isShowConstraintsQuery()) {
       result = this.handleShowConstraintsQuery(data);
     } else if (this.isRawQuery()) {

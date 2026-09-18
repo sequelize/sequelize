@@ -607,6 +607,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       returnAttributes.push(returnAttribute);
     });
     options.outBindAttributes = outBindAttributes;
+    options.outBindParams = returnAttributes.slice(-returningModelAttributes.length);
   }
 
   /**
@@ -636,18 +637,22 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     // This bind is passed so that the insert query starts appending to this same bind array
     options.bind = updateQuery.bind;
     const insertQuery = this.insertQuery(tableName, insertValues, rawAttributes, options);
+    const returnedValues = this.getUpsertReturnedValues(tableName, options);
 
     const sql = [
       'DECLARE ',
+      returnedValues.declarations,
       'BEGIN ',
       updateQuery.query
         ? [
             updateQuery.query,
+            returnedValues.updateReturning,
             '; ',
             ' IF ( SQL%ROWCOUNT = 0 ) THEN ',
             insertQuery.query,
             ' :isUpdate := 0; ',
             'ELSE ',
+            returnedValues.assignments,
             ' :isUpdate := 1; ',
             ' END IF; ',
           ].join('')
@@ -670,6 +675,29 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     return query;
+  }
+
+  getUpsertReturnedValues(tableName, options) {
+    const columns = Object.keys(options.outBindAttributes ?? {});
+    if (columns.length === 0) {
+      return { declarations: '', updateReturning: '', assignments: '' };
+    }
+
+    const quotedTable = this.quoteTable(tableName);
+    const variables = columns.map((_column, index) => `sequelize_returned_${index + 1}`);
+
+    return {
+      declarations: columns
+        .map(
+          (column, index) =>
+            `${variables[index]} ${quotedTable}.${this.quoteIdentifier(column)}%TYPE; `,
+        )
+        .join(''),
+      updateReturning: ` RETURNING ${columns.map(column => this.quoteIdentifier(column)).join(', ')} INTO ${variables.join(',')}`,
+      assignments: options.outBindParams
+        .map((outBind, index) => ` ${outBind} := ${variables[index]};`)
+        .join(''),
+    };
   }
 
   /**
