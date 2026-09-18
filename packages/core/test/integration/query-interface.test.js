@@ -124,7 +124,7 @@ describe('QueryInterface', () => {
       it('works with schemas', async function () {
         await this.sequelize.createSchema('schema');
         await this.queryInterface.createTable(
-          'table',
+          { tableName: 'table', schema: 'schema' },
           {
             name: {
               type: DataTypes.STRING,
@@ -132,9 +132,6 @@ describe('QueryInterface', () => {
             isAdmin: {
               type: DataTypes.STRING,
             },
-          },
-          {
-            schema: 'schema',
           },
         );
         await this.queryInterface.addIndex(

@@ -12,12 +12,21 @@ import { QueryTypes } from '../enums';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
+import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 /**
  * The interface that Sequelize uses to talk to all databases
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
+  #internals;
+
+  constructor(dialect, internals = new AbstractQueryInterfaceInternal(dialect)) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
+
   /**
    * Create a table with given set of attributes
    *
@@ -57,7 +66,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *   {
    *     engine: 'MYISAM',    // default: 'InnoDB'
    *     charset: 'latin1',   // default: null
-   *     schema: 'public',    // default: public, PostgreSQL only.
    *     comment: 'my table', // comment for table
    *     collate: 'latin1_danish_ci' // collation, MYSQL only
    *   }
@@ -71,8 +79,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *
    * @returns {Promise}
    */
-  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
+    if (options && 'schema' in options) {
+      throw new TypeError(
+        'The "schema" option has been removed from QueryInterface#createTable. Pass a TableNameWithSchema object as "tableName" instead, such as { tableName: "users", schema: "public" }.',
+      );
+    }
+
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
@@ -82,25 +95,30 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
 
+    const modelTable = model?.table;
+
+    if (!tableName.schema && modelTable?.schema) {
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = modelTable.schema;
+    }
+
+    const createSchema = this.queryGenerator.extractTableDetails(tableName).schema;
+    if (createSchema !== this.sequelize.dialect.getDefaultSchema()) {
+      attributes = mapValues(attributes, attribute =>
+        this.#internals.withReferencesSchema(attribute, createSchema),
+      );
+    }
+
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
     // Snowflake requires special SQL commands for SEQUENCES
     await this.ensureSequences(tableName, attributes, options);
 
-    const modelTable = model?.table;
-
-    if (!tableName.schema && (options.schema || modelTable?.schema)) {
-      tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = modelTable?.schema || options.schema;
-    }
-
     attributes = this.queryGenerator.attributesToSQL(attributes, {
       table: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
-      // schema override for multi-tenancy
-      schema: options.schema,
     });
 
     const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);

@@ -865,7 +865,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop({
+      await this.queryInterface.dropTable(tableName, {
         ...options,
         cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined,
       });
