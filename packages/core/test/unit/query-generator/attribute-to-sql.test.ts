@@ -311,8 +311,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: sequelize.normalizeDataType(DataTypes.DATE), defaultValue: fn('NOW') },
     {
       default: 'TIMESTAMP DEFAULT NOW()',
-      mariadb: 'DATETIME DEFAULT NOW()',
-      mysql: 'DATETIME DEFAULT (NOW())',
+      'mariadb mysql': 'DATETIME DEFAULT (NOW())',
       postgres: 'TIMESTAMP WITH TIME ZONE DEFAULT NOW()',
       mssql: 'DATETIMEOFFSET DEFAULT NOW()',
       sqlite3: 'TEXT DEFAULT NOW()',
@@ -324,8 +323,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: sequelize.normalizeDataType(DataTypes.DATE), defaultValue: literal('NOW()') },
     {
       default: 'TIMESTAMP DEFAULT NOW()',
-      mariadb: 'DATETIME DEFAULT NOW()',
-      mysql: 'DATETIME DEFAULT (NOW())',
+      'mariadb mysql': 'DATETIME DEFAULT (NOW())',
       postgres: 'TIMESTAMP WITH TIME ZONE DEFAULT NOW()',
       mssql: 'DATETIMEOFFSET DEFAULT NOW()',
       sqlite3: 'TEXT DEFAULT NOW()',
@@ -337,8 +335,9 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'TEXT', defaultValue: 'abc' },
     {
       default: "TEXT DEFAULT 'abc'",
-      'mariadb mysql snowflake': 'TEXT',
+      mysql: "TEXT DEFAULT ('abc')",
       mssql: "TEXT DEFAULT N'abc'",
+      snowflake: 'TEXT',
     },
   );
 
@@ -347,10 +346,11 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.TEXT), defaultValue: 'abc' },
     {
-      default: 'TEXT',
-      'postgres sqlite3': "TEXT DEFAULT 'abc'",
+      default: "TEXT DEFAULT 'abc'",
       'db2 ibmi': "CLOB(2147483647) DEFAULT 'abc'",
+      mysql: "TEXT DEFAULT ('abc')",
       mssql: "NVARCHAR(MAX) DEFAULT N'abc'",
+      snowflake: 'TEXT',
       oracle: "CLOB DEFAULT 'abc'",
     },
   );
@@ -359,7 +359,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'BLOB', defaultValue: [] },
     {
       default: new Error('Could not guess type of value [] because it is an empty array'),
-      'mariadb mysql snowflake ibmi': 'BLOB',
+      'snowflake ibmi': 'BLOB',
     },
   );
 
@@ -368,10 +368,11 @@ describe('QueryGenerator#attributeToSQL', () => {
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.BLOB), defaultValue: Buffer.from('abc') },
     {
-      default: 'BLOB',
+      default: "BLOB DEFAULT X'616263'",
+      mysql: "BLOB DEFAULT (X'616263')",
       postgres: "BYTEA DEFAULT '\\x616263'",
       mssql: 'VARBINARY(MAX) DEFAULT 0x616263',
-      sqlite3: "BLOB DEFAULT X'616263'",
+      snowflake: 'BLOB',
       db2: "BLOB(1M) DEFAULT BLOB('abc')",
       ibmi: 'BLOB(1M)',
       oracle: "BLOB DEFAULT '616263'",
@@ -382,7 +383,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'GEOMETRY', defaultValue: [] },
     {
       default: new Error('Could not guess type of value [] because it is an empty array'),
-      'mariadb mysql snowflake': 'GEOMETRY',
+      snowflake: 'GEOMETRY',
     },
   );
 
@@ -390,7 +391,7 @@ describe('QueryGenerator#attributeToSQL', () => {
     { type: 'JSON', defaultValue: [] },
     {
       default: new Error('Could not guess type of value [] because it is an empty array'),
-      'mariadb mysql snowflake': 'JSON',
+      snowflake: 'JSON',
     },
   );
 
