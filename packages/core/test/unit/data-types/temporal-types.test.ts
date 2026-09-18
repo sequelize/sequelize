@@ -12,7 +12,7 @@ const nowDateOnly = nowString.slice(0, 10);
 describe('DataTypes.DATE', () => {
   describe('toSql', () => {
     testDataTypeSql('DATE', DataTypes.DATE, {
-      'db2 ibmi snowflake': 'TIMESTAMP',
+      'db2 ibmi snowflake hana': 'TIMESTAMP',
       postgres: 'TIMESTAMP WITH TIME ZONE',
       mssql: 'DATETIMEOFFSET',
       'mariadb mysql': 'DATETIME',
@@ -27,6 +27,7 @@ describe('DataTypes.DATE', () => {
       'db2 ibmi snowflake': 'TIMESTAMP(0)',
       sqlite3: 'TEXT',
       oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
+      hana: 'TIMESTAMP',
     });
 
     testDataTypeSql('DATE(6)', DataTypes.DATE(6), {
@@ -37,6 +38,7 @@ describe('DataTypes.DATE', () => {
       mysql: 'DATETIME(6)',
       sqlite3: 'TEXT',
       oracle: 'TIMESTAMP WITH LOCAL TIME ZONE',
+      hana: 'TIMESTAMP',
     });
   });
 
@@ -50,7 +52,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape(new Date('2022-01-01T12:13:14.123Z')), {
         default: `'2022-01-01 12:13:14.123 +00:00'`,
         'mariadb mysql': `'2022-01-01 12:13:14'`,
-        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        'db2 ibmi snowflake hana': `'2022-01-01 12:13:14.123'`,
         mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -60,7 +62,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape('2022-01-01T12:13:14.123Z'), {
         default: `'2022-01-01 12:13:14.123 +00:00'`,
         'mariadb mysql': `'2022-01-01 12:13:14'`,
-        'db2 ibmi snowflake': `'2022-01-01 12:13:14.123'`,
+        'db2 ibmi snowflake hana': `'2022-01-01 12:13:14.123'`,
         mssql: `N'2022-01-01 12:13:14.123 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('2022-01-01 12:13:14.123 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -70,7 +72,7 @@ describe('DataTypes.DATE', () => {
       expectsql(type.escape(0), {
         default: `'1970-01-01 00:00:00.000 +00:00'`,
         'mariadb mysql': `'1970-01-01 00:00:00'`,
-        'db2 ibmi snowflake': `'1970-01-01 00:00:00.000'`,
+        'db2 ibmi snowflake hana': `'1970-01-01 00:00:00.000'`,
         mssql: `N'1970-01-01 00:00:00.000 +00:00'`,
         oracle: `TO_TIMESTAMP_TZ('1970-01-01 00:00:00.000 +00:00', 'YYYY-MM-DD HH24:MI:SS.FFTZH:TZM')`,
       });
@@ -204,6 +206,8 @@ describe('DataTypes.TIME', () => {
       default: 'TIME(6)',
       db2: new Error(`db2 does not support the TIME(precision) data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
+      hana: new Error(`hana does not support the TIME(precision) data type.
+See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
       sqlite3: 'TEXT',
       oracle: new Error(`oracle does not support the TIME(precision) data type.
 See https://sequelize.org/docs/v7/models/data-types/ for a list of supported data types.`),
@@ -216,6 +220,7 @@ describe('DataTypes.NOW', () => {
     testDataTypeSql('NOW', DataTypes.NOW, {
       default: 'NOW',
       db2: 'CURRENT TIME',
+      hana: 'CURRENT_DATE',
       mssql: 'GETDATE()',
       oracle: 'SYSDATE',
     });

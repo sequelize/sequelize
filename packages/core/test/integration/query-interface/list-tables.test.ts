@@ -45,6 +45,19 @@ describe('QueryInterface#listTables', () => {
             'END;',
           ].join(' ');
           await sequelize.query(plsql);
+        } else if (dialectName === 'hana') {
+          // HANA does not support DROP VIEW IF EXISTS
+          const sql = [
+            'DO BEGIN',
+            '  IF EXISTS (',
+            '    SELECT * FROM SYS.VIEWS',
+            `    WHERE VIEW_NAME = 'V_FAIL' AND SCHEMA_NAME = CURRENT_SCHEMA`,
+            '  ) THEN',
+            `    EXEC 'DROP VIEW V_Fail';`,
+            '  END IF;',
+            'END;',
+          ].join(' ');
+          await sequelize.queryRaw(sql);
         } else {
           await sequelize.queryRaw('DROP VIEW IF EXISTS V_Fail;');
         }
@@ -55,6 +68,8 @@ describe('QueryInterface#listTables', () => {
           return 'FROM SYSIBM.SYSDUMMY1';
         } else if (dialectName === 'oracle') {
           return 'FROM DUAL';
+        } else if (dialectName === 'hana') {
+          return 'FROM DUMMY';
         }
 
         return '';

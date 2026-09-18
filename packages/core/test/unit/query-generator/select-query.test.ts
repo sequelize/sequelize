@@ -97,6 +97,7 @@ describe('QueryGenerator#selectQuery', () => {
           'SELECT `id` FROM `Users` AS `User` ORDER BY `User`.`id` LIMIT 18446744073709551615 OFFSET 1;',
         'db2 ibmi mssql': `SELECT [id] FROM [Users] AS [User] ORDER BY [User].[id] OFFSET 1 ROWS;`,
         oracle: `SELECT "id" FROM "Users" "User" ORDER BY "User"."id" OFFSET 1 ROWS;`,
+        hana: 'SELECT "id" FROM "Users" AS "User" ORDER BY "User"."id" LIMIT 9223372036854775807 OFFSET 1;',
       });
     });
 
@@ -435,8 +436,8 @@ describe('QueryGenerator#selectQuery', () => {
           FROM "Users" "User"
           WHERE "User"."username" = 'repl1' OR "User"."username" = (uppercase(CAST('repl1' AS STRING)) = 'repl1')
           GROUP BY 'the group'
-          HAVING "User"."username" = 'repl1' 
-          ORDER BY 'repl2' 
+          HAVING "User"."username" = 'repl1'
+          ORDER BY 'repl2'
           OFFSET 'repl4' ROWS
           FETCH NEXT 'repl3' ROWS ONLY;
         `,
@@ -555,7 +556,7 @@ describe('QueryGenerator#selectQuery', () => {
           'repl2'
           FROM "Users" "User"
           INNER JOIN "Projects" "projects"
-            ON 'on' AND 'where' 
+            ON 'on' AND 'where'
           LEFT OUTER JOIN "Users" "projects->owner"
             ON "projects"."ownerId" = "projects->owner"."id";
         `,
@@ -777,7 +778,7 @@ describe('QueryGenerator#selectQuery', () => {
             OFFSET 'offset' ROWS
             FETCH NEXT 'limit' ROWS ONLY
           ) "User"
-          INNER JOIN "Projects" "projects" 
+          INNER JOIN "Projects" "projects"
             ON 'on' AND 'where'
           LEFT OUTER JOIN "Users" "projects->owner"
             ON "projects"."ownerId" = "projects->owner"."id"
@@ -862,15 +863,15 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
             * AS [col_all]
           FROM [Users] AS [User];`,
         oracle: `
-        SELECT 
+        SELECT
           "count(*)" AS "count",
           ".*",
-          "*", 
+          "*",
           count(*) AS "literal_count",
           count('*') AS "fn_count_str",
           count(*) AS "fn_count_col",
-          count(*) AS "fn_count_lit", 
-          "a"."b" AS "col_a_b", 
+          count(*) AS "fn_count_lit",
+          "a"."b" AS "col_a_b",
           "a".* AS "col_a_all",
           * AS "col_all"
           FROM "Users" "User";
