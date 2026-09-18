@@ -179,7 +179,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       const { defaultValue } = attribute;
-      const escaped = this.escape(defaultValue);
+      const escaped = this.escape(defaultValue, { type: attribute.type });
 
       // MariaDB only accepts an expression default if it is wrapped in parentheses
       template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
