@@ -11,16 +11,15 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator, IsolationLevel } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
-import type { NormalizedDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
   AttributesToSqlColumns,
-  AttributeToSqlColumn,
   AttributeToSqlInput,
   AttributeToSqlOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
@@ -30,7 +29,6 @@ import { extractModelDefinition } from '@sequelize/core/_non-semver-use-at-your-
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import isPlainObject from 'lodash/isPlainObject';
 import { randomBytes } from 'node:crypto';
 import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryGeneratorInternal } from './query-generator.internal.js';
@@ -335,9 +333,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
-    const attribute: AttributeToSqlColumn = isPlainObject(column)
-      ? (column as AttributeToSqlColumn)
-      : { type: column as NormalizedDataType };
+    const attribute = normalizeAttributeToSqlColumn(column);
 
     let sql = attributeTypeToSql(attribute.type);
 
@@ -386,26 +382,5 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return sql;
-  }
-
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string> {
-    const result: Record<string, string> = Object.create(null);
-
-    for (const key of Object.keys(columns)) {
-      const rawColumn = columns[key];
-      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
-        ? { ...(rawColumn as AttributeToSqlColumn) }
-        : { type: rawColumn as NormalizedDataType };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      result[columnName] = this.attributeToSql(attribute, options);
-    }
-
-    return result;
   }
 }

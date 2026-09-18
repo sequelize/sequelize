@@ -11,18 +11,15 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator, DataTypes, Op } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
-import type {
-  ENUM,
-  NormalizedDataType,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import {
   DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
-  AttributesToSqlColumns,
   AttributeToSqlColumn,
   AttributeToSqlInput,
   AttributeToSqlOptions,
@@ -32,7 +29,6 @@ import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-ri
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import isPlainObject from 'lodash/isPlainObject';
 import { randomBytes } from 'node:crypto';
 import type { Db2Dialect } from './dialect.js';
 import { Db2QueryGeneratorInternal } from './query-generator.internal.js';
@@ -274,9 +270,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
-    const attribute: AttributeToSqlColumn = isPlainObject(column)
-      ? (column as AttributeToSqlColumn)
-      : { type: column as NormalizedDataType };
+    const attribute = normalizeAttributeToSqlColumn(column);
 
     let template: string;
 
@@ -358,38 +352,25 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     return template;
   }
 
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string> {
-    const result: Record<string, string> = Object.create(null);
-    const existingConstraints: string[] = [];
-
-    for (const key of Object.keys(columns)) {
-      const rawColumn = columns[key];
-      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
-        ? { ...(rawColumn as AttributeToSqlColumn) }
-        : { type: rawColumn as NormalizedDataType };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      if (attribute.references) {
-        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
-          // db2 rejects more than one cascading constraint to the same table
-          attribute.onDelete = '';
-          attribute.onUpdate = '';
-        } else if (attribute.unique === true) {
-          attribute.onDelete = '';
-          attribute.onUpdate = '';
-        } else {
-          existingConstraints.push(this.quoteTable(attribute.references.table));
-        }
-      }
-
-      result[columnName] = this.attributeToSql(attribute, options);
+  protected limitReferentialActions(
+    attribute: AttributeToSqlColumn,
+    referencedTables: string[],
+  ): void {
+    if (!attribute.references) {
+      return;
     }
 
-    return result;
+    const referencedTable = this.quoteTable(attribute.references.table);
+
+    if (referencedTables.includes(referencedTable)) {
+      // db2 rejects more than one cascading constraint to the same table
+      attribute.onDelete = '';
+      attribute.onUpdate = '';
+    } else if (attribute.unique === true) {
+      attribute.onDelete = '';
+      attribute.onUpdate = '';
+    } else {
+      referencedTables.push(referencedTable);
+    }
   }
 }

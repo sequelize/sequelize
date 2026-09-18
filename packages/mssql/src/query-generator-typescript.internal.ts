@@ -14,15 +14,14 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator, DataTypes } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
-import type { NormalizedDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
-  AttributesToSqlColumns,
   AttributeToSqlColumn,
   AttributeToSqlInput,
   AttributeToSqlOptions,
@@ -33,8 +32,6 @@ import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { pojo } from '@sequelize/utils';
-import isPlainObject from 'lodash/isPlainObject';
 import { randomBytes } from 'node:crypto';
 import type { MsSqlDialect } from './dialect.js';
 import { MsSqlQueryGeneratorInternal } from './query-generator.internal.js';
@@ -362,9 +359,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
   }
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
-    const attribute: AttributeToSqlColumn = isPlainObject(column)
-      ? { ...(column as AttributeToSqlColumn) }
-      : { type: column as NormalizedDataType };
+    const attribute = normalizeAttributeToSqlColumn(column);
 
     // handle self-referential constraints
     if (
@@ -453,40 +448,27 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     return template;
   }
 
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string> {
-    const result: Record<string, string> = pojo();
-    const existingConstraints: string[] = [];
-
-    for (const key of Object.keys(columns)) {
-      const rawColumn = columns[key];
-      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
-        ? { ...(rawColumn as AttributeToSqlColumn) }
-        : { type: rawColumn as NormalizedDataType };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      if (attribute.references) {
-        if (existingConstraints.includes(this.quoteTable(attribute.references.table))) {
-          // mssql rejects more than one cascading constraint to the same table
-          attribute.onDelete = '';
-          attribute.onUpdate = '';
-        } else {
-          existingConstraints.push(this.quoteTable(attribute.references.table));
-
-          // NOTE: this really just disables cascading updates for all
-          //       definitions. Can be made more robust to support the
-          //       few cases where MSSQL actually supports them
-          attribute.onUpdate = '';
-        }
-      }
-
-      result[columnName] = this.attributeToSql(attribute, options);
+  protected limitReferentialActions(
+    attribute: AttributeToSqlColumn,
+    referencedTables: string[],
+  ): void {
+    if (!attribute.references) {
+      return;
     }
 
-    return result;
+    const referencedTable = this.quoteTable(attribute.references.table);
+
+    if (referencedTables.includes(referencedTable)) {
+      // mssql rejects more than one cascading constraint to the same table
+      attribute.onDelete = '';
+      attribute.onUpdate = '';
+    } else {
+      referencedTables.push(referencedTable);
+
+      // NOTE: this really just disables cascading updates for all
+      //       definitions. Can be made more robust to support the
+      //       few cases where MSSQL actually supports them
+      attribute.onUpdate = '';
+    }
   }
 }

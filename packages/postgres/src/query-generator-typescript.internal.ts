@@ -16,10 +16,11 @@ import type {
   NormalizedDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
-import { CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import {
+  CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
-  AttributesToSqlColumns,
-  AttributeToSqlColumn,
   AttributeToSqlInput,
   AttributeToSqlOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
@@ -27,7 +28,6 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import isPlainObject from 'lodash/isPlainObject';
 import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
 import { PostgresQueryGeneratorInternal } from './query-generator.internal.js';
@@ -305,9 +305,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
-    const attribute: AttributeToSqlColumn = isPlainObject(column)
-      ? (column as AttributeToSqlColumn)
-      : { type: column as NormalizedDataType };
+    const attribute = normalizeAttributeToSqlColumn(column);
 
     let type: NormalizedDataType | undefined;
     const arraySubtype =
@@ -411,26 +409,5 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return sql;
-  }
-
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string> {
-    const result: Record<string, string> = Object.create(null);
-
-    for (const key of Object.keys(columns)) {
-      const rawColumn = columns[key];
-      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
-        ? { ...(rawColumn as AttributeToSqlColumn) }
-        : { type: rawColumn as NormalizedDataType };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      result[columnName] = this.attributeToSql(attribute, options);
-    }
-
-    return result;
   }
 }

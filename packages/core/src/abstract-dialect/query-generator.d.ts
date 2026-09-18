@@ -16,11 +16,6 @@ import type {
   AbstractQueryGeneratorTypeScript,
   ParameterOptions,
 } from './query-generator-typescript.js';
-import type {
-  AttributesToSqlColumns,
-  AttributeToSqlInput,
-  AttributeToSqlOptions,
-} from './query-generator.internal-types.js';
 import type { BoundQuery, TableOrModel } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
@@ -130,11 +125,4 @@ export class AbstractQueryGenerator<
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions,
   ): string;
-
-  attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string;
-
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string>;
 }

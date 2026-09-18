@@ -1,5 +1,5 @@
 import type { RequiredBy } from '@sequelize/utils';
-import { EMPTY_OBJECT, isPlainObject, isString, join, map } from '@sequelize/utils';
+import { EMPTY_OBJECT, isPlainObject, isString, join, map, pojo } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
@@ -36,10 +36,16 @@ import {
   extractTableIdentifier,
   isModelStatic,
 } from '../utils/model-utils.js';
-import type { BindParamOptions, DataType } from './data-types.js';
+import type { BindParamOptions, DataType, NormalizedDataType } from './data-types.js';
 import { AbstractDataType } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
+import type {
+  AttributesToSqlColumns,
+  AttributeToSqlColumn,
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from './query-generator.internal-types.js';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,
@@ -64,6 +70,21 @@ import type { TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
+
+/**
+ * Normalizes the input of {@link AbstractQueryGeneratorTypeScript#attributeToSql} into a column
+ * object, so every dialect accepts a bare data type as well as a full column description.
+ *
+ * The result is always a copy: `attributeToSql` implementations narrow referential actions and
+ * must not write to the caller's attribute.
+ *
+ * @param column a column description, or the data type of a column
+ */
+export function normalizeAttributeToSqlColumn(column: AttributeToSqlInput): AttributeToSqlColumn {
+  return isPlainObject(column)
+    ? { ...(column as AttributeToSqlColumn) }
+    : { type: column as NormalizedDataType };
+}
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
@@ -1011,6 +1032,58 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) Z
    * ```
    */
+
+  /**
+   * Generates the SQL fragment that declares a single column, without its name.
+   *
+   * Every dialect implements this. It lives here because {@link attributesToSql} calls it.
+   *
+   * @param _column a column description, or the data type of a column
+   * @param _options
+   */
+  attributeToSql(_column: AttributeToSqlInput, _options?: AttributeToSqlOptions): string {
+    throw new Error(`attributeToSql has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates the SQL fragment declaring each of the given columns, keyed by column name.
+   *
+   * @param columns a map of column descriptions, keyed by attribute name
+   * @param options
+   */
+  attributesToSql(
+    columns: AttributesToSqlColumns,
+    options?: AttributeToSqlOptions,
+  ): Record<string, string> {
+    const result: Record<string, string> = pojo();
+    const referencedTables: string[] = [];
+
+    for (const attributeName of Object.keys(columns)) {
+      const attribute = normalizeAttributeToSqlColumn(columns[attributeName]);
+
+      attribute.field = attribute.field || attribute.columnName || attributeName;
+
+      this.limitReferentialActions(attribute, referencedTables);
+
+      result[attribute.field] = this.attributeToSql(attribute, options);
+    }
+
+    return result;
+  }
+
+  /**
+   * Called for each column of {@link attributesToSql} before it is generated. Dialects that reject
+   * more than one cascading constraint to the same table use this to drop the referential actions
+   * of the references they cannot accept.
+   *
+   * @param _attribute the column about to be generated. Mutate it to change what is emitted
+   * @param _referencedTables the quoted tables referenced by the columns generated so far. Push to
+   *   record one
+   */
+  protected limitReferentialActions(
+    _attribute: AttributeToSqlColumn,
+    _referencedTables: string[],
+  ): void {}
 
   generateCountAllQuery(query: string): string {
     // dialect-aware alias token

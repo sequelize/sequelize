@@ -9,15 +9,13 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
-import type { NormalizedDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
-  AttributesToSqlColumns,
-  AttributeToSqlColumn,
   AttributeToSqlInput,
   AttributeToSqlOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
@@ -28,7 +26,6 @@ import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import isPlainObject from 'lodash/isPlainObject';
 import type { MariaDbDialect } from './dialect.js';
 import { MariaDbQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -211,9 +208,7 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
-    const attribute: AttributeToSqlColumn = isPlainObject(column)
-      ? (column as AttributeToSqlColumn)
-      : { type: column as NormalizedDataType };
+    const attribute = normalizeAttributeToSqlColumn(column);
 
     let template = attributeTypeToSql(attribute.type);
 
@@ -280,26 +275,5 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return template;
-  }
-
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string> {
-    const result: Record<string, string> = Object.create(null);
-
-    for (const key of Object.keys(columns)) {
-      const rawColumn = columns[key];
-      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
-        ? { ...(rawColumn as AttributeToSqlColumn) }
-        : { type: rawColumn as NormalizedDataType };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      result[columnName] = this.attributeToSql(attribute, options);
-    }
-
-    return result;
   }
 }

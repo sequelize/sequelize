@@ -9,18 +9,14 @@ import type {
 } from '@sequelize/core';
 import { AbstractQueryGenerator, DataTypes } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
-import type {
-  ENUM,
-  NormalizedDataType,
-} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import {
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
-  AttributesToSqlColumns,
-  AttributeToSqlColumn,
   AttributeToSqlInput,
   AttributeToSqlOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
@@ -29,8 +25,6 @@ import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-ri
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { pojo } from '@sequelize/utils';
-import isPlainObject from 'lodash/isPlainObject';
 import type { IBMiDialect } from './dialect.js';
 import { IBMiQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -250,9 +244,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
-    const attribute: AttributeToSqlColumn = isPlainObject(column)
-      ? (column as AttributeToSqlColumn)
-      : { type: column as NormalizedDataType };
+    const attribute = normalizeAttributeToSqlColumn(column);
 
     let template;
 
@@ -335,26 +327,5 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     return template;
-  }
-
-  attributesToSql(
-    columns: AttributesToSqlColumns,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string> {
-    const result: Record<string, string> = pojo();
-
-    for (const key of Object.keys(columns)) {
-      const rawColumn = columns[key];
-      const attribute: AttributeToSqlColumn = isPlainObject(rawColumn)
-        ? { ...(rawColumn as AttributeToSqlColumn) }
-        : { type: rawColumn as NormalizedDataType };
-      const columnName = attribute.field || attribute.columnName || key;
-
-      attribute.field = columnName;
-
-      result[columnName] = this.attributeToSql(attribute, options);
-    }
-
-    return result;
   }
 }
