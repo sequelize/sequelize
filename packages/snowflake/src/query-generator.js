@@ -212,15 +212,14 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
     const attrString = [];
 
     for (const attrName in attributes) {
-      const definition = attributes[attrName];
-      attrString.push(`'${attrBefore}' '${attrName}' ${definition}`);
+      attrString.push(`${this.quoteIdentifier(attrBefore)} TO ${this.quoteIdentifier(attrName)}`);
     }
 
     return joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(tableName),
       'RENAME COLUMN',
-      attrString.join(' to '),
+      attrString.join(', '),
       ';',
     ]);
   }
