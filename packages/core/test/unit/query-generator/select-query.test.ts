@@ -924,8 +924,10 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         { timestamps: false },
       );
 
-      interface TProject
-        extends Model<InferAttributes<TProject>, InferCreationAttributes<TProject>> {
+      interface TProject extends Model<
+        InferAttributes<TProject>,
+        InferCreationAttributes<TProject>
+      > {
         id: CreationOptional<number>;
       }
 
