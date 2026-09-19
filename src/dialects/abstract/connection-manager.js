@@ -18,7 +18,9 @@ const debug = logger.debugContext('pool');
  */
 class ConnectionManager {
   constructor(dialect, sequelize) {
-    const config = _.cloneDeep(sequelize.config);
+    const { dialectModule, ...otherConfig } = sequelize.config;
+    const config = _.cloneDeep(otherConfig);
+    config.dialectModule = dialectModule;
 
     this.sequelize = sequelize;
     this.config = config;
