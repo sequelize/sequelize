@@ -1,13 +1,20 @@
 import type { Sequelize } from '@sequelize/core';
 import { AbstractDialect } from '@sequelize/core';
+import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { createUnspecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { getSynchronizedTypeKeys } from '@sequelize/utils';
+import dayjs from 'dayjs';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc';
 import * as DataTypes from './_internal/data-types-overrides.js';
 import type { SnowflakeConnectionOptions, SnowflakeSdkModule } from './connection-manager.js';
 import { SnowflakeConnectionManager } from './connection-manager.js';
 import { SnowflakeQueryGenerator } from './query-generator.js';
 import { SnowflakeQueryInterface } from './query-interface.js';
 import { SnowflakeQuery } from './query.js';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export interface SnowflakeDialectOptions {
   /**
@@ -179,6 +186,20 @@ export class SnowflakeDialect extends AbstractDialect<
     this.connectionManager = new SnowflakeConnectionManager(this);
     this.queryGenerator = new SnowflakeQueryGenerator(this);
     this.queryInterface = new SnowflakeQueryInterface(this);
+
+    this.registerDataTypeParser(['timestamp_ntz'], (value: Date) => {
+      const timeZone = this.sequelize.options.timezone;
+      if (timeZone === '+00:00') {
+        return value;
+      }
+
+      const wallClockTime = dayjs.utc(value);
+      if (isValidTimeZone(timeZone)) {
+        return dayjs.tz(wallClockTime.format('YYYY-MM-DDTHH:mm:ss.SSS'), timeZone).toDate();
+      }
+
+      return wallClockTime.utcOffset(timeZone, true).toDate();
+    });
   }
 
   parseConnectionUrl(): SnowflakeConnectionOptions {

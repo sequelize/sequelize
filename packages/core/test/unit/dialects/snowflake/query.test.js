@@ -33,4 +33,37 @@ describe('[SNOWFLAKE Specific] Query', () => {
       expect(true).to.equal(console.debug.calledOnce);
     });
   });
+
+  if (current.dialect.name === 'snowflake') {
+    describe('run', () => {
+      it('parses result columns using their Snowflake data type', async () => {
+        const sequelize = Support.createSequelizeInstance({ timezone: 'America/New_York' });
+        const ntz = new Date('2022-07-15T10:20:30.123Z');
+        const ltz = new Date('2022-07-15T10:20:30.123Z');
+        const connection = {
+          execute({ complete }) {
+            complete(
+              null,
+              {
+                getColumns: () => [
+                  { getName: () => 'ntz', getType: () => 'timestamp_ntz' },
+                  { getName: () => 'ltz', getType: () => 'timestamp_ltz' },
+                ],
+              },
+              [{ ntz, ltz }],
+            );
+          },
+        };
+
+        const query = new Query(connection, sequelize, {
+          type: sequelize.QueryTypes.SELECT,
+          raw: true,
+        });
+        const [row] = await query.run('SELECT 1');
+
+        expect(row.ntz.toISOString()).to.equal('2022-07-15T14:20:30.123Z');
+        expect(row.ltz).to.equal(ltz);
+      });
+    });
+  }
 });

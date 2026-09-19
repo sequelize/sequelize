@@ -2895,6 +2895,7 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
     snowflake-sdk: "npm:^2.4.3"
   languageName: unknown
