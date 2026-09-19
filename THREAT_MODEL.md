@@ -1,32 +1,12 @@
 # Sequelize Threat Model
 
-## Document control
-
-| Field    | Value                                                                                                                   |
-| -------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Target   | Sequelize v7: the `@sequelize/core` ORM, its official `@sequelize/*` dialect packages, and the `@sequelize/cli` package |
-| Status   | Living design and triage reference                                                                                      |
-| Audience | Maintainers, integrators, security reviewers, and AI agents                                                             |
-
 This document defines security boundaries and expected properties for Sequelize v7: the `@sequelize/core` package, `@sequelize/validator.js`, and the official `@sequelize/*` dialect and CLI packages, published from the `main` branch as v7 alpha releases. Sequelize v6 (the `sequelize` package) remains supported for security updates per [SECURITY.md](SECURITY.md); this document models v7 only. This is not a vulnerability list, audit report, or assertion that every requirement is currently satisfied. Verify behavior in the applicable code and tests before relying on it. Update this model when supported behavior, trust boundaries, attack methods, security guarantees, or protections change.
 
 ## 1. Scope
 
-### In scope
+**In scope:** ORM query construction, value binding, escaping, result mapping, models, associations, scopes, hooks, validation, transactions, pooling, replication, schema operations, and errors; every first-party `@sequelize/*` package in this monorepo, including all official dialect implementations (whether integrated or separately distributed), `@sequelize/validator.js`, and `@sequelize/utils`; official CLI configuration, module loading, migration discovery, execution, and state; and Sequelize-owned dependency integration, meaning how Sequelize configures a third-party dependency, what it passes to it, and how it consumes or exposes the result.
 
-- ORM query construction, value binding, escaping, result mapping, models, associations, scopes, hooks, validation, transactions, pooling, replication, schema operations, and errors.
-- All official dialect implementations, whether integrated or separately distributed.
-- Official CLI configuration, module loading, migration discovery, execution, and state.
-- Sequelize-owned dependency integration, including configuration, data passed to dependencies, and results consumed or exposed by Sequelize.
-
-### Out of scope
-
-- Database, Node.js, driver, TLS, operating-system, and package-manager vulnerabilities unless Sequelize configures or exposes them.
-- Application authentication, authorization, tenant policy, rate limiting, secret storage, backup, and database administration.
-- Third-party dialects, hooks, model modules, custom validation modules, migrations, and log destinations.
-- The internal behavior of third-party dependencies.
-
-Out-of-scope components may still introduce security risks; the applications and operators that use Sequelize are responsible for managing them.
+**Out of scope:** database, Node.js, driver, TLS, operating-system, and package-manager vulnerabilities unless Sequelize configures or exposes them; application authentication, authorization, tenant policy, rate limiting, secret storage, backup, and database administration; third-party dialects, hooks, model modules, custom validation modules, migrations, and log destinations; and defects inside a third-party dependency itself, such as the `validator` package wrapped by `@sequelize/validator.js` — report those to the project that owns them, while Sequelize remains responsible for how it integrates them. Out-of-scope components may still introduce security risks; the applications and operators that use Sequelize are responsible for managing them.
 
 ## 2. Security contract
 
@@ -50,6 +30,8 @@ These labels define handling requirements for data and code. They do not by them
 8. Sequelize-controlled logs, CLI output, and diagnostic serialization must never expose database connection credentials.
 9. Model APIs must not invoke destructive schema operations, migrations, or caller-supplied raw SQL unless the caller explicitly selects an API that performs that action.
 
+These invariants have limits worth stating, because they are what a finding most often turns on. Binding or escaping a value does not make attacker-controlled raw SQL or a structural expression component safe. Quoting an identifier prevents syntax injection, not unauthorized table or column selection. A condition that matches every row is still a condition, and schema and whole-table APIs destroy data by design.
+
 ### Explicit non-guarantees
 
 Sequelize does **not** provide:
@@ -62,39 +44,7 @@ Sequelize does **not** provide:
 - secure credential storage, database TLS policy, or least-privilege database accounts;
 - isolation from hooks, dialects, validators, model modules, or migrations loaded into the process.
 
-## 3. Architecture and trust boundaries
-
-```text
- Untrusted request data                         Trusted application code/config
-           |                                                |
-           v                                                v
-  model values / filters ----> ORM API <---- models, scopes, hooks, raw fragments
-                                   |
-                                   v
-                      expression and query builders
-                                   |
-                                   v
-               dialect formatter: bind / escape / quote / raw
-                                   |
-                                   v
-                   read or write connection pool
-                                   |
-                    TB-1: driver and network boundary
-                                   |
-                                   v
-                              Database
-                                   |
-                    rows / metadata / errors
-                                   v
-                       result mapping / model creation
-                                   |
-                   logs, errors, hooks, application objects
-
- Trusted CLI config --> module loading --> migration code/raw SQL --> privileged database
-                          TB-2                 TB-3
-```
-
-TB-4 (logging), TB-5 (replication), and TB-6 (hooks and extensions) are cross-cutting boundaries and do not appear as single points on the flow above.
+## 3. Trust boundaries
 
 | Boundary                                                        | Crossing data                                                               | Security responsibility                                                                                                                                                                                                                                                                                                      |
 | --------------------------------------------------------------- | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -105,17 +55,7 @@ TB-4 (logging), TB-5 (replication), and TB-6 (hooks and extensions) are cross-cu
 | TB-5 Write primary → read replicas                              | Replicated rows and lag                                                     | The application must not assume a replica reflects a recent security-relevant write.                                                                                                                                                                                                                                         |
 | TB-6 Caller → hooks/extensions                                  | Mutable options, model values, results, credentials, connections            | Hooks and extensions are fully trusted code, not sandboxed plugins.                                                                                                                                                                                                                                                          |
 
-## 4. Assets and actors
-
-### Assets
-
-- Confidential database rows, credentials, SQL parameters, schema metadata, and error details.
-- Integrity of records, tenant filters, associations, migrations, and transactions.
-- Availability of the Node.js process, event loop, memory, connection pools, and database.
-- Integrity of generated SQL across all supported dialects.
-- Developer and CI workstations that run the CLI, configuration, and migration modules.
-
-### Actors
+## 4. Actors
 
 | Actor                                | Trust level | Baseline capabilities                                                                                                                                             |
 | ------------------------------------ | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -126,9 +66,7 @@ TB-4 (logging), TB-5 (replication), and TB-6 (hooks and extensions) are cross-cu
 | Extension or supply-chain maintainer | Privileged  | Controls a dialect, driver, hook, validator, model module, migration, config module, or dependency.                                                               |
 | Operator or CI user                  | Privileged  | Controls credentials, connection options, migration directories, environment, logs, and deployment commands.                                                      |
 
-Use this table to identify the relevant threat actor for the finding and the capabilities available to that threat actor by default. If the exploit path requires the threat actor to exercise a capability that Section 4 assigns to another actor, the finding's attacker model is wrong unless the report also shows how that capability is realistically exposed to the threat actor.
-
-A trusted or privileged actor is not the threat actor merely because it performs an expected action or supplies a supported configuration, schema, query shape, or deployment state that makes the code path reachable. In those cases, treat that actor's behavior as a precondition and evaluate the lower-trust actor who exploits the resulting library behavior.
+Baseline capabilities are what an actor controls by default. If the exploit path requires the threat actor to exercise a capability this table assigns to another actor, the finding's attacker model is wrong unless the report also shows how that capability is realistically exposed to the threat actor. A trusted or privileged actor is not the threat actor merely because it performs an expected action or supplies a supported configuration, schema, query shape, or deployment state that makes the code path reachable; treat that behavior as a precondition and evaluate the lower-trust actor who exploits the resulting library behavior.
 
 ## 5. Entry-point rules
 
@@ -150,11 +88,11 @@ A trusted or privileged actor is not the threat actor merely because it performs
 | Database rows, aliases, metadata, and errors                                   | Untrusted database output                | Handle them defensively during parsing, nesting, model creation, serialization, and logging. A finding must still establish which threat actor can influence the specific output.                                                                                                        |
 | CLI config, dialect path, migration folder/files                               | Code with CLI access                     | Load only from a reviewed project whose files and dependencies are access-controlled.                                                                                                                                                                                                    |
 
-The entry-point rules establish expected handling only. Final disposition and severity are assigned by maintainers when a concrete finding is evaluated; [Appendix A](#appendix-a-non-normative-heuristics-for-automated-security-review) lists the non-normative heuristics used for first-pass and automated review.
+The entry-point rules establish expected handling only. Final disposition and severity are assigned by maintainers when a concrete finding is evaluated, at the **Assessed** step of the [report lifecycle in SECURITY.md](SECURITY.md#how-a-report-progresses).
 
 ## 6. Threat scenarios
 
-These are plausible threat scenarios, not confirmed vulnerabilities, and they are not an exhaustive list of security-relevant effects. Assign severity and remediation priority when evaluating a concrete finding with known attacker preconditions, affected deployments, database privileges, scope, and impact.
+These are plausible threat scenarios, not confirmed vulnerabilities, and they are not an exhaustive list of security-relevant effects.
 
 | ID      | Actor(s)                                                                              | Surface / boundary                                                                                              | Scenario and impact                                                                                                                                                                                                                                                                                                   | Primary controls and ownership                                                                                                                                                                                                                                                                       |
 | ------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -164,12 +102,12 @@ These are plausible threat scenarios, not confirmed vulnerabilities, and they ar
 | AUTH-01 | Tenant user; Application developer                                                    | ORM API, scopes, associations, and `paranoid` filtering                                                         | An attacker controls query parts, or the application removes or replaces a tenant, owner, scope, association, or `paranoid` condition.                                                                                                                                                                                | Application: build authorization conditions independently; scopes and soft deletion do not enforce authorization.                                                                                                                                                                                    |
 | AUTH-02 | Tenant user; Application developer                                                    | Model create/update APIs and model value mapping                                                                | An untrusted create or update object writes protected or inherited fields such as role, owner, tenant, or deletion state.                                                                                                                                                                                             | Application: allowlist writable `fields`. Library: ignore inherited properties and reject unknown query keys where possible.                                                                                                                                                                         |
 | OUT-01  | Remote application user; Tenant user; Database administrator                          | Driver and network (TB-1) → result mapping and model creation                                                   | An attacker controls result identifiers that Sequelize interprets as object structure, causing returned data to alter prototypes, inherited behavior, or state outside the result. Application query construction or database schema that only makes this behavior reachable is a precondition, not the threat actor. | Library: treat result identifiers solely as data during result mapping and prevent them from changing object prototypes or inherited behavior.                                                                                                                                                       |
-| OUT-02  | Database administrator                                                                | Driver and network (TB-1) → dialect-owned parsing, result mapping, and model creation                           | Crafted database output causes excessive decoding work, incorrect types, or unsafe property access during Sequelize-owned parsing and result mapping.                                                                                                                                                                 | Library: never evaluate row data as code and fuzz dialect-owned parsers and result mapping with malformed and unusual data. Dependency maintainer: ensure native driver safety; driver vulnerabilities remain out of scope unless Sequelize configures or exposes them.                              |
+| OUT-02  | Remote application user; Tenant user; Database administrator                          | Driver and network (TB-1) → dialect-owned parsing, result mapping, and model creation                           | Crafted database output causes excessive decoding work, incorrect types, or unsafe property access during Sequelize-owned parsing and result mapping.                                                                                                                                                                 | Library: never evaluate row data as code and fuzz dialect-owned parsers and result mapping with malformed and unusual data. Dependency maintainer: ensure native driver safety; driver vulnerabilities remain out of scope unless Sequelize configures or exposes them.                              |
 | DOS-01  | Remote application user; Tenant user                                                  | ORM API → attribute/JSON path parsing and expression builders                                                   | Unique attribute/JSON paths, deeply nested filters, large `IN` lists, or complex expressions consume unbounded parser cache, CPU, SQL size, or memory.                                                                                                                                                                | Library: bound Sequelize-owned parser depth, key count, and cache size and reject unknown attributes before expensive processing. Application: bound user-controlled input length, depth, and key count.                                                                                             |
 | DOS-02  | Remote application user; Application developer                                        | ORM API → association query building → TB-1 → result mapping                                                    | Unbounded results or joins across multiple associations multiply rows during transfer and duplicate removal.                                                                                                                                                                                                          | Application: paginate, limit result volume and association depth, and compare total query cost before using `separate`.                                                                                                                                                                              |
 | DOS-03  | Remote application user; Database administrator                                       | ORM API → connection pool → driver and network (TB-1)                                                           | Slow queries, retries, unmanaged or long transactions, or many Sequelize instances consume every available database connection.                                                                                                                                                                                       | Application: limit retries, use managed transactions, and constrain transaction duration. Operator: configure supported connection-acquisition, statement, lock, and transaction timeouts and monitor the pool.                                                                                      |
 | TXN-01  | Remote application user; Application developer                                        | Managed transaction context, nested transaction handling, connection-scoped transaction state, and hooks (TB-6) | A query runs outside the intended transaction, nested transactions behave differently than expected, connection-scoped state leaks across operations and changes later isolation or transactional semantics, or a hook's external effect remains after rollback.                                                      | Library: preserve documented transaction-context and nesting semantics and restore or discard connection-scoped transaction state before pool reuse. Application: use managed transactions, test transaction context, and perform external effects after commit or make repeated execution harmless. |
-| TXN-02  | Database administrator                                                                | Transaction manager → connection pool → driver and network (TB-1)                                               | Commit or rollback fails and a connection with an unknown transaction state is reused.                                                                                                                                                                                                                                | Library: destroy the connection and test this failure path for every driver.                                                                                                                                                                                                                         |
+| TXN-02  | Remote application user; Application developer; Database administrator                | Transaction manager → connection pool → driver and network (TB-1)                                               | Commit or rollback fails and a connection with an unknown transaction state is reused.                                                                                                                                                                                                                                | Library: destroy the connection and test this failure path for every driver.                                                                                                                                                                                                                         |
 | REP-01  | Tenant user                                                                           | Write pool → read replicas (TB-5)                                                                               | A security decision reads stale replica state after a password, role, revocation, ownership, or policy write.                                                                                                                                                                                                         | Application: read data used for authorization from the primary database. A transaction guarantees primary routing only when it uses a write connection; read-only transactions may use the read pool. The application decides when fresh data is required.                                           |
 | INFO-01 | Remote application user; Database administrator; Extension or supply-chain maintainer | Driver and network (TB-1), logging (TB-4), and hooks (TB-6)                                                     | SQL, bind values, credentials, personal data, or database errors reach logs, traces, user responses, or hooks.                                                                                                                                                                                                        | Library: emit only configured query data and preserve logging controls. Application and Operator: redact every error, log, and trace destination.                                                                                                                                                    |
 | CONN-01 | Remote application user; Operator or CI user                                          | Connection configuration → driver and network (TB-1)                                                            | Attacker-controlled connection options redirect the ORM, weaken TLS, inject connection setup SQL, or select an account with excessive privileges.                                                                                                                                                                     | Library: validate Sequelize-owned connection options and safely generate connection setup SQL. Operator: restrict connection configuration, allow only documented option values, require authenticated TLS, and use least-privilege accounts.                                                        |
@@ -181,22 +119,16 @@ These are plausible threat scenarios, not confirmed vulnerabilities, and they ar
 
 ## 7. Required control patterns
 
-Implementations must preserve these properties. Verify behavior with tests; file names and internal design do not prove compliance.
-The table states required behavior, not confirmed implementation status.
+Implementations must preserve these properties. Verify behavior with tests; file names and internal design do not prove compliance. The table states required behavior, not confirmed implementation status. Controls that only restate an invariant in Section 2 or a rule in Section 5 are not repeated here.
 
-| Control                         | Requirement                                                                                                                                                                                                                                   | Limitation                                                                                                                          |
-| ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Values remain data              | Sequelize validates types and binds or escapes supported data values used in model attributes, ordinary `where` value positions, bind parameters, and replacements. Explicit SQL-expression objects are formatted as SQL structure by design. | Binding or escaping values does not make attacker-controlled raw SQL or structural expression components safe.                      |
-| Context-aware parameter parsing | Bind and replacement parsing handles strings, identifiers, comments, escape characters, and dialect-specific quoting.                                                                                                                         | The application must still provide the surrounding raw SQL, and grammar differs by dialect.                                         |
-| Complete parameters             | Missing bind and replacement values fail before query execution.                                                                                                                                                                              | Providing every parameter does not make the surrounding SQL trustworthy.                                                            |
-| Identifier separation           | Identifiers use a representation and quoting path distinct from values and raw SQL.                                                                                                                                                           | Quoting prevents syntax injection, not unauthorized table or column selection.                                                      |
-| Logging minimization            | Sequelize does not emit query logs unless application logging or debug output is enabled. Logged SQL may contain replacement values and SQL literals; `logQueryParameters` additionally appends separately bound values.                      | Logs, database error objects, and driver diagnostics can expose SQL, values, or secrets and require destination-specific redaction. |
-| Managed transactions            | Managed transactions commit or roll back automatically and apply the transaction to nested queries where supported.                                                                                                                           | Unmanaged transactions, explicit overrides, and effects outside the database bypass this guarantee.                                 |
-| Failed transaction cleanup      | A connection with an unknown transaction state is destroyed instead of returned to the pool.                                                                                                                                                  | A driver failure can still leave the application unsure whether the database committed.                                             |
-| Replication routing             | Writes and non-read-only transactions use the write pool; reads and read-only transactions may use the read pool; read and write pools remain separate when replication is configured.                                                        | Replicas may be stale or compromised outside Sequelize's control.                                                                   |
-| Bulk-operation safeguards       | Bulk deletes and updates require an explicit condition or a separately named operation for the entire table.                                                                                                                                  | Conditions that match every row remain valid; schema and whole-table APIs intentionally destroy data.                               |
-| Model validation                | Model validation runs before database writes when the API says validation applies.                                                                                                                                                            | Validation is not authorization, may be disabled, and raw queries bypass it; database constraints remain required.                  |
-| CLI input validation            | The CLI validates configuration and required migration exports before use.                                                                                                                                                                    | Configuration, imported modules, and SQL files execute as trusted code with the CLI's access.                                       |
+| Control                         | Requirement                                                                                                                                                                                                              | Limitation                                                                                                                          |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Context-aware parameter parsing | Bind and replacement parsing handles strings, identifiers, comments, escape characters, and dialect-specific quoting.                                                                                                    | The application must still provide the surrounding raw SQL, and grammar differs by dialect.                                         |
+| Logging minimization            | Sequelize does not emit query logs unless application logging or debug output is enabled. Logged SQL may contain replacement values and SQL literals; `logQueryParameters` additionally appends separately bound values. | Logs, database error objects, and driver diagnostics can expose SQL, values, or secrets and require destination-specific redaction. |
+| Managed transactions            | Managed transactions commit or roll back automatically and apply the transaction to nested queries where supported.                                                                                                      | Unmanaged transactions, explicit overrides, and effects outside the database bypass this guarantee.                                 |
+| Replication routing             | Writes and non-read-only transactions use the write pool; reads and read-only transactions may use the read pool; read and write pools remain separate when replication is configured.                                   | Replicas may be stale or compromised outside Sequelize's control.                                                                   |
+| Model validation                | Model validation runs before database writes when the API says validation applies.                                                                                                                                       | Validation is not authorization, may be disabled, and raw queries bypass it; database constraints remain required.                  |
+| CLI input validation            | The CLI validates configuration and required migration exports before use.                                                                                                                                               | Configuration, imported modules, and SQL files execute as trusted code with the CLI's access.                                       |
 
 ## 8. Required verification
 
@@ -204,95 +136,24 @@ Apply every relevant check to changes that affect SQL generation, database resul
 
 1. **SQL-part tests:** test values, identifiers, keywords, types, function names, paths, raw fragments, comments, quotes, backslashes, semicolons, Unicode, and zero bytes.
 2. **Dialect consistency:** run the same security tests for all official dialects and use real servers where protocol, encoding, multiple statements, or connection setup matters.
-3. **Property tests:** generated SQL structure must not change when only an untrusted value changes.
-4. **Mutation tests:** deliberately break escaping, binding, direct-property checks, and transaction cleanup; confirm that the relevant tests fail.
-5. **Result tests:** crafted column names and nested aliases, duplicate names, huge rows, invalid types, and database errors must not modify prototypes or expose unintended objects.
-6. **Resource tests:** define and test explicit memory and time bounds for Sequelize-owned parsers, caches, retries, and pool operations; for database-side work, test configured timeout, cancellation, and cleanup behavior.
-7. **Transaction tests:** test commit, rollback, nested modes, automatically supplied transaction context, cancellation, driver failure, and hook failure.
-8. **CLI tests:** test configuration and migration path selection, invalid configuration, dialect selection, raw and JavaScript migrations, partial failure, concurrent execution, and recovery.
-9. **Disclosure tests:** ensure Sequelize emits no query logs without application logging or debug output; when logging is enabled, ensure separately bound values are appended only when `logQueryParameters` is enabled; treat replacement values and literals as part of logged SQL; ensure Sequelize-controlled logs, CLI output, and diagnostic serialization do not expose credentials; verify that error objects retain only the sensitive fields required by their documented API.
+3. **Property and mutation tests:** generated SQL structure must not change when only an untrusted value changes; deliberately break escaping, binding, direct-property checks, and transaction cleanup and confirm that the relevant tests fail.
+4. **Result tests:** crafted column names and nested aliases, duplicate names, huge rows, invalid types, and database errors must not modify prototypes or expose unintended objects.
+5. **Resource tests:** define and test explicit memory and time bounds for Sequelize-owned parsers, caches, retries, and pool operations; for database-side work, test configured timeout, cancellation, and cleanup behavior.
+6. **Transaction tests:** test commit, rollback, nested modes, automatically supplied transaction context, cancellation, driver failure, and hook failure.
+7. **CLI tests:** test configuration and migration path selection, invalid configuration, dialect selection, raw and JavaScript migrations, partial failure, concurrent execution, and recovery.
+8. **Disclosure tests:** ensure Sequelize emits no query logs without application logging or debug output; when logging is enabled, ensure separately bound values are appended only when `logQueryParameters` is enabled; treat replacement values and literals as part of logged SQL; ensure Sequelize-controlled logs, CLI output, and diagnostic serialization do not expose credentials; verify that error objects retain only the sensitive fields required by their documented API.
 
-## 9. Integration requirements
+A fix is not accepted without a failing regression test and, where applicable, a real-database reproduction. [SECURITY.md](SECURITY.md#closing-out-a-report) governs what closing a report out requires.
 
-Applications using Sequelize securely must:
+## 9. What a finding must state
 
-- map request inputs into server-owned query templates and field/identifier allowlists;
-- enforce authorization independently of scopes, `paranoid`, associations, and model validation;
-- paginate and limit query complexity, association depth, result volume, transaction duration, and concurrency;
-- use managed transactions and primary reads for security-sensitive read-after-write decisions;
-- configure authenticated database transport, separate runtime and migration accounts, and least database privileges;
-- keep query and parameter logging disabled unless every destination performs tested redaction;
-- serialize ORM/database errors through a fixed public error schema;
-- review every hook, dialect, validator, model module, CLI config, and migration as privileged code;
-- prohibit production `sync({ force: true })` and `sync({ alter: true })`.
+For every finding, state the threat actor and its baseline capabilities, every additional capability the path requires and the actor Section 4 assigns it to, the failed guarantee or applicable non-guarantee, the concrete impact, and the outcome the bug grants beyond what that actor could already achieve without it.
 
-## 10. Agent review procedure
+For resource findings, distinguish request-scoped work caused by application-selected input from retained state or cross-operation amplification introduced by Sequelize. The absence of an existing or documented resource control is not a dismissal criterion.
 
-For any report or code change:
+Disposition and severity are decided by maintainers at the **Assessed** step of the [report lifecycle](SECURITY.md#how-a-report-progresses). A rubric for proposing them was drafted alongside this document but is not ratified; whether to adopt, revise, or replace it is tracked in [sequelize/sequelize#18280](https://github.com/sequelize/sequelize/issues/18280).
 
-1. Identify the relevant threat actor from Section 4, then identify the actor-controlled source and classify it using Section 5.
-2. Trace the complete lifecycle and record every transformation, resource allocation, retained state, cleanup path, and cross-operation effect.
-3. Check all official dialect overrides; do not generalize from one dialect.
-4. State the threat actor, baseline capabilities, required additional capabilities and the actors Section 4 assigns them to, failed guarantee or applicable non-guarantee, proposed disposition, concrete impact, blast radius, reachability, required non-library preconditions, whether the exploit survives compliant integration, outcome gained beyond what the threat actor could already achieve without the bug, database privileges, proposed severity or Informational label, and the reason for any adjustment. Use the heuristics in Appendix A and mark the result as a proposal for maintainer review.
-5. For resource findings, distinguish request-scoped work caused by application-selected input from retained state or cross-operation amplification introduced by Sequelize. Absence of an existing or documented resource control is not a dismissal criterion.
-6. Evaluate every affected input path and trust boundary. Do not stop after identifying either an application- or operator-controlled input or a Sequelize failure; determine which failures are required for the concrete impact.
-7. Distinguish application misuse from a library failure by applying the disposition check in Appendix A. Supported data values in model attributes, ordinary `where` value positions, bind parameters, and replacements must remain data; explicit SQL-expression objects are a separate structural input class, and the existence of raw SQL APIs does not weaken the value guarantee.
-8. Follow [SECURITY.md](SECURITY.md). Search open GitHub issues and pull requests, the project's known-findings file when present, and any approved private advisory tracker before treating a finding as new. Do not disclose private records in public artifacts.
-9. Require a failing regression test and, where applicable, a real-database reproduction before closure.
-
-## 11. Primary references
+## 10. References
 
 - [Sequelize v7 documentation](https://sequelize.org/docs/v7/)
-- [Sequelize monorepo — `@sequelize/core`, official dialects, and `@sequelize/cli`](https://github.com/sequelize/sequelize)
 - [`@sequelize/cli` package source](https://github.com/sequelize/sequelize/tree/main/packages/cli)
-
-## Appendix A (non-normative): heuristics for automated security review
-
-This appendix is a heuristic for first-pass and automated review of security findings. It is not project policy: it does not override maintainer judgement on individual reports, it does not change the disclosure process in [SECURITY.md](SECURITY.md), and past or future assessments are not bound by it. Whether to adopt, revise, or replace it as policy is tracked in [sequelize/sequelize#18280](https://github.com/sequelize/sequelize/issues/18280). Reviewers who use it should report the resulting disposition and severity as a proposal, together with the evidence behind it.
-
-Assign a disposition, then a severity. Record enough evidence for another reviewer to reproduce or challenge the result. Base the conclusion on the evidence available for the finding. The conclusion must be final for that evidence: do not defer it to another pass or qualify it with hypothetical future evidence, inputs, deployments, or exploit paths.
-
-### Disposition
-
-Before assigning disposition, evaluate the complete exploit path under a compliant application and operator:
-
-1. Identify the relevant threat actor and its baseline capabilities from Section 4.
-2. Identify every additional capability required before the defect is reached and which actor Section 4 assigns it to.
-3. Ask whether the exploit still succeeds when those capability boundaries and obligations are respected.
-4. Identify the outcome the bug lets the threat actor achieve beyond what that actor could already achieve without the bug.
-
-Then apply the disposition rules:
-
-- **Library responsibility** — a required Sequelize guarantee or invariant failed under intended use, and the concrete impact does not require an additional application or operator failure.
-- **Shared responsibility** — Sequelize introduces an independent unsafe behavior, but exploitation also requires an application or operator failure.
-- **Application misuse / defense-in-depth** — Sequelize preserves its invariants and introduces no independent unsafe behavior, but the issue exists only because the application or operator exposes an input or capability it is required to control.
-- **Out of scope / dependency issue** — the failure is wholly inside an out-of-scope database, driver, runtime, operating system, or third-party component and Sequelize neither configures nor exposes it. Route it to the responsible project without assigning Sequelize vulnerability severity.
-
-### Severity
-
-Rate three factors, combine them into a starting severity, then apply the disposition rules and finding-specific adjustments.
-
-- **Impact if triggered.** Data exposure, integrity corruption, or code execution is high impact. Availability impact is high when an attacker can repeatedly or persistently disable a process or database for many users, and medium when disruption is bounded, narrow, or readily recoverable.
-- **Blast radius.** Whole-process effects are wide. Effects limited to one query, request, or connection are narrow.
-- **Reachability.** Evaluate from the relevant threat actor and its baseline capabilities to the final impact. Paths available through that actor's documented inputs are easier to reach; paths that require another actor's capability, application misuse, operator error, unusual deployment assumptions, or a separate bug are harder.
-
-Severity must be derived from the complete attack path, not from maximum impact alone. Record every non-library precondition required before the defect can be exploited and explain how each affects reachability. The existence of a public API, supported option, or severe end impact does not by itself determine reachability or severity.
-
-Impact should be measured relative to what the threat actor could already achieve without the bug. If the bug does not let the threat actor achieve an outcome beyond that, that is a strong invalidation signal.
-
-Combine all three factors into a starting severity. No single factor may substitute for the others:
-
-- **Critical** — exceptional impact with broad practical exposure across many consumers or deployments.
-- **High** — high impact with broad practical exposure after accounting for blast radius and required preconditions.
-- **Medium** — material impact with bounded practical exposure, or high impact whose exploit path depends on meaningful preconditions.
-- **Low** — limited impact or exploit paths with narrow effects and substantial preconditions.
-- **Informational** — useful hardening or integration guidance that does not establish a Sequelize vulnerability.
-
-Apply these adjustments, and record the reason for any change:
-
-- **Application misuse / defense-in-depth** and **out of scope / dependency issue** dispositions do not receive Sequelize vulnerability severity. They may be recorded as **Informational** when useful for hardening or integration guidance, or tracked as external-project issues where appropriate.
-- For **Shared responsibility** findings, rate the complete attack path and treat application or operator failure as a reachability precondition; do not count the same precondition again as an automatic severity reduction.
-- If the threat actor itself is trusted or privileged and the exploit requires malicious action or compromise of that role, cap severity at Low. Do not apply this cap when the trusted or privileged actor only performs a legitimate expected action and a lower-trust actor exploits the resulting behavior.
-- Raise or lower the starting severity once the concrete finding's preconditions, affected versions, deployment, database privileges, duration, and recoverability are known, and record the reason.
-
-The entry-point rules in Section 5 establish expected handling only. A heuristic disposition and severity come from the concrete exploit path and the factors above; maintainers make the final call.
