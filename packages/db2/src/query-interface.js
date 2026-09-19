@@ -77,6 +77,34 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
     return this.sequelize.queryRaw(sql, options);
   }
 
+  async createTable(tableName, attributes, options, model) {
+    const columnComments = [];
+    for (const [name, attribute] of Object.entries(attributes ?? {})) {
+      const normalized = this.sequelize.normalizeAttribute(attribute);
+      if (normalized?.comment && typeof normalized.comment === 'string') {
+        columnComments.push([normalized.field || name, normalized.comment]);
+      }
+    }
+
+    const result = await super.createTable(tableName, attributes, options, model);
+
+    let table = tableName;
+    const modelTable = model?.table;
+    if (!table?.schema && (options?.schema || modelTable?.schema)) {
+      table = this.queryGenerator.extractTableDetails(table);
+      table.schema = modelTable?.schema || options.schema;
+    }
+
+    for (const [columnName, comment] of columnComments) {
+      await this.sequelize.queryRaw(
+        this.queryGenerator.commentOnColumnQuery(table, columnName, comment),
+        options,
+      );
+    }
+
+    return result;
+  }
+
   async addConstraint(tableName, options) {
     try {
       await super.addConstraint(tableName, options);
