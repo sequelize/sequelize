@@ -14,8 +14,10 @@ const sequelize = new Sequelize({
 
 // We recommend you declare an interface for the attributes, for stricter typechecking
 
-interface IUserModel
-  extends Model<InferAttributes<IUserModel>, InferCreationAttributes<IUserModel>> {
+interface IUserModel extends Model<
+  InferAttributes<IUserModel>,
+  InferCreationAttributes<IUserModel>
+> {
   // Some fields are optional when calling UserModel.create() or UserModel.build()
   id: CreationOptional<number>;
   name: string;

@@ -151,12 +151,14 @@ describe(getTestDialectTeaser('SQL'), () => {
      * that accept values: `col()`, `literal()`, `fn()`, `cast()`, and { [Op.col] }
      */
     type OperatorsSupportingSequelizeValueMethods = keyof {
-      [Key in keyof WhereOperators<number> as IncludesType<
-        WhereOperators<number>[Key],
-        Col | Literal | Fn | Cast | { [Op.col]: string }
-      > extends true
-        ? Key
-        : never]: WhereOperators<number>[Key];
+      [
+        Key in keyof WhereOperators<number> as IncludesType<
+          WhereOperators<number>[Key],
+          Col | Literal | Fn | Cast | { [Op.col]: string }
+        > extends true
+          ? Key
+          : never
+      ]: WhereOperators<number>[Key];
     };
 
     /**
@@ -239,13 +241,15 @@ describe(getTestDialectTeaser('SQL'), () => {
      * that accept values: `col()`, `literal()`, `fn()`, `cast()`, and { [Op.col] }
      */
     type OperatorsSupportingAnyAll<AttributeType> = keyof {
-      [Key in keyof WhereOperators<AttributeType> as IncludesType<
-        WhereOperators<AttributeType>[Key],
-        | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
-        | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
-      > extends true
-        ? Key
-        : never]: WhereOperators<AttributeType>[Key];
+      [
+        Key in keyof WhereOperators<AttributeType> as IncludesType<
+          WhereOperators<AttributeType>[Key],
+          | { [Op.all]: any[] | Literal | { [Op.values]: any[] } }
+          | { [Op.any]: any[] | Literal | { [Op.values]: any[] } }
+        > extends true
+          ? Key
+          : never
+      ]: WhereOperators<AttributeType>[Key];
     };
 
     /**

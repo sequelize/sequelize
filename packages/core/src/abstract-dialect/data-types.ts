@@ -411,10 +411,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
   /** @hidden */
   constructor(
     ...args:
-      | []
-      | [length: number]
-      | [length: number, binary: boolean]
-      | [options: StringTypeOptions]
+      [] | [length: number] | [length: number, binary: boolean] | [options: StringTypeOptions]
   );
 
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {
