@@ -119,24 +119,25 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       );
     }
 
+    const column = isPlainObject(dataType) ? dataType : { type: dataType };
+
     dataType = {
-      ...dataType,
+      ...column,
       // TODO: attributeToSQL SHOULD be using attributes in addColumnQuery
       //       but instead we need to pass the key along as the field here
       field: key,
-      type: normalizeDataType(dataType.type, this.dialect),
+      type: normalizeDataType(column.type, this.dialect),
     };
 
     const definition = this.attributeToSQL(dataType, {
       context: 'addColumn',
-      tableName: table,
-      foreignKey: key,
+      tableOrModel: table,
     });
 
     return `ALTER TABLE ${this.quoteTable(table)} ADD ${this.quoteIdentifier(key)} ${definition}`;
   }
 
-  changeColumnQuery(tableName, attributes) {
+  changeColumnQuery(tableName, attributes, columns) {
     const attrString = [];
     const constraintString = [];
 
@@ -148,13 +149,21 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
         const foreignKey = this.quoteIdentifier(`${attributeName}`);
         constraintString.push(`${foreignKey} FOREIGN KEY (${attrName}) ${definition}`);
       } else {
-        attrString.push(`"${attributeName}" SET DATA TYPE ${definition}`);
+        attrString.push(`${this.quoteIdentifier(attributeName)} SET DATA TYPE ${definition}`);
+      }
+
+      // the type and the nullability of a column cannot be changed in one ALTER COLUMN clause
+      const { allowNull } = columns?.[attributeName] ?? {};
+      if (allowNull !== undefined) {
+        attrString.push(
+          `${this.quoteIdentifier(attributeName)} ${allowNull ? 'DROP NOT NULL' : 'SET NOT NULL'}`,
+        );
       }
     }
 
     let finalQuery = '';
     if (attrString.length) {
-      finalQuery += `ALTER COLUMN ${attrString.join(', ')}`;
+      finalQuery += `ALTER COLUMN ${attrString.join(' ALTER COLUMN ')}`;
       finalQuery += constraintString.length ? ' ' : '';
     }
 
@@ -374,10 +383,9 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       template = attributeTypeToSql(attribute.type);
     }
 
-    if (attribute.allowNull === false) {
+    // in the changeColumn context the nullability is emitted as its own ALTER COLUMN clause
+    if (attribute.allowNull === false && options?.context !== 'changeColumn') {
       template += ' NOT NULL';
-    } else if (attribute.allowNull === true && options && options.context === 'changeColumn') {
-      template += ' DROP NOT NULL';
     }
 
     if (attribute.autoIncrement) {
@@ -409,12 +417,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
     }
 
-    if (attribute.references) {
-      if (options && options.context === 'addColumn' && options.foreignKey) {
-        const attrName = this.quoteIdentifier(options.foreignKey);
-        const fkName = this.quoteIdentifier(`${options.tableName}_${attrName}_foreign_idx`);
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && attribute.field) {
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
+        );
 
-        template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${attrName})`;
+        template += ` ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
       }
 
       template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
@@ -441,12 +450,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
     const result = pojo();
 
     for (const key of Object.keys(attributes)) {
-      const attribute = {
-        ...attributes[key],
-        field: attributes[key].field || key,
-      };
+      const rawAttribute = attributes[key];
+      const attribute = isPlainObject(rawAttribute) ? { ...rawAttribute } : { type: rawAttribute };
+      const columnName = attribute.field || attribute.columnName || key;
 
-      result[attribute.field || key] = this.attributeToSQL(attribute, options);
+      attribute.field = columnName;
+
+      result[columnName] = this.attributeToSQL(attribute, options);
     }
 
     return result;
