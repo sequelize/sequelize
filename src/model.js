@@ -2601,7 +2601,7 @@ class Model {
     }
 
     if (options.hooks) {
-      await this.runHooks('beforeUpsert', values, options);
+      await this.runHooks('beforeUpsert', instance, options);
     }
     const result = await this.queryInterface.upsert(this.getTableName(options), insertValues, updateValues, instance.where(), options);
 
