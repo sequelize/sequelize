@@ -2758,5 +2758,53 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const users1 = await user.findAll();
       expect(users1[0].username).to.equal('jon');
     });
+
+  });
+
+  describe('bulkUpdate', () => {
+             
+    it('when model defined has attributes with virtual or custom getters and setters should not throw undefined.', async function() {
+      const user = this.sequelize.define('users', {
+        id: {
+          type: DataTypes.UUID,
+          primaryKey: true,
+          defaultValue: DataTypes.UUIDV4
+        },
+        status: {
+          type: DataTypes.STRING,
+          defaultValue: 'active'
+        },
+        roles: {
+          type: DataTypes.STRING,
+          allowNull: false,
+          get() {
+            return this.getDataValue('roles').split(',');
+          },
+          set(val) {
+            this.setDataValue('roles', val.join(','));
+          }
+        }
+      });
+
+      await user.sync({ force: true });
+      const u1 = await user.create({
+        roles: ['authenticated user']
+      });
+      const u2 = await user.create({
+        roles: ['authenticated user']
+      });
+
+      await user.update({ status: 'blocked' }, { where: {
+        id: {
+          [Op.ne]: null
+        } 
+      } });
+      const a1 = await user.findOne({ where: { id: u1.id } });
+      const a2 = await user.findOne({ where: { id: u2.id } });
+      
+      expect(a1.get('status')).to.eq('blocked');
+      expect(a2.get('status')).to.eq('blocked');
+    });    
+    
   });
 });
