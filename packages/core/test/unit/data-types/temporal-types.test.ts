@@ -1,6 +1,7 @@
 import { DataTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
-import { expectsql, sequelize } from '../../support';
+import type { DialectName } from '../../support';
+import { expectsql, sequelize, useProcessTimezone } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
@@ -112,6 +113,44 @@ describe('DataTypes.DATE', () => {
       it('sanitizes string "Infinity"/"-Infinity" to numeric Infinity/-Infinity', () => {
         expect(type.sanitize('Infinity')).to.equal(Number.POSITIVE_INFINITY);
         expect(type.sanitize('-Infinity')).to.equal(Number.NEGATIVE_INFINITY);
+      });
+    }
+  });
+
+  describe('parseDatabaseValue', () => {
+    useProcessTimezone('Europe/Amsterdam');
+
+    const driverTimestamps: Partial<
+      Record<DialectName, { databaseDataType: unknown; cases: Array<[unknown, string]> }>
+    > = {
+      db2: {
+        databaseDataType: 'TIMESTAMP',
+        cases: [
+          ['2022-01-15 10:20:30.123456', '2022-01-15T10:20:30.123Z'],
+          ['2022-07-15 10:20:30.123456', '2022-07-15T10:20:30.123Z'],
+        ],
+      },
+      ibmi: {
+        databaseDataType: 93,
+        cases: [
+          ['2022-01-15 10:20:30.123456', '2022-01-15T10:20:30.123Z'],
+          ['2022-07-15 10:20:30.123456', '2022-07-15T10:20:30.123Z'],
+          ['2022-01-15 10:20:30', '2022-01-15T10:20:30.000Z'],
+          ['2022-01-15-10.20.30.123456', '2022-01-15T10:20:30.123Z'],
+          ['2022-07-15-10.20.30.123456', '2022-07-15T10:20:30.123Z'],
+        ],
+      },
+    };
+
+    const driverTimestamp = driverTimestamps[dialect.name as DialectName];
+
+    for (const [driverValue, expected] of driverTimestamp?.cases ?? []) {
+      it(`parses the TIMESTAMP driver value ${String(driverValue)} independently of the process time zone`, () => {
+        const parse = dialect.getParserForDatabaseDataType(driverTimestamp!.databaseDataType);
+        const value = type.parseDatabaseValue(parse ? parse(driverValue) : driverValue);
+
+        expect(value).to.be.instanceOf(Date);
+        expect((value as Date).toISOString()).to.equal(expected);
       });
     }
   });

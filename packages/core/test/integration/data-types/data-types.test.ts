@@ -1252,7 +1252,7 @@ describe('DataTypes', () => {
           : // sqlite decided to have a weird format that is not ISO 8601 compliant
             dialect.name === 'sqlite3'
             ? '2022-01-01 00:00:00.000 +00:00'
-            : dialect.name === 'db2'
+            : dialect.name === 'db2' || dialect.name === 'ibmi'
               ? '2022-01-01 00:00:00.000000+00'
               : dialect.name === 'oracle'
                 ? new Date('2022-01-01T00:00:00Z') // For oracle, DATE columns are fetched as js dates for raw sql.
