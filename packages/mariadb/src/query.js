@@ -106,7 +106,14 @@ export class MariaDbQuery extends AbstractQuery {
         // handle bulkCreate AI primary key
         if (
           modelDefinition?.autoIncrementAttributeName &&
-          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute &&
+          // `updateOnDuplicate`/`ignoreDuplicates` break the `insertId` + `affectedRows`
+          // arithmetic below: an updated row counts as 2 affected and an ignored one as 0,
+          // so the synthesised id range desynchronises from the inserted rows and returned
+          // instances get primary keys belonging to other rows. Fall back to the raw
+          // insertId in that case rather than fabricating a wrong range. See #18281.
+          !this.options.updateOnDuplicate &&
+          !this.options.ignoreDuplicates
         ) {
           // ONLY TRUE IF @auto_increment_increment is set to 1 !!
           // Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node...)
