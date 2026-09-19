@@ -15,7 +15,7 @@ export function registerMySqlDbDataTypeParsers(dialect: MySqlDialect) {
    * @see buffer_type here https://dev.mysql.com/doc/refman/5.7/en/c-api-prepared-statement-type-codes.html
    * @see hex here https://github.com/sidorares/node-mysql2/blob/master/lib/constants/types.js
    */
-  dialect.registerDataTypeParser(['DATETIME'], (value: TypeCastField) => {
+  dialect.registerDataTypeParser(['DATETIME', 'TIMESTAMP'], (value: TypeCastField) => {
     const valueStr: string | null = value.string();
     if (valueStr === null) {
       return null;

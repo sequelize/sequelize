@@ -15,6 +15,10 @@ export function timeZoneToOffsetString(timeZone: string) {
   throw new Error(`Invalid time zone: ${timeZone}`);
 }
 
+export function isOffsetTimeZone(timeZone: string): boolean {
+  return /^[+-]\d{2}:\d{2}$/.test(timeZone);
+}
+
 export function isValidTimeZone(tz: string) {
   if (history.has(tz)) {
     return history.get(tz);

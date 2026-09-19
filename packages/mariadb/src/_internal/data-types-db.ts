@@ -10,7 +10,7 @@ import type { MariaDbDialect } from '../dialect.js';
  * @param dialect
  */
 export function registerMariaDbDbDataTypeParsers(dialect: MariaDbDialect) {
-  dialect.registerDataTypeParser(['DATETIME'], (value: FieldInfo) => {
+  dialect.registerDataTypeParser(['DATETIME', 'TIMESTAMP'], (value: FieldInfo) => {
     const valueStr: string | null = value.string();
     if (valueStr === null) {
       return null;

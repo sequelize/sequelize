@@ -9,7 +9,10 @@ import {
   InvalidConnectionError,
 } from '@sequelize/core';
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
-import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
+import {
+  isOffsetTimeZone,
+  timeZoneToOffsetString,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import * as MariaDb from 'mariadb';
@@ -66,6 +69,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   MariaDbConnection
 > {
   readonly #lib: MariaDbModule;
+  readonly #sessionTimeZoneOffsets = new WeakMap<MariaDbConnection, string>();
 
   constructor(dialect: MariaDbDialect) {
     super(dialect);
@@ -90,34 +94,41 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
    * @param config
    */
   async connect(config: ConnectionOptions<MariaDbDialect>): Promise<MariaDbConnection> {
-    // Named timezone is not supported in mariadb, convert to offset
-    let tzOffset = this.sequelize.options.timezone;
-    tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
+    const { timezone, keepDefaultTimezone } = this.sequelize.options;
 
     const connectionConfig: MariaDb.ConnectionConfig = removeUndefined({
       foundRows: false,
       ...config,
-      timezone: tzOffset,
       typeCast: (field: MariaDb.FieldInfo, next: MariaDb.TypeCastNextFunction) =>
         this.#typeCast(field, next),
     });
 
-    if (!this.sequelize.options.keepDefaultTimezone) {
-      // set timezone for this connection
+    let sessionTimeZoneOffset: string | undefined;
+
+    if (!keepDefaultTimezone && timezone) {
+      sessionTimeZoneOffset = isOffsetTimeZone(timezone)
+        ? undefined
+        : timeZoneToOffsetString(timezone);
+      const setTimeZoneSql = this.#getSetSessionTimeZoneSql(timezone, sessionTimeZoneOffset);
+
       if (connectionConfig.initSql) {
         if (!Array.isArray(connectionConfig.initSql)) {
           connectionConfig.initSql = [connectionConfig.initSql];
         }
 
-        connectionConfig.initSql.push(`SET time_zone = '${tzOffset}'`);
+        connectionConfig.initSql.push(setTimeZoneSql);
       } else {
-        connectionConfig.initSql = `SET time_zone = '${tzOffset}'`;
+        connectionConfig.initSql = setTimeZoneSql;
       }
     }
 
     try {
       const connection = await this.#lib.createConnection(connectionConfig);
       this.sequelize.setDatabaseVersion(semver.coerce(connection.serverVersion())!.version);
+
+      if (sessionTimeZoneOffset !== undefined) {
+        this.#sessionTimeZoneOffsets.set(connection, sessionTimeZoneOffset);
+      }
 
       debug('connection acquired');
       connection.on('error', error => {
@@ -169,7 +180,28 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     await connection.end();
   }
 
+  #getSetSessionTimeZoneSql(timeZone: string, fallbackOffset: string | undefined): string {
+    const { queryGenerator } = this.sequelize;
+    const escapedTimeZone = queryGenerator.escape(timeZone);
+
+    if (fallbackOffset === undefined) {
+      return `SET time_zone = ${escapedTimeZone}`;
+    }
+
+    const escapedOffset = queryGenerator.escape(fallbackOffset);
+
+    return `SET time_zone = IF(CONVERT_TZ('2000-01-01 00:00:00', '+00:00', ${escapedTimeZone}) IS NULL, ${escapedOffset}, ${escapedTimeZone})`;
+  }
+
+  #hasStaleSessionTimeZoneOffset(connection: MariaDbConnection): boolean {
+    const offset = this.#sessionTimeZoneOffsets.get(connection);
+
+    return (
+      offset !== undefined && offset !== timeZoneToOffsetString(this.sequelize.options.timezone)
+    );
+  }
+
   validate(connection: MariaDbConnection): boolean {
-    return connection && connection.isValid();
+    return connection && connection.isValid() && !this.#hasStaleSessionTimeZoneOffset(connection);
   }
 }
