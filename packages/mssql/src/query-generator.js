@@ -476,6 +476,11 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
+
+      if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+        template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
+      }
+
       template += ` CHECK (${this.quoteIdentifier(attribute.field)} IN(${attribute.type.options.values
         .map(value => {
           return this.escape(value, options);

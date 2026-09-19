@@ -871,6 +871,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql({ dialect: this.dialect });
+
+      if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+        template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      }
+
       template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values
         .map(value => {
           return this.escape(value, undefined, {});
@@ -881,6 +886,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     if (attribute.type instanceof DataTypes.JSON) {
+      // Oracle stores JSON in a BLOB, which rejects a string DEFAULT with ORA-01465.
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
 
@@ -889,6 +895,11 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
+
+      if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+        template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      }
+
       template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
 
       return template;
