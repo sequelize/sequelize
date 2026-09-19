@@ -1,6 +1,6 @@
 import type { Options as RetryAsPromisedOptions } from 'retry-as-promised';
 import type { DataTypes, Op, Options, QueryTypes } from '.';
-import type { DataType } from './abstract-dialect/data-types.js';
+import type { DataType, VectorValue } from './abstract-dialect/data-types.js';
 import type { AbstractDialect, ConnectionOptions } from './abstract-dialect/dialect.js';
 import type {
   ColumnsDescription,
@@ -610,6 +610,56 @@ export class Sequelize<
    * Get the fn for random based on the dialect
    */
   random(): Fn;
+
+  /**
+   * Build a dialect-specific cosine distance function.
+   * Dialects that advertise `DialectSupportMap.dataTypes.VECTOR` translate this generic helper
+   * into their native similarity operator (Oracle, Snowflake samples, pgvector, ...).
+   *
+   * @param column column name or identifier to compare against
+   * @param value reference vector as a plain numeric array or typed array
+   */
+  cosineDistance(column: string, value: VectorValue): Fn;
+
+  /**
+   * Build a dialect-specific inner product function.
+   * Dialects that advertise `DialectSupportMap.dataTypes.VECTOR` translate this generic helper
+   * into their native similarity operator (Oracle, Snowflake samples, pgvector, ...).
+   *
+   * @param column column name or identifier to compare against
+   * @param value reference vector as a plain numeric array or typed array
+   */
+  innerProduct(column: string, value: VectorValue): Fn;
+
+  /**
+   * Build a dialect-specific L1 distance function.
+   * Dialects that advertise `DialectSupportMap.dataTypes.VECTOR` translate this generic helper
+   * into their native similarity operator (Oracle, Snowflake samples, pgvector, ...).
+   *
+   * @param column column name or identifier to compare against
+   * @param value reference vector as a plain numeric array or typed array
+   */
+  l1Distance(column: string, value: VectorValue): Fn;
+
+  /**
+   * Build a dialect-specific L2 distance function.
+   * Dialects that advertise `DialectSupportMap.dataTypes.VECTOR` translate this generic helper
+   * into their native similarity operator (Oracle, Snowflake samples, pgvector, ...).
+   *
+   * @param column column name or identifier to compare against
+   * @param value reference vector as a plain numeric array or typed array
+   */
+  l2Distance(column: string, value: VectorValue): Fn;
+
+  /**
+   * Build a dialect-specific default vector distance function.
+   * Dialects that advertise `DialectSupportMap.dataTypes.VECTOR` translate this generic helper
+   * into their native similarity operator (Oracle, Snowflake samples, pgvector, ...).
+   *
+   * @param column column name or identifier to compare against
+   * @param value reference vector as a plain numeric array or typed array
+   */
+  vectorDistance(column: string, value: VectorValue): Fn;
 
   /**
    * Execute a query which would set an environment or user variable. The variables are set per connection,
