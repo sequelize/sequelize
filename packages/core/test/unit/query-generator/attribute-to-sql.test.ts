@@ -1,5 +1,6 @@
 import { DataTypes, fn, literal } from '@sequelize/core';
 import type { AbstractQueryGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
+import { expect } from 'chai';
 import util from 'node:util';
 import type { ExpectationRecord } from '../../support';
 import {
@@ -21,9 +22,7 @@ function createAttributeTester(getQueryGenerator: () => AbstractQueryGenerator) 
       // TODO: type this once attributeToSQL is typed
       attribute: any,
       expectations: Expectations,
-      // TODO: use AttributeToSqlOptions once attributeToSQL is typed. That interface does not
-      //  currently describe what the dialects accept: it requires `context` and a string `table`,
-      //  and it is missing the dialect-specific options.
+      // TODO: use AttributeToSqlOptions once attributeToSQL is typed.
       options?: Record<string, unknown>,
     ) => {
       it(
@@ -48,7 +47,6 @@ describe('QueryGenerator#attributeToSQL', () => {
     'mssql oracle': 'INTEGER NULL',
   });
 
-  // TODO: sqlite3 does not normalize a bare data type into { type }, unlike every other dialect.
   testSql(sequelize.normalizeDataType(DataTypes.INTEGER), {
     default: 'INTEGER',
     'mssql oracle': 'INTEGER NULL',
@@ -70,8 +68,9 @@ describe('QueryGenerator#attributeToSQL', () => {
     },
   );
 
-  // TODO: an ENUM without a field should not throw. mssql, db2, ibmi and oracle build the CHECK
-  //  constraint from an identifier they never receive.
+  // TODO: an ENUM without a column name should not throw. mssql, db2, ibmi and oracle build the
+  //  CHECK constraint out of `attribute.field`, which nothing guarantees is set when attributeToSQL
+  //  is called directly.
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.ENUM('value1', 'value2')) },
     {
@@ -338,8 +337,6 @@ describe('QueryGenerator#attributeToSQL', () => {
     },
   );
 
-  // TODO: mssql, db2, ibmi and oracle guard TEXT defaults with `attribute.type !== 'TEXT'`, which
-  //  never matches a DataType instance, so the default is emitted anyway.
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.TEXT), defaultValue: 'abc' },
     {
@@ -359,8 +356,6 @@ describe('QueryGenerator#attributeToSQL', () => {
     },
   );
 
-  // TODO: the binary guard reads `attribute.type._binary`, which no longer exists on v7 data types,
-  //  so dialects that cannot store a BLOB default emit one anyway.
   testSql(
     { type: sequelize.normalizeDataType(DataTypes.BLOB), defaultValue: Buffer.from('abc') },
     {
@@ -753,6 +748,40 @@ describe('QueryGenerator#attributeToSQL', () => {
       },
     );
   }
+
+  it('does not modify the attribute it is given', () => {
+    const Foo = sequelize.define('Foo', {}, { tableName: 'foo' });
+    const attribute = {
+      type: 'INTEGER',
+      field: 'fooId',
+      Model: Foo,
+      references: { table: 'foo', key: 'id' },
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    };
+
+    // @ts-expect-error -- attributeToSQL is not typed yet
+    sequelize.dialect.queryGenerator.attributeToSQL(attribute, {
+      context: 'createTable',
+      tableOrModel: 'foo',
+    });
+
+    expect(attribute).to.include({ onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+  });
+
+  it('generates the same SQL each time it is given the same data type', () => {
+    const queryGenerator = sequelize.dialect.queryGenerator;
+    const attribute = {
+      type: sequelize.normalizeDataType(DataTypes.INTEGER.UNSIGNED),
+      field: 'foo',
+    };
+
+    // @ts-expect-error -- attributeToSQL is not typed yet
+    const first = queryGenerator.attributeToSQL(attribute);
+
+    // @ts-expect-error -- attributeToSQL is not typed yet
+    expect(queryGenerator.attributeToSQL(attribute)).to.equal(first);
+  });
 
   describe('quoteIdentifiers: false', () => {
     allowDeprecationsInSuite(['SEQUELIZE0023']);

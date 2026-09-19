@@ -453,11 +453,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
   }
 
   attributeToSQL(attribute, options) {
-    if (!isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
-    }
+    attribute = isPlainObject(attribute) ? { ...attribute } : { type: attribute };
 
     // handle self-referential constraints
     if (

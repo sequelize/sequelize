@@ -361,11 +361,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attribute.type.toString({
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
-    let template = attributeString;
+    let template;
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
