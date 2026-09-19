@@ -563,6 +563,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     options = cloneDeep(options) ?? {};
+    options.rejectAlwaysTrueWhere = 'UPDATE';
     if (typeof where === 'object') {
       where = cloneDeep(where) ?? {};
     }
@@ -582,6 +583,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     options.type = QueryTypes.BULKUPDATE;
     options.model = model;
     options.bind = combineBinds(options.bind, bind);
+
+    // like replacements, this is a query generation concern and has no meaning to QueryRaw
+    delete options.rejectAlwaysTrueWhere;
 
     return await this.sequelize.queryRaw(query, options);
   }
@@ -647,6 +651,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   ) {
     options = cloneDeep(options) ?? {};
     options.model = model;
+    options.rejectAlwaysTrueWhere = 'UPDATE';
 
     const sql = this.queryGenerator.arithmeticQuery(
       operator,
@@ -661,6 +666,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
     delete options.replacements;
+    delete options.rejectAlwaysTrueWhere;
 
     return await this.sequelize.queryRaw(sql, options);
   }

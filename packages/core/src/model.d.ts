@@ -346,10 +346,21 @@ export interface WhereOperators<AttributeType = any> {
   /** @example `[Op.notBetween]: [11, 15],` becomes `NOT BETWEEN 11 AND 15` */
   [Op.notBetween]?: WhereOperators<AttributeType>[typeof Op.between];
 
-  /** @example `[Op.in]: [1, 2],` becomes `IN (1, 2)` */
-  [Op.in]?: ReadonlyArray<OperatorValues<NonNullable<AttributeType>>> | Literal;
+  /**
+   * A `null` in the list means "or is null" for a nullable attribute: it is compared separately
+   * rather than emitted as `IN (..., NULL)`, which never matches a NULL value.
+   *
+   * @example `[Op.in]: [1, 2],` becomes `IN (1, 2)`
+   * @example `{ age: { [Op.in]: [1, null] } }` becomes `age IN (1) OR age IS NULL`
+   */
+  [Op.in]?:
+    | ReadonlyArray<OperatorValues<NonNullable<AttributeType>> | Extract<AttributeType, null>>
+    | Literal;
 
-  /** @example `[Op.notIn]: [1, 2],` becomes `NOT IN (1, 2)` */
+  /**
+   * @example `[Op.notIn]: [1, 2],` becomes `NOT IN (1, 2)`
+   * @example `{ age: { [Op.notIn]: [1, null] } }` becomes `age NOT IN (1) AND age IS NOT NULL`
+   */
   [Op.notIn]?: WhereOperators<AttributeType>[typeof Op.in];
 
   /**

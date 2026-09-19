@@ -57,7 +57,7 @@ export type WhereAttributeHashValue<AttributeType> =
       // if the right-hand side is an array, it will be equal to Op.in
       // otherwise it will be equal to Op.eq
       // Exception: array attribtues always use Op.eq, never Op.in.
-      AttributeType extends any[]
+      [AttributeType] extends [any[]]
         ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
         :
             | WhereOperators<AttributeType>[typeof Op.in]
