@@ -59,7 +59,16 @@ interface ReplicationPoolConfig<Connection extends object, ConnectionOptions ext
   // TODO: move this option to sequelize-pool so it applies to sub-pools as well
   timeoutErrorClass?: Class<Error>;
 
-  connect(options: ConnectionOptions): Promise<Connection>;
+  /**
+   * @param options
+   * @param register Must be called with the connection as soon as it exists, and before any
+   *   code that could call `pool.destroy()` on it (e.g. an error handler) runs — this is what
+   *   lets `pool.destroy()` find the connection instead of throwing.
+   */
+  connect(
+    options: ConnectionOptions,
+    register: (connection: Connection) => void,
+  ): Promise<Connection>;
 
   disconnect(connection: Connection): Promise<void>;
 
@@ -112,11 +121,8 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
         create: async () => {
           // round robin config
           const nextRead = reads++ % readConfig.length;
-          const connection = await connect(readConfig[nextRead]);
 
-          owningPools.set(connection, 'read');
-
-          return connection;
+          return connect(readConfig[nextRead], connection => owningPools.set(connection, 'read'));
         },
         destroy: disconnect,
         validate,
@@ -132,11 +138,7 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
     this.write = new Pool({
       name: 'sequelize:write',
       create: async () => {
-        const connection = await connect(writeConfig);
-
-        owningPools.set(connection, 'write');
-
-        return connection;
+        return connect(writeConfig, connection => owningPools.set(connection, 'write'));
       },
       destroy: disconnect,
       validate,
