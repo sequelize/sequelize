@@ -4,13 +4,12 @@ import {
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
+import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-risk_/expression-builders/base-sql-expression.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
-
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
@@ -167,10 +166,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, {
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
+    const attributeString = attributeTypeToSql(attribute.type);
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -181,13 +177,12 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       template += ' auto_increment';
     }
 
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      const { defaultValue } = attribute;
+      const escaped = this.escape(defaultValue, { type: attribute.type });
+
+      // MariaDB only accepts an expression default if it is wrapped in parentheses
+      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
     }
 
     if (attribute.unique === true) {

@@ -485,7 +485,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       return template;
     }
 
-    template = attributeTypeToSql(attribute.type, { dialect: this.dialect });
+    template = attributeTypeToSql(attribute.type);
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
@@ -500,12 +500,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
       template += ' IDENTITY(1,1)';
     }
 
-    // Blobs/texts cannot have a defaultValue
-    if (
-      attribute.type !== 'TEXT' &&
-      attribute.type._binary !== true &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
     }
 

@@ -1,5 +1,6 @@
 'use strict';
 
+import { attributeTypeToDataTypeId } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
   CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
@@ -24,7 +25,11 @@ const SNOWFLAKE_RESERVED_WORDS =
     ',',
   );
 
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+// Snowflake has no BLOB type at all: its binary types are BINARY and VARBINARY, and binary
+// literals are written TO_BINARY(..., 'HEX') rather than X'...'. Until DataTypes.BLOB maps to
+// one of those, a BLOB column cannot be created here, so there is nothing to default.
+// TODO [+snowflake]: map DataTypes.BLOB to BINARY and escape it with TO_BINARY
+const typeWithoutDefault = new Set(['BLOB']);
 
 const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['comment', 'uniqueKeys']);
 
@@ -243,10 +248,8 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       template += ' AUTOINCREMENT';
     }
 
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
     if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
       defaultValueSchemable(attribute.defaultValue, this.dialect)
     ) {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;

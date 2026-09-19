@@ -1,6 +1,7 @@
 'use strict';
 
 import {
+  attributeTypeToDataTypeId,
   attributeTypeToSql,
   normalizeDataType,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -15,7 +16,9 @@ import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import { MySqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
-const typeWithoutDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
+// MySQL only accepts a default on these types if it is written as an expression,
+// i.e. wrapped in parentheses, even when the expression is a literal
+const typeNeedingParenthesizedDefault = new Set(['BLOB', 'TEXT', 'GEOMETRY', 'JSON']);
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
@@ -179,10 +182,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       };
     }
 
-    const attributeString = attributeTypeToSql(attribute.type, {
-      escape: this.escape.bind(this),
-      dialect: this.dialect,
-    });
+    const attributeString = attributeTypeToSql(attribute.type);
     let template = attributeString;
 
     if (attribute.allowNull === false) {
@@ -193,16 +193,14 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       template += ' auto_increment';
     }
 
-    // BLOB/TEXT/GEOMETRY/JSON cannot have a default value
-    if (
-      !typeWithoutDefault.has(attributeString) &&
-      attribute.type._binary !== true &&
-      defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       const { defaultValue } = attribute;
-      const escaped = this.escape(defaultValue);
-      // MySQL 8.0.13+ supports expressions as default values if they are wrapped in parentheses
-      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
+      const escaped = this.escape(defaultValue, { type: attribute.type });
+      const needsParentheses =
+        defaultValue instanceof BaseSqlExpression ||
+        typeNeedingParenthesizedDefault.has(attributeTypeToDataTypeId(attribute.type));
+
+      template += ` DEFAULT ${needsParentheses ? `(${escaped})` : escaped}`;
     }
 
     if (attribute.unique === true) {

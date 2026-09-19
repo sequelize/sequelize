@@ -908,14 +908,8 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
       template = attribute.type.toString();
 
-      // Blobs/texts cannot have a defaultValue
-      if (
-        attribute.type &&
-        attribute.type !== 'TEXT' &&
-        attribute.type._binary !== true &&
-        defaultValueSchemable(attribute.defaultValue, this.dialect)
-      ) {
-        template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
+      if (attribute.type && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+        template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
       }
 
       if (!attribute.autoIncrement) {
