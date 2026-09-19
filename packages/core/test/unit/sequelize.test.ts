@@ -63,7 +63,7 @@ describe('Sequelize', () => {
 
       expectPerDialect(() => [positional, named], {
         default: [['2012-01-10 09:10:10.123', 'foo'], ['2012-01-10 09:10:10.123']],
-        'mssql sqlite3': [
+        'mssql snowflake sqlite3': [
           ['2012-01-10 09:10:10.123 +00:00', 'foo'],
           ['2012-01-10 09:10:10.123 +00:00'],
         ],
@@ -90,7 +90,8 @@ describe('Sequelize', () => {
         await sequelizeWithTimezone.close();
 
         expectPerDialect(() => parameters, {
-          'mysql mariadb snowflake': ['2012-01-10 14:40:10.123'],
+          'mysql mariadb': ['2012-01-10 14:40:10.123'],
+          snowflake: ['2012-01-10 14:40:10.123 +05:30'],
           postgres: [date],
         });
       });

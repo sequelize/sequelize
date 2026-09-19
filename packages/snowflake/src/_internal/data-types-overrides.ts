@@ -1,17 +1,10 @@
 import type { AbstractDialect } from '@sequelize/core';
-import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import maxBy from 'lodash/maxBy.js';
 
 export class DATE extends BaseTypes.DATE {
   toSql() {
     return `TIMESTAMP${this.options.precision != null ? `(${this.options.precision})` : ''}`;
-  }
-
-  toBindableValue(date: AcceptedDate) {
-    date = this._applyTimezone(date);
-
-    return date.format('YYYY-MM-DD HH:mm:ss.SSS');
   }
 }
 
