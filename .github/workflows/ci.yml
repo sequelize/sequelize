@@ -98,6 +98,8 @@ jobs:
         run: yarn lerna run test-unit --scope=@sequelize/postgres
       - name: Unit tests (core - sqlite3)
         run: yarn lerna run test-unit-sqlite3 --scope=@sequelize/core
+      - name: Unit tests (sqlite3 package)
+        run: yarn lerna run test-unit --scope=@sequelize/sqlite3
       - name: Unit tests (core - mssql)
         run: yarn lerna run test-unit-mssql --scope=@sequelize/core
       - name: Unit tests (mssql package)
