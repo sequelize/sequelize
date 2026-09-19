@@ -463,7 +463,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       tableName,
       insertValues,
       getObjectFromMap(modelDefinition.attributes),
-      options,
+      { ...options, updateValues },
     );
 
     // unlike bind, replacements are handled by QueryGenerator, not QueryRaw
