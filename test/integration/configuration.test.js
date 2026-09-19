@@ -12,7 +12,7 @@ const chai = require('chai'),
 
 let sqlite3;
 if (dialect === 'sqlite') {
-  sqlite3 = require('sqlite3'); // eslint-disable-line
+  sqlite3 = require('@vscode/sqlite3'); // eslint-disable-line
 }
 
 describe(Support.getTestDialectTeaser('Configuration'), () => {
@@ -49,7 +49,7 @@ describe(Support.getTestDialectTeaser('Configuration'), () => {
 
     it('when we don\'t have the correct login information', async () => {
       const willBeRejectedWithArgs = [[Sequelize.HostNotReachableError, Sequelize.InvalidConnectionError]];
-      
+
       if (dialect === 'mssql') {
         // TODO: GitHub Actions seems to be having trouble with this test. Works perfectly fine on a local setup.
         expect(true).to.be.true;
