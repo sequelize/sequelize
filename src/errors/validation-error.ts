@@ -8,10 +8,10 @@ import BaseError from './base-error';
  * our new `origin` values.
  */
 export enum ValidationErrorItemType {
-  'notnull violation' = 'CORE',
+  'notNull violation' = 'CORE',
   'string violation' = 'CORE',
   'unique violation' = 'DB',
-  'validation error' = 'FUNCTION',
+  'Validation error' = 'FUNCTION',
 }
 
 /**
