@@ -4,6 +4,7 @@ import { EMPTY_OBJECT, shallowClonePojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
 import isPlainObject from 'lodash/isPlainObject';
 import map from 'lodash/map';
+import mapValues from 'lodash/mapValues';
 import retry from 'retry-as-promised';
 import { AbstractConnectionManager } from './abstract-dialect/connection-manager.js';
 import { AbstractDialect } from './abstract-dialect/dialect.js';
@@ -299,15 +300,18 @@ Use Sequelize#query if you wish to use replacements.`);
 
         // used by dialects that support "INOUT" parameters to map the OUT parameters back to the name the dev used.
         options.bindParameterOrder = mappedResult.bindOrder;
+        const toBindableRawValue = value => this.dialect.toBindableRawValue(value);
         if (mappedResult.bindOrder == null) {
-          bindParameters = options.bind;
+          bindParameters = isBindArray
+            ? options.bind.map(toBindableRawValue)
+            : mapValues(options.bind, toBindableRawValue);
         } else {
           bindParameters = mappedResult.bindOrder.map(key => {
             if (isBindArray) {
-              return options.bind[key - 1];
+              return toBindableRawValue(options.bind[key - 1]);
             }
 
-            return options.bind[key];
+            return toBindableRawValue(options.bind[key]);
           });
         }
       }

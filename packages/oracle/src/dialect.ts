@@ -5,6 +5,7 @@ import { AbstractDialect } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { EMPTY_ARRAY } from '@sequelize/utils';
+import oracledb from 'oracledb';
 import { CONNECTION_OPTION_NAMES } from './_internal/connection-options.js';
 import * as DataTypes from './_internal/data-types-overrides';
 import { OracleConnectionManager } from './connection-manager';
@@ -126,6 +127,14 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     const hex = buffer.toString('hex');
 
     return `'${hex}'`;
+  }
+
+  toBindableRawValue(value: unknown): unknown {
+    if (value instanceof Date) {
+      return { ...DataTypes.DATE.prototype._getBindDef(oracledb), val: value };
+    }
+
+    return value;
   }
 
   static getSupportedOptions() {
