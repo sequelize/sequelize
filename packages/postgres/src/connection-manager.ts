@@ -230,11 +230,26 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       }
     }
 
-    if (query) {
-      await connection.query(query);
-    }
+    try {
+      if (query) {
+        await connection.query(query);
+      }
 
-    await this.#refreshOidMap(connection);
+      await this.#refreshOidMap(connection);
+    } catch (error) {
+      // The connection is already open here. Close it before propagating the setup error.
+      try {
+        await connection.end();
+      } catch (teardownError) {
+        throw new AggregateError(
+          [error, teardownError],
+          'Postgres connection setup failed and the connection could not be closed',
+          { cause: teardownError },
+        );
+      }
+
+      throw error;
+    }
 
     return connection;
   }
