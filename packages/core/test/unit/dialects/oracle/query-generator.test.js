@@ -18,6 +18,7 @@ if (dialect.startsWith('oracle')) {
     const dialect = sequelize.dialect;
     const integerDialect = new DataTypes.INTEGER().toDialectDataType(dialect);
     const dateDialect = new DataTypes.DATE().toDialectDataType(dialect);
+    const dateOnlyDialect = new DataTypes.DATEONLY().toDialectDataType(dialect);
 
     const suites = {
       changeColumnQuery: [
@@ -425,6 +426,16 @@ if (dialect.startsWith('oracle')) {
           ],
           expectation: `INSERT INTO "myTable" ("date") VALUES (:1)`,
           expectBind: [[new Date('2012-11-10T09:10:10Z')], [new Date('2012-07-10T09:10:10Z')]],
+        },
+        {
+          arguments: [
+            'myTable',
+            [{ day: '2012-11-10' }, { day: new Date('2012-07-10T22:10:10Z') }],
+            {},
+            { day: { type: dateOnlyDialect } },
+          ],
+          expectation: `INSERT INTO "myTable" ("day") VALUES (:1)`,
+          expectBind: [[new Date(2012, 10, 10)], [new Date(2012, 6, 10)]],
         },
         {
           arguments: [
