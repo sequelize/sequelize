@@ -165,9 +165,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: yarn global add node-gyp --ignore-engines
       - run: yarn install --frozen-lockfile --ignore-engines
-      # pg-native 3.8.0 uses `??`, which Node 10 cannot parse - requiring it throws a SyntaxError
-      # before any test runs. Pin the last release Node 10 can load; newer Node versions keep
-      # testing against the current one.
+      # pg-native 3.8.0+ uses syntax Node 10 cannot parse
       - run: yarn add pg-native@${{ matrix.node-version == 10 && '3.7.0' || 'latest' }} --ignore-engines
         if: matrix.native
       - name: Unit Tests
@@ -313,17 +311,30 @@ jobs:
         test-mysql-mariadb,
       ]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/v6' || github.ref == 'refs/heads/v6-beta')
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+    environment: release
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
         with:
           node-version: 18.x
       - run: yarn global add node-gyp --ignore-engines
       - run: yarn install --frozen-lockfile --ignore-engines
-      - run: npx semantic-release
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+      - run: npm ci --prefix .github/release --ignore-scripts
+      - run: npm audit signatures --prefix .github/release
+      - run: .github/release/node_modules/.bin/semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - id: sequelize
         uses: sdepold/github-action-get-latest-release@master
         with:
