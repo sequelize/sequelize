@@ -914,9 +914,11 @@ describe('injectReplacements (positional replacements)', () => {
   });
 
   it('does consider the token to be a replacement if it is located after a $ quoted string', () => {
-    const sql = injectReplacements(`SELECT $$ abc $$ AS string FROM users WHERE id = ?`, dialect, [
-      1,
-    ]);
+    const sql = injectReplacements(
+      `SELECT $$ abc $$ AS string FROM users WHERE id = ?`,
+      dialect,
+      [1],
+    );
 
     expectsql(sql, {
       default: `SELECT $$ abc $$ AS string FROM users WHERE id = 1`,

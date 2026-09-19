@@ -1176,8 +1176,9 @@ export interface BelongsToManyOptions<
  *
  * @see BelongsToManyGetAssociationsMixin
  */
-export interface BelongsToManyGetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>> {
+export interface BelongsToManyGetAssociationsMixinOptions<T extends Model> extends FindOptions<
+  Attributes<T>
+> {
   /**
    * A list of the attributes from the join table that you want to select.
    */
@@ -1223,7 +1224,8 @@ export type BelongsToManyGetAssociationsMixin<T extends Model> = (
  * @see BelongsToManySetAssociationsMixin
  */
 export interface BelongsToManySetAssociationsMixinOptions<TargetModel extends Model>
-  extends FindOptions<Attributes<TargetModel>>,
+  extends
+    FindOptions<Attributes<TargetModel>>,
     BulkCreateOptions<Attributes<TargetModel>>,
     InstanceUpdateOptions<Attributes<TargetModel>>,
     InstanceDestroyOptions {
@@ -1258,7 +1260,8 @@ export type BelongsToManySetAssociationsMixin<TModel extends Model, TModelPrimar
  * @see BelongsToManyAddAssociationsMixin
  */
 export interface BelongsToManyAddAssociationsMixinOptions<TModel extends Model>
-  extends FindOptions<Attributes<TModel>>,
+  extends
+    FindOptions<Attributes<TModel>>,
     BulkCreateOptions<Attributes<TModel>>,
     InstanceUpdateOptions<Attributes<TModel>>,
     InstanceDestroyOptions {
@@ -1290,7 +1293,8 @@ export type BelongsToManyAddAssociationsMixin<T extends Model, TModelPrimaryKey>
  * @see BelongsToManyAddAssociationMixin
  */
 export interface BelongsToManyAddAssociationMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>,
+  extends
+    FindOptions<Attributes<T>>,
     BulkCreateOptions<Attributes<T>>,
     InstanceUpdateOptions<Attributes<T>>,
     InstanceDestroyOptions {
@@ -1321,8 +1325,9 @@ export type BelongsToManyAddAssociationMixin<T extends Model, TModelPrimaryKey> 
  *
  * @see BelongsToManyCreateAssociationMixin
  */
-export interface BelongsToManyCreateAssociationMixinOptions<T extends Model>
-  extends CreateOptions<Attributes<T>> {
+export interface BelongsToManyCreateAssociationMixinOptions<T extends Model> extends CreateOptions<
+  Attributes<T>
+> {
   through?: JoinTableAttributes;
 }
 /**
@@ -1376,8 +1381,7 @@ export type BelongsToManyRemoveAssociationMixin<TModel, TModelPrimaryKey> = (
  * @see BelongsToManyRemoveAssociationsMixin
  */
 export interface BelongsToManyRemoveAssociationsMixinOptions
-  extends InstanceDestroyOptions,
-    InstanceDestroyOptions {}
+  extends InstanceDestroyOptions, InstanceDestroyOptions {}
 
 /**
  * The removeAssociations mixin applied to models with belongsToMany.
@@ -1403,8 +1407,9 @@ export type BelongsToManyRemoveAssociationsMixin<TModel, TModelPrimaryKey> = (
  *
  * @see BelongsToManyHasAssociationMixin
  */
-export interface BelongsToManyHasAssociationMixinOptions<T extends Model>
-  extends BelongsToManyGetAssociationsMixinOptions<T> {}
+export interface BelongsToManyHasAssociationMixinOptions<
+  T extends Model,
+> extends BelongsToManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The hasAssociation mixin applied to models with belongsToMany.
@@ -1430,8 +1435,9 @@ export type BelongsToManyHasAssociationMixin<TModel extends Model, TModelPrimary
  *
  * @see BelongsToManyHasAssociationsMixin
  */
-export interface BelongsToManyHasAssociationsMixinOptions<T extends Model>
-  extends BelongsToManyGetAssociationsMixinOptions<T> {}
+export interface BelongsToManyHasAssociationsMixinOptions<
+  T extends Model,
+> extends BelongsToManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The removeAssociations mixin applied to models with belongsToMany.
@@ -1458,8 +1464,7 @@ export type BelongsToManyHasAssociationsMixin<TModel extends Model, TModelPrimar
  * @see BelongsToManyCountAssociationsMixin
  */
 export interface BelongsToManyCountAssociationsMixinOptions<T extends Model>
-  extends Transactionable,
-    Filterable<Attributes<T>> {
+  extends Transactionable, Filterable<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
