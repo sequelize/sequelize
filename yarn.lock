@@ -2816,6 +2816,21 @@ __metadata:
     typedoc-plugin-mdn-links: "npm:5.1.1"
     typedoc-plugin-missing-exports: "npm:4.1.4"
     typescript: "npm:6.0.3"
+  dependenciesMeta:
+    esbuild:
+      built: true
+    ibm_db:
+      built: true
+    nx:
+      built: true
+    odbc:
+      built: true
+    oracledb:
+      built: true
+    sqlite3:
+      built: true
+    unrs-resolver:
+      built: true
   languageName: unknown
   linkType: soft
 
