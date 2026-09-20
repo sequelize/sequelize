@@ -28,9 +28,6 @@ module.exports = {
     'jsdoc/valid-types': 'error',
     'jsdoc/no-types': 'error',
 
-    // Sequelize exports an AggregateError of its own. It is the only export whose name is also a
-    // JS global, so forgetting to import it does not raise an error: the name silently resolves to
-    // the global instead, and `instanceof` then fails against a class that looks identical.
     'no-restricted-globals': [
       'error',
       {
