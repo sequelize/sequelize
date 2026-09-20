@@ -122,6 +122,9 @@
     "ibm_db": {
       "built": true
     },
+    "libpq": {
+      "built": true
+    },
     "nx": {
       "built": true
     },
