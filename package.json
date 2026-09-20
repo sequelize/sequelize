@@ -106,7 +106,7 @@
     "typedoc-plugin-missing-exports": "4.1.4",
     "typescript": "6.0.3"
   },
-  "packageManager": "yarn@4.13.0",
+  "packageManager": "yarn@4.18.0",
   "lint-staged": {
     "*.{js,mjs,cjs,ts,mts,cts}": "eslint --fix --report-unused-disable-directives",
     "*": "prettier --write --ignore-unknown"
@@ -114,5 +114,31 @@
   "resolutions": {
     "@mapbox/node-pre-gyp@npm:^2.0.0": "patch:@mapbox/node-pre-gyp@npm%3A2.0.3#~/.yarn/patches/@mapbox-node-pre-gyp-npm-2.0.3-4606feb049.patch",
     "node-gyp@npm:latest": "11.5.0"
+  },
+  "dependenciesMeta": {
+    "esbuild": {
+      "built": true
+    },
+    "ibm_db": {
+      "built": true
+    },
+    "libpq": {
+      "built": true
+    },
+    "nx": {
+      "built": true
+    },
+    "odbc": {
+      "built": true
+    },
+    "oracledb": {
+      "built": true
+    },
+    "sqlite3": {
+      "built": true
+    },
+    "unrs-resolver": {
+      "built": true
+    }
   }
 }
