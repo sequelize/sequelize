@@ -865,7 +865,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop({
+      await this.queryInterface.dropTable(tableName, {
         ...options,
         cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined,
       });
@@ -2108,12 +2108,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
       return [created, true];
     } catch (error) {
-      if (
-        !(
-          error instanceof SequelizeErrors.UniqueConstraintError ||
-          error instanceof SequelizeErrors.EmptyResultError
-        )
-      ) {
+      if (!(
+        error instanceof SequelizeErrors.UniqueConstraintError ||
+        error instanceof SequelizeErrors.EmptyResultError
+      )) {
         throw error;
       }
 

@@ -200,8 +200,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of strings (column names)', () => {
-      // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
-      if (dialect.name === 'oracle') {
+      if (dialect.supports.returnIntoValues) {
         return;
       }
 
@@ -233,8 +232,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
-      // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
-      if (dialect.name === 'oracle') {
+      if (dialect.supports.returnIntoValues) {
         return;
       }
 

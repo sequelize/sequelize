@@ -606,10 +606,6 @@ Connection options can be used at the root of the option bag, in the "replicatio
       omitNull: false,
       // TODO [>7]: remove this option
       quoteIdentifiers: true,
-      retry: {
-        max: 5,
-        match: ['SQLITE_BUSY: database is locked'],
-      },
       transactionType: TransactionType.DEFERRED,
       isolationLevel: undefined,
       noTypeValidation: false,
@@ -621,6 +617,11 @@ Connection options can be used at the root of the option bag, in the "replicatio
       defaultTimestampPrecision: 6,
       nullJsonStringification: 'json',
       ...persistedSequelizeOptions,
+      retry: {
+        max: 5,
+        match: ['SQLITE_BUSY: database is locked'],
+        ...persistedSequelizeOptions.retry,
+      },
       replication: normalizeReplicationConfig(
         this.dialect,
         connectionOptions as RawConnectionOptions<Dialect>,

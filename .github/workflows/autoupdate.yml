@@ -34,9 +34,9 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
-      - uses: sequelize/pr-auto-update-and-handle-conflicts@74929c430b8843e691e7b83d229d8d13d78d89e3 # 2.0.0
+      - uses: sequelize/pr-auto-update-and-handle-conflicts@fcc8633eb414be54676e16dc17f3340ec40dda27 # 2.1.0
         with:
           conflict-label: 'conflicted'
           conflict-requires-ready-state: 'ready_for_review'

@@ -17,8 +17,9 @@ import type { NormalizedReplicationOptions } from './sequelize.js';
  *
  * Used in {@link SequelizeCoreOptions.pool}
  */
-export interface PoolOptions<Dialect extends AbstractDialect>
-  extends PartialOrUndefined<ReplicationPoolOptions> {
+export interface PoolOptions<
+  Dialect extends AbstractDialect,
+> extends PartialOrUndefined<ReplicationPoolOptions> {
   /**
    * A function that validates a connection.
    *
@@ -33,8 +34,7 @@ export interface PoolOptions<Dialect extends AbstractDialect>
  * See {@link Options} for the full list of options, including those dialect-specific.
  */
 interface SequelizeCoreOptions<Dialect extends AbstractDialect>
-  extends PersistedSequelizeOptions<Dialect>,
-    EphemeralSequelizeOptions<Dialect> {}
+  extends PersistedSequelizeOptions<Dialect>, EphemeralSequelizeOptions<Dialect> {}
 
 /**
  * Options for the constructor of the {@link Sequelize} main class.
