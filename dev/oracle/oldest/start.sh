@@ -8,11 +8,9 @@ docker compose -p sequelize-oracle-oldest down --remove-orphans
 ./../../pull-images.sh sequelize-oracle-oldest
 docker compose -p sequelize-oracle-oldest up -d
 
-./../../wait-until-healthy.sh sequelize-oracle-oldest
-
-sleep 30s
+HEALTHCHECK_TIMEOUT=300 ./../../wait-until-healthy.sh sequelize-oracle-oldest
 
 docker cp ../privileges.sql sequelize-oracle-oldest:/opt/oracle/.
-docker exec -t sequelize-oracle-oldest sqlplus system/password@XEPDB1 @privileges.sql
+docker exec sequelize-oracle-oldest sqlplus -L system/password@localhost:1521/XEPDB1 @privileges.sql
 
 DIALECT=oracle ts-node ../../check-connection.ts
