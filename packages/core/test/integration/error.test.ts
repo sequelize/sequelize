@@ -1,4 +1,5 @@
 import {
+  AggregateError,
   DataTypes,
   DatabaseError,
   ForeignKeyConstraintError,
