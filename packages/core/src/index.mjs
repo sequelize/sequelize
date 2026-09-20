@@ -75,6 +75,7 @@ export const InvalidConnectionError = Pkg.InvalidConnectionError;
 
 export const ExclusionConstraintError = Pkg.ExclusionConstraintError;
 export const ForeignKeyConstraintError = Pkg.ForeignKeyConstraintError;
+export const SerializationError = Pkg.SerializationError;
 export const TimeoutError = Pkg.TimeoutError;
 export const UnknownConstraintError = Pkg.UnknownConstraintError;
 

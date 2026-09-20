@@ -127,6 +127,8 @@ const nonCascadingOptions = [
  */
 const CONSTRUCTOR_SECRET = Symbol('model-constructor-secret');
 
+const FIND_OR_CREATE_MAX_ATTEMPTS = 3;
+
 /**
  * A Model represents a table in the database. Instances of this class represent a database row.
  *
@@ -1983,89 +1985,112 @@ ${associationOwner._getAssociationDebugList()}`);
     setTransactionFromCls(options, this.sequelize);
 
     const internalTransaction = !options.transaction;
-    let values;
-    let transaction;
+    const outerTransaction = options.transaction;
 
-    try {
-      // TODO: use managed sequelize.transaction() instead
-      transaction = await this.sequelize.startUnmanagedTransaction(options);
-      options.transaction = transaction;
+    // Databases that use snapshot isolation report a concurrent insert on a unique index as a
+    // serialization failure instead of a unique constraint violation. The conflicting row is not
+    // committed yet when that happens, so it cannot be found: only a whole new transaction can see it.
+    for (let attempt = 1; ; attempt++) {
+      options.transaction = outerTransaction;
 
-      const found = await this.findOne(options);
-      if (found !== null) {
-        return [found, false];
-      }
-
-      values = { ...options.defaults };
-      if (isPlainObject(options.where)) {
-        values = defaults(values, options.where);
-      }
-
-      options.exception = true;
-      options.returning = true;
+      let values;
+      let transaction;
 
       try {
-        const created = await this.create(values, options);
-        if (created.get(this.primaryKeyAttribute, { raw: true }) === null) {
-          // If the query returned an empty result for the primary key, we know that this was actually a unique constraint violation
-          throw new SequelizeErrors.UniqueConstraintError();
+        // TODO: use managed sequelize.transaction() instead
+        transaction = await this.sequelize.startUnmanagedTransaction(options);
+        options.transaction = transaction;
+
+        const found = await this.findOne(options);
+        if (found !== null) {
+          return [found, false];
         }
 
-        return [created, true];
+        values = { ...options.defaults };
+        if (isPlainObject(options.where)) {
+          values = defaults(values, options.where);
+        }
+
+        options.exception = true;
+        options.returning = true;
+
+        try {
+          const created = await this.create(values, options);
+          if (created.get(this.primaryKeyAttribute, { raw: true }) === null) {
+            // If the query returned an empty result for the primary key, we know that this was actually a unique constraint violation
+            throw new SequelizeErrors.UniqueConstraintError();
+          }
+
+          return [created, true];
+        } catch (error) {
+          if (!(error instanceof SequelizeErrors.UniqueConstraintError)) {
+            throw error;
+          }
+
+          const flattenedWhere = flattenObjectDeep(options.where);
+          const flattenedWhereKeys = Object.keys(flattenedWhere).map(name =>
+            name.split('.').at(-1),
+          );
+          const whereFields = flattenedWhereKeys.map(
+            name => modelDefinition.attributes.get(name)?.columnName ?? name,
+          );
+          const defaultFields =
+            options.defaults &&
+            Object.keys(options.defaults)
+              .filter(name => modelDefinition.attributes.get(name))
+              .map(name => modelDefinition.getColumnNameLoose(name));
+
+          const errFieldKeys = Object.keys(error.fields);
+          const errFieldsWhereIntersects = intersects(errFieldKeys, whereFields);
+          if (
+            defaultFields &&
+            !errFieldsWhereIntersects &&
+            intersects(errFieldKeys, defaultFields)
+          ) {
+            throw error;
+          }
+
+          if (errFieldsWhereIntersects) {
+            each(error.fields, (value, key) => {
+              const name = modelDefinition.columns.get(key).attributeName;
+              if (value.toString() !== options.where[name].toString()) {
+                throw new Error(
+                  `${this.name}#findOrCreate: value used for ${name} was not equal for both the find and the create calls, '${options.where[name]}' vs '${value}'`,
+                );
+              }
+            });
+          }
+
+          // Someone must have created a matching instance inside the same transaction since we last did a find. Let's find it!
+          const otherCreated = await this.findOne(
+            defaults(
+              {
+                transaction: internalTransaction ? null : transaction,
+              },
+              options,
+            ),
+          );
+
+          // Sanity check, ideally we caught this at the defaultFeilds/err.fields check
+          // But if we didn't and instance is null, we will throw
+          if (otherCreated === null) {
+            throw error;
+          }
+
+          return [otherCreated, false];
+        }
       } catch (error) {
-        if (!(error instanceof SequelizeErrors.UniqueConstraintError)) {
+        if (
+          !internalTransaction ||
+          attempt >= FIND_OR_CREATE_MAX_ATTEMPTS ||
+          !(error instanceof SequelizeErrors.SerializationError)
+        ) {
           throw error;
         }
-
-        const flattenedWhere = flattenObjectDeep(options.where);
-        const flattenedWhereKeys = Object.keys(flattenedWhere).map(name => name.split('.').at(-1));
-        const whereFields = flattenedWhereKeys.map(
-          name => modelDefinition.attributes.get(name)?.columnName ?? name,
-        );
-        const defaultFields =
-          options.defaults &&
-          Object.keys(options.defaults)
-            .filter(name => modelDefinition.attributes.get(name))
-            .map(name => modelDefinition.getColumnNameLoose(name));
-
-        const errFieldKeys = Object.keys(error.fields);
-        const errFieldsWhereIntersects = intersects(errFieldKeys, whereFields);
-        if (defaultFields && !errFieldsWhereIntersects && intersects(errFieldKeys, defaultFields)) {
-          throw error;
+      } finally {
+        if (internalTransaction && transaction) {
+          await transaction.commit();
         }
-
-        if (errFieldsWhereIntersects) {
-          each(error.fields, (value, key) => {
-            const name = modelDefinition.columns.get(key).attributeName;
-            if (value.toString() !== options.where[name].toString()) {
-              throw new Error(
-                `${this.name}#findOrCreate: value used for ${name} was not equal for both the find and the create calls, '${options.where[name]}' vs '${value}'`,
-              );
-            }
-          });
-        }
-
-        // Someone must have created a matching instance inside the same transaction since we last did a find. Let's find it!
-        const otherCreated = await this.findOne(
-          defaults(
-            {
-              transaction: internalTransaction ? null : transaction,
-            },
-            options,
-          ),
-        );
-
-        // Sanity check, ideally we caught this at the defaultFeilds/err.fields check
-        // But if we didn't and instance is null, we will throw
-        if (otherCreated === null) {
-          throw error;
-        }
-
-        return [otherCreated, false];
-      }
-    } finally {
-      if (internalTransaction && transaction) {
-        await transaction.commit();
       }
     }
   }
@@ -2091,33 +2116,45 @@ ${associationOwner._getAssociationDebugList()}`);
       values = defaults(values, options.where);
     }
 
-    const found = await this.findOne(options);
-    if (found) {
-      return [found, false];
-    }
-
-    try {
-      const createOptions = { ...options };
-
-      // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
-      if (this.sequelize.dialect.name === 'postgres' && options.transaction) {
-        createOptions.ignoreDuplicates = true;
+    // See the comment in findOrCreate: a serialization failure can only be resolved by running
+    // the whole thing again, because the row that conflicts with us is not committed yet.
+    for (let attempt = 1; ; attempt++) {
+      const found = await this.findOne(options);
+      if (found) {
+        return [found, false];
       }
 
-      const created = await this.create(values, createOptions);
+      try {
+        const createOptions = { ...options };
 
-      return [created, true];
-    } catch (error) {
-      if (!(
-        error instanceof SequelizeErrors.UniqueConstraintError ||
-        error instanceof SequelizeErrors.EmptyResultError
-      )) {
-        throw error;
+        // To avoid breaking a postgres transaction, run the create with `ignoreDuplicates`.
+        if (this.sequelize.dialect.name === 'postgres' && options.transaction) {
+          createOptions.ignoreDuplicates = true;
+        }
+
+        const created = await this.create(values, createOptions);
+
+        return [created, true];
+      } catch (error) {
+        if (error instanceof SequelizeErrors.SerializationError) {
+          if (options.transaction || attempt >= FIND_OR_CREATE_MAX_ATTEMPTS) {
+            throw error;
+          }
+
+          continue;
+        }
+
+        if (!(
+          error instanceof SequelizeErrors.UniqueConstraintError ||
+          error instanceof SequelizeErrors.EmptyResultError
+        )) {
+          throw error;
+        }
+
+        const foundAgain = await this.findOne(options);
+
+        return [foundAgain, false];
       }
-
-      const foundAgain = await this.findOne(options);
-
-      return [foundAgain, false];
     }
   }
 
