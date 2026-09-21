@@ -1,5 +1,5 @@
 import type { Sequelize } from '@sequelize/core';
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, QueryTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import { useProcessTimezone } from '../support';
 import { beforeAll2, createSequelizeInstance, sequelize as defaultSequelize } from './support';
@@ -129,6 +129,35 @@ for (const timezone of ['Europe/Amsterdam', 'America/New_York', 'Asia/Kolkata'])
         ...dates.map(async day => Event.count({ where: { day } })),
       ]);
       expect(counts).to.deep.equal([2, 3, 2, 3]);
+    });
+
+    it('round-trips dates bound in raw queries', async () => {
+      const Event = vars.sequelize.define('Event', { date: DataTypes.DATE }, { timestamps: false });
+      await vars.sequelize.sync({ force: true });
+
+      const { queryGenerator } = vars.sequelize;
+      const table = queryGenerator.quoteTable(Event.table);
+      const column = queryGenerator.quoteIdentifier('date');
+
+      await vars.sequelize.query(`INSERT INTO ${table} (${column}) VALUES ($date)`, {
+        bind: { date: dates[0] },
+      });
+      await vars.sequelize.query(`INSERT INTO ${table} (${column}) VALUES ($1)`, {
+        bind: [dates[1]],
+      });
+
+      const events = await Event.findAll({ order: [['date', 'ASC']] });
+      expect(events.map(event => event.get('date'))).to.deep.equal(dates);
+
+      const matches = await Promise.all(
+        dates.map(async date =>
+          vars.sequelize.query(`SELECT ${column} FROM ${table} WHERE ${column} = $1`, {
+            bind: [date],
+            type: QueryTypes.SELECT,
+          }),
+        ),
+      );
+      expect(matches.map(rows => rows.length)).to.deep.equal([1, 1]);
     });
   });
 }

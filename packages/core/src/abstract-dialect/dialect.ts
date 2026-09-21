@@ -702,6 +702,25 @@ export abstract class AbstractDialect<
     return this.escapeString(JSON.stringify(value));
   }
 
+  #rawDateType: BaseDataTypes.DATE | undefined;
+
+  /**
+   * Converts a value provided through the `bind` option of a query to a value the connector library binds correctly.
+   * By default, `Date` instances are converted by this dialect's {@link BaseDataTypes.DATE} data type,
+   * so they are bound the same way as the values of model queries. Other values are returned as-is.
+   *
+   * @param value The bind parameter value.
+   */
+  toBindableRawValue(value: unknown): unknown {
+    if (value instanceof Date) {
+      this.#rawDateType ??= new BaseDataTypes.DATE(3).toDialectDataType(this);
+
+      return this.#rawDateType.toBindableValue(value);
+    }
+
+    return value;
+  }
+
   /**
    * Whether this dialect can use \ in strings to escape string delimiters.
    *
