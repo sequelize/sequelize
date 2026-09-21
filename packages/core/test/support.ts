@@ -589,6 +589,29 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
   return out;
 }
 
+/**
+ * Sets `process.env.TZ` for the current describe block and restores the previous value afterwards.
+ * Database connections that depend on the process time zone must be opened in a `before` hook registered after this call.
+ *
+ * @param timezone
+ */
+export function useProcessTimezone(timezone: string): void {
+  let previousTimezone: string | undefined;
+
+  before(() => {
+    previousTimezone = process.env.TZ;
+    process.env.TZ = timezone;
+  });
+
+  after(() => {
+    if (previousTimezone === undefined) {
+      delete process.env.TZ;
+    } else {
+      process.env.TZ = previousTimezone;
+    }
+  });
+}
+
 export function typeTest(_name: string, _callback: () => void): void {
   // This function doesn't do anything. a type test is only checked by TSC and never runs.
 }
