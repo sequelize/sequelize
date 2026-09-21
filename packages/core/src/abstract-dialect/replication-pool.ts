@@ -82,8 +82,7 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
   readonly #timeoutErrorClass: Class<TimeoutError> | undefined;
   readonly #beforeAcquire: ((options: AcquireConnectionOptions) => Promise<void>) | undefined;
   readonly #afterAcquire:
-    | ((connection: Connection, options: AcquireConnectionOptions) => Promise<void>)
-    | undefined;
+    ((connection: Connection, options: AcquireConnectionOptions) => Promise<void>) | undefined;
 
   constructor(config: ReplicationPoolConfig<Connection, ConnectionOptions>) {
     const {

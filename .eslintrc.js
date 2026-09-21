@@ -28,6 +28,15 @@ module.exports = {
     'jsdoc/valid-types': 'error',
     'jsdoc/no-types': 'error',
 
+    'no-restricted-globals': [
+      'error',
+      {
+        name: 'AggregateError',
+        message:
+          'Import AggregateError from @sequelize/core. The global AggregateError is a different class.',
+      },
+    ],
+
     // TODO: enable in follow-up PR. Requires the utils package.
     'no-restricted-syntax': 'off',
     'no-restricted-imports': 'off',

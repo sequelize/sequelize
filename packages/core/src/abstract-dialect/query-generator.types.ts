@@ -296,8 +296,7 @@ export interface QuoteTableOptions extends IndexHintable {
 }
 
 export interface BulkDeleteQueryOptions<TAttributes = any>
-  extends AddLimitOffsetOptions,
-    Filterable<TAttributes> {}
+  extends AddLimitOffsetOptions, Filterable<TAttributes> {}
 
 // keep REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
 export interface RemoveIndexQueryOptions {

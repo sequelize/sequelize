@@ -199,7 +199,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be able to include model with virtual attributes', async function () {
-          const user0 = await this.User.create(dialect === 'db2' ? { id: 1 } : {});
+          const { supports } = this.sequelize.dialect;
+          const user0 = await this.User.create(
+            supports['DEFAULT VALUES'] || supports['VALUES ()'] ? {} : { id: 1 },
+          );
           await user0.createTask();
 
           const tasks = await this.Task.findAll({

@@ -101,7 +101,10 @@ export abstract class Association<
     /* method name in model */ string
   >;
 
-  abstract foreignKey: ForeignKey;
+  /**
+   * The name of the foreign key attribute used by this association.
+   */
+  abstract get foreignKey(): ForeignKey;
 
   /**
    * A reference to the association that created this one.
@@ -202,7 +205,7 @@ export abstract class MultiAssociation<
   S extends Model = Model,
   T extends Model = Model,
   ForeignKey extends string = string,
-  TargetKey extends AttributeNames<T> = any,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
   Opts extends NormalizedAssociationOptions<ForeignKey> = NormalizedAssociationOptions<ForeignKey>,
 > extends Association<S, T, ForeignKey, Opts> {
   static get isMultiAssociation() {
@@ -271,8 +274,10 @@ export type MultiAssociationAccessors = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string>
-  extends PartialBy<AttributeOptions, 'type'> {
+export interface ForeignKeyOptions<ForeignKey extends string> extends PartialBy<
+  AttributeOptions,
+  'type'
+> {
   /**
    * The name of the foreign key attribute.
    *
@@ -334,8 +339,9 @@ export interface AssociationScope {
 /**
  * Options provided for many-to-many relationships
  */
-export interface MultiAssociationOptions<ForeignKey extends string>
-  extends AssociationOptions<ForeignKey> {
+export interface MultiAssociationOptions<
+  ForeignKey extends string,
+> extends AssociationOptions<ForeignKey> {
   /**
    * A key/value set that will be used for association create and find defaults on the target.
    * (sqlite not supported for N:M)

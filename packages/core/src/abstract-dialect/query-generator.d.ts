@@ -19,7 +19,6 @@ import type {
 import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
 import type { BoundQuery, TableOrModel, UnionOptions } from './query-generator.types.js';
 import type { TableName } from './query-interface.js';
-import type { ColumnsDescription } from './query-interface.types.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
 export type SelectOptions<M extends Model> = FindOptions<M> & {

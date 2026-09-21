@@ -8,10 +8,8 @@ describe('sql.random', () => {
   }
 
   it('generates a value between 0 and 1', async () => {
-    const dummyTableName = sequelize.dialect.supports.select.dummyTable;
-    const fromClause = dummyTableName
-      ? ` FROM ${sequelize.queryGenerator.quoteIdentifier(dummyTableName)}`
-      : '';
+    const { dummyTable } = sequelize.dialect.supports.select;
+    const fromClause = dummyTable ? ` FROM ${dummyTable}` : '';
 
     const [result] = await sequelize.query<{ val: number }>(
       sql`SELECT ${sql.random} AS ${sql.identifier('val')} ${sql.literal(fromClause)}`,

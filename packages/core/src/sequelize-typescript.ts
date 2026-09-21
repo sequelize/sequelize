@@ -621,10 +621,6 @@ Connection options can be used at the root of the option bag, in the "replicatio
       omitNull: false,
       // TODO [>7]: remove this option
       quoteIdentifiers: true,
-      retry: {
-        max: 5,
-        match: ['SQLITE_BUSY: database is locked'],
-      },
       transactionType: TransactionType.DEFERRED,
       isolationLevel: undefined,
       noTypeValidation: false,
@@ -636,6 +632,11 @@ Connection options can be used at the root of the option bag, in the "replicatio
       defaultTimestampPrecision: 6,
       nullJsonStringification: 'json',
       ...persistedSequelizeOptions,
+      retry: {
+        max: 5,
+        match: ['SQLITE_BUSY: database is locked'],
+        ...persistedSequelizeOptions.retry,
+      },
       replication: normalizeReplicationConfig(
         this.dialect,
         connectionOptions as RawConnectionOptions<Dialect>,
@@ -808,7 +809,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   /**
    * Escape value to be used in raw SQL.
    *
-   * If you are using this to use the value in a {@link sql.literal}, consider using {@link sql} instead, which automatically
+   * If you are using this to use the value in a {@link @sequelize/core!sql.literal}, consider using {@link @sequelize/core!sql} instead, which automatically
    * escapes interpolated values.
    *
    * @param value The value to escape
