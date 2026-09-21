@@ -9,7 +9,10 @@ import {
   InvalidConnectionError,
   Sequelize,
 } from '@sequelize/core';
-import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
+import {
+  isOffsetTimeZone,
+  isValidTimeZone,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import type { ClientConfig } from 'pg';
 import * as Pg from 'pg';
@@ -225,10 +228,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     }
 
     if (!this.sequelize.options.keepDefaultTimezone) {
-      if (this.sequelize.options.timezone && isValidTimeZone(this.sequelize.options.timezone)) {
-        query += `SET TIME ZONE '${this.sequelize.options.timezone}';`;
+      const { timezone } = this.sequelize.options;
+      if (timezone && !isOffsetTimeZone(timezone) && isValidTimeZone(timezone)) {
+        query += `SET TIME ZONE '${timezone}';`;
       } else {
-        query += `SET TIME ZONE INTERVAL '${this.sequelize.options.timezone}' HOUR TO MINUTE;`;
+        query += `SET TIME ZONE INTERVAL '${timezone}' HOUR TO MINUTE;`;
       }
     }
 
