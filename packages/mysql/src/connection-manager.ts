@@ -8,7 +8,10 @@ import {
   HostNotReachableError,
   InvalidConnectionError,
 } from '@sequelize/core';
-import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
+import {
+  isOffsetTimeZone,
+  timeZoneToOffsetString,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { isError } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
@@ -61,6 +64,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   MySqlConnection
 > {
   readonly #lib: MySql2Module;
+  readonly #sessionTimeZoneOffsets = new WeakMap<MySqlConnection, string>();
 
   constructor(dialect: MySqlDialect) {
     super(dialect);
@@ -90,12 +94,14 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions<MySqlDialect>): Promise<MySqlConnection> {
     assert(typeof config.port === 'number', 'port has not been normalized');
 
+    const { timezone, keepDefaultTimezone } = this.sequelize.options;
+
     // TODO: enable dateStrings
     const connectionConfig: MySql2.ConnectionOptions = {
       flags: ['-FOUND_ROWS'],
       port: 3306,
       ...config,
-      ...(!this.sequelize.options.timezone ? null : { timezone: this.sequelize.options.timezone }),
+      ...(timezone && isOffsetTimeZone(timezone) ? { timezone } : null),
       bigNumberStrings: false,
       supportBigNumbers: true,
       typeCast: (field, next) => this.#typecast(field, next),
@@ -122,12 +128,16 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
         }
       });
 
-      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
-        // set timezone for this connection
-        // but named timezone are not directly supported in mysql, so get its offset first
-        let tzOffset = this.sequelize.options.timezone;
-        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
-        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
+      if (!keepDefaultTimezone && timezone) {
+        const sessionTimeZoneOffset = isOffsetTimeZone(timezone)
+          ? undefined
+          : timeZoneToOffsetString(timezone);
+        const setTimeZoneSql = this.#getSetSessionTimeZoneSql(timezone, sessionTimeZoneOffset);
+        await promisify(cb => connection.query(setTimeZoneSql, cb))();
+
+        if (sessionTimeZoneOffset !== undefined) {
+          this.#sessionTimeZoneOffsets.set(connection, sessionTimeZoneOffset);
+        }
       }
 
       return connection;
@@ -166,6 +176,27 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
     await promisify(callback => connection.end(callback))();
   }
 
+  #getSetSessionTimeZoneSql(timeZone: string, fallbackOffset: string | undefined): string {
+    const { queryGenerator } = this.sequelize;
+    const escapedTimeZone = queryGenerator.escape(timeZone);
+
+    if (fallbackOffset === undefined) {
+      return `SET time_zone = ${escapedTimeZone}`;
+    }
+
+    const escapedOffset = queryGenerator.escape(fallbackOffset);
+
+    return `SET time_zone = IF(CONVERT_TZ('2000-01-01 00:00:00', '+00:00', ${escapedTimeZone}) IS NULL, ${escapedOffset}, ${escapedTimeZone})`;
+  }
+
+  #hasStaleSessionTimeZoneOffset(connection: MySqlConnection): boolean {
+    const offset = this.#sessionTimeZoneOffsets.get(connection);
+
+    return (
+      offset !== undefined && offset !== timeZoneToOffsetString(this.sequelize.options.timezone)
+    );
+  }
+
   validate(connection: MySqlConnection) {
     return (
       connection &&
@@ -176,7 +207,8 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
       // @ts-expect-error -- undeclared var
       !connection._closing &&
       // @ts-expect-error -- undeclared var
-      !connection.stream.destroyed
+      !connection.stream.destroyed &&
+      !this.#hasStaleSessionTimeZoneOffset(connection)
     );
   }
 }
