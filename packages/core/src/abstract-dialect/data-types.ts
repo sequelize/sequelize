@@ -411,10 +411,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
   /** @hidden */
   constructor(
     ...args:
-      | []
-      | [length: number]
-      | [length: number, binary: boolean]
-      | [options: StringTypeOptions]
+      [] | [length: number] | [length: number, binary: boolean] | [options: StringTypeOptions]
   );
 
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {
@@ -1720,6 +1717,18 @@ export class JSONB extends JSON {
   toSql(): string {
     return 'JSONB';
   }
+}
+
+/**
+ * The type of a value produced by a JSON path extraction (e.g. `data.field` in a WHERE clause). Not a
+ * valid column type. Defaults to {@link JSON}'s behavior; dialects can override it via
+ * `dataTypeOverrides` if their extraction function doesn't return a re-encoded JSON document.
+ *
+ * @category DataTypes
+ */
+export class JsonPathExtractionResult extends JSON {
+  /** @hidden */
+  static readonly [DataTypeIdentifier]: string = 'JSON_PATH_EXTRACTION_RESULT';
 }
 
 /**

@@ -19,14 +19,14 @@ jobs:
         id: generate-token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
       - name: Draft unfinished PRs
         uses: sequelize/draft-unfinished-prs@dcded35052048b01a1c925cfd8fb7cda473f9b96
         env:
           GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
       - name: Mark stale bugs
-        uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+        uses: actions/stale@1e223db275d687790206a7acac4d1a11bd6fe629 # v10.4.0
         id: stale-bug
         with:
           stale-issue-label: 'stale'
@@ -39,7 +39,7 @@ jobs:
           only-issue-labels: 'type: bug'
           any-of-issue-labels: 'pending-approval'
       - name: Mark stale features & PRs
-        uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+        uses: actions/stale@1e223db275d687790206a7acac4d1a11bd6fe629 # v10.4.0
         id: stale-feature
         with:
           stale-issue-label: 'stale'
@@ -54,7 +54,7 @@ jobs:
           any-of-issue-labels: 'pending-approval'
           any-of-pr-labels: 'maybe-abandoned'
       - name: Mark stale invalid issues/PRs
-        uses: actions/stale@b5d41d4e1d5dceea10e7104786b73624c18a190f # v10.2.0
+        uses: actions/stale@1e223db275d687790206a7acac4d1a11bd6fe629 # v10.4.0
         id: invalid
         with:
           stale-issue-label: 'stale'

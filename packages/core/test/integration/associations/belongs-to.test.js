@@ -9,7 +9,6 @@ const { DataTypes, Sequelize } = require('@sequelize/core');
 const assert = require('node:assert');
 
 const current = Support.sequelize;
-const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('BelongsTo'), () => {
   describe('Model.associations', () => {
@@ -530,8 +529,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      await User.create(dialect === 'db2' ? { id: 1 } : {});
-      const mail = await Mail.create(dialect === 'db2' ? { id: 1 } : {});
+      const { supports } = this.sequelize.dialect;
+      const emptyRow = supports['DEFAULT VALUES'] || supports['VALUES ()'] ? {} : { id: 1 };
+      await User.create(emptyRow);
+      const mail = await Mail.create(emptyRow);
       await Entry.create({ mailId: mail.id, ownerId: 1 });
       await Entry.create({ mailId: mail.id, ownerId: 1 });
       // set recipients
@@ -674,8 +675,10 @@ describe(Support.getTestDialectTeaser('BelongsTo'), () => {
       });
     }
 
-    // NOTE: mssql does not support changing an autoincrement primary key
-    if (!['mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+    if (
+      current.dialect.supports.autoIncrement.update &&
+      current.dialect.supports.constraints.onUpdate
+    ) {
       it('can cascade updates', async function () {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });

@@ -157,6 +157,16 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
+    if (
+      this.dialect.supports.returnIntoValues &&
+      options.returning &&
+      parameterStyle !== ParameterStyle.BIND
+    ) {
+      throw new Error(
+        `The ${this.dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+      );
+    }
+
     if (parameterStyle === ParameterStyle.BIND) {
       bind = this.dialect.supports.returnIntoValues && options.bind ? options.bind : pojo();
       bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
@@ -2281,7 +2291,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
         const tmpColumns = returnFields.map((field, i) => {
-          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+          return `${field} ${attributeTypeToSql(returnTypes[i])}`;
         });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;

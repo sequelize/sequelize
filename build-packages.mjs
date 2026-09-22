@@ -58,8 +58,8 @@ await Promise.all([
   build({
     // Adds source mapping
     sourcemap: true,
-    // The compiled code should be usable in node v20
-    target: 'node20',
+    // The compiled code should be usable in node v22
+    target: 'node22',
     // The source code's format is commonjs.
     format: 'cjs',
 

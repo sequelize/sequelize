@@ -69,8 +69,7 @@ function decorateAssociation(
 export function HasOne<Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
   optionsOrForeignKey:
-    | Omit<HasOneOptions<string, AttributeNames<Target>>, 'as'>
-    | AttributeNames<Target>,
+    Omit<HasOneOptions<string, AttributeNames<Target>>, 'as'> | AttributeNames<Target>,
 ) {
   return (source: Model, associationName: string | symbol) => {
     const options = isString(optionsOrForeignKey)
@@ -84,8 +83,7 @@ export function HasOne<Target extends Model>(
 export function HasMany<Target extends Model>(
   target: MaybeForwardedModelStatic<Target>,
   optionsOrForeignKey:
-    | Omit<HasManyOptions<string, AttributeNames<Target>>, 'as'>
-    | AttributeNames<Target>,
+    Omit<HasManyOptions<string, AttributeNames<Target>>, 'as'> | AttributeNames<Target>,
 ) {
   return (source: Model, associationName: string | symbol) => {
     const options = isString(optionsOrForeignKey)

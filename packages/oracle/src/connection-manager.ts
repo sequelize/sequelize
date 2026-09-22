@@ -23,8 +23,10 @@ export interface OracleConnection extends oracledbConnection, AbstractConnection
   on(event: 'error', listener: (err: any) => void): this;
 }
 
-export interface OracleConnectionOptions
-  extends Omit<oracledb.ConnectionAttributes, 'connectionString' | 'user'> {
+export interface OracleConnectionOptions extends Omit<
+  oracledb.ConnectionAttributes,
+  'connectionString' | 'user'
+> {
   database?: string;
 
   host?: string;

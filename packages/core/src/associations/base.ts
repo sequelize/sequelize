@@ -274,8 +274,10 @@ export type MultiAssociationAccessors = {
 };
 
 /** Foreign Key Options */
-export interface ForeignKeyOptions<ForeignKey extends string>
-  extends PartialBy<AttributeOptions, 'type'> {
+export interface ForeignKeyOptions<ForeignKey extends string> extends PartialBy<
+  AttributeOptions,
+  'type'
+> {
   /**
    * The name of the foreign key attribute.
    *
@@ -337,8 +339,9 @@ export interface AssociationScope {
 /**
  * Options provided for many-to-many relationships
  */
-export interface MultiAssociationOptions<ForeignKey extends string>
-  extends AssociationOptions<ForeignKey> {
+export interface MultiAssociationOptions<
+  ForeignKey extends string,
+> extends AssociationOptions<ForeignKey> {
   /**
    * A key/value set that will be used for association create and find defaults on the target.
    * (sqlite not supported for N:M)

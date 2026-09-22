@@ -47,8 +47,10 @@ export interface PostgresConnection extends AbstractConnection, Pg.Client {
   _ending?: boolean;
 }
 
-export interface PostgresConnectionOptions
-  extends Omit<ClientConfig, 'types' | 'connectionString'> {
+export interface PostgresConnectionOptions extends Omit<
+  ClientConfig,
+  'types' | 'connectionString'
+> {
   /**
    * !! DO NOT SET THIS TO TRUE !!
    * (unless you know what you're doing)

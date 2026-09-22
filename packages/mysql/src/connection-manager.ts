@@ -23,32 +23,31 @@ export type MySql2Module = typeof MySql2;
 
 export interface MySqlConnection extends MySql2.Connection, AbstractConnection {}
 
-export interface MySqlConnectionOptions
-  extends Omit<
-    MySql2.ConnectionOptions,
-    // The user cannot modify these options:
-    // This option is currently a global Sequelize option
-    | 'timezone'
-    // Conflicts with our own features
-    | 'nestTables'
-    // We provide our own placeholders.
-    // TODO: should we use named placeholders for mysql?
-    | 'namedPlaceholders'
-    // We provide our own pool
-    | 'pool'
-    // Our code expects specific response formats, setting any of the following option would break Sequelize
-    | 'typeCast'
-    | 'bigNumberStrings'
-    | 'supportBigNumbers'
-    | 'dateStrings'
-    | 'decimalNumbers'
-    | 'rowsAsArray'
-    | 'stringifyObjects'
-    | 'queryFormat'
-    | 'Promise'
-    // We provide our own "url" implementation
-    | 'uri'
-  > {}
+export interface MySqlConnectionOptions extends Omit<
+  MySql2.ConnectionOptions,
+  // The user cannot modify these options:
+  // This option is currently a global Sequelize option
+  | 'timezone'
+  // Conflicts with our own features
+  | 'nestTables'
+  // We provide our own placeholders.
+  // TODO: should we use named placeholders for mysql?
+  | 'namedPlaceholders'
+  // We provide our own pool
+  | 'pool'
+  // Our code expects specific response formats, setting any of the following option would break Sequelize
+  | 'typeCast'
+  | 'bigNumberStrings'
+  | 'supportBigNumbers'
+  | 'dateStrings'
+  | 'decimalNumbers'
+  | 'rowsAsArray'
+  | 'stringifyObjects'
+  | 'queryFormat'
+  | 'Promise'
+  // We provide our own "url" implementation
+  | 'uri'
+> {}
 
 /**
  * MySQL Connection Manager

@@ -129,6 +129,25 @@ describe('QueryGenerator#insertQuery', () => {
     expect(bind).to.be.undefined;
   });
 
+  it('throws an error if returning is used with parameterStyle: REPLACEMENT on a dialect that returns into binds', () => {
+    if (!dialect.supports.returnIntoValues) {
+      return;
+    }
+
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.insertQuery(
+        User.table,
+        { firstName: 'John' },
+        {},
+        { returning: true, parameterStyle: ParameterStyle.REPLACEMENT },
+      );
+    }).to.throw(
+      `The ${dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+    );
+  });
+
   // This test was added due to a regression where these values were being converted to strings
   it('binds number values', () => {
     if (!sequelize.dialect.supports.dataTypes.ARRAY) {
@@ -181,8 +200,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of strings (column names)', () => {
-      // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
-      if (dialect.name === 'oracle') {
+      if (dialect.supports.returnIntoValues) {
         return;
       }
 
@@ -214,8 +232,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
-      // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
-      if (dialect.name === 'oracle') {
+      if (dialect.supports.returnIntoValues) {
         return;
       }
 

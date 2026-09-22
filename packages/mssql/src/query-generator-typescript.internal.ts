@@ -12,17 +12,25 @@ import type {
   TableOrModel,
   TruncateTableQueryOptions,
 } from '@sequelize/core';
-import { AbstractQueryGenerator } from '@sequelize/core';
+import { AbstractQueryGenerator, DataTypes } from '@sequelize/core';
+import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import type { EscapeOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import type {
+  AttributeToSqlColumn,
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { randomBytes } from 'node:crypto';
 import type { MsSqlDialect } from './dialect.js';
@@ -348,5 +356,119 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
 
   getRandomFloatFunctionCall(): string {
     return 'RAND()';
+  }
+
+  attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
+    const attribute = normalizeAttributeToSqlColumn(column);
+
+    // handle self-referential constraints
+    if (
+      attribute.references &&
+      attribute.Model &&
+      this.isSameTable(
+        (attribute.Model as { tableName: string }).tableName,
+        attribute.references.table,
+      )
+    ) {
+      this.sequelize.log(
+        'MSSQL does not support self-referential constraints, ' +
+          'we will remove it but we recommend restructuring your query',
+      );
+      attribute.onDelete = '';
+      attribute.onUpdate = '';
+    }
+
+    let template: string;
+
+    if (attribute.type instanceof DataTypes.ENUM) {
+      // enums are a special case
+      template = attribute.type.toSql();
+      template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IN(${attribute.type.options.values
+        .map(value => {
+          // these options are not escape options, but they were passed through in the JS version
+          return this.escape(value);
+        })
+        .join(', ')}))`;
+
+      return template;
+    }
+
+    template = attributeTypeToSql(attribute.type);
+
+    if (attribute.allowNull === false) {
+      template += ' NOT NULL';
+    } else if (
+      !attribute.primaryKey &&
+      !defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
+      template += ' NULL';
+    }
+
+    if (attribute.autoIncrement) {
+      template += ' IDENTITY(1,1)';
+    }
+
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
+    }
+
+    if (
+      attribute.unique === true &&
+      (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
+    ) {
+      template += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      template += ' PRIMARY KEY';
+    }
+
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+
+      if (attribute.references.key) {
+        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
+      } else {
+        template += ` (${this.quoteIdentifier('id')})`;
+      }
+
+      if (attribute.onDelete) {
+        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+      }
+
+      if (attribute.onUpdate) {
+        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+      }
+    }
+
+    if (attribute.comment && typeof attribute.comment === 'string') {
+      template += ` COMMENT ${attribute.comment}`;
+    }
+
+    return template;
+  }
+
+  protected limitReferentialActions(
+    attribute: AttributeToSqlColumn,
+    referencedTables: string[],
+  ): void {
+    if (!attribute.references) {
+      return;
+    }
+
+    const referencedTable = this.quoteTable(attribute.references.table);
+
+    if (referencedTables.includes(referencedTable)) {
+      // mssql rejects more than one cascading constraint to the same table
+      attribute.onDelete = '';
+      attribute.onUpdate = '';
+    } else {
+      referencedTables.push(referencedTable);
+
+      // NOTE: this really just disables cascading updates for all
+      //       definitions. Can be made more robust to support the
+      //       few cases where MSSQL actually supports them
+      attribute.onUpdate = '';
+    }
   }
 }

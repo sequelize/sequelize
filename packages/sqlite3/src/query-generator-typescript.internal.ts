@@ -10,16 +10,24 @@ import type {
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, IsolationLevel } from '@sequelize/core';
+import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
   REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
   START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import type {
+  AttributesToSqlColumns,
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { extractModelDefinition } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { randomBytes } from 'node:crypto';
 import type { SqliteDialect } from './dialect.js';
@@ -166,7 +174,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
 
-    const tableAttributes = this.attributesToSQL(attributes);
+    const tableAttributes = this.attributesToSql(attributes as AttributesToSqlColumns);
     const attributeNamesImport = Object.keys(tableAttributes)
       .map(attr => {
         return attrNameAfter === attr
@@ -203,7 +211,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
 
-    const tableAttributes = this.attributesToSQL(attributes);
+    const tableAttributes = this.attributesToSql(attributes as AttributesToSqlColumns);
     const attributeNames = Object.keys(tableAttributes)
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');
@@ -322,5 +330,57 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   getRandomFloatFunctionCall(): string {
     // sqlite's RANDOM generates a value between -9223372036854775808 and +9223372036854775807, so we need to transform it to be between 0 and 1
     return '((RANDOM() + 9223372036854775808.0) / 18446744073709551616.0)';
+  }
+
+  attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
+    const attribute = normalizeAttributeToSqlColumn(column);
+
+    let sql = attributeTypeToSql(attribute.type);
+
+    if (attribute.allowNull === false) {
+      sql += ' NOT NULL';
+    }
+
+    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+      // TODO thoroughly check that DataTypes.NOW will properly
+      // get populated on all databases as DEFAULT value
+      // i.e. mysql requires: DEFAULT CURRENT_TIMESTAMP
+      sql += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
+    }
+
+    if (attribute.unique === true) {
+      sql += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      sql += ' PRIMARY KEY';
+
+      if (attribute.autoIncrement) {
+        sql += ' AUTOINCREMENT';
+      }
+    }
+
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      const referencesTable = this.quoteTable(attribute.references.table);
+
+      let referencesKey: string;
+      if (attribute.references.key) {
+        referencesKey = this.quoteIdentifier(attribute.references.key);
+      } else {
+        referencesKey = this.quoteIdentifier('id');
+      }
+
+      sql += ` REFERENCES ${referencesTable} (${referencesKey})`;
+
+      if (attribute.onDelete) {
+        sql += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+      }
+
+      if (attribute.onUpdate) {
+        sql += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+      }
+    }
+
+    return sql;
   }
 }

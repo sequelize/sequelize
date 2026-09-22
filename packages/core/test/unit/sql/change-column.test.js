@@ -47,7 +47,57 @@ describe('QueryInterface#changeColumn', () => {
     });
 
     expectsql(sql, {
-      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL NOT NULL',
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL',
+      mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
+      db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
+      mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
+      mysql: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
+      postgres:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE REAL;',
+      snowflake:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" SET NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;ALTER TABLE "users" ALTER COLUMN "level_id" TYPE FLOAT;',
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT NOT NULL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" BINARY_FLOAT '; ELSE RAISE; END IF; END; END;`,
+    });
+  });
+
+  it('properly generates alter queries for enums with a default value', async () => {
+    const { User } = vars;
+
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+      type: DataTypes.ENUM(['pending', 'complete']),
+      defaultValue: 'pending',
+    });
+
+    // mssql and oracle drop the default: their attributeToSQL never emits a DEFAULT clause
+    // for changeColumn, so the column keeps whatever default it had.
+    expectsql(sql, {
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) ADD CHECK ("level_id" IN(\'pending\', \'complete\')) DEFAULT \'pending\'',
+      mssql:
+        "ALTER TABLE [users] ALTER COLUMN [level_id] NVARCHAR(255) CHECK ([level_id] IN(N'pending', N'complete'));",
+      db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) CHECK ("level_id" IN(\'pending\', \'complete\')) DEFAULT \'pending\';',
+      mariadb:
+        "ALTER TABLE `users` CHANGE `level_id` `level_id` ENUM('pending', 'complete') DEFAULT 'pending';",
+      mysql:
+        "ALTER TABLE `users` CHANGE `level_id` `level_id` ENUM('pending', 'complete') DEFAULT 'pending';",
+      postgres:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" DROP DEFAULT;DO \'BEGIN CREATE TYPE "public"."enum_users_level_id" AS ENUM(\'\'pending\'\', \'\'complete\'\'); EXCEPTION WHEN duplicate_object THEN null; END\';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE "public"."enum_users_level_id" USING ("level_id"::"public"."enum_users_level_id");ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT \'pending\';',
+      snowflake:
+        'ALTER TABLE "users" ALTER COLUMN "level_id" DROP NOT NULL;ALTER TABLE "users" ALTER COLUMN "level_id" SET DEFAULT \'pending\';ALTER TABLE "users" ALTER COLUMN "level_id" TYPE VARCHAR(255);',
+      oracle: `DECLARE CONS_NAME VARCHAR2(200); BEGIN BEGIN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) CHECK ("level_id" IN(''pending'', ''complete''))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE = -1442 OR SQLCODE = -1451 THEN EXECUTE IMMEDIATE 'ALTER TABLE "users" MODIFY "level_id" VARCHAR2(512) CHECK ("level_id" IN(''pending'', ''complete''))'; ELSE RAISE; END IF; END; END;`,
+    });
+  });
+
+  it('uses the column name when it differs from the attribute name', async () => {
+    const { User } = vars;
+
+    const sql = await sequelize.queryInterface.changeColumn(User.table, 'levelId', {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      field: 'level_id',
+    });
+
+    expectsql(sql, {
+      ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL',
       mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
       db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
       mariadb: 'ALTER TABLE `users` CHANGE `level_id` `level_id` FLOAT NOT NULL;',
