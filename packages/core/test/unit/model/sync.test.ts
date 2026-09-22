@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { sequelize } from '../../support';
+import { getTestDialectTeaser, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -32,7 +32,7 @@ describe('Model#sync', () => {
     );
   });
 
-  it('drops the table in the schema passed to Model.drop', async () => {
+  it(`drops the table in the schema passed to Model.drop ${getTestDialectTeaser('')}`, async () => {
     const User = sequelize.define('ModelDropSchemaUser', {
       id: { type: DataTypes.INTEGER, primaryKey: true },
     });
