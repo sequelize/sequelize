@@ -560,6 +560,8 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const model of this.models) {
         await model.drop(options);
       }
+
+      return;
     }
 
     const sortedModels = this.models.getModelsTopoSortedByForeignKey();
@@ -569,6 +571,8 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const model of sortedModels) {
         await model.drop(options);
       }
+
+      return;
     }
 
     if (this.dialect.name === 'sqlite3') {
@@ -584,14 +588,22 @@ Use Sequelize#query if you wish to use replacements.`);
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
     for (const model of this.models) {
-      const foreignKeys = await this.queryInterface.showConstraints(model, {
+      // Honour options.schema the same way Model.drop / Model.sync do, so force-sync
+      // against a non-default schema does not inspect or alter the default schema (#18423).
+      const tableName = model.getTableNameWithSyncSchema(options);
+
+      const foreignKeys = await this.queryInterface.showConstraints(tableName, {
         ...options,
         constraintType: 'FOREIGN KEY',
       });
 
       await Promise.all(
         foreignKeys.map(foreignKey => {
-          return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
+          return this.queryInterface.removeConstraint(
+            tableName,
+            foreignKey.constraintName,
+            options,
+          );
         }),
       );
     }

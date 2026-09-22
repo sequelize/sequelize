@@ -32,6 +32,31 @@ describe('Model#sync', () => {
     );
   });
 
+  it('drops the table in the schema passed to Model.drop', async () => {
+    const User = sequelize.define('ModelDropSchemaUser', {
+      id: { type: DataTypes.INTEGER, primaryKey: true },
+    });
+
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+    try {
+      await User.drop({ schema: 'tenant' });
+    } finally {
+      stub.restore();
+    }
+
+    const dropQuery = stub
+      .getCalls()
+      .map(call => String(call.args[0]))
+      .find(query => query.includes('DROP TABLE'));
+
+    expect(dropQuery).to.include(
+      sequelize.queryGenerator.quoteTable({ tableName: User.table.tableName, schema: 'tenant' }),
+    );
+    expect(dropQuery).to.not.include(
+      `DROP TABLE IF EXISTS ${sequelize.queryGenerator.quoteTable(User.table)}`,
+    );
+  });
+
   it('rejects a sync schema when the model already declares another one', async () => {
     const User = sequelize.define('SyncSchemaUser', {}, { schema: 'other' });
 
