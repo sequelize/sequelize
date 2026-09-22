@@ -1,9 +1,9 @@
 import { cloneDeepPlainValues, freezeDescendants } from '@sequelize/utils';
 import NodeUtil from 'node:util';
-import type { IndexOptions } from './abstract-dialect/query-interface.js';
+import type { IndexOptions, TableNameWithSchema } from './abstract-dialect/query-interface.js';
 import type { WhereAttributeHash } from './abstract-dialect/where-sql-builder-types.js';
 import { EagerLoadingError } from './errors';
-import type { Attributes, Filterable, Model, Transactionable } from './model';
+import type { Attributes, Filterable, Model, ModelStatic, Transactionable } from './model';
 import type { ModelDefinition } from './model-definition.js';
 import type { Sequelize } from './sequelize';
 import { isDevEnv } from './utils/check.js';
@@ -282,6 +282,37 @@ export function assertHasWhereOptions(options: Filterable | undefined): void {
       'As a safeguard, this method requires explicitly specifying a "where" option. If you actually mean to delete all rows in the table, set the option to a dummy condition such as sql`1 = 1`.',
     );
   }
+}
+
+/**
+ * Resolves the physical table name for a sync/drop call that may override the schema.
+ *
+ * @param model
+ * @param options
+ * @param options.schema Schema to sync or drop into, when the model does not already use another schema.
+ */
+export function getTableNameWithSyncSchema(
+  model: ModelStatic,
+  options?: { schema?: string },
+): TableNameWithSchema {
+  const tableName: TableNameWithSchema = { ...model.table };
+  if (options?.schema && options.schema !== tableName.schema) {
+    // Some users sync the same set of tables in different schemas for various reasons
+    // They then set `searchPath` when running a query to use different schemas.
+    // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
+    // We only allow this if the tables are in the default schema, because we need to ensure that
+    // all tables are in the same schema to prevent collisions and `searchPath` only works if we don't specify the schema
+    // (which we don't for the default schema)
+    if (tableName.schema !== model.sequelize.dialect.getDefaultSchema()) {
+      throw new Error(
+        `The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${model.name} already specifies schema ${tableName.schema}`,
+      );
+    }
+
+    tableName.schema = options.schema;
+  }
+
+  return tableName;
 }
 
 export function ensureOptionsAreImmutable<T extends object>(options: T): T {
