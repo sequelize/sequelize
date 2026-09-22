@@ -1,7 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { createSequelizeInstance, sequelize } from '../../support';
+import { createSequelizeInstance, getTestDialectTeaser, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -10,12 +10,18 @@ describe('Sequelize#sync', () => {
     return;
   }
 
-  afterEach(() => {
+  let localSequelize: ReturnType<typeof createSequelizeInstance> | undefined;
+
+  afterEach(async () => {
+    if (localSequelize) {
+      await localSequelize.close();
+    }
+
     sinon.restore();
   });
 
-  it('drops tables in the schema passed to sync when force is true #18423', async () => {
-    const localSequelize = createSequelizeInstance();
+  it(`drops tables in the schema passed to sync when force is true #18423 ${getTestDialectTeaser('')}`, async () => {
+    localSequelize = createSequelizeInstance();
 
     const User = localSequelize.define('BulkSyncDropUser', {
       id: { type: DataTypes.INTEGER, primaryKey: true },
@@ -65,12 +71,18 @@ describe('Sequelize#drop', () => {
     return;
   }
 
-  afterEach(() => {
+  let localSequelize: ReturnType<typeof createSequelizeInstance> | undefined;
+
+  afterEach(async () => {
+    if (localSequelize) {
+      await localSequelize.close();
+    }
+
     sinon.restore();
   });
 
-  it('drops tables in the schema option rather than the default schema #18423', async () => {
-    const localSequelize = createSequelizeInstance();
+  it(`drops tables in the schema option rather than the default schema #18423 ${getTestDialectTeaser('')}`, async () => {
+    localSequelize = createSequelizeInstance();
 
     const User = localSequelize.define('BulkDropSchemaUser', {
       id: { type: DataTypes.INTEGER, primaryKey: true },
