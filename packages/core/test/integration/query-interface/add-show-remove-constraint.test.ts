@@ -109,11 +109,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       );
       expect(constraints).to.have.length(1);
       expect(constraints[0]).to.deep.equal({
-        ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
         constraintSchema: defaultSchema,
         constraintName: 'custom_constraint_name',
         constraintType: 'UNIQUE',
-        ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['name', 'age'],
@@ -152,11 +152,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       });
       expect(foreignKeys).to.have.length(1);
       expect(foreignKeys[0]).to.deep.equal({
-        ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
         constraintSchema: defaultSchema,
         constraintName: 'custom_constraint_name',
         constraintType: 'FOREIGN KEY',
-        ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['level_id'],
@@ -182,11 +182,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       });
       expect(primaryKeys).to.have.length(1);
       expect(primaryKeys[0]).to.deep.equal({
-        ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
         constraintSchema: defaultSchema,
         constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
         constraintType: 'PRIMARY KEY',
-        ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
         tableSchema: defaultSchema,
         tableName: 'levels',
         columnNames: ['id'],
@@ -228,11 +228,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       });
       expect(foreignKeys).to.have.length(1);
       expect(foreignKeys[0]).to.deep.equal({
-        ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
         constraintSchema: defaultSchema,
         constraintName: 'custom_constraint_name',
         constraintType: 'FOREIGN KEY',
-        ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
         tableSchema: defaultSchema,
         tableName: 'actors',
         columnNames: ['level_id', 'manager_id'],
@@ -257,11 +257,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
       });
       expect(primaryKeys).to.have.length(1);
       expect(primaryKeys[0]).to.deep.equal({
-        ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
         constraintSchema: defaultSchema,
         constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
         constraintType: 'PRIMARY KEY',
-        ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+        ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
         tableSchema: defaultSchema,
         tableName: 'levels',
         columnNames: ['id', 'manager_id'],
@@ -297,7 +297,7 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
             field: 'id',
           },
           onDelete: 'CASCADE',
-          onUpdate: dialect !== 'oracle' ? 'CASCADE' : undefined,
+          onUpdate: 'CASCADE',
         });
 
         const constraintType = await queryInterface.showConstraints('actors', {
@@ -309,11 +309,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['level_id'],
@@ -359,12 +359,12 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
           ...(['oracle'].includes(dialect) && { columnNames: ['age'] }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'CHECK',
-          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           definition:
@@ -408,11 +408,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         );
         expect(constraints).to.have.length(1);
         expect(constraints[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: defaultSchema,
           constraintName: 'custom_constraint_name',
           constraintType: 'DEFAULT',
-          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['status'],
@@ -523,11 +523,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         );
         expect(foreignKeys).to.have.length(1);
         expect(foreignKeys[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: schema,
           constraintName: 'custom_constraint_name',
           constraintType: 'FOREIGN KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
           tableSchema: schema,
           tableName: 'actors',
           columnNames: ['level_id'],
@@ -558,11 +558,11 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
         );
         expect(primaryKeys).to.have.length(1);
         expect(primaryKeys[0]).to.deep.equal({
-          ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { constraintCatalog: 'sequelize_test' }),
           constraintSchema: schema,
           constraintName: ['mariadb', 'mysql'].includes(dialect) ? 'PRIMARY' : 'pk_levels',
           constraintType: 'PRIMARY KEY',
-          ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
           tableSchema: schema,
           tableName: 'levels',
           columnNames: ['id'],
@@ -644,11 +644,13 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
           expect(foreignKeys).to.have.length(1);
           expect(foreignKeys[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+            ...(sequelize.dialect.supports.multiDatabases && {
+              constraintCatalog: 'sequelize_test',
+            }),
             constraintSchema: schema,
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+            ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
             tableSchema: schema,
             tableName: 'actors',
             columnNames: ['level_id'],
@@ -672,11 +674,13 @@ describe('QueryInterface#{add,show,removeConstraint}', () => {
 
           expect(foreignKeys).to.have.length(1);
           expect(foreignKeys[0]).to.deep.equal({
-            ...(['mssql', 'postgres'].includes(dialect) && { constraintCatalog: 'sequelize_test' }),
+            ...(sequelize.dialect.supports.multiDatabases && {
+              constraintCatalog: 'sequelize_test',
+            }),
             constraintSchema: sequelize.dialect.getDefaultSchema(),
             constraintName: 'custom_constraint_name',
             constraintType: 'FOREIGN KEY',
-            ...(['mssql', 'postgres'].includes(dialect) && { tableCatalog: 'sequelize_test' }),
+            ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
             tableSchema: sequelize.dialect.getDefaultSchema(),
             tableName: 'actors',
             columnNames: ['level_id'],

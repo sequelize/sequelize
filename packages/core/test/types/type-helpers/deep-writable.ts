@@ -9,17 +9,7 @@
 import type { Model, ModelStatic, Sequelize } from '@sequelize/core';
 
 type Builtin =
-  | string
-  | number
-  | boolean
-  | bigint
-  | symbol
-  | undefined
-  | null
-  | Function
-  | Date
-  | Error
-  | RegExp;
+  string | number | boolean | bigint | symbol | undefined | null | Function | Date | Error | RegExp;
 
 type SequelizeBasic = Builtin | Sequelize | Model | ModelStatic;
 

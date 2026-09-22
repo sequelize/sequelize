@@ -11,7 +11,7 @@ jobs:
     name: Tweet release
     runs-on: ubuntu-latest
     steps:
-      - uses: cardinalby/git-get-release-action@319798e20e923b75a49d335f1afdaf6f18422118 # v1.1
+      - uses: cardinalby/git-get-release-action@2ab178299eecb253f820dcf2cce11f62be1178f7 # 1.2.6
         id: releaseInfo
         env:
           GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}

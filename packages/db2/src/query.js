@@ -12,6 +12,7 @@ import {
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import forOwn from 'lodash/forOwn';
 import assert from 'node:assert';
+import { callIbmDb } from './_internal/call-ibm-db.js';
 
 const debug = logger.debugContext('sql:db2');
 
@@ -62,7 +63,7 @@ export class Db2Query extends AbstractQuery {
 
     let stmt;
     try {
-      stmt = await connection.prepare(newSql);
+      [stmt] = await callIbmDb(callback => connection.prepare(newSql, callback));
     } catch (error) {
       throw this.formatError(error);
     }
@@ -152,16 +153,10 @@ export class Db2Query extends AbstractQuery {
     return await this._run(this.connection, sql, parameters);
   }
 
-  #execute(stmt, params) {
-    return new Promise((resolve, reject) => {
-      stmt.execute(params, (err, result, outparams) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ result, outparams });
-        }
-      });
-    });
+  async #execute(stmt, params) {
+    const [result, outparams] = await callIbmDb(callback => stmt.execute(params, callback));
+
+    return { result, outparams };
   }
 
   filterSQLError(err, _sql, _connection) {

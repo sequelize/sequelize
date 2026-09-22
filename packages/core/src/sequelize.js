@@ -616,10 +616,8 @@ Use Sequelize#query if you wish to use replacements.`);
       ...options,
     };
 
-    const dummyTableName = this.dialect.supports.select.dummyTable;
-    const fromClause = dummyTableName
-      ? ` FROM ${this.queryGenerator.quoteIdentifier(dummyTableName)}`
-      : '';
+    const { dummyTable } = this.dialect.supports.select;
+    const fromClause = dummyTable ? ` FROM ${dummyTable}` : '';
 
     await this.query(`SELECT 1+1 AS result${fromClause}`, options);
   }
