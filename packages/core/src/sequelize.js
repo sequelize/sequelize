@@ -39,7 +39,7 @@ import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
 import { ManualOnDelete } from './model-repository.types.js';
 import { Op } from './operators';
-import { SequelizeTypeScript } from './sequelize-typescript';
+import { removeCyclicForeignKeyConstraints, SequelizeTypeScript } from './sequelize-typescript';
 import {
   COMPLETES_TRANSACTION,
   IsolationLevel,
@@ -587,26 +587,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
-    for (const model of this.models) {
-      // Honour options.schema the same way Model.drop / Model.sync do, so force-sync
-      // against a non-default schema does not inspect or alter the default schema (#18423).
-      const tableName = model.getTableNameWithSyncSchema(options);
-
-      const foreignKeys = await this.queryInterface.showConstraints(tableName, {
-        ...options,
-        constraintType: 'FOREIGN KEY',
-      });
-
-      await Promise.all(
-        foreignKeys.map(foreignKey => {
-          return this.queryInterface.removeConstraint(
-            tableName,
-            foreignKey.constraintName,
-            options,
-          );
-        }),
-      );
-    }
+    await removeCyclicForeignKeyConstraints(this, options);
 
     for (const model of this.models) {
       await model.drop(options);
