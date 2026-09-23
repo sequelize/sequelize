@@ -63,7 +63,22 @@ describe('Model#sync', () => {
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     try {
       await expect(User.sync({ schema: 'tenant' })).to.be.rejectedWith(
-        /already specifies schema other/,
+        /The "schema" option can only be used on models that do not already specify a schema, or that are using the default schema\. Model SyncSchemaUser already specifies schema other/,
+      );
+    } finally {
+      stub.restore();
+    }
+
+    expect(stub.callCount).to.eq(0);
+  });
+
+  it('rejects a drop schema when the model already declares another one', async () => {
+    const User = sequelize.define('DropSchemaUser', {}, { schema: 'other' });
+
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+    try {
+      await expect(User.drop({ schema: 'tenant' })).to.be.rejectedWith(
+        /The "schema" option can only be used on models that do not already specify a schema, or that are using the default schema\. Model DropSchemaUser already specifies schema other/,
       );
     } finally {
       stub.restore();

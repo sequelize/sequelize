@@ -305,7 +305,7 @@ export function getTableNameWithSyncSchema(
     // (which we don't for the default schema)
     if (tableName.schema !== model.sequelize.dialect.getDefaultSchema()) {
       throw new Error(
-        `The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${model.name} already specifies schema ${tableName.schema}`,
+        `The "schema" option can only be used on models that do not already specify a schema, or that are using the default schema. Model ${model.name} already specifies schema ${tableName.schema}`,
       );
     }
 
