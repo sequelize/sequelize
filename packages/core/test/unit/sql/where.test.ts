@@ -1201,7 +1201,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `NOT (json_extract(\`data\`,'$.key') = '10')`,
             mariadb: `NOT (json_compact(json_extract(\`data\`,'$.key')) = '10')`,
             mysql: `NOT (json_extract(\`data\`,'$.key') = CAST('10' AS JSON))`,
-            oracle: `NOT (json_value("data",'$."key"') = '10')`,
+            oracle: `NOT (json_value("data",'$.key') = '10')`,
           },
         );
       }
@@ -3075,7 +3075,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"') = 'value'`,
+              oracle: `json_value("jsonAttr",'$.nested') = 'value'`,
             },
           );
 
@@ -3093,7 +3093,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = 'null'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = 'null'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('null' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"') = 'null'`,
+              oracle: `json_value("jsonAttr",'$.nested') = 'null'`,
             },
           );
 
@@ -3104,7 +3104,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) IS NULL`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
-              oracle: `json_value("jsonAttr",'$."nested"') IS NULL`,
+              oracle: `json_value("jsonAttr",'$.nested') IS NULL`,
             },
           );
 
@@ -3115,7 +3115,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = 'null'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = 'null'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('null' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"') = 'null'`,
+              oracle: `json_value("jsonAttr",'$.nested') = 'null'`,
             },
           );
 
@@ -3126,7 +3126,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) IS NULL`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') IS NULL`,
-              oracle: `json_value("jsonAttr",'$."nested"') IS NULL`,
+              oracle: `json_value("jsonAttr",'$.nested') IS NULL`,
             },
           );
 
@@ -3135,7 +3135,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `'"value"' = json_extract(\`jsonAttr\`,'$.nested')`,
             mariadb: `'"value"' = json_compact(json_extract(\`jsonAttr\`,'$.nested'))`,
             mysql: `CAST('"value"' AS JSON) = json_extract(\`jsonAttr\`,'$.nested')`,
-            oracle: `'value' = json_value("jsonAttr",'$."nested"')`,
+            oracle: `'value' = json_value("jsonAttr",'$.nested')`,
           });
 
           testSql(
@@ -3145,7 +3145,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"."twice"') = 'value'`,
+              oracle: `json_value("jsonAttr",'$.nested.twice') = 'value'`,
             },
           );
 
@@ -3158,7 +3158,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"') = 'value'`,
+              oracle: `json_value("jsonAttr",'$.nested') = 'value'`,
             },
           );
 
@@ -3171,7 +3171,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested.twice') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.twice')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested.twice') = CAST('"value"' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"."twice"') = 'value'`,
+              oracle: `json_value("jsonAttr",'$.nested.twice') = 'value'`,
             },
           );
 
@@ -3194,7 +3194,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') != '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) != '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') != CAST('"value"' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"') != 'value'`,
+              oracle: `json_value("jsonAttr",'$.nested') != 'value'`,
             },
           );
 
@@ -3207,7 +3207,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"') = 'value'`,
+              oracle: `json_value("jsonAttr",'$.nested') = 'value'`,
             },
           );
 
@@ -3220,7 +3220,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = '"value"'`,
               mariadb: `json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested')) = '"value"'`,
               mysql: `json_extract(\`association\`.\`jsonAttr\`,'$.nested') = CAST('"value"' AS JSON)`,
-              oracle: `json_value("association"."jsonAttr",'$."nested"') = 'value'`,
+              oracle: `json_value("association"."jsonAttr",'$.nested') = 'value'`,
             },
           );
 
@@ -3233,7 +3233,7 @@ Caused by: "undefined" cannot be escaped`),
               postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
               mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
               'sqlite3 mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
-              oracle: `CAST(json_value("jsonAttr",'$."nested"') AS STRING) = 'value'`,
+              oracle: `CAST(json_value("jsonAttr",'$.nested') AS STRING) = 'value'`,
             },
           );
 
@@ -3256,7 +3256,7 @@ Caused by: "undefined" cannot be escaped`),
               postgres: `CAST("association"."jsonAttr"#>ARRAY['nested','deep']::VARCHAR(255)[] AS STRING) = 'value'`,
               mariadb: `CAST(json_compact(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep')) AS STRING) = 'value'`,
               'sqlite3 mysql': `CAST(json_extract(\`association\`.\`jsonAttr\`,'$.nested.deep') AS STRING) = 'value'`,
-              oracle: `CAST(json_value("association"."jsonAttr",'$."nested"."deep"') AS STRING) = 'value'`,
+              oracle: `CAST(json_value("association"."jsonAttr",'$.nested.deep') AS STRING) = 'value'`,
             },
           );
 
@@ -3268,7 +3268,7 @@ Caused by: "undefined" cannot be escaped`),
               postgres: `CAST("jsonAttr"->'nested' AS STRING) = 'value'`,
               mariadb: `CAST(json_compact(json_extract(\`jsonAttr\`,'$.nested')) AS STRING) = 'value'`,
               'sqlite3 mysql': `CAST(json_extract(\`jsonAttr\`,'$.nested') AS STRING) = 'value'`,
-              oracle: `CAST(json_value("jsonAttr",'$."nested"') AS STRING) = 'value'`,
+              oracle: `CAST(json_value("jsonAttr",'$.nested') AS STRING) = 'value'`,
             },
           );
 
@@ -3279,7 +3279,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$.nested.attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$.nested.attribute')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$.nested.attribute') = CAST('4' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$."nested"."attribute"') = '4'`,
+              oracle: `json_value("jsonAttr",'$.nested.attribute') = '4'`,
             },
           );
 
@@ -3291,7 +3291,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$."0"') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0"')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$."0"') = CAST('4' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$[0]') = '4'`,
+              oracle: `json_value("jsonAttr",'$."0"') = '4'`,
             },
           );
 
@@ -3316,7 +3316,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$."0".attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$."0".attribute')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$."0".attribute') = CAST('4' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$[0]."attribute"') = '4'`,
+              oracle: `json_value("jsonAttr",'$."0".attribute') = '4'`,
             },
           );
 
@@ -3353,7 +3353,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`jsonAttr\`,'$[0].nested.attribute')) = '4'`,
               mysql: `json_extract(\`jsonAttr\`,'$[0].nested.attribute') = CAST('4' AS JSON)`,
-              oracle: `json_value("jsonAttr",'$[0]."nested"."attribute"') = '4'`,
+              oracle: `json_value("jsonAttr",'$[0].nested.attribute') = '4'`,
             },
           );
 
@@ -3365,7 +3365,7 @@ Caused by: "undefined" cannot be escaped`),
               sqlite3: `json_extract(\`aliased_json\`,'$.nested.attribute') = '4'`,
               mariadb: `json_compact(json_extract(\`aliased_json\`,'$.nested.attribute')) = '4'`,
               mysql: `json_extract(\`aliased_json\`,'$.nested.attribute') = CAST('4' AS JSON)`,
-              oracle: `json_value("aliased_json",'$."nested"."attribute"') = '4'`,
+              oracle: `json_value("aliased_json",'$.nested.attribute') = '4'`,
             },
           );
         }
@@ -4163,7 +4163,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `json_extract(\`col\`,'$.jsonPath') = '"value"'`,
             mariadb: `json_compact(json_extract(\`col\`,'$.jsonPath')) = '"value"'`,
             mysql: `json_extract(\`col\`,'$.jsonPath') = CAST('"value"' AS JSON)`,
-            oracle: `json_value("col",'$."jsonPath"') = 'value'`,
+            oracle: `json_value("col",'$.jsonPath') = 'value'`,
           });
         }
       });
@@ -4456,7 +4456,7 @@ Caused by: "undefined" cannot be escaped`),
             sqlite3: `json_extract(\`j"son\`,'$.nested') = '"value"'`,
             mariadb: `json_compact(json_extract(\`j"son\`,'$.nested')) = '"value"'`,
             mysql: `json_extract(\`j"son\`,'$.nested') = CAST('"value"' AS JSON)`,
-            oracle: `json_value("j""son",'$."nested"') = 'value'`,
+            oracle: `json_value("j""son",'$.nested') = 'value'`,
           },
         );
       }
