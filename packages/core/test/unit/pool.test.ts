@@ -1,4 +1,5 @@
 import type { AbstractConnection, AbstractDialect, Sequelize } from '@sequelize/core';
+import { ConnectionError } from '@sequelize/core';
 import { ReplicationPool } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/replication-pool.js';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { expect } from 'chai';
@@ -65,6 +66,7 @@ describe('sequelize.pool', () => {
       sandbox = sinon.createSandbox();
       sandbox.stub(sequelize2.dialect.connectionManager, 'connect').resolves(connection);
       sandbox.stub(sequelize2.dialect.connectionManager, 'initializeConnection').resolves();
+      sandbox.stub(sequelize2.dialect.connectionManager, 'validate').returns(true);
     });
 
     afterEach(() => {
@@ -236,6 +238,7 @@ describe('sequelize.pool', () => {
         .resolves(connection);
 
       sandbox.stub(connectionManager, 'initializeConnection').resolves();
+      sandbox.stub(connectionManager, 'validate').returns(true);
       sandbox.stub(connectionManager, 'disconnect').resolves();
       sandbox
         .stub(sequelize3, 'fetchDatabaseVersion')
@@ -305,6 +308,7 @@ describe('sequelize.pool', () => {
       const connectStub = sandbox.stub(connectionManager, 'connect').resolves(res);
 
       sandbox.stub(connectionManager, 'initializeConnection').resolves();
+      sandbox.stub(connectionManager, 'validate').returns(true);
       sandbox.stub(connectionManager, 'disconnect').resolves();
 
       await sequelize3.pool.acquire({
@@ -336,6 +340,7 @@ describe('sequelize.pool', () => {
       return {
         connection,
         initializeConnection: sandbox.stub(connectionManager, 'initializeConnection').resolves(),
+        validate: sandbox.stub(connectionManager, 'validate').returns(true),
         disconnect: sandbox.stub(connectionManager, 'disconnect').resolves(),
         connect: sandbox.stub(connectionManager, 'connect').resolves(connection),
       };
@@ -455,6 +460,46 @@ describe('sequelize.pool', () => {
       expect(stubs.disconnect).to.have.been.calledOnce;
     });
 
+    it('disconnects the connection if it broke during setup', async () => {
+      const sequelize2 = createSequelizeInstance();
+      const stubs = stubConnectionManager(sequelize2);
+      const hooks = spyOnDisconnectHooks(sequelize2);
+      // Breaks the connection during the last setup step, so the check must run after all of them.
+      sandbox.stub(sequelize2, 'fetchDatabaseVersion').callsFake(async () => {
+        // Simulates the dialect's error handler reacting to a lost connection.
+        await sequelize2.pool.destroy(stubs.connection);
+        stubs.validate.returns(false);
+
+        return sequelize2.dialect.minimumDatabaseVersion;
+      });
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(
+        ConnectionError,
+        'The new connection failed validation after it was set up',
+      );
+      const connection = sinon.match.same(stubs.connection);
+      expect(stubs.validate).to.have.been.calledOnceWithExactly(connection);
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(connection);
+      // The afterConnect hook had run
+      expect(hooks.afterDisconnect).to.have.been.calledOnceWithExactly(connection);
+    });
+
+    it('uses the pool.validate option to check the connection after setup', async () => {
+      const validate = sinon.stub().returns(false);
+      const sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+        pool: { validate },
+      });
+      const stubs = stubConnectionManager(sequelize2);
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(ConnectionError);
+      expect(validate).to.have.been.calledOnceWithExactly(sinon.match.same(stubs.connection));
+      expect(stubs.validate).not.to.have.been.called;
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(
+        sinon.match.same(stubs.connection),
+      );
+    });
+
     it('does not disconnect the connection if setup succeeds', async () => {
       const sequelize2 = createSequelizeInstance({
         databaseVersion: sequelize.dialect.minimumDatabaseVersion,
@@ -470,6 +515,7 @@ describe('sequelize.pool', () => {
     let sequelize2: Sequelize;
     let connectStub: SinonStub;
     let initializeConnectionStub: SinonStub;
+    let validateStub: SinonStub;
     let disconnectStub: SinonStub;
 
     beforeEach(() => {
@@ -484,11 +530,13 @@ describe('sequelize.pool', () => {
       initializeConnectionStub = sinon
         .stub(sequelize2.dialect.connectionManager, 'initializeConnection')
         .resolves();
+      validateStub = sinon.stub(sequelize2.dialect.connectionManager, 'validate').returns(true);
     });
 
     afterEach(() => {
       connectStub.reset();
       initializeConnectionStub.reset();
+      validateStub.reset();
       disconnectStub.reset();
     });
 
