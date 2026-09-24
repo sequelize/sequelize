@@ -21,7 +21,6 @@ const debug = logger.debugContext('connection:oracle');
 
 export interface OracleConnection extends oracledbConnection, AbstractConnection {
   on(event: 'error', listener: (err: any) => void): this;
-  removeAllListeners(event: 'error'): this;
 }
 
 export interface OracleConnectionOptions extends Omit<
@@ -102,11 +101,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
-      // attaches the real handler below. Without a listener here, that error would
-      // crash the process instead of waiting to be handled.
-      connection.on('error', () => {});
-
       return connection;
     } catch (error: any) {
       let errorCode = error.message.split(':');
@@ -144,20 +138,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
-  }
-
-  async initializeConnection(connection: OracleConnection): Promise<void> {
-    connection.removeAllListeners('error').on('error', error => {
-      switch (error.code) {
-        case 'ESOCKET':
-        case 'ECONNRESET':
-        case 'EPIPE':
-        case 'PROTOCOL_CONNECTION_LOST':
-          void this.sequelize.pool.destroy(connection);
-          break;
-        default:
-      }
-    });
   }
 
   async disconnect(connection: OracleConnection) {
