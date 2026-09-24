@@ -18,6 +18,9 @@ import type { MariaDbDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mariadb');
 
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
+
 export type MariaDbModule = typeof MariaDb;
 
 export interface MariaDbConnection extends AbstractConnection, MariaDb.Connection {}
@@ -123,7 +126,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
       // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
       // crash the process instead of waiting to be handled.
-      connection.on('error', () => {});
+      connection.on('error', ignoreErrorUntilInitialized);
 
       return connection;
     } catch (error: unknown) {
@@ -152,7 +155,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   }
 
   async initializeConnection(connection: MariaDbConnection): Promise<void> {
-    connection.removeAllListeners('error').on('error', error => {
+    connection.off('error', ignoreErrorUntilInitialized).on('error', error => {
       switch (error.code) {
         case 'ESOCKET':
         case 'ECONNRESET':
