@@ -76,6 +76,169 @@ describe('parseAttributeSyntax', () => {
     });
   });
 
+  describe('non-reserved characters in identifiers', () => {
+    // Identifiers accept any character except the ones reserved by the syntax ($ . : [ ] and control characters),
+    // because the identifier is always quoted in the generated SQL (the quoting doubles the delimiter).
+    // This mirrors the validation of attribute names in ModelDefinition: every name a model can declare
+    // must be usable as a WHERE key.
+    // The parser does not know about SQL: it is the responsibility of quoteIdentifier to neutralize these characters.
+    const identifiers: Array<{ identifier: string; reason: string }> = [
+      { identifier: 'café', reason: 'non-ASCII letter' },
+      { identifier: 'Ünïcödé', reason: 'non-ASCII letters (mixed case)' },
+      { identifier: '日本', reason: 'CJK characters' },
+      { identifier: '名前', reason: 'CJK characters (2)' },
+      { identifier: 'имя', reason: 'cyrillic characters' },
+      { identifier: '😀', reason: 'emoji (astral plane, two UTF-16 code units)' },
+      { identifier: 'a😀b', reason: 'emoji inside identifier' },
+      { identifier: 'first-name', reason: 'dash' },
+      { identifier: '-a', reason: 'leading dash' },
+      { identifier: 'a-', reason: 'trailing dash' },
+      { identifier: '-', reason: 'dash only' },
+      { identifier: 'a b', reason: 'space' },
+      { identifier: ' foo', reason: 'leading space' },
+      { identifier: 'foo ', reason: 'trailing space' },
+      { identifier: '   ', reason: 'spaces only' },
+      { identifier: 'a b', reason: 'non-breaking space' },
+      { identifier: 'a"b', reason: 'double quote' },
+      { identifier: '"foo"', reason: 'wrapped in double quotes' },
+      { identifier: "a'b", reason: 'single quote' },
+      { identifier: 'a`b', reason: 'backtick' },
+      { identifier: '`foo`', reason: 'wrapped in backticks' },
+      { identifier: 'a\\b', reason: 'backslash' },
+      { identifier: 'foo\\', reason: 'trailing backslash' },
+      { identifier: 'a;b', reason: 'semicolon' },
+      { identifier: 'a--b', reason: 'SQL line comment' },
+      { identifier: 'a/*b*/', reason: 'SQL block comment' },
+      { identifier: "a'; DROP TABLE users; --", reason: 'SQL injection attempt' },
+      { identifier: 'a=b', reason: 'equals sign' },
+      { identifier: '(a)', reason: 'parentheses' },
+      { identifier: '{a}', reason: 'curly braces' },
+      { identifier: 'a,b', reason: 'comma' },
+      { identifier: 'a|b', reason: 'pipe' },
+      { identifier: 'a#b', reason: 'hash' },
+      { identifier: 'a%b', reason: 'percent' },
+      { identifier: 'a?b', reason: 'question mark' },
+      { identifier: 'a@b', reason: 'at sign' },
+      { identifier: 'a/b', reason: 'slash' },
+      { identifier: 'a<b>', reason: 'angle brackets' },
+      { identifier: 'a~b', reason: 'tilde' },
+      { identifier: 'a^b', reason: 'caret' },
+      { identifier: 'a&b', reason: 'ampersand' },
+      { identifier: 'a*b', reason: 'asterisk' },
+      { identifier: 'a+b', reason: 'plus' },
+      { identifier: 'a!b', reason: 'exclamation mark' },
+      // "->" is rejected by ModelDefinition (it is used in the SQL generated for nested includes),
+      // but it has no meaning in the attribute syntax itself
+      { identifier: 'a->b', reason: 'arrow' },
+    ];
+
+    for (const { identifier, reason } of identifiers) {
+      it(`parses ${JSON.stringify(identifier)} as an attribute (${reason})`, () => {
+        expect(parseAttributeSyntax(identifier)).to.deep.eq(new Attribute(identifier));
+      });
+
+      it(`parses ${JSON.stringify(`$${identifier}$`)} as an attribute (${reason})`, () => {
+        expect(parseAttributeSyntax(`$${identifier}$`)).to.deep.eq(new Attribute(identifier));
+      });
+
+      it(`parses ${JSON.stringify(`$${identifier}.${identifier}$`)} as an association path (${reason})`, () => {
+        expect(parseAttributeSyntax(`$${identifier}.${identifier}$`)).to.deep.eq(
+          new AssociationPath([identifier], identifier),
+        );
+      });
+
+      it(`parses ${JSON.stringify(`$${identifier}.attr$`)} as an association path (${reason})`, () => {
+        expect(parseAttributeSyntax(`$${identifier}.attr$`)).to.deep.eq(
+          new AssociationPath([identifier], 'attr'),
+        );
+      });
+
+      it(`parses ${JSON.stringify(`$assoc.${identifier}$`)} as an association path (${reason})`, () => {
+        expect(parseAttributeSyntax(`$assoc.${identifier}$`)).to.deep.eq(
+          new AssociationPath(['assoc'], identifier),
+        );
+      });
+    }
+
+    const combinedCases: Array<{ input: string; expected: unknown }> = [
+      { input: '$café.first-name$', expected: new AssociationPath(['café'], 'first-name') },
+      { input: '$a b.c d.e f$', expected: new AssociationPath(['a b', 'c d'], 'e f') },
+      { input: '$日本.名前$', expected: new AssociationPath(['日本'], '名前') },
+      {
+        input: '$a"b.c\'d.e`f$',
+        expected: new AssociationPath(['a"b', "c'd"], 'e`f'),
+      },
+      // json paths, casts & modifiers still apply to these identifiers
+      { input: 'café.bar', expected: sql.jsonPath(new Attribute('café'), ['bar']) },
+      { input: 'first-name.bar', expected: sql.jsonPath(new Attribute('first-name'), ['bar']) },
+      { input: 'a b[0]', expected: sql.jsonPath(new Attribute('a b'), [0]) },
+      { input: 'a"b::int', expected: sql.cast(new Attribute('a"b'), 'int') },
+      { input: 'a`b:unquote', expected: sql.unquote(new Attribute('a`b')) },
+      {
+        input: '$café.first-name$.bar::int',
+        expected: sql.cast(
+          sql.jsonPath(new AssociationPath(['café'], 'first-name'), ['bar']),
+          'int',
+        ),
+      },
+      // the space & backslash are part of the identifier, the dot still starts a json path
+      { input: 'foo .a', expected: sql.jsonPath(new Attribute('foo '), ['a']) },
+      { input: 'foo\\.bar', expected: sql.jsonPath(new Attribute('foo\\'), ['bar']) },
+      // the identifier stops at the first reserved character
+      { input: 'a-b.c-d', expected: sql.jsonPath(new Attribute('a-b'), ['c-d']) },
+      { input: 'a b.c', expected: sql.jsonPath(new Attribute('a b'), ['c']) },
+      { input: '"a".b', expected: sql.jsonPath(new Attribute('"a"'), ['b']) },
+      { input: '"a"::int', expected: sql.cast(new Attribute('"a"'), 'int') },
+      // a single-segment association made of a non-ASCII identifier degrades to a plain attribute
+      { input: '$café$.bar', expected: sql.jsonPath(new Attribute('café'), ['bar']) },
+    ];
+
+    for (const { input, expected } of combinedCases) {
+      it(`parses ${JSON.stringify(input)}`, () => {
+        expect(parseAttributeSyntax(input)).to.deep.eq(expected);
+      });
+    }
+
+    it('does not widen the alphabet of unquoted JSON keys', () => {
+      // The alphabet of unquoted keys is unchanged: keys containing other characters must be quoted.
+      expect(() => parseAttributeSyntax('foo.bär')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', 'foo.bär', 5),
+      );
+      expect(() => parseAttributeSyntax('foo.a b')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', 'foo.a b', 5),
+      );
+      expect(parseAttributeSyntax('foo."bär"')).to.deep.eq(
+        sql.jsonPath(new Attribute('foo'), ['bär']),
+      );
+    });
+
+    it('does not widen the alphabet of cast types & modifier names', () => {
+      // The cast type is inserted verbatim in the generated SQL, so it must stay restricted.
+      expect(() => parseAttributeSyntax('foo::café')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', 'foo::café', 8),
+      );
+      expect(() => parseAttributeSyntax('foo::a b')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', 'foo::a b', 6),
+      );
+      expect(() => parseAttributeSyntax('foo::a"b')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', 'foo::a"b', 6),
+      );
+      expect(() => parseAttributeSyntax("foo::int'; DROP TABLE users; --")).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', "foo::int'; DROP TABLE users; --", 8),
+      );
+      expect(() => parseAttributeSyntax('foo:café')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', 'foo:café', 7),
+      );
+    });
+  });
+
   describe('casts & modifiers', () => {
     const cases: Array<{ input: string; expected: unknown }> = [
       { input: 'foo::bar', expected: sql.cast(new Attribute('foo'), 'bar') },
@@ -162,6 +325,26 @@ describe('parseAttributeSyntax', () => {
         TypeError,
         unknownModifierMessage('attribute', 'foo:nope::int', 'nope'),
       );
+    });
+
+    it('treats a colon inside an identifier as the start of a modifier', () => {
+      // ":" is reserved: "a:b" is the attribute "a" with the modifier "b", which does not exist.
+      // This is why ModelDefinition rejects attribute names containing ":".
+      expect(() => parseAttributeSyntax('a:b')).to.throwWithCause(
+        TypeError,
+        unknownModifierMessage('attribute', 'a:b', 'b'),
+      );
+      expect(() => parseAttributeSyntax('first:name')).to.throwWithCause(
+        TypeError,
+        unknownModifierMessage('attribute', 'first:name', 'name'),
+      );
+      expect(() => parseAttributeSyntax('$user.first:name$')).to.throwWithCause(
+        TypeError,
+        parseErrorMessage('attribute', '$user.first:name$', 11),
+      );
+
+      // "a::b" is the attribute "a" cast to the type "b"
+      expect(parseAttributeSyntax('a::b')).to.deep.eq(sql.cast(new Attribute('a'), 'b'));
     });
 
     it('treats everything after ::/: as a cast/modifier', () => {
@@ -319,14 +502,31 @@ describe('parseAttributeSyntax', () => {
   describe('rejected inputs', () => {
     const cases: Array<{ input: string; index: number; reason: string }> = [
       { input: '', index: 0, reason: 'empty string' },
-      { input: '   ', index: 0, reason: 'whitespace only' },
-      { input: ' foo', index: 0, reason: 'leading whitespace' },
-      { input: 'foo ', index: 3, reason: 'trailing whitespace' },
+
+      // control characters (U+0000 to U+001F, and U+007F) are reserved
       { input: '\tfoo', index: 0, reason: 'leading tab' },
       { input: 'foo\n', index: 3, reason: 'trailing newline' },
-      { input: 'a b', index: 1, reason: 'whitespace inside identifier' },
       { input: 'a\tb', index: 1, reason: 'tab inside identifier' },
       { input: 'a\nb', index: 1, reason: 'newline inside identifier' },
+      { input: 'a\rb', index: 1, reason: 'carriage return inside identifier' },
+      { input: 'a\u0000b', index: 1, reason: 'NUL inside identifier' },
+      { input: '\u0000', index: 0, reason: 'NUL only' },
+      { input: 'a\u001Fb', index: 1, reason: 'U+001F inside identifier' },
+      { input: 'a\u007Fb', index: 1, reason: 'DEL inside identifier' },
+      { input: '\n', index: 0, reason: 'newline only' },
+      { input: '$a\nb$', index: 2, reason: 'newline in association' },
+      { input: '$a.b\tc$', index: 4, reason: 'tab in association attribute' },
+      { input: '$a\u0000.b$', index: 2, reason: 'NUL in association' },
+
+      // reserved characters ($ . : [ ]) cannot appear in identifiers
+      { input: 'a$b', index: 1, reason: '$ inside identifier' },
+      { input: 'a]b', index: 1, reason: '] inside identifier' },
+      { input: 'a[b', index: 2, reason: '[ inside identifier' },
+      { input: '$a]b$', index: 2, reason: '] inside association' },
+      { input: '$a[b$', index: 2, reason: '[ inside association' },
+      { input: '$a:b$', index: 2, reason: ': inside association' },
+      { input: '$a::b$', index: 2, reason: ':: inside association' },
+      { input: '$a$b$', index: 3, reason: '$ inside association' },
 
       // associations
       { input: 'foo$', index: 3, reason: 'unbalanced $ (closing only)' },
@@ -337,9 +537,6 @@ describe('parseAttributeSyntax', () => {
       { input: '$a.b.$', index: 5, reason: 'association with empty last segment (2 levels)' },
       { input: '$.a$', index: 1, reason: 'association with empty first segment' },
       { input: '$a..b$', index: 3, reason: 'association with empty middle segment' },
-      { input: '$a-b$', index: 2, reason: 'dash in association' },
-      { input: '$a b$', index: 2, reason: 'whitespace in association' },
-      { input: '$ a$', index: 1, reason: 'leading whitespace in association' },
       { input: '$a$ ', index: 3, reason: 'trailing whitespace after association' },
       { input: '$a$b', index: 3, reason: 'identifier directly after association' },
       { input: '$a.b$c', index: 5, reason: 'identifier directly after association (2 levels)' },
@@ -348,18 +545,14 @@ describe('parseAttributeSyntax', () => {
       { input: '$a$$b$', index: 3, reason: 'two consecutive associations' },
       { input: '$a.b$$c$', index: 5, reason: 'two consecutive associations (2 levels)' },
       { input: '$a$.b$', index: 5, reason: '$ after json path' },
-      { input: 'a$b', index: 1, reason: '$ inside identifier' },
       { input: 'a.b$', index: 3, reason: '$ after json path' },
       { input: '[0]', index: 0, reason: 'index access without attribute' },
-      { input: '"foo"', index: 0, reason: 'quoted key without attribute' },
+      { input: '$café$ ', index: 6, reason: 'trailing whitespace after non-ASCII association' },
 
-      // non-ASCII identifiers
-      // TODO: the identifier alphabet is narrower than what model attribute names allow (e.g. `café`, `first-name`).
-      //  A follow-up PR will widen it; these cases pin the current behavior until then.
-      { input: 'fóo', index: 1, reason: 'non-ASCII identifier' },
-      { input: '日本', index: 0, reason: 'non-ASCII identifier (leading)' },
-      { input: '$fóo.bar$', index: 2, reason: 'non-ASCII association' },
+      // non-ASCII unquoted json keys (the alphabet of unquoted keys is narrower than the one of identifiers)
       { input: 'foo.bär', index: 5, reason: 'non-ASCII unquoted key' },
+      { input: 'foo.日本', index: 4, reason: 'non-ASCII unquoted key (leading)' },
+      { input: '$a.b$.bär', index: 7, reason: 'non-ASCII unquoted key after association' },
 
       // casts & modifiers
       { input: 'foo::', index: 5, reason: 'trailing ::' },
@@ -380,14 +573,11 @@ describe('parseAttributeSyntax', () => {
 
       // json paths
       { input: '.a', index: 0, reason: 'leading dot' },
-      { input: '-a', index: 0, reason: 'leading dash' },
       { input: 'foo.', index: 4, reason: 'trailing dot' },
       { input: 'foo..b', index: 4, reason: 'double dot' },
       { input: 'foo.a..b', index: 6, reason: 'double dot (after key)' },
-      { input: 'foo .a', index: 3, reason: 'whitespace before dot' },
       { input: 'foo. a', index: 4, reason: 'whitespace after dot' },
       { input: 'foo.a b', index: 5, reason: 'whitespace inside key' },
-      { input: 'foo\\.bar', index: 3, reason: 'backslash-escaped dot outside quotes' },
       { input: 'foo.[0]', index: 4, reason: 'dot before index access' },
       { input: 'foo[0].', index: 7, reason: 'trailing dot after index access' },
       { input: 'foo[]', index: 4, reason: 'empty index' },
