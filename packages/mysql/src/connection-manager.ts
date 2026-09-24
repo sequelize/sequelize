@@ -168,10 +168,9 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
         tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
         await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
       } catch (error) {
-        // The pool never receives a connection whose setup failed, so it must
-        // be closed here or its socket would be leaked. Use destroy() rather
-        // than end(): the failed setup query leaves the connection state
-        // uncertain, and end() may reject and mask the original setup error.
+        // Close the socket now rather than leaving it to disconnect(), which would
+        // first send COM_QUIT on a connection whose setup query just failed.
+        // disconnect() skips connections that are already closing.
         connection.destroy();
         convertError(error);
       }
