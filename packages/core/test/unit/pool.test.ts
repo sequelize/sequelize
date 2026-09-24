@@ -106,6 +106,34 @@ describe('sequelize.pool', () => {
       expect(spy.firstCall.args[1]).to.deep.equal(sequelize2.options.replication.write);
     });
 
+    it('awaits initializeConnection once, after connect and before the afterConnect hook', async () => {
+      const { connectionManager } = sequelize2.dialect;
+      const initializeConnection = connectionManager.initializeConnection as SinonStub;
+
+      let initialized = false;
+      initializeConnection.callsFake(async () => {
+        // Yield to the event loop, so the hook can only see `initialized` if this was awaited
+        await new Promise(resolve => {
+          setImmediate(resolve);
+        });
+        initialized = true;
+      });
+
+      let initializedWhenHookRan: boolean | undefined;
+      const afterConnect = sinon.spy(() => {
+        initializedWhenHookRan = initialized;
+      });
+      sequelize2.hooks.addListener('afterConnect', afterConnect);
+
+      await sequelize2.pool.acquire();
+
+      const connection = await (connectionManager.connect as SinonStub).firstCall.returnValue;
+      expect(initializeConnection).to.have.been.calledOnceWithExactly(sinon.match.same(connection));
+      expect(initializeConnection).to.have.been.calledAfter(connectionManager.connect as SinonStub);
+      expect(afterConnect).to.have.been.calledOnce;
+      expect(initializedWhenHookRan).to.equal(true);
+    });
+
     it('does not throw when pool.destroy is called during initializeConnection', async () => {
       let destroyError: unknown;
 
