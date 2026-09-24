@@ -88,4 +88,34 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
       );
     });
   }
+
+  it('throws an error when passing an invalid timezone', async () => {
+    const sequelize = Support.createSequelizeInstance({ timezone: 'Invalid/Timezone' });
+    let error;
+
+    try {
+      await sequelize.authenticate();
+    } catch (error_) {
+      error = error_;
+    }
+
+    sequelize.close();
+
+    expect(error).to.be.instanceOf(Error);
+  });
+
+  it('throws an error when passing an invalid timezone offset', async () => {
+    const sequelize = Support.createSequelizeInstance({ timezone: '+01:70' });
+    let error;
+
+    try {
+      await sequelize.authenticate();
+    } catch (error_) {
+      error = error_;
+    }
+
+    sequelize.close();
+
+    expect(error).to.be.instanceOf(Error);
+  });
 });
