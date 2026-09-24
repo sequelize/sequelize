@@ -22,6 +22,9 @@ import type { MsSqlDialect } from './dialect.js';
 const debug = logger.debugContext('connection:mssql');
 const debugTedious = logger.debugContext('connection:mssql:tedious');
 
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
+
 export interface MsSqlConnection extends AbstractConnection, Tedious.Connection {
   // custom properties we attach to the connection
   [ASYNC_QUEUE]: AsyncQueue;
@@ -99,7 +102,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
          *
          * E.g. connectTimeout is set higher than requestTimeout
          */
-        connection.on('error', () => {});
+        connection.on('error', ignoreErrorUntilInitialized);
 
         if (tediousConfig.options?.debug) {
           connection.on('debug', debugTedious.log.bind(debugTedious));
@@ -148,7 +151,7 @@ export class MsSqlConnectionManager extends AbstractConnectionManager<
 
   async initializeConnection(connection: MsSqlConnection): Promise<void> {
     // Replace default error handler with one that destroys the connection from the pool.
-    connection.removeAllListeners('error').on('error', (error: unknown) => {
+    connection.off('error', ignoreErrorUntilInitialized).on('error', (error: unknown) => {
       if (isErrorWithStringCode(error) && ['ESOCKET', 'ECONNRESET'].includes(error.code)) {
         void this.sequelize.pool.destroy(connection);
       }

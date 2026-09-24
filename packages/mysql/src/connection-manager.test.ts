@@ -147,4 +147,32 @@ describe('MySqlConnectionManager#initializeConnection', () => {
     expect(fakeConnection.destroyCallCount).to.equal(1);
     expect(fakeConnection.endCallCount).to.equal(0);
   });
+
+  it('only replaces the placeholder error listener', async () => {
+    const { sequelize, connectionConfig } = createSequelizeWithFakeMysql2(null);
+    const { connectionManager } = sequelize.dialect;
+
+    const connection = await connectionManager.connect(connectionConfig);
+    const otherListener = () => {};
+
+    connection.on('error', otherListener);
+    expect(connection.listenerCount('error')).to.equal(2);
+
+    await connectionManager.initializeConnection(connection);
+
+    const listeners = connection.listeners('error');
+    expect(listeners).to.have.length(2);
+    expect(listeners).to.include(otherListener);
+
+    // The other listener is the real handler, which destroys the connection.
+    const destroyed: unknown[] = [];
+    Object.assign(sequelize.pool, {
+      async destroy(destroyedConnection: unknown) {
+        destroyed.push(destroyedConnection);
+      },
+    });
+    connection.emit('error', Object.assign(new Error('connection lost'), { code: 'ECONNRESET' }));
+    expect(destroyed).to.have.length(1);
+    expect(destroyed[0]).to.equal(connection);
+  });
 });

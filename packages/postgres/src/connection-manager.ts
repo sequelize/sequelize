@@ -20,6 +20,9 @@ import type { PostgresDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:pg');
 
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
+
 type TypeFormat = 'text' | 'binary';
 type TextTypeParser = PgTypeParser<string, unknown>;
 type BinaryTypeParser = PgTypeParser<Buffer, unknown>;
@@ -127,7 +130,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     // Temporary no-op placeholder: node-postgres can emit 'error' before initializeConnection()
     // attaches the real handler below. Without a listener here, that error would
     // crash the process instead of waiting to be handled.
-    connection.on('error', () => {});
+    connection.on('error', ignoreErrorUntilInitialized);
 
     await new Promise((resolve, reject) => {
       let responded = false;
@@ -209,7 +212,7 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
   async initializeConnection(connection: PostgresConnection): Promise<void> {
     // Don't let a Postgres restart (or error) to take down the whole app.
-    connection.removeAllListeners('error').on('error', (error: any) => {
+    connection.off('error', ignoreErrorUntilInitialized).on('error', (error: any) => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
       void this.sequelize.pool.destroy(connection);

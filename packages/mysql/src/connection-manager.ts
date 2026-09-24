@@ -19,6 +19,9 @@ import type { MySqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mysql');
 
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
+
 function convertError(error: unknown): never {
   if (!isError(error)) {
     throw error;
@@ -132,7 +135,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
       // Temporary no-op placeholder: mysql2 can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
       // crash the process instead of waiting to be handled.
-      connection.on('error', () => {});
+      connection.on('error', ignoreErrorUntilInitialized);
 
       return connection;
     } catch (error) {
@@ -141,7 +144,7 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
   }
 
   async initializeConnection(connection: MySqlConnection): Promise<void> {
-    connection.removeAllListeners('error').on('error', (error: unknown) => {
+    connection.off('error', ignoreErrorUntilInitialized).on('error', (error: unknown) => {
       if (!isNodeError(error)) {
         return;
       }
