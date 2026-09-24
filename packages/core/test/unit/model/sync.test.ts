@@ -37,7 +37,7 @@ describe('Model#sync', () => {
       id: { type: DataTypes.INTEGER, primaryKey: true },
     });
 
-    const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     try {
       await User.drop({ schema: 'tenant' });
     } finally {
@@ -75,7 +75,7 @@ describe('Model#sync', () => {
   it('rejects a drop schema when the model already declares another one', async () => {
     const User = sequelize.define('DropSchemaUser', {}, { schema: 'other' });
 
-    const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     try {
       await expect(User.drop({ schema: 'tenant' })).to.be.rejectedWith(
         /The "schema" option can only be used on models that do not already specify a schema, or that are using the default schema\. Model DropSchemaUser already specifies schema other/,

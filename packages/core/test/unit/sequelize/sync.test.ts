@@ -32,9 +32,9 @@ describe('Sequelize#sync', () => {
     });
     Task.belongsTo(User);
 
-    // showConstraints iterates the resolved value; an empty row list keeps any remaining
+    // Default queryRaw resolves to [rows, metadata]. An empty row list keeps any remaining
     // cyclic-drop path from calling removeConstraint with undefined names.
-    const stub = sinon.stub(localSequelize, 'queryRaw').resolves([]);
+    const stub = sinon.stub(localSequelize, 'queryRaw').resolves([[], 0]);
 
     await localSequelize.sync({ force: true, schema: 'tenant' });
 
@@ -88,7 +88,7 @@ describe('Sequelize#drop', () => {
       id: { type: DataTypes.INTEGER, primaryKey: true },
     });
 
-    const stub = sinon.stub(localSequelize, 'queryRaw').resolves([]);
+    const stub = sinon.stub(localSequelize, 'queryRaw').resolves([[], 0]);
 
     await localSequelize.drop({
       schema: 'tenant',
