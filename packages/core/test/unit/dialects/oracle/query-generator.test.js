@@ -3,6 +3,7 @@
 const each = require('lodash/each');
 
 const chai = require('chai');
+const oracledb = require('oracledb');
 
 const expect = chai.expect;
 const { DataTypes } = require('@sequelize/core');
@@ -426,15 +427,8 @@ if (dialect.startsWith('oracle')) {
           expectBind: [['foo'], ['bar']],
           outBindAttributes: {
             id: {
-              type: {
-                num: 2010,
-                name: 'DB_TYPE_NUMBER',
-                columnTypeName: 'NUMBER',
-                _bufferSizeFactor: 22,
-                _oraTypeNum: 2,
-                _csfrm: 0,
-              },
-              dir: 3003,
+              type: oracledb.DB_TYPE_NUMBER,
+              dir: oracledb.BIND_OUT,
             },
           },
         },
@@ -460,15 +454,8 @@ if (dialect.startsWith('oracle')) {
           expectBind: [['foo'], ['bar']],
           outBindAttributes: {
             id: {
-              type: {
-                num: 2010,
-                name: 'DB_TYPE_NUMBER',
-                columnTypeName: 'NUMBER',
-                _bufferSizeFactor: 22,
-                _oraTypeNum: 2,
-                _csfrm: 0,
-              },
-              dir: 3003,
+              type: oracledb.DB_TYPE_NUMBER,
+              dir: oracledb.BIND_OUT,
             },
           },
           context: { options: { quoteIdentifiers: false } },
