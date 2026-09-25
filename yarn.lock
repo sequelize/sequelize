@@ -2669,10 +2669,10 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
     ansis: "npm:^3.17.0"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     concurrently: "npm:9.2.4"
     cosmiconfig: "npm:^9.0.2"
     mocha: "npm:11.8.0"
@@ -2690,20 +2690,20 @@ __metadata:
   resolution: "@sequelize/core@workspace:packages/core"
   dependencies:
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
-    "@types/chai-as-promised": "npm:7.1.8"
+    "@types/chai": "npm:5.2.3"
+    "@types/chai-as-promised": "npm:8.0.2"
     "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.13"
     "@types/lodash": "npm:4.17.25"
     "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.8.0"
     "@types/sinon": "npm:17.0.4"
-    "@types/sinon-chai": "npm:3.2.12"
+    "@types/sinon-chai": "npm:4.0.0"
     "@types/validator": "npm:^13.15.10"
     ansis: "npm:^3.17.0"
     bnf-parser: "npm:^3.1.6"
-    chai: "npm:4.5.0"
-    chai-as-promised: "npm:7.1.2"
+    chai: "npm:6.2.2"
+    chai-as-promised: "npm:8.0.2"
     chai-datetime: "npm:1.8.1"
     dayjs: "npm:^1.11.23"
     debug: "npm:^4.4.3"
@@ -2726,7 +2726,7 @@ __metadata:
     semver: "npm:^7.8.5"
     sequelize-pool: "npm:^8.0.1"
     sinon: "npm:18.0.1"
-    sinon-chai: "npm:3.7.0"
+    sinon-chai: "npm:4.0.1"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^4.41.0"
     uuid: "npm:^11.1.1"
@@ -2752,9 +2752,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     dayjs: "npm:^1.11.23"
     ibm_db: "npm:^4.0.1"
     lodash: "npm:^4.18.1"
@@ -2768,9 +2768,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
     mariadb: "npm:^3.5.4"
@@ -2787,11 +2787,11 @@ __metadata:
     "@ephys/eslint-config-typescript": "npm:20.1.4"
     "@rushstack/eslint-patch": "npm:1.16.1"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/lodash": "npm:4.17.25"
     "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:22.20.4"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     concurrently: "npm:9.2.4"
     cross-env: "npm:10.1.0"
     esbuild: "npm:0.28.2"
@@ -2842,10 +2842,10 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
     "@types/sinon": "npm:17.0.4"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
     mocha: "npm:11.8.0"
@@ -2860,9 +2860,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
     mocha: "npm:11.8.0"
@@ -2891,10 +2891,10 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
     "@types/pg": "npm:^8.23.1"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     lodash: "npm:^4.18.1"
     mocha: "npm:11.8.0"
     pg: "npm:^8.23.0"
@@ -2923,9 +2923,9 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     lodash: "npm:^4.18.1"
     mocha: "npm:11.8.0"
     sqlite3: "npm:^6.0.1"
@@ -2936,10 +2936,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
-    "@types/chai": "npm:4.3.20"
+    "@types/chai": "npm:5.2.3"
     "@types/lodash": "npm:^4.17.25"
     "@types/mocha": "npm:10.0.10"
-    chai: "npm:4.5.0"
+    chai: "npm:6.2.2"
     concurrently: "npm:9.2.4"
     expect-type: "npm:0.19.0"
     lodash: "npm:^4.18.1"
@@ -2953,10 +2953,10 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
-    "@types/chai": "npm:4.3.20"
-    "@types/chai-as-promised": "npm:7.1.8"
-    chai: "npm:4.5.0"
-    chai-as-promised: "npm:7.1.2"
+    "@types/chai": "npm:5.2.3"
+    "@types/chai-as-promised": "npm:8.0.2"
+    chai: "npm:6.2.2"
+    chai-as-promised: "npm:8.0.2"
     lodash: "npm:^4.18.1"
     mocha: "npm:11.8.0"
   languageName: unknown
@@ -3327,12 +3327,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai-as-promised@npm:7.1.8":
-  version: 7.1.8
-  resolution: "@types/chai-as-promised@npm:7.1.8"
+"@types/chai-as-promised@npm:8.0.2":
+  version: 8.0.2
+  resolution: "@types/chai-as-promised@npm:8.0.2"
   dependencies:
     "@types/chai": "npm:*"
-  checksum: 10c0/c0a19cffe8d3f406b2cb9ba17f5f0efe318b14f27896d807b3199cc2231c16a4b5b6c464fdf2a939214de481de58cffd46c240539d3d4ece18659277d71ccc23
+  checksum: 10c0/94492694121ba3c8b16e61be5f3d91bf1996c37e7b5f85363f30e160344b32d42b7ad9606198e57a3b3c06eb3b36e345ac0494e7556fc406433d8e13f1b83a77
   languageName: node
   linkType: hard
 
@@ -3345,20 +3345,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/chai@npm:*":
+"@types/chai@npm:*, @types/chai@npm:5.2.3":
   version: 5.2.3
   resolution: "@types/chai@npm:5.2.3"
   dependencies:
     "@types/deep-eql": "npm:*"
     assertion-error: "npm:^2.0.1"
   checksum: 10c0/e0ef1de3b6f8045a5e473e867c8565788c444271409d155588504840ad1a53611011f85072188c2833941189400228c1745d78323dac13fcede9c2b28bacfb2f
-  languageName: node
-  linkType: hard
-
-"@types/chai@npm:4.3.20":
-  version: 4.3.20
-  resolution: "@types/chai@npm:4.3.20"
-  checksum: 10c0/4601189d611752e65018f1ecadac82e94eed29f348e1d5430e5681a60b01e1ecf855d9bcc74ae43b07394751f184f6970fac2b5561fc57a1f36e93a0f5ffb6e8
   languageName: node
   linkType: hard
 
@@ -3534,13 +3527,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon-chai@npm:3.2.12":
-  version: 3.2.12
-  resolution: "@types/sinon-chai@npm:3.2.12"
+"@types/sinon-chai@npm:4.0.0":
+  version: 4.0.0
+  resolution: "@types/sinon-chai@npm:4.0.0"
   dependencies:
     "@types/chai": "npm:*"
     "@types/sinon": "npm:*"
-  checksum: 10c0/2d4b865f117226c84d4fae861e702fa02598e2f347823dccb5dcdcf4bcc8a5f60fbf2c028feb34001d569b69ccbb401a42830cf85f4f5f2d0bd6283112b848f1
+  checksum: 10c0/9cc2b98ebd9d81cbb6fa234d81cf6d9a0f02af8e777bd19b66baa793455056c105640abc81e5108581f92ebd5753023920e99ee992fbd240e9dd28882bcd1276
   languageName: node
   linkType: hard
 
@@ -4452,13 +4445,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"assertion-error@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "assertion-error@npm:1.1.0"
-  checksum: 10c0/25456b2aa333250f01143968e02e4884a34588a8538fbbf65c91a637f1dbfb8069249133cd2f4e530f10f624d206a664e7df30207830b659e9f5298b00a4099b
-  languageName: node
-  linkType: hard
-
 "assertion-error@npm:^2.0.1":
   version: 2.0.1
   resolution: "assertion-error@npm:2.0.1"
@@ -5019,14 +5005,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai-as-promised@npm:7.1.2":
-  version: 7.1.2
-  resolution: "chai-as-promised@npm:7.1.2"
+"chai-as-promised@npm:8.0.2":
+  version: 8.0.2
+  resolution: "chai-as-promised@npm:8.0.2"
   dependencies:
-    check-error: "npm:^1.0.2"
+    check-error: "npm:^2.1.1"
   peerDependencies:
-    chai: ">= 2.1.2 < 6"
-  checksum: 10c0/ee20ed75296d8cbf828b2f3c9ad64627cee67b1a38b8e906ca59fe788fb6965ddb10f702ae66645ed88f15a905ade4f2d9f8540029e92e2d59b229c9f912273f
+    chai: ">= 2.1.2 < 7"
+  checksum: 10c0/829bcd98c04f0b108b2f7379efd33c668e53fbf0bda8d460dc63c96a709fd5de79909392aa78b4256de16a4d57640641d7affc516111e371d6e9f6aec1cc6c8a
   languageName: node
   linkType: hard
 
@@ -5039,22 +5025,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"chai@npm:4.5.0":
-  version: 4.5.0
-  resolution: "chai@npm:4.5.0"
-  dependencies:
-    assertion-error: "npm:^1.1.0"
-    check-error: "npm:^1.0.3"
-    deep-eql: "npm:^4.1.3"
-    get-func-name: "npm:^2.0.2"
-    loupe: "npm:^2.3.6"
-    pathval: "npm:^1.1.1"
-    type-detect: "npm:^4.1.0"
-  checksum: 10c0/b8cb596bd1aece1aec659e41a6e479290c7d9bee5b3ad63d2898ad230064e5b47889a3bc367b20100a0853b62e026e2dc514acf25a3c9385f936aa3614d4ab4d
-  languageName: node
-  linkType: hard
-
-"chai@npm:>1.9.0":
+"chai@npm:6.2.2, chai@npm:>1.9.0":
   version: 6.2.2
   resolution: "chai@npm:6.2.2"
   checksum: 10c0/e6c69e5f0c11dffe6ea13d0290936ebb68fcc1ad688b8e952e131df6a6d5797d5e860bc55cef1aca2e950c3e1f96daf79e9d5a70fb7dbaab4e46355e2635ed53
@@ -5147,12 +5118,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"check-error@npm:^1.0.2, check-error@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "check-error@npm:1.0.3"
-  dependencies:
-    get-func-name: "npm:^2.0.2"
-  checksum: 10c0/94aa37a7315c0e8a83d0112b5bfb5a8624f7f0f81057c73e4707729cdd8077166c6aefb3d8e2b92c63ee130d4a2ff94bad46d547e12f3238cc1d78342a973841
+"check-error@npm:^2.1.1":
+  version: 2.1.3
+  resolution: "check-error@npm:2.1.3"
+  checksum: 10c0/878e99038fb6476316b74668cd6a498c7e66df3efe48158fa40db80a06ba4258742ac3ee2229c4a2a98c5e73f5dff84eb3e50ceb6b65bbd8f831eafc8338607d
   languageName: node
   linkType: hard
 
@@ -5926,15 +5895,6 @@ __metadata:
     babel-plugin-macros:
       optional: true
   checksum: 10c0/d94bde6e6f780be4da4fd760288fcf755ec368872f4ac5218197200d86430aeb8d90a003a840bff1c20221188e3f23adced0119cb811c6873c70d0ac66d12832
-  languageName: node
-  linkType: hard
-
-"deep-eql@npm:^4.1.3":
-  version: 4.1.4
-  resolution: "deep-eql@npm:4.1.4"
-  dependencies:
-    type-detect: "npm:^4.0.0"
-  checksum: 10c0/264e0613493b43552fc908f4ff87b8b445c0e6e075656649600e1b8a17a57ee03e960156fce7177646e4d2ddaf8e5ee616d76bd79929ff593e5c79e4e5e6c517
   languageName: node
   linkType: hard
 
@@ -7799,13 +7759,6 @@ __metadata:
   version: 1.6.0
   resolution: "get-east-asian-width@npm:1.6.0"
   checksum: 10c0/7e72e9550fd49ca5b246f9af6bb2afc129c96412845ff6556b3274fd44817a381702ca17028efe9866b261a3d44254cbf21e6c90cf05b4b61675630af776d431
-  languageName: node
-  linkType: hard
-
-"get-func-name@npm:^2.0.1, get-func-name@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "get-func-name@npm:2.0.2"
-  checksum: 10c0/89830fd07623fa73429a711b9daecdb304386d237c71268007f788f113505ef1d4cc2d0b9680e072c5082490aec9df5d7758bf5ac6f1c37062855e8e3dc0b9df
   languageName: node
   linkType: hard
 
@@ -10109,15 +10062,6 @@ __metadata:
   bin:
     loose-envify: cli.js
   checksum: 10c0/655d110220983c1a4b9c0c679a2e8016d4b67f6e9c7b5435ff5979ecdb20d0813f4dec0a08674fcbdd4846a3f07edbb50a36811fd37930b94aaa0d9daceb017e
-  languageName: node
-  linkType: hard
-
-"loupe@npm:^2.3.6":
-  version: 2.3.7
-  resolution: "loupe@npm:2.3.7"
-  dependencies:
-    get-func-name: "npm:^2.0.1"
-  checksum: 10c0/71a781c8fc21527b99ed1062043f1f2bb30bdaf54fa4cf92463427e1718bc6567af2988300bc243c1f276e4f0876f29e3cbf7b58106fdc186915687456ce5bf4
   languageName: node
   linkType: hard
 
@@ -12579,13 +12523,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pathval@npm:^1.1.1":
-  version: 1.1.1
-  resolution: "pathval@npm:1.1.1"
-  checksum: 10c0/f63e1bc1b33593cdf094ed6ff5c49c1c0dc5dc20a646ca9725cc7fe7cd9995002d51d5685b9b2ec6814342935748b711bafa840f84c0bb04e38ff40a335c94dc
-  languageName: node
-  linkType: hard
-
 "pg-cloudflare@npm:^1.4.0":
   version: 1.4.0
   resolution: "pg-cloudflare@npm:1.4.0"
@@ -13987,13 +13924,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sinon-chai@npm:3.7.0":
-  version: 3.7.0
-  resolution: "sinon-chai@npm:3.7.0"
+"sinon-chai@npm:4.0.1":
+  version: 4.0.1
+  resolution: "sinon-chai@npm:4.0.1"
   peerDependencies:
-    chai: ^4.0.0
+    chai: ^5.0.0 || ^6.0.0
     sinon: ">=4.0.0"
-  checksum: 10c0/9bbb0494be89c313f5287c2a0c9890104e3070ad6bf06c359b0c3cd776ea6273f7846ee1ab01fa2e0328e741f8717348669ee232e83b94b193676a56f48d2c63
+  checksum: 10c0/3d49a66151143f05636b732d4cb3ed078703dac19c8f32dd422c6b207a5eeb8f3208fe770853cb01f183190af79cdc8b83ccd07ef85c3d1b932222cd2c18fcd3
   languageName: node
   linkType: hard
 
@@ -15065,7 +15002,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"type-detect@npm:^4.0.0, type-detect@npm:^4.1.0":
+"type-detect@npm:^4.1.0":
   version: 4.1.0
   resolution: "type-detect@npm:4.1.0"
   checksum: 10c0/df8157ca3f5d311edc22885abc134e18ff8ffbc93d6a9848af5b682730ca6a5a44499259750197250479c5331a8a75b5537529df5ec410622041650a7f293e2a
