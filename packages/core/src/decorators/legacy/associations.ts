@@ -138,28 +138,13 @@ export function initDecoratedAssociations(source: ModelStatic, sequelize: Sequel
 
     switch (type) {
       case 'BelongsTo':
-        BelongsToAssociation.associate(
-          AssociationSecret,
-          source,
-          target,
-          options as BelongsToOptions<string, string>,
-        );
+        BelongsToAssociation.associate(AssociationSecret, source, target, options);
         break;
       case 'HasOne':
-        HasOneAssociation.associate(
-          AssociationSecret,
-          source,
-          target,
-          options as HasOneOptions<string, string>,
-        );
+        HasOneAssociation.associate(AssociationSecret, source, target, options);
         break;
       case 'HasMany':
-        HasManyAssociation.associate(
-          AssociationSecret,
-          source,
-          target,
-          options as HasManyOptions<string, string>,
-        );
+        HasManyAssociation.associate(AssociationSecret, source, target, options);
         break;
       case 'BelongsToMany':
         BelongsToManyAssociation.associate(

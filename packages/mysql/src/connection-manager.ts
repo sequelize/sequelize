@@ -208,7 +208,7 @@ async function createConnection(
   config: MySql2.ConnectionOptions,
 ): Promise<MySqlConnection> {
   return new Promise((resolve, reject) => {
-    const connection: MySqlConnection = lib.createConnection(config) as MySqlConnection;
+    const connection: MySqlConnection = lib.createConnection(config);
 
     const errorHandler = (e: unknown) => {
       // clean up connect & error event if there is error
