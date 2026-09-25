@@ -298,12 +298,11 @@ async function clearDatabaseInternal(customSequelize: Sequelize) {
 }
 
 export async function clearDatabase(customSequelize: Sequelize = sequelize) {
-  await pTimeout(
-    clearDatabaseInternal(customSequelize),
-    CLEANUP_TIMEOUT,
-    `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
-    { customTimers: { setTimeout, clearTimeout } },
-  );
+  await pTimeout(clearDatabaseInternal(customSequelize), {
+    milliseconds: CLEANUP_TIMEOUT,
+    message: `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
+    customTimers: { setTimeout, clearTimeout },
+  });
 }
 
 afterEach('no running queries checker', () => {

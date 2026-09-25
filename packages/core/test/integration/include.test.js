@@ -10,7 +10,7 @@ const { and, DataTypes, or, Sequelize } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const current = Support.sequelize;
-const promiseProps = require('p-props');
+const { default: promiseProps } = require('p-props');
 
 function sortById(a, b) {
   return a.id < b.id ? -1 : 1;

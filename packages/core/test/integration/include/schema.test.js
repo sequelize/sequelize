@@ -9,7 +9,7 @@ const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
 const dialect = Support.sequelize.dialect;
-const promiseProps = require('p-props');
+const { default: promiseProps } = require('p-props');
 
 const sortById = function (a, b) {
   return a.id < b.id ? -1 : 1;
