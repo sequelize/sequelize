@@ -104,6 +104,18 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
 
         expect(() => Team.withSchema('newSchema')).not.to.throw();
       });
+
+      it("should preserve the ARRAY subtype's dialect binding through withSchema", () => {
+        const Team = sequelize.define('team', {
+          scores: DataTypes.ARRAY(DataTypes.DOUBLE),
+        });
+
+        const clonedAttribute = Team.withSchema(
+          'newSchema',
+        ).modelDefinition.physicalAttributes.get('scores')!;
+
+        expect(() => clonedAttribute.type.validate([Number.NaN])).not.to.throw();
+      });
     }
   });
   describe('schema delimiter', () => {
