@@ -7,7 +7,7 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
-const pMap = require('p-map');
+const { default: pMap } = require('p-map');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
