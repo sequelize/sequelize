@@ -43,6 +43,7 @@ import type { AcquireConnectionOptions } from './abstract-dialect/replication-po
 import { ReplicationPool } from './abstract-dialect/replication-pool.js';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
+import { ConnectionError } from './errors/connection-error.js';
 import { ConnectionAcquireTimeoutError } from './errors/connection/connection-acquire-timeout-error.js';
 import {
   legacyBuildAddAnyHook,
@@ -655,6 +656,14 @@ Connection options can be used at the root of the option bag, in the "replicatio
       );
     }
 
+    const validateConnection = (connection: Connection<Dialect>): boolean => {
+      if (options.pool?.validate) {
+        return options.pool.validate(connection);
+      }
+
+      return this.dialect.connectionManager.validate(connection);
+    };
+
     this.pool = new ReplicationPool<Connection<Dialect>, ConnectionOptions<Dialect>>({
       pool: {
         max: 5,
@@ -691,6 +700,15 @@ Connection options can be used at the root of the option bag, in the "replicatio
           if (!this.getDatabaseVersionIfExist()) {
             await this.#initializeDatabaseVersion(connection);
           }
+
+          // The pool does not validate new connections, and pool.destroy() cannot close a
+          // connection before the pool owns it, so a connection that broke during setup
+          // (e.g. its error handler fired) would otherwise be handed out.
+          if (!validateConnection(connection)) {
+            throw new ConnectionError(
+              new Error('The new connection failed validation after it was set up'),
+            );
+          }
         } catch (error) {
           // The pool only takes ownership of the connection once this function resolves,
           // so a connection whose setup failed must be closed here or it would be leaked.
@@ -707,13 +725,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
         await this.dialect.connectionManager.disconnect(connection);
         await this.hooks.runAsync('afterDisconnect', connection);
       },
-      validate: (connection: Connection<Dialect>): boolean => {
-        if (options.pool?.validate) {
-          return options.pool.validate(connection);
-        }
-
-        return this.dialect.connectionManager.validate(connection);
-      },
+      validate: validateConnection,
       beforeAcquire: async (acquireOptions: AcquireConnectionOptions): Promise<void> => {
         return this.hooks.runAsync('beforePoolAcquire', acquireOptions);
       },

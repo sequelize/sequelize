@@ -56,7 +56,9 @@ export class AbstractConnectionManager<
   }
 
   /**
-   * Determine if a connection is still valid or not
+   * Determine if a connection is still valid or not.
+   * Unless the `pool.validate` option is set, this is also called once for every new connection
+   * after it has been set up, so it must return true for a connection that was just created.
    *
    * @param _connection
    */
@@ -74,6 +76,9 @@ export class AbstractConnectionManager<
    * If this method throws, the connection is closed with {@link disconnect}.
    * Calling `pool.destroy()` on the connection from here does not throw, but it does not
    * close the connection either: the pool only takes ownership once setup is done.
+   * To have a connection that breaks during setup closed, make {@link validate} return false
+   * for it: once setup is done, the connection is checked with {@link validate} (or the
+   * `pool.validate` option), and closed if the check fails.
    *
    * @param _connection The connection returned by {@link connect}
    */
