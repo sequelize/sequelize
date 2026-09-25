@@ -18,7 +18,7 @@ const dayjs = require('dayjs');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   after(function () {

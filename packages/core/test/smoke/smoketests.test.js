@@ -5,7 +5,6 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../integration/support');
 const { DataTypes, sql } = require('@sequelize/core');
-const sinon = require('sinon');
 
 const dialect = Support.getTestDialect();
 
@@ -340,7 +339,7 @@ describe(Support.getTestDialectTeaser('Smoke Tests'), () => {
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   afterEach(function () {
