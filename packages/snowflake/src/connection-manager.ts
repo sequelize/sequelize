@@ -11,6 +11,7 @@ import {
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { isError } from '@sequelize/utils';
 import * as SnowflakeSdk from 'snowflake-sdk';
 import type { SnowflakeDialect } from './dialect.js';
 
@@ -50,14 +51,19 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
 
   /**
    * Connect with a snowflake database based on config, Handle any errors in connection
-   * Set the pool handlers on connection.error
-   * Also set proper timezone once connection is connected.
    *
    * @param config
    * @returns
    * @private
    */
   async connect(config: ConnectionOptions<SnowflakeDialect>): Promise<SnowflakeConnection> {
+    // Snowflake validates time zone names itself, but does not accept offsets like '+01:00'
+    if (!this.sequelize.options.keepDefaultTimezone && /^[+-]\d/.test(this.#getTimeZone())) {
+      throw new ConnectionError(
+        new Error('Snowflake only supports named timezones for the sequelize "timezone" option.'),
+      );
+    }
+
     try {
       const snowflakeConfig: SnowflakeSdk.ConnectionOptions = removeUndefined({
         schema: this.sequelize.options.schema,
@@ -76,34 +82,6 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
       });
 
       debug('connection acquired');
-
-      if (!this.sequelize.options.keepDefaultTimezone) {
-        // TODO: remove default timezone.
-        // default value is '+00:00', put a quick workaround for it.
-        const tzOffset =
-          this.sequelize.options.timezone === '+00:00'
-            ? 'Etc/UTC'
-            : this.sequelize.options.timezone;
-        const isNamedTzOffset = tzOffset.includes('/');
-        if (!isNamedTzOffset) {
-          throw new Error(
-            'Snowflake only supports named timezones for the sequelize "timezone" option.',
-          );
-        }
-
-        await new Promise<void>((resolve, reject) => {
-          connection.execute({
-            sqlText: `ALTER SESSION SET timezone = '${tzOffset}'`,
-            complete(err) {
-              if (err) {
-                return void reject(err);
-              }
-
-              resolve();
-            },
-          });
-        });
-      }
 
       return connection;
     } catch (error) {
@@ -126,6 +104,41 @@ export class SnowflakeConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
+  }
+
+  async initializeConnection(connection: SnowflakeConnection): Promise<void> {
+    if (this.sequelize.options.keepDefaultTimezone) {
+      return;
+    }
+
+    try {
+      await new Promise<void>((resolve, reject) => {
+        connection.execute({
+          sqlText: `ALTER SESSION SET timezone = '${this.#getTimeZone()}'`,
+          complete(err) {
+            if (err) {
+              return void reject(err);
+            }
+
+            resolve();
+          },
+        });
+      });
+    } catch (error) {
+      if (!isError(error)) {
+        throw error;
+      }
+
+      throw new ConnectionError(error);
+    }
+  }
+
+  #getTimeZone(): string {
+    // TODO: remove default timezone.
+    // default value is '+00:00', put a quick workaround for it.
+    return this.sequelize.options.timezone === '+00:00'
+      ? 'Etc/UTC'
+      : this.sequelize.options.timezone;
   }
 
   async disconnect(connection: SnowflakeConnection): Promise<void> {
