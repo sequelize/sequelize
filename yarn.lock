@@ -476,7 +476,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/core-auth@npm:^1.10.0, @azure/core-auth@npm:^1.3.0, @azure/core-auth@npm:^1.4.0, @azure/core-auth@npm:^1.7.2, @azure/core-auth@npm:^1.9.0":
+"@azure/core-auth@npm:^1.10.0, @azure/core-auth@npm:^1.10.1, @azure/core-auth@npm:^1.3.0, @azure/core-auth@npm:^1.4.0, @azure/core-auth@npm:^1.9.0":
   version: 1.11.0
   resolution: "@azure/core-auth@npm:1.11.0"
   dependencies:
@@ -587,7 +587,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/identity@npm:^4.10.1, @azure/identity@npm:^4.2.1":
+"@azure/identity@npm:^4.10.1":
   version: 4.13.2
   resolution: "@azure/identity@npm:4.13.2"
   dependencies:
@@ -607,6 +607,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/identity@npm:^4.13.1":
+  version: 4.13.3
+  resolution: "@azure/identity@npm:4.13.3"
+  dependencies:
+    "@azure/abort-controller": "npm:^2.0.0"
+    "@azure/core-auth": "npm:^1.9.0"
+    "@azure/core-client": "npm:^1.9.2"
+    "@azure/core-process": "npm:^1.0.0"
+    "@azure/core-rest-pipeline": "npm:^1.17.0"
+    "@azure/core-tracing": "npm:^1.0.0"
+    "@azure/core-util": "npm:^1.11.0"
+    "@azure/logger": "npm:^1.0.0"
+    "@azure/msal-browser": "npm:^5.5.0"
+    "@azure/msal-node": "npm:^6.0.0"
+    open: "npm:^10.1.0"
+    tslib: "npm:^2.2.0"
+  checksum: 10c0/bea0ecdea2bce865cdae468bd90df300b0874980302d315b754257684be3048eb225d15ddae32cde40cad3afcd30c39c35ed0458b6ebec32bfff9b28f82fd762
+  languageName: node
+  linkType: hard
+
 "@azure/keyvault-common@npm:^2.1.0":
   version: 2.1.0
   resolution: "@azure/keyvault-common@npm:2.1.0"
@@ -623,7 +643,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/keyvault-keys@npm:^4.4.0":
+"@azure/keyvault-keys@npm:^4.10.2":
   version: 4.10.2
   resolution: "@azure/keyvault-keys@npm:4.10.2"
   dependencies:
@@ -675,6 +695,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@azure/msal-common@npm:16.14.1":
+  version: 16.14.1
+  resolution: "@azure/msal-common@npm:16.14.1"
+  checksum: 10c0/99abadb8ce40cf234e534776806e17a76904d9f99af069e20e6e7513cb3956428809672cb7fc2e1bde6ab0684b7027225514fe0d11671017b985ce7db8886087
+  languageName: node
+  linkType: hard
+
 "@azure/msal-node@npm:^5.1.5":
   version: 5.6.0
   resolution: "@azure/msal-node@npm:5.6.0"
@@ -682,6 +709,16 @@ __metadata:
     "@azure/msal-common": "npm:16.13.0"
     jsonwebtoken: "npm:^9.0.0"
   checksum: 10c0/57e788bb884aa032b66ecfa339c4660b20e63ec91f25774db47b2e043ba6d5f969d66cd80c24bd4f2735388cef6acc2aba79a9b86da18aed2dbe856c88f49df2
+  languageName: node
+  linkType: hard
+
+"@azure/msal-node@npm:^6.0.0":
+  version: 6.0.1
+  resolution: "@azure/msal-node@npm:6.0.1"
+  dependencies:
+    "@azure/msal-common": "npm:16.14.1"
+    jsonwebtoken: "npm:^9.0.0"
+  checksum: 10c0/feab144530e708b3d9c7e50a30e3339a460fc4d9879c8841795ffea49bab78395963c0740235a9e585d8c81587291ed286ff6b99fdd5236748ff662e2aea75c8
   languageName: node
   linkType: hard
 
@@ -3005,7 +3042,7 @@ __metadata:
     lodash: "npm:^4.18.1"
     mocha: "npm:11.8.0"
     sinon: "npm:18.0.1"
-    tedious: "npm:^19.2.2"
+    tedious: "npm:^20.3.2"
   languageName: unknown
   linkType: soft
 
@@ -3647,7 +3684,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:*, @types/node@npm:>=18, @types/node@npm:>=20, @types/node@npm:^26.4.0":
+"@types/node@npm:*, @types/node@npm:>=20, @types/node@npm:>=22, @types/node@npm:^26.4.0":
   version: 26.6.2
   resolution: "@types/node@npm:26.6.2"
   dependencies:
@@ -13616,21 +13653,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tedious@npm:^19.2.2":
-  version: 19.2.2
-  resolution: "tedious@npm:19.2.2"
+"tedious@npm:^20.3.2":
+  version: 20.3.3
+  resolution: "tedious@npm:20.3.3"
   dependencies:
-    "@azure/core-auth": "npm:^1.7.2"
-    "@azure/identity": "npm:^4.2.1"
-    "@azure/keyvault-keys": "npm:^4.4.0"
+    "@azure/core-auth": "npm:^1.10.1"
+    "@azure/identity": "npm:^4.13.1"
+    "@azure/keyvault-keys": "npm:^4.10.2"
     "@js-joda/core": "npm:^6.0.1"
-    "@types/node": "npm:>=18"
+    "@types/node": "npm:>=22"
     bl: "npm:^6.1.4"
     iconv-lite: "npm:^0.7.0"
     js-md4: "npm:^0.3.2"
     native-duplexpair: "npm:^1.0.0"
     sprintf-js: "npm:^1.1.3"
-  checksum: 10c0/edb2fe56e9878a269e2c2d3a81213b06b285c42e5788200d76c5ed738e86940689cef244b2cf830e1f058ad2cce0017d88508fdf9631193118124e57fb5c0719
+  checksum: 10c0/703302f429ff1bc3481946113309e7a473e2d83b7fe3c99f692e567804c4eaa4d40ca16d475fef5b7d9f64a3d2df74bcac8ab0cab93dfa6d097fa8996439572e
   languageName: node
   linkType: hard
 
