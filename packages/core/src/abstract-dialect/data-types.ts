@@ -2504,6 +2504,18 @@ export class ARRAY<T extends AbstractDataType<any>> extends AbstractDataType<
     return replacement;
   }
 
+  clone(): this {
+    const clone = super.clone();
+
+    // The subtype instance must not be shared with the DataType this was cloned from,
+    // as #attachUsageContext mutates it directly (instead of replacing it with a copy).
+    if (!isString(clone.options.type)) {
+      clone.options.type = clone.options.type.clone();
+    }
+
+    return clone;
+  }
+
   attachUsageContext(usageContext: DataTypeUseContext): this {
     if (!isString(this.options.type)) {
       this.options.type.attachUsageContext(usageContext);
