@@ -1,6 +1,8 @@
 'use strict';
 
 const chai = require('chai');
+const sinon = require('sinon');
+const { ConnectionError } = require('@sequelize/core');
 
 const expect = chai.expect;
 const Support = require('./support');
@@ -89,33 +91,35 @@ describe(Support.getTestDialectTeaser('Timezone'), () => {
     });
   }
 
-  it('throws an error when passing an invalid timezone', async () => {
-    const sequelize = Support.createSequelizeInstance({ timezone: 'Invalid/Timezone' });
-    let error;
+  for (const [title, timezone] of [
+    ['an invalid timezone', 'Invalid/Timezone'],
+    ['an invalid timezone offset', '+01:70'],
+  ]) {
+    it(`throws a ConnectionError and closes the connection when passing ${title}`, async () => {
+      const sequelize = Support.createSequelizeInstance({ timezone });
+      const { connectionManager } = sequelize.dialect;
+      const connectSpy = sinon.spy(connectionManager, 'connect');
 
-    try {
-      await sequelize.authenticate();
-    } catch (error_) {
-      error = error_;
-    }
+      try {
+        await expect(sequelize.authenticate()).to.be.rejectedWith(ConnectionError);
+        expect(connectSpy).to.have.been.calledOnce;
 
-    sequelize.close();
+        // Some dialects check or set the time zone while connecting, in which case connect() rejects
+        // and there is no connection to check. Postgres sets it once connected.
+        const connection = await connectSpy.firstCall.returnValue.catch(() => null);
+        if (dialectName === 'postgres') {
+          expect(connection, 'connect() should have resolved').to.be.ok;
+        }
 
-    expect(error).to.be.instanceOf(Error);
-  });
-
-  it('throws an error when passing an invalid timezone offset', async () => {
-    const sequelize = Support.createSequelizeInstance({ timezone: '+01:70' });
-    let error;
-
-    try {
-      await sequelize.authenticate();
-    } catch (error_) {
-      error = error_;
-    }
-
-    sequelize.close();
-
-    expect(error).to.be.instanceOf(Error);
-  });
+        if (connection) {
+          expect(connectionManager.validate(connection), 'the connection was not closed').to.equal(
+            false,
+          );
+        }
+      } finally {
+        connectSpy.restore();
+        await sequelize.close();
+      }
+    });
+  }
 });
