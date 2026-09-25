@@ -5,14 +5,13 @@ const { DataTypes } = require('@sequelize/core');
 const chai = require('chai');
 
 const expect = chai.expect;
-const sinon = require('sinon');
 
 const current = Support.sequelize;
 const { dialect } = current;
 
 describe('Paranoid Model', () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   after(function () {

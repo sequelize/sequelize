@@ -10,12 +10,12 @@ import { DataTypes, InstanceError, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, HasMany, NotNull, Table } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import sinon from 'sinon';
 import {
   beforeAll2,
   createSingleTransactionalTestSequelizeInstance,
   sequelize,
   setResetMode,
+  useFakeTimers,
 } from '../support';
 
 describe('Model#reload', () => {
@@ -23,7 +23,7 @@ describe('Model#reload', () => {
     setResetMode('destroy');
 
     const vars = beforeAll2(async () => {
-      const clock = sinon.useFakeTimers();
+      const clock = useFakeTimers();
 
       class Book extends Model<InferAttributes<Book>, InferCreationAttributes<Book>> {
         declare id: CreationOptional<number>;
