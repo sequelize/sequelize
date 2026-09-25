@@ -110,9 +110,8 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
           scores: DataTypes.ARRAY(DataTypes.DOUBLE),
         });
 
-        const clonedAttribute = Team.withSchema(
-          'newSchema',
-        ).modelDefinition.physicalAttributes.get('scores')!;
+        const clonedAttribute =
+          Team.withSchema('newSchema').modelDefinition.physicalAttributes.get('scores')!;
 
         expect(() => clonedAttribute.type.validate([Number.NaN])).not.to.throw();
       });
