@@ -318,6 +318,154 @@ describe('sequelize.pool', () => {
     });
   });
 
+  describe('setup failure', () => {
+    let sandbox: SinonSandbox;
+
+    beforeEach(() => {
+      sandbox = sinon.createSandbox();
+    });
+
+    afterEach(() => {
+      sandbox.restore();
+    });
+
+    function stubConnectionManager(sequelize2: Sequelize) {
+      const connection = {};
+      const { connectionManager } = sequelize2.dialect;
+
+      return {
+        connection,
+        initializeConnection: sandbox.stub(connectionManager, 'initializeConnection').resolves(),
+        disconnect: sandbox.stub(connectionManager, 'disconnect').resolves(),
+        connect: sandbox.stub(connectionManager, 'connect').resolves(connection),
+      };
+    }
+
+    it('disconnects the connection if initializeConnection throws', async () => {
+      const sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+      });
+      const stubs = stubConnectionManager(sequelize2);
+      const setupError = new Error('setup failed');
+      stubs.initializeConnection.rejects(setupError);
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(
+        sinon.match.same(stubs.connection),
+      );
+    });
+
+    it('disconnects the connection if the afterConnect hook throws', async () => {
+      const sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+      });
+      const stubs = stubConnectionManager(sequelize2);
+      const hooks = spyOnDisconnectHooks(sequelize2);
+      const setupError = new Error('hook failed');
+      sequelize2.hooks.addListener('afterConnect', () => {
+        throw setupError;
+      });
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(
+        sinon.match.same(stubs.connection),
+      );
+      // The afterConnect hook did not complete
+      expect(hooks.beforeDisconnect).not.to.have.been.called;
+      expect(hooks.afterDisconnect).not.to.have.been.called;
+    });
+
+    it('disconnects the connection if fetching the database version fails', async () => {
+      const sequelize2 = createSequelizeInstance();
+      const stubs = stubConnectionManager(sequelize2);
+      const setupError = new Error('version query failed');
+      sandbox.stub(sequelize2, 'fetchDatabaseVersion').rejects(setupError);
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(
+        sinon.match.same(stubs.connection),
+      );
+    });
+
+    function spyOnDisconnectHooks(sequelize2: Sequelize) {
+      const beforeDisconnect = sinon.spy();
+      const afterDisconnect = sinon.spy();
+      sequelize2.hooks.addListener('beforeDisconnect', beforeDisconnect);
+      sequelize2.hooks.addListener('afterDisconnect', afterDisconnect);
+
+      return { beforeDisconnect, afterDisconnect };
+    }
+
+    it('runs the disconnect hooks if the afterConnect hook had run', async () => {
+      const sequelize2 = createSequelizeInstance();
+      const stubs = stubConnectionManager(sequelize2);
+      const hooks = spyOnDisconnectHooks(sequelize2);
+      const setupError = new Error('version query failed');
+      sandbox.stub(sequelize2, 'fetchDatabaseVersion').rejects(setupError);
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      const connection = sinon.match.same(stubs.connection);
+      expect(hooks.beforeDisconnect).to.have.been.calledOnceWithExactly(connection);
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(connection);
+      expect(hooks.afterDisconnect).to.have.been.calledOnceWithExactly(connection);
+    });
+
+    it('does not run the disconnect hooks if the afterConnect hook had not run', async () => {
+      const sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+      });
+      const stubs = stubConnectionManager(sequelize2);
+      const hooks = spyOnDisconnectHooks(sequelize2);
+      const setupError = new Error('setup failed');
+      stubs.initializeConnection.rejects(setupError);
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      expect(stubs.disconnect).to.have.been.calledOnce;
+      expect(hooks.beforeDisconnect).not.to.have.been.called;
+      expect(hooks.afterDisconnect).not.to.have.been.called;
+    });
+
+    it('closes the connection even if a beforeDisconnect hook throws', async () => {
+      const sequelize2 = createSequelizeInstance();
+      const stubs = stubConnectionManager(sequelize2);
+      const hooks = spyOnDisconnectHooks(sequelize2);
+      sequelize2.hooks.addListener('beforeDisconnect', () => {
+        throw new Error('beforeDisconnect failed');
+      });
+      const setupError = new Error('version query failed');
+      sandbox.stub(sequelize2, 'fetchDatabaseVersion').rejects(setupError);
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      expect(stubs.disconnect).to.have.been.calledOnceWithExactly(
+        sinon.match.same(stubs.connection),
+      );
+      expect(hooks.afterDisconnect).to.have.been.calledOnce;
+    });
+
+    it('rejects with the setup error if disconnecting also fails', async () => {
+      const sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+      });
+      const stubs = stubConnectionManager(sequelize2);
+      const setupError = new Error('setup failed');
+      stubs.initializeConnection.rejects(setupError);
+      stubs.disconnect.rejects(new Error('disconnect failed'));
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(setupError);
+      expect(stubs.disconnect).to.have.been.calledOnce;
+    });
+
+    it('does not disconnect the connection if setup succeeds', async () => {
+      const sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+      });
+      const stubs = stubConnectionManager(sequelize2);
+
+      expect(await sequelize2.pool.acquire()).to.equal(stubs.connection);
+      expect(stubs.disconnect).not.to.have.been.called;
+    });
+  });
+
   describe('destroy', () => {
     let sequelize2: Sequelize;
     let connectStub: SinonStub;

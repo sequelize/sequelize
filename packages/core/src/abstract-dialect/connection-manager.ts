@@ -71,13 +71,20 @@ export class AbstractConnectionManager<
   /**
    * Called after {@link connect}, once the connection has been registered with the pool.
    * Override this to attach error handlers or run post-connection setup queries.
+   * If this method throws, the connection is closed with {@link disconnect}.
    * Calling `pool.destroy()` on the connection from here does not throw, but it does not
-   * close the connection either: the pool only takes ownership once this method resolves.
+   * close the connection either: the pool only takes ownership once setup is done.
    *
    * @param _connection The connection returned by {@link connect}
    */
   async initializeConnection(_connection: TConnection): Promise<void> {}
 
+  /**
+   * Closes the connection. This can also be called with a connection whose setup failed,
+   * which the pool never handed out, and which may already be closed.
+   *
+   * @param _connection The connection to close
+   */
   async disconnect(_connection: TConnection): Promise<void> {
     throw new Error(`disconnect not implemented in ${this.constructor.name}`);
   }
