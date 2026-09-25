@@ -7,12 +7,11 @@ const Support = require('./support');
 const { DataTypes, sql } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
-const sinon = require('sinon');
 const isUUID = require('validator').isUUID;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   afterEach(function () {

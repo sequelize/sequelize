@@ -3,12 +3,12 @@ import { DataTypes, Model } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import sinon from 'sinon';
 import {
   beforeAll2,
   createSingleTransactionalTestSequelizeInstance,
   sequelize,
   setResetMode,
+  useFakeTimers,
 } from '../support';
 
 describe('Model#increment', () => {
@@ -48,7 +48,7 @@ describe('Model#increment', () => {
 
   context('without transactions', () => {
     const vars = beforeAll2(async () => {
-      const clock = sinon.useFakeTimers();
+      const clock = useFakeTimers();
 
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
         declare id: number;
