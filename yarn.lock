@@ -2877,10 +2877,10 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
-    "@types/oracledb": "npm:^6.10.4"
+    "@types/oracledb": "npm:^7.0.3"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
-    oracledb: "npm:^6.10.0"
+    oracledb: "npm:^7.0.1"
     semver: "npm:^7.8.5"
   languageName: unknown
   linkType: soft
@@ -3498,12 +3498,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/oracledb@npm:^6.10.4":
-  version: 6.10.4
-  resolution: "@types/oracledb@npm:6.10.4"
+"@types/oracledb@npm:^7.0.3":
+  version: 7.0.3
+  resolution: "@types/oracledb@npm:7.0.3"
   dependencies:
     "@types/node": "npm:*"
-  checksum: 10c0/af334ba3d257525c72963afc464b73946d80f89bf431c0609da751c41aaf0f932d69164bacfafc419d001e261672bb612ea42a545c0b16f45087892106c901ed
+  checksum: 10c0/3e74a6012f7b8b5968959e746cc0264f4bbfa058ccd295952b3a2d884c06ac3642af447defd7ff52a0028134ab2ec975fb741f42c34c43ad0265ad4304f0aceb
   languageName: node
   linkType: hard
 
@@ -12108,10 +12108,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oracledb@npm:^6.10.0":
-  version: 6.10.0
-  resolution: "oracledb@npm:6.10.0"
-  checksum: 10c0/bd3c551a1fc2f3aeceeee5002a64c1104320195516b37c05252bb7e722b2de7c3ea041279c2d6c00501b4b595704aad3e200970583e8eb359b651314235ef6fc
+"oracledb@npm:^7.0.1":
+  version: 7.0.1
+  resolution: "oracledb@npm:7.0.1"
+  checksum: 10c0/108c85f877a26edfb0228a2393f3e2ba5390b44f759303d48170993497540f75364f96d428832aa60ed0739aaebec666e0e0d179761197e86eaec92dcc0b3255
   languageName: node
   linkType: hard
 
