@@ -9,7 +9,8 @@ import { beforeAll2, sequelize, setResetMode } from '../../support';
  * These tests verify that such attributes can be created, synced and queried against a real database.
  *
  * Not tested here: NUL (rejected by every database) and astral-plane characters such as emojis
- * (rejected by mariadb in identifiers).
+ * (rejected by mariadb in identifiers). Values are kept ASCII because the default charset of some
+ * database images (e.g. the oldest mariadb) cannot store non-latin values, which is unrelated to what is tested here.
  */
 describe('Model attributes with special characters in their name', () => {
   setResetMode('none');
@@ -19,7 +20,6 @@ describe('Model attributes with special characters in their name', () => {
       declare 'first-name': string;
       declare 'café': number;
       declare 'a b': number;
-      declare 'a"b': number;
       declare 'a`b': number;
       declare "a'b": number;
       declare '名前': string;
@@ -33,7 +33,6 @@ describe('Model attributes with special characters in their name', () => {
         'first-name': DataTypes.STRING,
         café: DataTypes.INTEGER,
         'a b': DataTypes.INTEGER,
-        'a"b': DataTypes.INTEGER,
         'a`b': DataTypes.INTEGER,
         "a'b": DataTypes.INTEGER,
         名前: DataTypes.STRING,
@@ -51,10 +50,9 @@ describe('Model attributes with special characters in their name', () => {
       'first-name': 'John',
       café: 1,
       'a b': 2,
-      'a"b': 3,
       'a`b': 4,
       "a'b": 5,
-      名前: 'ジョン',
+      名前: 'John',
       'a;b': 6,
       'a--b': 7,
       mapped: 8,
@@ -65,10 +63,9 @@ describe('Model attributes with special characters in their name', () => {
       'first-name': 'Jane',
       café: 10,
       'a b': 20,
-      'a"b': 30,
       'a`b': 40,
       "a'b": 50,
-      名前: 'ジェーン',
+      名前: 'Jane',
       'a;b': 60,
       'a--b': 70,
       mapped: 80,
@@ -81,10 +78,9 @@ describe('Model attributes with special characters in their name', () => {
     { attribute: 'first-name', value: 'John' },
     { attribute: 'café', value: 1 },
     { attribute: 'a b', value: 2 },
-    { attribute: 'a"b', value: 3 },
     { attribute: 'a`b', value: 4 },
     { attribute: "a'b", value: 5 },
-    { attribute: '名前', value: 'ジョン' },
+    { attribute: '名前', value: 'John' },
     { attribute: 'a;b', value: 6 },
     { attribute: 'a--b', value: 7 },
     { attribute: 'mapped', value: 8 },
@@ -133,7 +129,7 @@ describe('Model attributes with special characters in their name', () => {
   it('queries several special attributes at once', async () => {
     const users = await vars.User.findAll({
       where: {
-        [Op.or]: [{ 'a"b': 3 }, { 'a`b': 40 }],
+        [Op.or]: [{ "a'b": 5 }, { 'a`b': 40 }],
         'first-name': { [Op.ne]: 'nobody' },
       },
       order: [['café', 'ASC']],
@@ -153,6 +149,51 @@ describe('Model attributes with special characters in their name', () => {
 
     await vars.User.update({ 'a b': 2 }, { where: { 'first-name': 'John' } });
   });
+
+  // Oracle does not allow double quotes in identifiers at all (ORA-25716), so this one gets its own model.
+  if (sequelize.dialect.name !== 'oracle') {
+    describe('attribute names containing a double quote', () => {
+      const quotedVars = beforeAll2(async () => {
+        const Quoted = sequelize.define(
+          'Quoted',
+          {
+            'a"b': DataTypes.INTEGER,
+          },
+          { timestamps: false },
+        );
+
+        await Quoted.sync({ force: true });
+        await Quoted.create({ 'a"b': 3 });
+        await Quoted.create({ 'a"b': 30 });
+
+        return { Quoted };
+      });
+
+      it('queries the attribute through a WHERE POJO', async () => {
+        const rows = await quotedVars.Quoted.findAll({ where: { 'a"b': 3 } });
+
+        expect(rows).to.have.length(1);
+        expect(rows[0].get('a"b')).to.equal(3);
+      });
+
+      it('queries the attribute through an operator', async () => {
+        const rows = await quotedVars.Quoted.findAll({ where: { 'a"b': { [Op.ne]: 3 } } });
+
+        expect(rows).to.have.length(1);
+        expect(rows[0].get('a"b')).to.equal(30);
+      });
+
+      it('queries & selects the attribute through sql.attribute', async () => {
+        const row = await quotedVars.Quoted.findOne({
+          attributes: [[sql.attribute('a"b'), 'aliased']],
+          where: sql.where(sql.attribute('a"b'), 3),
+          rejectOnEmpty: true,
+        });
+
+        expect(row.getDataValue('aliased')).to.equal(3);
+      });
+    });
+  }
 
   describe('reserved characters', () => {
     const reservedNames: Array<{ name: string; reason: string }> = [
