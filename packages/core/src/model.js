@@ -45,6 +45,7 @@ import {
   _validateIncludedElements,
   combineIncludes,
   getModelPkWhere,
+  getTableNameWithSyncSchema,
   setTransactionFromCls,
   throwInvalidInclude,
 } from './model-internals';
@@ -844,23 +845,7 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.hooks.runAsync('beforeSync', options);
     }
 
-    const tableName = { ...this.table };
-    if (options.schema && options.schema !== tableName.schema) {
-      // Some users sync the same set of tables in different schemas for various reasons
-      // They then set `searchPath` when running a query to use different schemas.
-      // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
-      // We only allow this if the tables are in the default schema, because we need to ensure that
-      // all tables are in the same schema to prevent collisions and `searchPath` only works if we don't specify the schema
-      // (which we don't for the default schema)
-      if (tableName.schema !== this.sequelize.dialect.getDefaultSchema()) {
-        throw new Error(
-          `The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${this.name} already specifies schema ${tableName.schema}`,
-        );
-      }
-
-      tableName.schema = options.schema;
-    }
-
+    const tableName = getTableNameWithSyncSchema(this, options);
     delete options.schema;
 
     let tableExists;
@@ -1003,7 +988,15 @@ ${associationOwner._getAssociationDebugList()}`);
    * @returns {Promise}
    */
   static async drop(options) {
-    return await this.queryInterface.dropTable(this, options);
+    options = { ...options };
+
+    // Apply the same schema override used by Model.sync so bulk
+    // Sequelize#sync({ force: true, schema }) / Sequelize#drop({ schema })
+    // do not target tables in the default schema (#18423).
+    const tableName = getTableNameWithSyncSchema(this, options);
+    delete options.schema;
+
+    return await this.queryInterface.dropTable(tableName, options);
   }
 
   /**
