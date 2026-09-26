@@ -34,11 +34,7 @@ describe('Model#sync', () => {
 
   it('does not move a model that explicitly declares the default schema', async () => {
     const defaultSchema = dialect.getDefaultSchema();
-    const User = sequelize.define(
-      'SyncExplicitDefaultSchemaUser',
-      {},
-      { schema: defaultSchema },
-    );
+    const User = sequelize.define('SyncExplicitDefaultSchemaUser', {}, { schema: defaultSchema });
 
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     try {
