@@ -1,4 +1,4 @@
-import { literal } from '@sequelize/core';
+import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
 import assert from 'node:assert';
 import {
@@ -7,6 +7,8 @@ import {
   getTestDialectTeaser,
   sequelize,
 } from '../../support';
+
+const { ABSTRACT } = DataTypes;
 
 describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
   allowDeprecationsInSuite(['SEQUELIZE0009']);
@@ -95,6 +97,29 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
       expect(schema1.table.schema).to.equal('schema1');
       expect(schema2.table.schema).to.equal('schema1');
     });
+
+    if (sequelize.dialect.supports.dataTypes.ARRAY) {
+      it('should be able to call withSchema on a model with an ARRAY-typed attribute', () => {
+        const Team = sequelize.define('team', {
+          regions: DataTypes.ARRAY(DataTypes.STRING),
+        });
+
+        expect(() => Team.withSchema('newSchema')).not.to.throw();
+      });
+
+      it("should preserve the ARRAY subtype's dialect binding through withSchema", () => {
+        const Team = sequelize.define('team', {
+          scores: DataTypes.ARRAY(DataTypes.DOUBLE),
+        });
+
+        const clonedAttribute =
+          Team.withSchema('newSchema').modelDefinition.physicalAttributes.get('scores')!;
+        const clonedType = clonedAttribute.type;
+
+        assert(clonedType instanceof ABSTRACT);
+        expect(() => clonedType.validate([Number.NaN])).not.to.throw();
+      });
+    }
   });
   describe('schema delimiter', () => {
     it('should work with no default schema delimiter', () => {
