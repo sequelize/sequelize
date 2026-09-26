@@ -17,8 +17,8 @@ const {
 const sinon = require('sinon');
 
 const current = Support.sequelize;
-const delay = require('delay');
-const pSettle = require('p-settle');
+const { default: delay } = require('delay');
+const { default: pSettle } = require('p-settle');
 
 const fromQuery = () => {
   const { dummyTable } = current.dialect.supports.select;

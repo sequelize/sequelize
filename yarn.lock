@@ -2707,7 +2707,7 @@ __metadata:
     chai-datetime: "npm:1.8.1"
     dayjs: "npm:^1.11.23"
     debug: "npm:^4.4.3"
-    delay: "npm:5.0.0"
+    delay: "npm:7.0.0"
     expect-type: "npm:0.13.0"
     fast-glob: "npm:^3.3.3"
     fs-jetpack: "npm:5.1.0"
@@ -2717,10 +2717,10 @@ __metadata:
     mocha: "npm:11.8.0"
     moment: "npm:2.31.0"
     nyc: "npm:17.1.0"
-    p-map: "npm:4.0.0"
-    p-props: "npm:4.0.0"
-    p-settle: "npm:4.1.1"
-    p-timeout: "npm:4.1.0"
+    p-map: "npm:7.0.8"
+    p-props: "npm:6.1.0"
+    p-settle: "npm:5.2.1"
+    p-timeout: "npm:7.0.2"
     retry-as-promised: "npm:^7.1.1"
     rimraf: "npm:5.0.10"
     semver: "npm:^7.8.5"
@@ -5972,10 +5972,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"delay@npm:5.0.0":
-  version: 5.0.0
-  resolution: "delay@npm:5.0.0"
-  checksum: 10c0/01cdc4cd0cd35fb622518a3df848e67e09763a38e7cdada2232b6fda9ddda72eddcf74f0e24211200fbe718434f2335f2a2633875a6c96037fefa6de42896ad7
+"delay@npm:7.0.0":
+  version: 7.0.0
+  resolution: "delay@npm:7.0.0"
+  dependencies:
+    random-int: "npm:^3.1.0"
+    unlimited-timeout: "npm:^0.1.0"
+  checksum: 10c0/714811a891e76ad402355899d264867034231492b4606a5a4c137dca6015c766370d9fe082bfaa2c8fc992b1072ec9e32522f9ac1e98121995f303b86a4d9a02
   languageName: node
   linkType: hard
 
@@ -12064,7 +12067,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-limit@npm:^2.2.0, p-limit@npm:^2.2.2":
+"p-limit@npm:^2.2.0":
   version: 2.3.0
   resolution: "p-limit@npm:2.3.0"
   dependencies:
@@ -12079,6 +12082,15 @@ __metadata:
   dependencies:
     yocto-queue: "npm:^0.1.0"
   checksum: 10c0/9db675949dbdc9c3763c89e748d0ef8bdad0afbb24d49ceaf4c46c02c77d30db4e0652ed36d0a0a7a95154335fab810d95c86153105bb73b3a90448e2bb14e1a
+  languageName: node
+  linkType: hard
+
+"p-limit@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "p-limit@npm:4.0.0"
+  dependencies:
+    yocto-queue: "npm:^1.0.0"
+  checksum: 10c0/a56af34a77f8df2ff61ddfb29431044557fcbcb7642d5a3233143ebba805fc7306ac1d448de724352861cb99de934bc9ab74f0d16fe6a5460bdbdf938de875ad
   languageName: node
   linkType: hard
 
@@ -12125,12 +12137,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"p-map@npm:7.0.8":
+  version: 7.0.8
+  resolution: "p-map@npm:7.0.8"
+  checksum: 10c0/1913c452dce4e17e87f7e91d998a191b9b44b97a81f5dd0c7154d2eb00179c41465f414fa23a5b2ef5644a4124cef348a88bbfc9cff6fd56551650a8c4ff1211
+  languageName: node
+  linkType: hard
+
 "p-map@npm:^3.0.0":
   version: 3.0.0
   resolution: "p-map@npm:3.0.0"
   dependencies:
     aggregate-error: "npm:^3.0.0"
   checksum: 10c0/297930737e52412ad9f5787c52774ad6496fad9a8be5f047e75fd0a3dc61930d8f7a9b2bbe1c4d1404e54324228a4f69721da2538208dadaa4ef4c81773c9f20
+  languageName: node
+  linkType: hard
+
+"p-map@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "p-map@npm:6.0.0"
+  checksum: 10c0/3fcfccf464d0f4a9a8c8a2d48f3f0933bdbdb0628158c1fb3c240dc0bbf20c0cf8115dea57300aa82baefff7b9bd1b9daf13a11a6578f15a629fc5bda78d780d
   languageName: node
   linkType: hard
 
@@ -12148,12 +12174,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-props@npm:4.0.0":
-  version: 4.0.0
-  resolution: "p-props@npm:4.0.0"
+"p-props@npm:6.1.0":
+  version: 6.1.0
+  resolution: "p-props@npm:6.1.0"
   dependencies:
-    p-map: "npm:^4.0.0"
-  checksum: 10c0/bfac50cf3feea4f2c1c0847412a6a05159de61e990fc1ee65d8f195bf23ed85d59cf1b9847a14a8d006fb64db3f213897816ece6514178558aa3f4fa70bef73b
+    p-map: "npm:^6.0.0"
+  checksum: 10c0/4a128c052797ee48c6c50d88e0fa687bec8dc0ba05378c300dd94f729d33e0953aa8721d15464daeda7c04a343b6d9ed5c4bd698501b174aba446be9cdc9b9d1
   languageName: node
   linkType: hard
 
@@ -12174,27 +12200,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-reflect@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "p-reflect@npm:2.1.0"
-  checksum: 10c0/f8abec0a46f22662929e14df6c8cf7cdbf4dade21c42de0cd4c5f5b6e1be4d668f6406a431da7f97b1e321726b82fb4bb29cf70632d9b698c73e4455170f8f3f
+"p-reflect@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "p-reflect@npm:3.1.0"
+  checksum: 10c0/e26b3aec63f9095d9af3fd432ce01a33fb649099b8594c1e39c7bc958e93c8594584be2b9ec62f0409339b0f49bf2b626838b78699acdd12319be84b42bae850
   languageName: node
   linkType: hard
 
-"p-settle@npm:4.1.1":
-  version: 4.1.1
-  resolution: "p-settle@npm:4.1.1"
+"p-settle@npm:5.2.1":
+  version: 5.2.1
+  resolution: "p-settle@npm:5.2.1"
   dependencies:
-    p-limit: "npm:^2.2.2"
-    p-reflect: "npm:^2.1.0"
-  checksum: 10c0/d58739ce3e691ef70c857f182c7367765456327c12360dd316210c9003d533b09e361a5ee05f5d2a9171c676a2018db0477175f5fbdb2a10a639d4181e23cea8
+    p-limit: "npm:^4.0.0"
+    p-reflect: "npm:^3.1.0"
+  checksum: 10c0/966e9519517d247925b522fb9a623d048ba252c602f8742e109191f773fdd0f10b10b65e9a1c4d779d603e966c1b8f1da7d370a56c2d873a4964d31612d2e26b
   languageName: node
   linkType: hard
 
-"p-timeout@npm:4.1.0":
-  version: 4.1.0
-  resolution: "p-timeout@npm:4.1.0"
-  checksum: 10c0/25aaf13ae9ebfff4ab45591f6647f3bee1ecede073c367175fb0157c27efb170cfb51259a4d2e9118d2ca595453bc885f086ad0ca7476d1c26cee3d13a7c9f6d
+"p-timeout@npm:7.0.2":
+  version: 7.0.2
+  resolution: "p-timeout@npm:7.0.2"
+  checksum: 10c0/26595bbda27361a15231a82d8d3ef4f277bb3e9647aaa4a554b90012d03d22aaf28165b60afffe9425fb1326bd40b93f145d76eb23adb6b76d07d5f5d4c7964a
   languageName: node
   linkType: hard
 
@@ -13013,6 +13039,13 @@ __metadata:
   version: 7.5.0
   resolution: "rambda@npm:7.5.0"
   checksum: 10c0/7285b60cfc0737394dda6d467ef65a97221f9e208041d212378d78264d17acd372e09070f570af821314a9243b4edf465cbb5e15297ad44e484eac10535b8920
+  languageName: node
+  linkType: hard
+
+"random-int@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "random-int@npm:3.1.0"
+  checksum: 10c0/c8a8cd324bc6aeefdf4f6e1f88cf373da1acf63c3ee3992b1d4b267e13425a3d2aced531c7bb684a53670d139b4a710f7ac5cb3bf8d47b91e73bc777c3c86129
   languageName: node
   linkType: hard
 
@@ -15282,6 +15315,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"unlimited-timeout@npm:^0.1.0":
+  version: 0.1.0
+  resolution: "unlimited-timeout@npm:0.1.0"
+  checksum: 10c0/07b61f3ab7771254f3b742edde177b7d22439ac193025d6fa36d7f4b2064809886f37a9bcef4859d302d1bf3a18e17ca07d16032dc463e959e70cde18f288eb8
+  languageName: node
+  linkType: hard
+
 "unrs-resolver@npm:^1.6.2":
   version: 1.12.2
   resolution: "unrs-resolver@npm:1.12.2"
@@ -16075,6 +16115,13 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10c0/dceb44c28578b31641e13695d200d34ec4ab3966a5729814d5445b194933c096b7ced71494ce53a0e8820685d1d010df8b2422e5bf2cdea7e469d97ffbea306f
+  languageName: node
+  linkType: hard
+
+"yocto-queue@npm:^1.0.0":
+  version: 1.2.2
+  resolution: "yocto-queue@npm:1.2.2"
+  checksum: 10c0/36d4793e9cf7060f9da543baf67c55e354f4862c8d3d34de1a1b1d7c382d44171315cc54abf84d8900b8113d742b830108a1434f4898fb244f9b7e8426d4b8f5
   languageName: node
   linkType: hard
 
