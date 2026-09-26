@@ -1132,7 +1132,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
       options = { type: 'write', ...optionsOrCallback };
     }
 
-    const connection = await this.pool.acquire(options as GetConnectionOptions);
+    const connection = await this.pool.acquire(options);
 
     try {
       return await callback(connection);
