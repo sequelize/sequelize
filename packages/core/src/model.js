@@ -849,16 +849,22 @@ ${associationOwner._getAssociationDebugList()}`);
       // Some users sync the same set of tables in different schemas for various reasons
       // They then set `searchPath` when running a query to use different schemas.
       // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
-      // We only allow this if the tables are in the default schema, because we need to ensure that
-      // all tables are in the same schema to prevent collisions and `searchPath` only works if we don't specify the schema
-      // (which we don't for the default schema)
-      if (tableName.schema !== this.sequelize.dialect.getDefaultSchema()) {
-        throw new Error(
-          `The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${this.name} already specifies schema ${tableName.schema}`,
-        );
+      // We only allow this if the model does not explicitly declare its own schema
+      // (as opposed to merely resolving to the default schema because none was specified),
+      // because we need to ensure that all tables are in the same schema to prevent
+      // collisions and `searchPath` only works if we don't specify the schema (which we
+      // don't for the default schema). `tableName.schema` alone cannot tell these two
+      // cases apart, since an explicit default schema resolves to the same string as no
+      // schema at all, so the model's own options must be consulted instead.
+      if (modelDefinition.options.schema) {
+        if (tableName.schema !== this.sequelize.dialect.getDefaultSchema()) {
+          throw new Error(
+            `The "schema" option in sync can only be used on models that do not already specify a schema, or that are using the default schema. Model ${this.name} already specifies schema ${tableName.schema}`,
+          );
+        }
+      } else {
+        tableName.schema = options.schema;
       }
-
-      tableName.schema = options.schema;
     }
 
     delete options.schema;

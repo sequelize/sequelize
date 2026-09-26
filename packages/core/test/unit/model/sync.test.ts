@@ -32,6 +32,34 @@ describe('Model#sync', () => {
     );
   });
 
+  it('does not move a model that explicitly declares the default schema', async () => {
+    const defaultSchema = dialect.getDefaultSchema();
+    const User = sequelize.define(
+      'SyncExplicitDefaultSchemaUser',
+      {},
+      { schema: defaultSchema },
+    );
+
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    try {
+      await User.sync({ schema: 'tenant' });
+    } finally {
+      stub.restore();
+    }
+
+    const createQuery = stub
+      .getCalls()
+      .map(call => String(call.args[0]))
+      .find(query => query.includes('CREATE TABLE'));
+
+    expect(createQuery).to.include(
+      sequelize.queryGenerator.quoteTable({
+        tableName: User.table.tableName,
+        schema: defaultSchema,
+      }),
+    );
+  });
+
   it('rejects a sync schema when the model already declares another one', async () => {
     const User = sequelize.define('SyncSchemaUser', {}, { schema: 'other' });
 
