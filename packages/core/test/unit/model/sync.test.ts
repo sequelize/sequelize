@@ -56,6 +56,58 @@ describe('Model#sync', () => {
     );
   });
 
+  it('moves a scoped variant of a model that does not declare a schema', async () => {
+    const User = sequelize.define(
+      'SyncScopedImplicitSchemaUser',
+      { id: { type: DataTypes.INTEGER, primaryKey: true } },
+      { scopes: { active: { where: { id: 1 } } } },
+    );
+
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    try {
+      await User.withScope('active').sync({ schema: 'tenant' });
+    } finally {
+      stub.restore();
+    }
+
+    const createQuery = stub
+      .getCalls()
+      .map(call => String(call.args[0]))
+      .find(query => query.includes('CREATE TABLE'));
+
+    expect(createQuery).to.include(
+      sequelize.queryGenerator.quoteTable({ tableName: User.table.tableName, schema: 'tenant' }),
+    );
+  });
+
+  it('does not move a scoped variant of a model that explicitly declares the default schema', async () => {
+    const defaultSchema = dialect.getDefaultSchema();
+    const User = sequelize.define(
+      'SyncScopedExplicitDefaultSchemaUser',
+      { id: { type: DataTypes.INTEGER, primaryKey: true } },
+      { schema: defaultSchema, scopes: { active: { where: { id: 1 } } } },
+    );
+
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    try {
+      await User.withScope('active').sync({ schema: 'tenant' });
+    } finally {
+      stub.restore();
+    }
+
+    const createQuery = stub
+      .getCalls()
+      .map(call => String(call.args[0]))
+      .find(query => query.includes('CREATE TABLE'));
+
+    expect(createQuery).to.include(
+      sequelize.queryGenerator.quoteTable({
+        tableName: User.table.tableName,
+        schema: defaultSchema,
+      }),
+    );
+  });
+
   it('rejects a sync schema when the model already declares another one', async () => {
     const User = sequelize.define('SyncSchemaUser', {}, { schema: 'other' });
 
