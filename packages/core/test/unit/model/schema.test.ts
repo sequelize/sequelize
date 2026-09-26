@@ -8,6 +8,8 @@ import {
   sequelize,
 } from '../../support';
 
+const { ABSTRACT } = DataTypes;
+
 describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
   allowDeprecationsInSuite(['SEQUELIZE0009']);
 
@@ -112,8 +114,10 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
 
         const clonedAttribute =
           Team.withSchema('newSchema').modelDefinition.physicalAttributes.get('scores')!;
+        const clonedType = clonedAttribute.type;
 
-        expect(() => clonedAttribute.type.validate([Number.NaN])).not.to.throw();
+        assert(clonedType instanceof ABSTRACT);
+        expect(() => clonedType.validate([Number.NaN])).not.to.throw();
       });
     }
   });
