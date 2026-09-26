@@ -9,19 +9,43 @@ import globals from 'globals';
 const legacyPlugins = new Set(['import', 'json', 'lodash', 'sort-destructure-keys']);
 
 const ephysPreset = basePreset(import.meta.dirname).map(config => {
-  if (!config.plugins) {
-    return config;
+  let result = config;
+
+  if (config.plugins) {
+    result = {
+      ...result,
+      plugins: Object.fromEntries(
+        Object.entries(config.plugins).map(([name, plugin]) => [
+          name,
+          legacyPlugins.has(name) ? fixupPluginRules(plugin) : plugin,
+        ]),
+      ),
+    };
   }
 
-  return {
-    ...config,
-    plugins: Object.fromEntries(
-      Object.entries(config.plugins).map(([name, plugin]) => [
-        name,
-        legacyPlugins.has(name) ? fixupPluginRules(plugin) : plugin,
-      ]),
-    ),
-  };
+  // The preset tells eslint-plugin-import to parse .js files with @babel/eslint-parser,
+  // which it no longer depends on. typescript-eslint's parser handles plain JavaScript as well.
+  const importParsers = config.settings?.['import/parsers'];
+  if (importParsers) {
+    const { '@babel/eslint-parser': babelExtensions = [], ...parsers } = importParsers;
+
+    result = {
+      ...result,
+      settings: {
+        ...config.settings,
+        'import/parsers': {
+          ...parsers,
+          '@typescript-eslint/parser': [
+            ...(parsers['@typescript-eslint/parser'] ?? []),
+            ...babelExtensions,
+            '.cjs',
+          ],
+        },
+      },
+    };
+  }
+
+  return result;
 });
 
 export default [
