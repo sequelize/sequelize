@@ -258,23 +258,28 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
       dropOptions.cascade = true;
     }
 
-    // Remove all the foreign keys first in a loop to avoid deadlocks and timeouts
-    for (const tableName of tableNames) {
-      // eslint-disable-next-line no-await-in-loop
-      const foreignKeys = await this.showConstraints(tableName, {
-        ...options,
-        constraintType: 'FOREIGN KEY',
-      });
-
-      if (this.sequelize.dialect.supports.dropTable.concurrentDropConstraints) {
+    // Remove all the foreign keys first in a loop to avoid deadlocks and timeouts.
+    // Not needed with "cascade", which already drops the foreign keys that reference the dropped table.
+    if (!dropOptions.cascade) {
+      for (const tableName of tableNames) {
         // eslint-disable-next-line no-await-in-loop
-        await Promise.all(
-          foreignKeys.map(async fk => this.removeConstraint(tableName, fk.constraintName, options)),
-        );
-      } else {
-        for (const fk of foreignKeys) {
+        const foreignKeys = await this.showConstraints(tableName, {
+          ...options,
+          constraintType: 'FOREIGN KEY',
+        });
+
+        if (this.sequelize.dialect.supports.dropTable.concurrentDropConstraints) {
           // eslint-disable-next-line no-await-in-loop
-          await this.removeConstraint(tableName, fk.constraintName, options);
+          await Promise.all(
+            foreignKeys.map(async fk =>
+              this.removeConstraint(tableName, fk.constraintName, options),
+            ),
+          );
+        } else {
+          for (const fk of foreignKeys) {
+            // eslint-disable-next-line no-await-in-loop
+            await this.removeConstraint(tableName, fk.constraintName, options);
+          }
         }
       }
     }
