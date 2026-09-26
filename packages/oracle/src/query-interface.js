@@ -6,6 +6,17 @@ import intersection from 'lodash/intersection.js';
 import uniq from 'lodash/uniq.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
+  async showIndex(tableName, options) {
+    // Uses bind parameters so Oracle does not hard parse this dictionary query again for every table
+    const { bind, query } = this.queryGenerator.showIndexesQueryWithBind(tableName);
+
+    return await this.sequelize.queryRaw(query, {
+      ...options,
+      bind,
+      type: QueryTypes.SHOWINDEXES,
+    });
+  }
+
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
