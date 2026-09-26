@@ -94,7 +94,7 @@
     "lint-staged": "16.4.0",
     "lodash": "4.18.1",
     "markdownlint-cli": "0.49.1",
-    "mocha": "11.8.0",
+    "mocha": "12.0.2",
     "node-gyp": "13.0.2",
     "node-hook": "1.0.0",
     "nx": "23.2.1",
