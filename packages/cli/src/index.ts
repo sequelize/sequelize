@@ -6,5 +6,5 @@ export * from './api/get-migration-status.js';
 export * from './api/get-umzug.js';
 export * from './api/run-migrations.js';
 export * from './api/undo-migrations.js';
-export * from './config.js';
-export * from './types.js';
+export type * from './config.js';
+export type * from './types.js';

@@ -73,6 +73,7 @@ export abstract class DialectAwareFn extends BaseSqlExpression {
       throw new Error(`JavaScript is not supported by the ${this.constructor.name} function.`);
     }
 
+    // eslint-disable-next-line unicorn/consistent-function-scoping -- the arrow function captures `this`
     return () => this.applyForJavaScript();
   }
 
