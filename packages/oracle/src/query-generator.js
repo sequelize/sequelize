@@ -6,7 +6,6 @@ import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
 import includes from 'lodash/includes';
 import isPlainObject from 'lodash/isPlainObject';
-import toPath from 'lodash/toPath';
 import oracledb from 'oracledb';
 
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
@@ -17,6 +16,7 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import {
   EMPTY_OBJECT,
   EMPTY_SET,
@@ -978,22 +978,9 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   jsonPathExtractionQuery(column, path) {
-    let paths = toPath(path);
     const quotedColumn = this.isIdentifierQuoted(column) ? column : this.quoteIdentifier(column);
 
-    paths = paths.map(subPath => {
-      return /\D/.test(subPath) ? this.addTicks(subPath, '"') : subPath;
-    });
-
-    const pathStr = this.escape(
-      ['$']
-        .concat(paths)
-        .join('.')
-        .replaceAll(/\.(\d+)(?:(?=\.)|$)/g, (__, digit) => `[${digit}]`),
-    );
-    const extractQuery = `json_value(${quotedColumn},${pathStr})`;
-
-    return extractQuery;
+    return `json_value(${quotedColumn},${this.escape(buildJsonPath(path))})`;
   }
 
   booleanValue(value) {
