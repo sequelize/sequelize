@@ -1024,6 +1024,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await UserPublic.withSchema('special').sync({ force: true });
 
         let table = await this.sequelize.queryInterface.describeTable('Publics', {
+          // some dialects pass the schema as a bind parameter
+          logQueryParameters: true,
           logging(sql) {
             if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
               test++;
@@ -1043,6 +1045,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         table = await this.sequelize.queryInterface.describeTable(
           { tableName: 'Publics', schema: 'special' },
           {
+            logQueryParameters: true,
             logging(sql) {
               if (dialectName === 'sqlite3' && sql.includes('TABLE_INFO')) {
                 test++;
