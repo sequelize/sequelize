@@ -83,6 +83,45 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
         },
       );
     });
+
+    it('escapes control characters (e.g. newlines) in keys', () => {
+      // mysql rejects a JSON path that contains a raw newline, and mariadb silently returns NULL for it.
+      expectPerDialect(
+        () =>
+          queryGenerator.jsonPathExtractionQuery(
+            queryGenerator.quoteIdentifier('profile'),
+            ['a\nb', 'c\td'],
+            false,
+          ),
+        {
+          default: notSupportedError,
+          mysql: `json_extract(\`profile\`,'$."a\\\\nb"."c\\\\td"')`,
+          mariadb: `json_compact(json_extract(\`profile\`,'$."a\\\\nb"."c\\\\td"'))`,
+          postgres: `"profile"#>ARRAY['a\nb','c\td']::VARCHAR(255)[]`,
+          // TODO: the oracle path builder does not escape control characters
+          oracle: `json_value("profile",'$."a\nb"."c\td"')`,
+        },
+      );
+    });
+
+    it('supports the empty key', () => {
+      expectPerDialect(
+        () =>
+          queryGenerator.jsonPathExtractionQuery(
+            queryGenerator.quoteIdentifier('profile'),
+            ['x', ''],
+            false,
+          ),
+        {
+          default: notSupportedError,
+          mysql: `json_extract(\`profile\`,'$.x.""')`,
+          mariadb: `json_compact(json_extract(\`profile\`,'$.x.""'))`,
+          postgres: `"profile"#>ARRAY['x','']::VARCHAR(255)[]`,
+          // TODO: the oracle path builder produces an invalid path for the empty key
+          oracle: `json_value("profile",'$."x".')`,
+        },
+      );
+    });
   }
 
   if (dialect.supports.jsonExtraction.unquoted) {
@@ -135,6 +174,41 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mssql: `JSON_VALUE([profile], N'$.id.username[0]."0".name')`,
           'mysql mariadb sqlite3': `json_unquote(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
           postgres: `"profile"#>>ARRAY['id','username','0','0','name']::VARCHAR(255)[]`,
+        },
+      );
+    });
+
+    it('escapes control characters (e.g. newlines) in keys (unquoted)', () => {
+      expectPerDialect(
+        () =>
+          queryGenerator.jsonPathExtractionQuery(
+            queryGenerator.quoteIdentifier('profile'),
+            ['a\nb', 'c\td'],
+            true,
+          ),
+        {
+          default: notSupportedError,
+          mssql: `JSON_VALUE([profile], N'$."a\\nb"."c\\td"')`,
+          'mysql mariadb': `json_unquote(json_extract(\`profile\`,'$."a\\\\nb"."c\\\\td"'))`,
+          sqlite3: `json_unquote(json_extract(\`profile\`,'$."a\\nb"."c\\td"'))`,
+          postgres: `"profile"#>>ARRAY['a\nb','c\td']::VARCHAR(255)[]`,
+        },
+      );
+    });
+
+    it('supports the empty key (unquoted)', () => {
+      expectPerDialect(
+        () =>
+          queryGenerator.jsonPathExtractionQuery(
+            queryGenerator.quoteIdentifier('profile'),
+            ['x', ''],
+            true,
+          ),
+        {
+          default: notSupportedError,
+          mssql: `JSON_VALUE([profile], N'$.x.""')`,
+          'mysql mariadb sqlite3': `json_unquote(json_extract(\`profile\`,'$.x.""'))`,
+          postgres: `"profile"#>>ARRAY['x','']::VARCHAR(255)[]`,
         },
       );
     });
