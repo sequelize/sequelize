@@ -2407,9 +2407,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/core@npm:^4, @oclif/core@npm:^4.11.11, @oclif/core@npm:^4.13.3, @oclif/core@npm:^4.14.0":
-  version: 4.14.0
-  resolution: "@oclif/core@npm:4.14.0"
+"@oclif/core@npm:^5.0.0, @oclif/core@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "@oclif/core@npm:5.1.0"
   dependencies:
     ansi-escapes: "npm:^4.3.2"
     ansis: "npm:^3.17.0"
@@ -2429,54 +2429,54 @@ __metadata:
     wordwrap: "npm:^1.0.0"
     wrap-ansi: "npm:^7.0.0"
     wsl-utils: "npm:^0.4.0"
-  checksum: 10c0/369407d870740926aa3f26f7dc63eb9c7d55f1fa18da86d57317edd8efaa0e1c97b65ff25bb9468160975e086a775aef72c19f5fbdf10a90366c0fd3d3650a29
+  checksum: 10c0/72281bdfe4ebb8999302183de6a010f283a6372579c213b43d95571e50e590d4fc88d3c3dc6d3993869d92446f0b70cf725edef64fce0e960bd61ab7adb47e02
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^6.2.53, @oclif/plugin-help@npm:^6.3.0":
-  version: 6.3.0
-  resolution: "@oclif/plugin-help@npm:6.3.0"
+"@oclif/plugin-help@npm:^7.0.0":
+  version: 7.0.0
+  resolution: "@oclif/plugin-help@npm:7.0.0"
   dependencies:
-    "@oclif/core": "npm:^4"
-  checksum: 10c0/3f0dfc8286b0e1458406491f3563a38250421949a9e2919e4c066e2dc4eeeeecd7b1b074aaa7cbed9ff3f1113833b23e9c60b41051406c111eca7bc265ed7082
+    "@oclif/core": "npm:^5.0.0"
+  checksum: 10c0/851444f77ad2923bef39a78e4445b8842337469961bbc6e6f0ad2750f4410d0b803147c1afd35e029ab7cf54c86b2be55741e0de5d73bd798b89bf1b284bf19c
   languageName: node
   linkType: hard
 
-"@oclif/plugin-not-found@npm:^3.2.93":
-  version: 3.3.0
-  resolution: "@oclif/plugin-not-found@npm:3.3.0"
+"@oclif/plugin-not-found@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@oclif/plugin-not-found@npm:4.0.0"
   dependencies:
     "@inquirer/prompts": "npm:^7.10.1"
-    "@oclif/core": "npm:^4.13.3"
+    "@oclif/core": "npm:^5.0.0"
     ansis: "npm:^3.17.0"
     fast-levenshtein: "npm:^3.0.0"
-  checksum: 10c0/f4ddf1d8d41d2830cefa1e802b46043e0da92e68a7c73b8bf4bab7524fb465204eeccf8707f96464069127361ea168bb25419de563c429f33dd5449e3134c274
+  checksum: 10c0/deace218c441692f0658137d06378d8c9d6a24543babcc0a9224c0792cc4b6161942af0a7b17a55e97a3e70bad00383688dc58f2dd38806060d562ebe42f941a
   languageName: node
   linkType: hard
 
-"@oclif/plugin-warn-if-update-available@npm:^3.1.73":
-  version: 3.2.0
-  resolution: "@oclif/plugin-warn-if-update-available@npm:3.2.0"
+"@oclif/plugin-warn-if-update-available@npm:^4.0.0":
+  version: 4.0.0
+  resolution: "@oclif/plugin-warn-if-update-available@npm:4.0.0"
   dependencies:
-    "@oclif/core": "npm:^4"
+    "@oclif/core": "npm:^5.0.0"
     ansis: "npm:^3.17.0"
     debug: "npm:^4.4.3"
     http-call: "npm:^5.2.2"
     lodash: "npm:^4.18.1"
     registry-auth-token: "npm:^5.1.1"
-  checksum: 10c0/50a0b0e865048f0bd6ea6a4ae296c4d49e123f02a6c1f0c54c1567d944eb7dd42c0f84900d6da26ac8f95d3cd26a9108913a801319c096af13a8a1aea630f56e
+  checksum: 10c0/f2254478e77bb8007a8d8e3b3ddf7e434b49be556e3e2f76fa3b5f0d9763b8b13762f5af72b1cc2ab255026a8472153cf57884b4dbdb70e7adca10753b46cf1b
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:4.2.0":
-  version: 4.2.0
-  resolution: "@oclif/test@npm:4.2.0"
+"@oclif/test@npm:5.0.0":
+  version: 5.0.0
+  resolution: "@oclif/test@npm:5.0.0"
   dependencies:
     ansis: "npm:^3.17.0"
     debug: "npm:^4.4.3"
   peerDependencies:
-    "@oclif/core": ">= 3.0.0"
-  checksum: 10c0/458d62fcff82ab60a483c66d678ea8d1a5328b9b9182639a1a34fe92ea02488eed927a4a6f30c9cdef7ce6db81732e35b94116aeb9a4b260b5131018c2b62b57
+    "@oclif/core": ^5.0.0
+  checksum: 10c0/66ed8c1b9af351cd3cb2fa37acb3ea34108f9df150b5073ac3f6dde461be04671b67f64c056273690b68c3ec10d3602924d0a17013761388951849ef76e47605
   languageName: node
   linkType: hard
 
@@ -2707,9 +2707,9 @@ __metadata:
     "@inquirer/confirm": "npm:^5.1.21"
     "@inquirer/input": "npm:^4.3.1"
     "@inquirer/select": "npm:^4.4.2"
-    "@oclif/core": "npm:^4.14.0"
-    "@oclif/plugin-help": "npm:^6.3.0"
-    "@oclif/test": "npm:4.2.0"
+    "@oclif/core": "npm:^5.1.0"
+    "@oclif/plugin-help": "npm:^7.0.0"
+    "@oclif/test": "npm:5.0.0"
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
     "@sequelize/utils": "workspace:*"
@@ -2720,7 +2720,7 @@ __metadata:
     concurrently: "npm:9.2.4"
     cosmiconfig: "npm:^9.0.2"
     mocha: "npm:11.8.0"
-    oclif: "npm:4.24.0"
+    oclif: "npm:6.0.1"
     rimraf: "npm:5.0.10"
     umzug: "npm:^3.8.3"
     zod: "npm:^4.6.5"
@@ -11065,19 +11065,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oclif@npm:4.24.0":
-  version: 4.24.0
-  resolution: "oclif@npm:4.24.0"
+"oclif@npm:6.0.1":
+  version: 6.0.1
+  resolution: "oclif@npm:6.0.1"
   dependencies:
     "@aws-sdk/client-cloudfront": "npm:^3.1079.0"
     "@aws-sdk/client-s3": "npm:^3.1079.0"
     "@inquirer/confirm": "npm:^3.1.22"
     "@inquirer/input": "npm:^2.2.4"
     "@inquirer/select": "npm:^2.5.0"
-    "@oclif/core": "npm:^4.11.11"
-    "@oclif/plugin-help": "npm:^6.2.53"
-    "@oclif/plugin-not-found": "npm:^3.2.93"
-    "@oclif/plugin-warn-if-update-available": "npm:^3.1.73"
+    "@oclif/core": "npm:^5.0.0"
+    "@oclif/plugin-help": "npm:^7.0.0"
+    "@oclif/plugin-not-found": "npm:^4.0.0"
+    "@oclif/plugin-warn-if-update-available": "npm:^4.0.0"
     ansis: "npm:^3.16.0"
     async-retry: "npm:^1.3.3"
     change-case: "npm:^4"
@@ -11094,7 +11094,7 @@ __metadata:
     validate-npm-package-name: "npm:^5.0.1"
   bin:
     oclif: bin/run.js
-  checksum: 10c0/9431fe22afcdb204a76698ca9e4d0699001d5d8187b3cda03468d745986f4d1d1f3e3d65e371fc3fe047a8811195b97f0b2c027bfdf0b710616abb0a3d55315b
+  checksum: 10c0/71523bd7f01be81b8a600fa8634d834f171d72f4f23cf067037984b6f94cd740708e8c1d3aadd70c8527a8d5839527e60a163ea3c509df6552f20cd3c4fd2f7e
   languageName: node
   linkType: hard
 
