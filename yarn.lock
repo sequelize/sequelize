@@ -2742,7 +2742,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
-    odbc: "npm:^2.5.0"
+    odbc: "npm:^2.6.0"
   languageName: unknown
   linkType: soft
 
@@ -11967,14 +11967,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"odbc@npm:^2.5.0":
-  version: 2.5.0
-  resolution: "odbc@npm:2.5.0"
+"odbc@npm:^2.6.0":
+  version: 2.6.0
+  resolution: "odbc@npm:2.6.0"
   dependencies:
     "@mapbox/node-pre-gyp": "npm:^2.0.0"
     async: "npm:^3.0.1"
     node-addon-api: "npm:^3.0.2"
-  checksum: 10c0/146d26cda0e1762fba7abc9a305dd1d868160064ba22e3d87ec8de72fee3ad06eb05a7a30df8ecf299237268112dbe09a1305b499ff268dfa75ef6044caa7fe5
+  checksum: 10c0/16f8d1e8395777b191ad428fe9b5047903cb8b8e279aa5dc14cbf4432bb4b4a28a6bd72bccdc6d621e03a2e84438767d321ae6f46c8c5a453418d7bc6235ee09
   languageName: node
   linkType: hard
 
