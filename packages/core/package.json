@@ -41,7 +41,7 @@
     "./package.json": "./package.json"
   },
   "engines": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.18.0 || >=24.0.0"
   },
   "files": [
     "lib"

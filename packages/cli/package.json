@@ -13,7 +13,7 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "ansis": "^4.4.0",
-    "cosmiconfig": "^9.0.2",
+    "cosmiconfig": "^10.0.1",
     "umzug": "^3.8.3",
     "zod": "^4.6.5"
   },
@@ -30,7 +30,7 @@
     "rimraf": "5.0.10"
   },
   "engines": {
-    "node": "^22.13.0 || >=24.0.0"
+    "node": "^22.18.0 || >=24.0.0"
   },
   "exports": "./lib/index.js",
   "files": [
