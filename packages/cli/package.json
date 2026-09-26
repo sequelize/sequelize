@@ -12,7 +12,7 @@
     "@oclif/plugin-help": "^6.3.0",
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
-    "ansis": "^3.17.0",
+    "ansis": "^4.4.0",
     "cosmiconfig": "^9.0.2",
     "umzug": "^3.8.3",
     "zod": "^4.6.5"
