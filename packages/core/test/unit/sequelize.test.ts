@@ -1,8 +1,9 @@
 import { Sequelize, sql } from '@sequelize/core';
 import { expect } from 'chai';
+import oracledb from 'oracledb';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
-import { beforeEach2, createSequelizeInstance, sequelize } from '../support';
+import { beforeEach2, createSequelizeInstance, expectPerDialect, sequelize } from '../support';
 
 describe('Sequelize', () => {
   describe('version', () => {
@@ -36,6 +37,64 @@ describe('Sequelize', () => {
         'SELECT * FROM "users" WHERE id = 1 AND id2 = 2',
       );
     });
+  });
+
+  describe('queryRaw', () => {
+    const date = new Date('2012-01-10T09:10:10.123Z');
+
+    async function getBoundParameters(
+      sequelizeInstance: Sequelize,
+      sqlString: string,
+      bind: unknown[] | Record<string, unknown>,
+    ): Promise<unknown[]> {
+      const run = sinon.stub(sequelizeInstance.dialect.Query.prototype, 'run').resolves([]);
+      try {
+        await sequelizeInstance.queryRaw(sqlString, { bind, connection: {} as any });
+      } finally {
+        run.restore();
+      }
+
+      return Object.values(run.firstCall.args[1] as unknown[] | Record<string, unknown>);
+    }
+
+    it('binds Date values the same way as model queries', async () => {
+      const positional = await getBoundParameters(sequelize, 'SELECT $1, $2', [date, 'foo']);
+      const named = await getBoundParameters(sequelize, 'SELECT $date', { date });
+
+      expectPerDialect(() => [positional, named], {
+        default: [['2012-01-10 09:10:10.123', 'foo'], ['2012-01-10 09:10:10.123']],
+        'mssql sqlite3': [
+          ['2012-01-10 09:10:10.123 +00:00', 'foo'],
+          ['2012-01-10 09:10:10.123 +00:00'],
+        ],
+        postgres: [[date, 'foo'], [date]],
+        oracle: [
+          [{ type: oracledb.DB_TYPE_TIMESTAMP_LTZ, val: date }, 'foo'],
+          [{ type: oracledb.DB_TYPE_TIMESTAMP_LTZ, val: date }],
+        ],
+      });
+    });
+
+    it('does not modify the bind option', async () => {
+      const bind = { date };
+      await getBoundParameters(sequelize, 'SELECT $date', bind);
+
+      expect(bind).to.deep.equal({ date });
+      expect(bind.date).to.equal(date);
+    });
+
+    if (sequelize.dialect.supports.globalTimeZoneConfig) {
+      it('binds Date values in the configured timezone', async () => {
+        const sequelizeWithTimezone = createSequelizeInstance({ timezone: '+05:30' });
+        const parameters = await getBoundParameters(sequelizeWithTimezone, 'SELECT $1', [date]);
+        await sequelizeWithTimezone.close();
+
+        expectPerDialect(() => parameters, {
+          'mysql mariadb snowflake': ['2012-01-10 14:40:10.123'],
+          postgres: [date],
+        });
+      });
+    }
   });
 
   describe('setSessionVariables', () => {
