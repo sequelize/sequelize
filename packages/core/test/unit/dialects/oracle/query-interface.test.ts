@@ -56,4 +56,54 @@ describe('[Oracle Specific] QueryInterface', () => {
       });
     });
   });
+
+  describe('describeTable', () => {
+    it('passes the table and schema names as bind parameters', async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves({ id: {} });
+
+      await sequelize.queryInterface.describeTable({ tableName: 'myTable', schema: 'mySchema' });
+
+      expect(stub.callCount).to.equal(1);
+      const [sql, options] = stub.getCall(0).args;
+      expect(sql).to.include(
+        'WHERE (atc.OWNER = $sequelize_1) AND (atc.TABLE_NAME = $sequelize_2)',
+      );
+      expect(options?.bind).to.deep.equal({ sequelize_1: 'mySchema', sequelize_2: 'myTable' });
+    });
+  });
+
+  describe('showConstraints', () => {
+    it('passes the table, schema, constraint name and type as bind parameters', async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+
+      await sequelize.queryInterface.showConstraints(
+        { tableName: 'myTable', schema: 'mySchema' },
+        { constraintName: 'myConstraint', constraintType: 'UNIQUE' },
+      );
+
+      const [sql, options] = stub.getCall(0).args;
+      expect(sql).to.include(
+        'WHERE C.TABLE_NAME =$sequelize_1 AND C.OWNER =$sequelize_2 AND C.CONSTRAINT_NAME =$sequelize_3 AND A.CONSTRAINT_TYPE =$sequelize_4',
+      );
+      expect(options?.bind).to.deep.equal({
+        sequelize_1: 'myTable',
+        sequelize_2: 'mySchema',
+        sequelize_3: 'myConstraint',
+        sequelize_4: 'U',
+      });
+    });
+
+    it('passes the table and schema names as bind parameters for foreign keys', async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+
+      await sequelize.queryInterface.showConstraints('myTable', { constraintType: 'FOREIGN KEY' });
+
+      const [sql, options] = stub.getCall(0).args;
+      expect(sql).to.include("WHERE c.constraint_type  = 'R' AND a.table_name = $sequelize_1");
+      expect(options?.bind).to.deep.equal({
+        sequelize_1: 'myTable',
+        sequelize_2: sequelize.dialect.getDefaultSchema(),
+      });
+    });
+  });
 });
