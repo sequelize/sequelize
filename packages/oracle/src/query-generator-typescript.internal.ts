@@ -38,6 +38,11 @@ import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-r
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
+export interface QueryWithBind {
+  query: string;
+  bind: Record<string, unknown>;
+}
+
 export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   readonly #internals: OracleQueryGeneratorInternal;
 
@@ -51,6 +56,23 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
+    return this.#describeTableQuery(tableName, value => this.escape(value));
+  }
+
+  /**
+   * Same as {@link describeTableQuery}, but with bind parameters instead of literals.
+   * See {@link showIndexesQueryWithBind} for why.
+   *
+   * @param tableName
+   */
+  describeTableQueryWithBind(tableName: TableOrModel): QueryWithBind {
+    const bind: Record<string, unknown> = {};
+    const query = this.#describeTableQuery(tableName, createBindParamGenerator(bind));
+
+    return { query, bind };
+  }
+
+  #describeTableQuery(tableName: TableOrModel, valueToSql: (value: unknown) => string) {
     const table = this.extractTableDetails(tableName);
     const currTableName = this.getCatalogName(table.tableName);
     const schema = this.getCatalogName(table.schema);
@@ -61,8 +83,8 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'LEFT OUTER JOIN ',
       '(SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ',
       'ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) ',
-      schema ? `WHERE (atc.OWNER = ${this.escape(schema)}) ` : 'WHERE atc.OWNER = USER ',
-      `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
+      schema ? `WHERE (atc.OWNER = ${valueToSql(schema)}) ` : 'WHERE atc.OWNER = USER ',
+      `AND (atc.TABLE_NAME = ${valueToSql(currTableName)})`,
       'ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC',
     ].join('');
   }
@@ -124,17 +146,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
    *
    * @param table
    */
-  showIndexesQueryWithBind(table: TableNameWithSchema): {
-    query: string;
-    bind: Record<string, unknown>;
-  } {
+  showIndexesQueryWithBind(table: TableNameWithSchema): QueryWithBind {
     const bind: Record<string, unknown> = {};
     const query = this.#showIndexesQuery(table, createBindParamGenerator(bind));
 
     return { query, bind };
   }
 
-  #showIndexesQuery(table: TableNameWithSchema, toSql: (value: unknown) => string) {
+  #showIndexesQuery(table: TableNameWithSchema, valueToSql: (value: unknown) => string) {
     const [tableName, owner] = this.getSchemaNameAndTableName(table);
     const sql = [
       'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type ',
@@ -143,9 +162,9 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
       'LEFT OUTER JOIN all_constraints c ',
       'ON (c.table_name = i.table_name AND c.index_name = i.index_name) ',
-      `WHERE i.table_name = ${toSql(tableName)}`,
+      `WHERE i.table_name = ${valueToSql(tableName)}`,
       ' AND u.table_owner = ',
-      owner ? toSql(owner) : 'USER',
+      owner ? valueToSql(owner) : 'USER',
       ' ORDER BY index_name, column_position',
     ];
 
@@ -321,6 +340,10 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   getForeignKeysQuery(table: TableOrModel) {
+    return this.#getForeignKeysQuery(table, value => this.escape(value));
+  }
+
+  #getForeignKeysQuery(table: TableOrModel, valueToSql: (value: unknown) => string) {
     // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
     const tableDetails = this.extractTableDetails(table);
     const tableName = this.getCatalogName(tableDetails.tableName);
@@ -337,9 +360,9 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ' JOIN all_cons_columns b ON c.r_owner = b.owner AND c.r_constraint_name = b.constraint_name',
       " WHERE c.constraint_type  = 'R'",
       ' AND a.table_name = ',
-      this.escape(tableName),
+      valueToSql(tableName),
       ' AND a.owner = ',
-      tableDetails.schema && schemaName !== '' ? this.escape(schemaName) : 'USER',
+      tableDetails.schema && schemaName !== '' ? valueToSql(schemaName) : 'USER',
       ' ORDER BY a.table_name, a.column_name, b.column_name',
     ].join('');
 
@@ -347,8 +370,33 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
+    return this.#showConstraintsQuery(tableName, options, value => this.escape(value));
+  }
+
+  /**
+   * Same as {@link showConstraintsQuery}, but with bind parameters instead of literals.
+   * See {@link showIndexesQueryWithBind} for why.
+   *
+   * @param tableName
+   * @param options
+   */
+  showConstraintsQueryWithBind(
+    tableName: TableOrModel,
+    options?: ShowConstraintsQueryOptions,
+  ): QueryWithBind {
+    const bind: Record<string, unknown> = {};
+    const query = this.#showConstraintsQuery(tableName, options, createBindParamGenerator(bind));
+
+    return { query, bind };
+  }
+
+  #showConstraintsQuery(
+    tableName: TableOrModel,
+    options: ShowConstraintsQueryOptions | undefined,
+    valueToSql: (value: unknown) => string,
+  ) {
     if (options && options.constraintType === 'FOREIGN KEY') {
-      return this.getForeignKeysQuery(tableName);
+      return this.#getForeignKeysQuery(tableName, valueToSql);
     }
 
     const tableInfo = this.extractTableDetails(tableName);
@@ -366,13 +414,11 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       'FROM ALL_CONS_COLUMNS C',
       'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
       'AND C.OWNER = A.OWNER',
-      `WHERE C.TABLE_NAME =${this.escape(table)}`,
-      `AND C.OWNER =${this.escape(schema)}`,
-      options?.constraintName
-        ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}`
-        : '',
+      `WHERE C.TABLE_NAME =${valueToSql(table)}`,
+      `AND C.OWNER =${valueToSql(schema)}`,
+      options?.constraintName ? `AND C.CONSTRAINT_NAME =${valueToSql(options.constraintName)}` : '',
       options?.constraintType
-        ? `AND A.CONSTRAINT_TYPE =${this.escape(this.getConstraintType(options.constraintType))}`
+        ? `AND A.CONSTRAINT_TYPE =${valueToSql(this.getConstraintType(options.constraintType))}`
         : '',
       'ORDER BY C.CONSTRAINT_NAME, C.POSITION',
     ]);
