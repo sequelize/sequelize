@@ -96,6 +96,41 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(instance.get('number2')).to.equal(2);
     });
 
+    it('should retain manually defined createdAt and updatedAt when timestamps is false (toJSON round-trip)', () => {
+      const User = current.define(
+        'User',
+        {
+          username: DataTypes.STRING,
+          createdAt: DataTypes.DATE,
+          updatedAt: DataTypes.DATE,
+        },
+        {
+          timestamps: false,
+        },
+      );
+
+      const now = new Date();
+      now.setMilliseconds(0);
+
+      const instance = User.build({
+        username: 'user-name',
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      const json = instance.toJSON();
+
+      const rebuiltInstance = User.build(json);
+
+      expect(rebuiltInstance.get('createdAt')).to.be.an.instanceof(Date);
+      expect(rebuiltInstance.get('updatedAt')).to.be.an.instanceof(Date);
+      expect(rebuiltInstance.get('createdAt').getTime()).to.equal(now.getTime());
+      expect(rebuiltInstance.get('updatedAt').getTime()).to.equal(now.getTime());
+
+      expect(rebuiltInstance.dataValues).to.have.property('createdAt');
+      expect(rebuiltInstance.dataValues).to.have.property('updatedAt');
+    });
+
     if (dialect.supports.dataTypes.JSONB) {
       it('should clone the default values', () => {
         const Model = current.define('Model', {
