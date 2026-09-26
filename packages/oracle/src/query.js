@@ -131,7 +131,6 @@ export class OracleQuery extends AbstractQuery {
         // Building the bindDef for in and out binds
         this._convertBindAttributes('inbindAttributes');
         bindDef.push(...Object.values(this.options.inbindAttributes));
-        // eslint-disable-next-line unicorn/no-array-push-push
         bindDef.push(...outParameters);
         this.bindParameters = parameters;
       } else {

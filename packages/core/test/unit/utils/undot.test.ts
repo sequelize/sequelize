@@ -401,7 +401,7 @@ describe('undot utilities', () => {
     it('clears symbol keys', () => {
       const sym = Symbol('test');
       const pooledObj: Record<string | symbol, unknown> = { a: 1, [sym]: 2 };
-      const pool: Array<Record<string, unknown>> = [pooledObj as Record<string, unknown>];
+      const pool: Array<Record<string, unknown>> = [pooledObj];
       const obj = acquirePooledObject(pool);
       // Note: Object.keys doesn't return symbol keys, so they won't be cleared
       expect('a' in obj).to.equal(false);
