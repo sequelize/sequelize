@@ -21,9 +21,9 @@
   "devDependencies": {
     "@oclif/test": "4.2.0",
     "@sequelize/sqlite3": "workspace:*",
-    "@types/chai": "4.3.20",
+    "@types/chai": "5.2.3",
     "@types/mocha": "10.0.10",
-    "chai": "4.5.0",
+    "chai": "6.2.2",
     "concurrently": "9.2.4",
     "mocha": "11.8.0",
     "oclif": "4.24.0",
