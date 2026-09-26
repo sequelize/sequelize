@@ -1,15 +1,14 @@
 'use strict';
 
 const { expect } = require('chai');
-const sinon = require('sinon');
-const { beforeEach2, sequelize } = require('../support');
+const { beforeEach2, sequelize, useFakeTimers } = require('../support');
 const { DataTypes, Sequelize, sql } = require('@sequelize/core');
 
 const dialectName = sequelize.dialect.name;
 
 describe('Model', () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = useFakeTimers();
   });
 
   after(function () {

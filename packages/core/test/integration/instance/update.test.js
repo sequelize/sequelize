@@ -56,7 +56,7 @@ describe('Model#update', () => {
 
   context('Fake Timers Suite', () => {
     before(function () {
-      this.clock = sinon.useFakeTimers();
+      this.clock = Support.useFakeTimers();
     });
 
     after(function () {

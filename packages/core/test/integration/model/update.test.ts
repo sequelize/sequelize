@@ -9,6 +9,7 @@ import {
   expectsql,
   sequelize,
   setResetMode,
+  useFakeTimers,
 } from '../support';
 
 const expect = chai.expect;
@@ -20,7 +21,7 @@ describe('Model.update', () => {
     setResetMode('destroy');
 
     const vars = beforeAll2(async () => {
-      const clock = sinon.useFakeTimers();
+      const clock = useFakeTimers();
 
       class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
         declare id: CreationOptional<number>;

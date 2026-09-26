@@ -18,12 +18,12 @@ import { IsInt, Len } from '@sequelize/validator.js';
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import assert from 'node:assert';
-import sinon from 'sinon';
 import {
   beforeAll2,
   createSingleTransactionalTestSequelizeInstance,
   sequelize,
   setResetMode,
+  useFakeTimers,
 } from '../support';
 
 describe('Model#save', () => {
@@ -31,7 +31,7 @@ describe('Model#save', () => {
     setResetMode('destroy');
 
     const vars = beforeAll2(async () => {
-      const clock = sinon.useFakeTimers();
+      const clock = useFakeTimers();
 
       class Book extends Model<InferAttributes<Book>, InferCreationAttributes<Book>> {
         declare id: CreationOptional<number>;
