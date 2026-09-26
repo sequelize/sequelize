@@ -11,6 +11,37 @@ import isPlainObject from 'lodash/isPlainObject';
 import { MySqlQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
 
 export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
+  insertQuery(table, valueHash, modelAttributes, options) {
+    const sanitizedValueHash =
+      valueHash && typeof valueHash === 'object' && !Array.isArray(valueHash)
+        ? { ...valueHash }
+        : valueHash;
+
+    if (sanitizedValueHash && typeof sanitizedValueHash === 'object' && modelAttributes) {
+      for (const attributeName in modelAttributes) {
+        if (!Object.hasOwn(modelAttributes, attributeName)) {
+          continue;
+        }
+
+        const attribute = modelAttributes[attributeName];
+        if (!attribute?.autoIncrement) {
+          continue;
+        }
+
+        const columnName = attribute.field || attributeName;
+        // Remove auto-increment columns with DEFAULT so their value is returned
+        if (
+          Object.hasOwn(sanitizedValueHash, columnName) &&
+          (sanitizedValueHash[columnName] === null || sanitizedValueHash[columnName] === undefined)
+        ) {
+          delete sanitizedValueHash[columnName];
+        }
+      }
+    }
+
+    return super.insertQuery(table, sanitizedValueHash, modelAttributes, options);
+  }
+
   createTableQuery(tableName, attributes, options) {
     options = {
       engine: 'InnoDB',
