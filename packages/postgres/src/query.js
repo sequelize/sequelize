@@ -316,8 +316,12 @@ export class PostgresQuery extends AbstractQuery {
     const errDetail = err.detail || err.messageDetail;
 
     switch (code) {
+      // postgres 18 reports RESTRICT violations as 23001 (restrict_violation) instead of 23503
+      case '23001':
       case '23503':
-        index = errMessage.match(/violates foreign key constraint "(.+?)"/);
+        index = errMessage.match(
+          /violates (?:RESTRICT setting of )?foreign key constraint "(.+?)"/,
+        );
         index = index ? index[1] : undefined;
         table = errMessage.match(/on table "(.+?)"/);
         table = table ? table[1] : undefined;

@@ -20,15 +20,7 @@ import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
 export { getSqliteDatabasePath } from './config/config';
 
 export type DialectName =
-  | 'mysql'
-  | 'postgres'
-  | 'sqlite3'
-  | 'mariadb'
-  | 'mssql'
-  | 'db2'
-  | 'snowflake'
-  | 'ibmi'
-  | 'oracle';
+  'mysql' | 'postgres' | 'sqlite3' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi' | 'oracle';
 
 const expect = chai.expect;
 
@@ -72,7 +64,7 @@ function withInlineCause(cb: () => any): () => void {
 
 export function inlineErrorCause(error: unknown): string {
   if (!(error instanceof Error)) {
-    return String(error);
+    return inspect(error);
   }
 
   let message = error.message;

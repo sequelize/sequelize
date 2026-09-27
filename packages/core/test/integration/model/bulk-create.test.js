@@ -160,6 +160,9 @@ describe('Model', () => {
 
       await Beer.sync({ force: true });
 
+      const quote = identifier => this.customSequelize.queryGenerator.quoteIdentifier(identifier);
+      const columns = ['style', 'createdAt', 'updatedAt'].map(quote).join(',');
+
       await Beer.bulkCreate(
         [
           {
@@ -171,45 +174,21 @@ describe('Model', () => {
             ? { parameterStyle: ParameterStyle.BIND }
             : {}),
           logging(sql) {
-            switch (dialectName) {
-              case 'postgres':
-              case 'oracle':
-              case 'ibmi': {
-                expect(sql).to.include(
-                  'INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT',
-                );
-
-                break;
+            if (dialect.supports.autoIncrement.defaultValue) {
+              let idValue;
+              if (dialect.supports.bulkDefault) {
+                idValue = 'DEFAULT';
+              } else if (dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]) {
+                idValue = dialectName === 'sqlite3' ? '$sequelize_1' : '?';
+              } else {
+                idValue = 'NULL';
               }
 
-              case 'db2': {
-                expect(sql).to.include(
-                  'INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES',
-                );
-
-                break;
-              }
-
-              case 'mssql': {
-                expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
-
-                break;
-              }
-
-              case 'sqlite3': {
-                expect(sql).to.include(
-                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES ($sequelize_1',
-                );
-
-                break;
-              }
-
-              default: {
-                // mysql
-                expect(sql).to.include(
-                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (?',
-                );
-              }
+              expect(sql).to.include(
+                `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
+              );
+            } else {
+              expect(sql).to.include(`INSERT INTO ${quote('Beers')} (${columns}) `);
             }
           },
         },

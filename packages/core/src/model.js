@@ -865,7 +865,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop({
+      await this.queryInterface.dropTable(tableName, {
         ...options,
         cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined,
       });
@@ -1245,7 +1245,6 @@ ${associationOwner._getAssociationDebugList()}`);
   static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
     if (!this._modelVariantRefs) {
       // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
-      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
       this._modelVariantRefs = new Set([new WeakRef(this)]);
     }
 
@@ -1289,7 +1288,6 @@ ${associationOwner._getAssociationDebugList()}`);
       schema: schemaOptions.schema,
       schemaDelimiter: schemaOptions.schemaDelimiter,
     });
-    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
     this._modelVariantRefs.add(new WeakRef(clone));
 
     clone._scope = mergedScope;
@@ -2108,12 +2106,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
       return [created, true];
     } catch (error) {
-      if (
-        !(
-          error instanceof SequelizeErrors.UniqueConstraintError ||
-          error instanceof SequelizeErrors.EmptyResultError
-        )
-      ) {
+      if (!(
+        error instanceof SequelizeErrors.UniqueConstraintError ||
+        error instanceof SequelizeErrors.EmptyResultError
+      )) {
         throw error;
       }
 

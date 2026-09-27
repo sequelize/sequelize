@@ -47,7 +47,8 @@ export interface CommonDestroyOptions {
  * Used by {@link ModelRepository#_UNSTABLE_destroy}
  */
 export interface DestroyManyOptions
-  extends NewHookable<'beforeDestroyMany' | 'afterDestroyMany'>,
+  extends
+    NewHookable<'beforeDestroyMany' | 'afterDestroyMany'>,
     Omit<QiBulkDeleteOptions, 'where' | 'limit'>,
     CommonDestroyOptions {}
 
@@ -55,6 +56,7 @@ export interface DestroyManyOptions
  * Used by {@link ModelRepository#_UNSTABLE_bulkDestroy}
  */
 export interface BulkDestroyOptions<TModel extends Model>
-  extends NewHookable<'_UNSTABLE_beforeBulkDestroy' | '_UNSTABLE_afterBulkDestroy'>,
+  extends
+    NewHookable<'_UNSTABLE_beforeBulkDestroy' | '_UNSTABLE_afterBulkDestroy'>,
     StrictRequiredBy<QiBulkDeleteOptions<Attributes<TModel>>, 'where'>,
     CommonDestroyOptions {}
