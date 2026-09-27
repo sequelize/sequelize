@@ -189,7 +189,7 @@ export abstract class AbstractDataType<
    * @param value The value to parse.
    */
   parseDatabaseValue(value: unknown): unknown {
-    return value as AcceptedType;
+    return value;
   }
 
   /**
@@ -208,6 +208,7 @@ export abstract class AbstractDataType<
    *
    * @param value
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by the assertion signature
   validate(value: any): asserts value is AcceptedType {}
 
   /**
@@ -411,10 +412,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
   /** @hidden */
   constructor(
     ...args:
-      | []
-      | [length: number]
-      | [length: number, binary: boolean]
-      | [options: StringTypeOptions]
+      [] | [length: number] | [length: number, binary: boolean] | [options: StringTypeOptions]
   );
 
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {

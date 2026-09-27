@@ -12,7 +12,6 @@ import sinon from 'sinon';
 import {
   beforeAll2,
   createMultiTransactionalTestSequelizeInstance,
-  getTestDialect,
   sequelize,
   setResetMode,
 } from './support';
@@ -179,11 +178,12 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
   });
 
   it('promises returned by sequelize.query are correctly patched', async () => {
+    const { dummyTable } = sequelize.dialect.supports.select;
+
     await vars.clsSequelize.transaction(async t => {
-      await vars.clsSequelize.query(
-        `select 1 ${getTestDialect() === 'oracle' ? 'FROM DUAL' : ''}`,
-        { type: QueryTypes.SELECT },
-      );
+      await vars.clsSequelize.query(`select 1 ${dummyTable ? `FROM ${dummyTable}` : ''}`, {
+        type: QueryTypes.SELECT,
+      });
 
       return expect(vars.clsSequelize.getCurrentClsTransaction()).to.equal(t);
     });

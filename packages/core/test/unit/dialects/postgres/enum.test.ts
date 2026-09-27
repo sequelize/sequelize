@@ -1,11 +1,11 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import type { ENUM } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
+import type { PostgresQueryGenerator } from '@sequelize/postgres';
+import { expect } from 'chai';
+import sinon from 'sinon';
+import { beforeAll2, createSequelizeInstance, expectsql, sequelize } from '../../../support';
 
-const { beforeAll2, createSequelizeInstance, expectsql, sequelize } = require('../../../support');
-const { DataTypes } = require('@sequelize/core');
-const { expect } = require('chai');
-const sinon = require('sinon');
-
-const queryGenerator = sequelize.dialect.queryGenerator;
+const queryGenerator = sequelize.dialect.queryGenerator as PostgresQueryGenerator;
 
 describe('PostgresQueryGenerator', () => {
   if (sequelize.dialect.name !== 'postgres') {
@@ -26,7 +26,7 @@ describe('PostgresQueryGenerator', () => {
     const PublicUser = sequelize.define('user', {
       mood: {
         type: DataTypes.ENUM('happy', 'sad'),
-        field: 'theirMood',
+        columnName: 'theirMood',
       },
     });
 
@@ -73,12 +73,23 @@ describe('PostgresQueryGenerator', () => {
     it('properly quotes both the schema and the enum name', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(
-        queryGenerator.pgEnumName(PublicUser.table, 'mood', PublicUser.getAttributes().mood.type),
-      ).to.equal('"public"."enum_users_mood"');
-      expect(
-        queryGenerator.pgEnumName(FooUser.table, 'theirMood', FooUser.getAttributes().mood.type),
-      ).to.equal('"foo"."enum_users_theirMood"');
+      expect(queryGenerator.pgEnumName(PublicUser.table, 'mood')).to.equal(
+        '"public"."enum_users_mood"',
+      );
+      expect(queryGenerator.pgEnumName(FooUser.table, 'theirMood')).to.equal(
+        '"foo"."enum_users_theirMood"',
+      );
+    });
+
+    it('does not escape the enum name when options: { noEscape: true }', () => {
+      const { FooUser, PublicUser } = vars;
+
+      expect(queryGenerator.pgEnumName(PublicUser.table, 'mood', { noEscape: true })).to.equal(
+        'enum_users_mood',
+      );
+      expect(queryGenerator.pgEnumName(FooUser.table, 'theirMood', { noEscape: true })).to.equal(
+        'enum_users_theirMood',
+      );
     });
 
     it('uses enumName when provided', () => {
@@ -131,7 +142,7 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses custom enumName', () => {
       const { CustomEnumUser } = vars;
-      const type = CustomEnumUser.getAttributes().mood.type;
+      const type = CustomEnumUser.getAttributes().mood.type as ENUM<string>;
 
       expectsql(
         queryGenerator.pgEnum(CustomEnumUser.table, 'mood', type, {
@@ -146,7 +157,7 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses custom enumName and enumSchema', () => {
       const { CustomEnumSchemaUser } = vars;
-      const type = CustomEnumSchemaUser.getAttributes().mood.type;
+      const type = CustomEnumSchemaUser.getAttributes().mood.type as ENUM<string>;
 
       expectsql(
         queryGenerator.pgEnum(CustomEnumSchemaUser.table, 'mood', type, {
@@ -161,7 +172,7 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses enumSchema with auto-generated name when only enumSchema is provided', () => {
       const { EnumSchemaOnlyUser } = vars;
-      const type = EnumSchemaOnlyUser.getAttributes().mood.type;
+      const type = EnumSchemaOnlyUser.getAttributes().mood.type as ENUM<string>;
 
       expectsql(
         queryGenerator.pgEnum(EnumSchemaOnlyUser.table, 'mood', type, {
@@ -176,7 +187,7 @@ describe('PostgresQueryGenerator', () => {
 
     it('drops the correct type name when force: true with a custom name', () => {
       const { CustomEnumSchemaUser } = vars;
-      const type = CustomEnumSchemaUser.getAttributes().mood.type;
+      const type = CustomEnumSchemaUser.getAttributes().mood.type as ENUM<string>;
 
       expectsql(
         queryGenerator.pgEnum(CustomEnumSchemaUser.table, 'mood', type, {
@@ -191,14 +202,14 @@ describe('PostgresQueryGenerator', () => {
     });
   });
 
-  describe('attributeToSQL (ENUM column type reference in CREATE TABLE)', () => {
+  describe('attributeToSql (ENUM column type reference in CREATE TABLE)', () => {
     it('uses enumSchema with auto-generated name when only enumSchema is provided', () => {
       const { EnumSchemaOnlyUser } = vars;
-      const moodAttr = EnumSchemaOnlyUser.modelDefinition.attributes.get('mood');
+      const moodAttr = EnumSchemaOnlyUser.modelDefinition.attributes.get('mood')!;
 
-      const raw = queryGenerator.attributeToSQL(
-        { type: moodAttr.type },
-        { table: EnumSchemaOnlyUser.table, key: 'mood' },
+      const raw = queryGenerator.attributeToSql(
+        { type: moodAttr.type, field: 'mood' },
+        { tableOrModel: EnumSchemaOnlyUser.table },
       );
       // dataTypeMapping strips the internal ENUM_NAMED() sentinel before emitting SQL
       const result = queryGenerator.dataTypeMapping(EnumSchemaOnlyUser.table, 'mood', raw);
@@ -207,11 +218,11 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses custom enumName and enumSchema for column type reference', () => {
       const { CustomEnumSchemaUser } = vars;
-      const moodAttr = CustomEnumSchemaUser.modelDefinition.attributes.get('mood');
+      const moodAttr = CustomEnumSchemaUser.modelDefinition.attributes.get('mood')!;
 
-      const raw = queryGenerator.attributeToSQL(
-        { type: moodAttr.type },
-        { table: CustomEnumSchemaUser.table, key: 'mood' },
+      const raw = queryGenerator.attributeToSql(
+        { type: moodAttr.type, field: 'mood' },
+        { tableOrModel: CustomEnumSchemaUser.table },
       );
       // dataTypeMapping strips the internal ENUM_NAMED() sentinel before emitting SQL
       const result = queryGenerator.dataTypeMapping(CustomEnumSchemaUser.table, 'mood', raw);
@@ -261,10 +272,10 @@ describe('PostgresQueryGenerator', () => {
       const User = sq.define('user', {
         mood: DataTypes.ENUM({ values: ['happy', 'sad'] }),
       });
-      const qg = sq.dialect.queryGenerator;
-      const attrs = qg.attributesToSQL(
-        { mood: User.modelDefinition.attributes.get('mood') },
-        { context: 'changeColumn', table: User.table },
+      const qg = sq.dialect.queryGenerator as PostgresQueryGenerator;
+      const attrs = qg.attributesToSql(
+        { mood: User.modelDefinition.attributes.get('mood')! },
+        { context: 'changeColumn', tableOrModel: User.table },
       );
       const result = qg.changeColumnQuery(User.table, attrs);
       expect(result).to.include('USING ("mood"::"public"."enum_users_mood")');
@@ -275,10 +286,10 @@ describe('PostgresQueryGenerator', () => {
       const User = sq.define('user', {
         mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' }),
       });
-      const qg = sq.dialect.queryGenerator;
-      const attrs = qg.attributesToSQL(
-        { mood: User.modelDefinition.attributes.get('mood') },
-        { context: 'changeColumn', table: User.table },
+      const qg = sq.dialect.queryGenerator as PostgresQueryGenerator;
+      const attrs = qg.attributesToSql(
+        { mood: User.modelDefinition.attributes.get('mood')! },
+        { context: 'changeColumn', tableOrModel: User.table },
       );
       const result = qg.changeColumnQuery(User.table, attrs);
       expect(result).to.include('USING ("mood"::"public"."mood_type")');
@@ -289,10 +300,10 @@ describe('PostgresQueryGenerator', () => {
       const User = sq.define('user', {
         mood: DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type', schema: 'shared' }),
       });
-      const qg = sq.dialect.queryGenerator;
-      const attrs = qg.attributesToSQL(
-        { mood: User.modelDefinition.attributes.get('mood') },
-        { context: 'changeColumn', table: User.table },
+      const qg = sq.dialect.queryGenerator as PostgresQueryGenerator;
+      const attrs = qg.attributesToSql(
+        { mood: User.modelDefinition.attributes.get('mood')! },
+        { context: 'changeColumn', tableOrModel: User.table },
       );
       const result = qg.changeColumnQuery(User.table, attrs);
       expect(result).to.include('USING ("mood"::"shared"."mood_type")');
@@ -303,10 +314,10 @@ describe('PostgresQueryGenerator', () => {
       const User = sq.define('user', {
         mood: DataTypes.ENUM({ values: ['happy', 'sad'], schema: 'shared' }),
       });
-      const qg = sq.dialect.queryGenerator;
-      const attrs = qg.attributesToSQL(
-        { mood: User.modelDefinition.attributes.get('mood') },
-        { context: 'changeColumn', table: User.table },
+      const qg = sq.dialect.queryGenerator as PostgresQueryGenerator;
+      const attrs = qg.attributesToSql(
+        { mood: User.modelDefinition.attributes.get('mood')! },
+        { context: 'changeColumn', tableOrModel: User.table },
       );
       const result = qg.changeColumnQuery(User.table, attrs);
       // auto-generated name in the custom schema
@@ -318,10 +329,10 @@ describe('PostgresQueryGenerator', () => {
       const User = sq.define('user', {
         moods: DataTypes.ARRAY(DataTypes.ENUM({ values: ['happy', 'sad'], name: 'mood_type' })),
       });
-      const qg = sq.dialect.queryGenerator;
-      const attrs = qg.attributesToSQL(
-        { moods: User.modelDefinition.attributes.get('moods') },
-        { context: 'changeColumn', table: User.table },
+      const qg = sq.dialect.queryGenerator as PostgresQueryGenerator;
+      const attrs = qg.attributesToSql(
+        { moods: User.modelDefinition.attributes.get('moods')! },
+        { context: 'changeColumn', tableOrModel: User.table },
       );
       const result = qg.changeColumnQuery(User.table, attrs);
       expect(result).to.include('USING ("moods"::"public"."mood_type"[])');
@@ -447,17 +458,17 @@ describe('PostgresQueryGenerator', () => {
   });
 
   // Helper: collect the SQL strings passed to queryRaw that contain DROP TYPE
-  function getDropTypeSqls(stub) {
+  function getDropTypeSqls(stub: sinon.SinonStub) {
     return stub.args.map(([sql]) => sql).filter(sql => sql?.includes('DROP TYPE'));
   }
 
   // Helper: collect the SQL strings passed to queryRaw that contain CREATE TYPE
-  function getCreateTypeSqls(stub) {
+  function getCreateTypeSqls(stub: sinon.SinonStub) {
     return stub.args.map(([sql]) => sql).filter(sql => sql?.includes('CREATE TYPE'));
   }
 
   describe('changeColumn (enum pre-create)', () => {
-    let stub;
+    let stub: sinon.SinonStub | undefined;
 
     afterEach(() => {
       stub?.restore();
@@ -513,7 +524,7 @@ describe('PostgresQueryGenerator', () => {
   });
 
   describe('dropTable (enum cleanup)', () => {
-    let stub;
+    let stub: sinon.SinonStub | undefined;
 
     afterEach(() => {
       stub?.restore();

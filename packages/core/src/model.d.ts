@@ -222,8 +222,7 @@ export type Rangable<T> =
  */
 // number is always allowed because -Infinity & +Infinity are valid
 export type Range<T> =
-  | readonly [lower: RangePart<T> | number | null, higher: RangePart<T> | number | null]
-  | EmptyRange;
+  readonly [lower: RangePart<T> | number | null, higher: RangePart<T> | number | null] | EmptyRange;
 
 type EmptyRange = [];
 
@@ -250,8 +249,7 @@ type WhereSerializableValue = boolean | string | number | Buffer | Date;
  * @private
  */
 type OperatorValues<AcceptableValues> =
-  | StaticValues<AcceptableValues>
-  | DynamicValues<AcceptableValues>;
+  StaticValues<AcceptableValues> | DynamicValues<AcceptableValues>;
 
 /**
  * Represents acceptable Dynamic values.
@@ -389,7 +387,7 @@ export interface WhereOperators<AttributeType = any> {
   // https://www.postgresql.org/docs/14/functions-array.html array && array
   [Op.overlap]?: AllowAnyAll<
     | // RANGE && RANGE
-    (AttributeType extends Range<infer RangeType>
+      (AttributeType extends Range<infer RangeType>
         ? Rangable<RangeType>
         : // ARRAY && ARRAY
           AttributeType extends any[]
@@ -411,10 +409,9 @@ export interface WhereOperators<AttributeType = any> {
     : // jsonb @> ELEMENT
       AttributeType extends object
       ? OperatorValues<Partial<AttributeType>>
-      :
-          | never
-          // ARRAY @> ARRAY ; RANGE @> RANGE
-          | WhereOperators<AttributeType>[typeof Op.overlap];
+      : | never
+        // ARRAY @> ARRAY ; RANGE @> RANGE
+        | WhereOperators<AttributeType>[typeof Op.overlap];
 
   /**
    * PG array & range 'contained by' operator
@@ -645,11 +642,7 @@ export interface IncludeThroughOptions extends Filterable<any>, Projectable<any>
  * You can also eagerly load all associations using `{ include: { all: true } }` *(not recommended outside of debugging)*
  */
 export type Includeable =
-  | ModelStatic
-  | Association
-  | IncludeOptions
-  | { all: true; nested?: true }
-  | string;
+  ModelStatic | Association | IncludeOptions | { all: true; nested?: true } | string;
 
 /**
  * Complex include options
@@ -762,10 +755,7 @@ export interface IncludeOptions extends Filterable<any>, Projectable<any>, Paran
 
 type AssociationName = string;
 type OrderItemAssociation =
-  | Association
-  | ModelStatic
-  | { model: ModelStatic; as: AssociationName }
-  | AssociationName;
+  Association | ModelStatic | { model: ModelStatic; as: AssociationName } | AssociationName;
 type OrderItemColumn = string | BaseSqlExpression;
 type OrderDirection =
   | 'ASC'
@@ -827,7 +817,8 @@ export interface MaxExecutionTimeHintable {
  * A hash of options to describe the scope of the search
  */
 export interface FindOptions<TAttributes = any>
-  extends QueryOptions,
+  extends
+    QueryOptions,
     Filterable<TAttributes>,
     Projectable<TAttributes>,
     Paranoid,
@@ -958,14 +949,16 @@ export interface NonNullFindOptions<TAttributes = any> extends FindOptions<TAttr
 
 export interface FindByPkOptions<M extends Model> extends FindOptions<Attributes<M>> {}
 
-export interface NonNullFindByPkOptions<M extends Model>
-  extends NonNullFindOptions<Attributes<M>> {}
+export interface NonNullFindByPkOptions<M extends Model> extends NonNullFindOptions<
+  Attributes<M>
+> {}
 
 /**
  * Options for Model.count method
  */
 export interface CountOptions<TAttributes = any>
-  extends Logging,
+  extends
+    Logging,
     Transactionable,
     Filterable<TAttributes>,
     Projectable<TAttributes>,
@@ -1008,8 +1001,7 @@ export interface CountOptions<TAttributes = any>
 export type CountWithOptions<TAttributes = any> = SetRequired<CountOptions<TAttributes>, 'group'>;
 
 export interface FindAndCountOptions<TAttributes = any>
-  extends CountOptions<TAttributes>,
-    FindOptions<TAttributes> {}
+  extends CountOptions<TAttributes>, FindOptions<TAttributes> {}
 
 export interface GroupedCountResultItem {
   [key: string]: unknown; // projected attributes
@@ -1051,12 +1043,7 @@ export interface Silent {
  * Options for Model.create method
  */
 export interface CreateOptions<TAttributes = any>
-  extends BuildOptions,
-    Logging,
-    Silent,
-    Transactionable,
-    Hookable,
-    SearchPathable {
+  extends BuildOptions, Logging, Silent, Transactionable, Hookable, SearchPathable {
   /**
    * If set, only columns matching those in fields will be saved
    */
@@ -1094,8 +1081,7 @@ export interface Hookable {
  * Options for Model.findOrCreate method
  */
 export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>,
-    CreateOptions<TAttributes> {
+  extends FindOptions<TAttributes>, CreateOptions<TAttributes> {
   /**
    * Default values to use if building a new instance
    */
@@ -1106,8 +1092,7 @@ export interface FindOrCreateOptions<TAttributes = any, TCreationAttributes = TA
  * Options for Model.findOrBuild method
  */
 export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAttributes>
-  extends FindOptions<TAttributes>,
-    BuildOptions {
+  extends FindOptions<TAttributes>, BuildOptions {
   /**
    * Default values to use if building a new instance
    */
@@ -1118,10 +1103,7 @@ export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAt
  * Options for Model.upsert method
  */
 export interface UpsertOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    SearchPathable,
-    Hookable {
+  extends Logging, Transactionable, SearchPathable, Hookable {
   /**
    * The fields to insert / update. Defaults to all fields.
    *
@@ -1158,10 +1140,7 @@ export interface UpsertOptions<TAttributes = any>
  * Options for Model.bulkCreate method
  */
 export interface BulkCreateOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    Hookable,
-    SearchPathable {
+  extends Logging, Transactionable, Hookable, SearchPathable {
   /**
    * Fields to insert (defaults to all fields)
    */
@@ -1243,10 +1222,7 @@ export interface TruncateOptions extends Logging, Transactionable, Hookable {
  * Options accepted by {@link Model.destroy}.
  */
 export interface DestroyOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    Hookable,
-    Filterable<TAttributes> {
+  extends Logging, Transactionable, Hookable, Filterable<TAttributes> {
   /**
    * If set to true, destroy will SELECT all records matching the where parameter and will execute before /
    * after destroy hooks on each row
@@ -1272,10 +1248,7 @@ export interface DestroyOptions<TAttributes = any>
  * Options for Model.restore
  */
 export interface RestoreOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    Filterable<TAttributes>,
-    Hookable {
+  extends Logging, Transactionable, Filterable<TAttributes>, Hookable {
   /**
    * If set to true, restore will find all records within the where parameter and will execute before / after
    * bulkRestore hooks on each row
@@ -1292,10 +1265,7 @@ export interface RestoreOptions<TAttributes = any>
  * Options used for Model.update
  */
 export interface UpdateOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    Paranoid,
-    Hookable {
+  extends Logging, Transactionable, Paranoid, Hookable {
   /**
    * Options to describe the scope of the search.
    */
@@ -1363,9 +1333,7 @@ export type UpdateValues<M extends Model> = {
  * Options used for Model.aggregate
  */
 export interface AggregateOptions<T extends DataType | unknown, TAttributes = any>
-  extends QueryOptions,
-    Filterable<TAttributes>,
-    Paranoid {
+  extends QueryOptions, Filterable<TAttributes>, Paranoid {
   /**
    * The type of the result. If attribute being aggregated is a defined in the Model,
    * the default will be the type of that attribute, otherwise defaults to a plain JavaScript `number`.
@@ -1384,11 +1352,7 @@ export interface AggregateOptions<T extends DataType | unknown, TAttributes = an
  * Options used for Instance.increment method
  */
 export interface IncrementDecrementOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    Silent,
-    SearchPathable,
-    Filterable<TAttributes> {
+  extends Logging, Transactionable, Silent, SearchPathable, Filterable<TAttributes> {
   /**
    * Return the affected rows (only for postgres)
    */
@@ -1398,8 +1362,9 @@ export interface IncrementDecrementOptions<TAttributes = any>
 /**
  * Options used for Instance.increment method
  */
-export interface IncrementDecrementOptionsWithBy<TAttributes = any>
-  extends IncrementDecrementOptions<TAttributes> {
+export interface IncrementDecrementOptionsWithBy<
+  TAttributes = any,
+> extends IncrementDecrementOptions<TAttributes> {
   /**
    * The number to increment by
    *
@@ -1427,9 +1392,7 @@ export interface InstanceDestroyOptions extends Logging, Transactionable, Hookab
  * Options used for Instance.update method
  */
 export interface InstanceUpdateOptions<TAttributes = any>
-  extends SaveOptions<TAttributes>,
-    SetOptions,
-    Filterable<TAttributes> {}
+  extends SaveOptions<TAttributes>, SetOptions, Filterable<TAttributes> {}
 
 /**
  * Options used for Instance.set method
@@ -1450,11 +1413,7 @@ export interface SetOptions {
  * Options used for Instance.save method
  */
 export interface SaveOptions<TAttributes = any>
-  extends Logging,
-    Transactionable,
-    Silent,
-    Hookable,
-    SearchPathable {
+  extends Logging, Transactionable, Silent, Hookable, SearchPathable {
   /**
    * An optional array of strings, representing database columns. If fields is provided, only those columns
    * will be validated and saved.
@@ -1695,8 +1654,7 @@ export interface ModelScopeOptions<TAttributes = any> {
    * Name of the scope and it's query
    */
   [scopeName: string]:
-    | FindOptions<TAttributes>
-    | ((...args: readonly any[]) => FindOptions<TAttributes>);
+    FindOptions<TAttributes> | ((...args: readonly any[]) => FindOptions<TAttributes>);
 }
 
 /**
@@ -1728,8 +1686,10 @@ export interface AttributeReferencesOptions {
   deferrable?: Deferrable;
 }
 
-export interface NormalizedAttributeReferencesOptions
-  extends Omit<AttributeReferencesOptions, 'model'> {
+export interface NormalizedAttributeReferencesOptions extends Omit<
+  AttributeReferencesOptions,
+  'model'
+> {
   /**
    * The name of the table to reference (the sql name).
    */
@@ -1869,16 +1829,15 @@ export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {
   attribute?: Omit<IndexField, 'name'>;
 }
 
-export interface NormalizedAttributeOptions<M extends Model = Model>
-  extends Readonly<
-    Omit<
-      StrictRequiredBy<AttributeOptions<M>, 'columnName'>,
-      | 'type'
-      // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
-      | 'index'
-      | 'unique'
-    >
-  > {
+export interface NormalizedAttributeOptions<M extends Model = Model> extends Readonly<
+  Omit<
+    StrictRequiredBy<AttributeOptions<M>, 'columnName'>,
+    | 'type'
+    // index and unique are always removed from attribute options, Model.getIndexes() must be used instead.
+    | 'index'
+    | 'unique'
+  >
+> {
   /**
    * @deprecated use {@link NormalizedAttributeOptions.attributeName} instead.
    */

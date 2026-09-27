@@ -1,9 +1,7 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { beforeAll2, createSequelizeInstance, getTestDialect, sequelize } from '../../support';
-
-const dialectName = getTestDialect();
+import { beforeAll2, createSequelizeInstance, sequelize } from '../../support';
 
 describe('Model', () => {
   describe('define', () => {
@@ -338,7 +336,7 @@ describe('Model', () => {
           },
         });
 
-        if (!['mysql', 'mariadb'].includes(dialectName)) {
+        if (!newSequelize.dialect.supports.dataTypes.FLOAT.scaleAndPrecision) {
           // @ts-expect-error -- only used in testing
           expect(console.warn.called).to.eq(true, 'console.warn was not called');
 

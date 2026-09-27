@@ -160,6 +160,9 @@ describe('Model', () => {
 
       await Beer.sync({ force: true });
 
+      const quote = identifier => this.customSequelize.queryGenerator.quoteIdentifier(identifier);
+      const columns = ['style', 'createdAt', 'updatedAt'].map(quote).join(',');
+
       await Beer.bulkCreate(
         [
           {
@@ -168,37 +171,13 @@ describe('Model', () => {
         ],
         {
           logging(sql) {
-            switch (dialectName) {
-              case 'postgres':
-              case 'oracle':
-              case 'ibmi': {
-                expect(sql).to.include(
-                  'INSERT INTO "Beers" ("id","style","createdAt","updatedAt") VALUES (DEFAULT',
-                );
-
-                break;
-              }
-
-              case 'db2': {
-                expect(sql).to.include(
-                  'INSERT INTO "Beers" ("style","createdAt","updatedAt") VALUES',
-                );
-
-                break;
-              }
-
-              case 'mssql': {
-                expect(sql).to.include('INSERT INTO [Beers] ([style],[createdAt],[updatedAt]) ');
-
-                break;
-              }
-
-              default: {
-                // mysql, sqlite3
-                expect(sql).to.include(
-                  'INSERT INTO `Beers` (`id`,`style`,`createdAt`,`updatedAt`) VALUES (NULL',
-                );
-              }
+            if (dialect.supports.autoIncrement.defaultValue) {
+              const idValue = dialect.supports.bulkDefault ? 'DEFAULT' : 'NULL';
+              expect(sql).to.include(
+                `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
+              );
+            } else {
+              expect(sql).to.include(`INSERT INTO ${quote('Beers')} (${columns}) `);
             }
           },
         },

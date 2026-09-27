@@ -19,10 +19,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Event = this.sequelize.define('Event', {
         data: {
           // TODO: JSON & JSONB tests should be split
-          type: dialect.name === 'postgres' ? DataTypes.JSONB : DataTypes.JSON,
+          type: dialect.supports.dataTypes.JSONB ? DataTypes.JSONB : DataTypes.JSON,
           field: 'event_data',
-          // This is only available on JSONB
-          index: dialect.name === 'postgres',
+          index: dialect.supports.dataTypes.JSONB,
         },
         json: DataTypes.JSON,
       });

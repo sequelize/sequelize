@@ -410,8 +410,10 @@ export type NormalizedHasOneOptions<
 /**
  * Options provided when associating models with hasOne relationship
  */
-export interface HasOneOptions<SourceKey extends string, TargetKey extends string>
-  extends AssociationOptions<TargetKey> {
+export interface HasOneOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+> extends AssociationOptions<TargetKey> {
   /**
    * The name of the field to use as the key for the association in the source table.
    * Defaults to the primary key of the source table.
@@ -454,8 +456,9 @@ function normalizeHasOneOptions<SourceKey extends string, TargetKey extends stri
  *
  * @see HasOneGetAssociationMixin
  */
-export interface HasOneGetAssociationMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>> {
+export interface HasOneGetAssociationMixinOptions<T extends Model> extends FindOptions<
+  Attributes<T>
+> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -494,8 +497,7 @@ export type HasOneGetAssociationMixin<T extends Model> = (
  * @see HasOneSetAssociationMixin
  */
 export interface HasOneSetAssociationMixinOptions<T extends Model>
-  extends HasOneGetAssociationMixinOptions<T>,
-    InstanceUpdateOptions<Attributes<T>> {
+  extends HasOneGetAssociationMixinOptions<T>, InstanceUpdateOptions<Attributes<T>> {
   /**
    * Delete the previous associated model. Default to false.
    *
@@ -530,8 +532,7 @@ export type HasOneSetAssociationMixin<T extends Model, TModelPrimaryKey> = {
  * @see HasOneCreateAssociationMixin
  */
 export interface HasOneCreateAssociationMixinOptions<T extends Model>
-  extends Omit<HasOneSetAssociationMixinOptions<T>, 'fields'>,
-    CreateOptions<Attributes<T>> {}
+  extends Omit<HasOneSetAssociationMixinOptions<T>, 'fields'>, CreateOptions<Attributes<T>> {}
 
 /**
  * The createAssociation mixin applied to models with hasOne.

@@ -23,8 +23,10 @@ export interface OracleConnection extends oracledbConnection, AbstractConnection
   on(event: 'error', listener: (err: any) => void): this;
 }
 
-export interface OracleConnectionOptions
-  extends Omit<oracledb.ConnectionAttributes, 'connectionString' | 'user'> {
+export interface OracleConnectionOptions extends Omit<
+  oracledb.ConnectionAttributes,
+  'connectionString' | 'user'
+> {
   database?: string;
 
   host?: string;
@@ -98,17 +100,6 @@ export class OracleConnectionManager extends AbstractConnectionManager<
       )) as OracleConnection;
 
       debug('connection acquired');
-      connection.on('error', error => {
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
 
       return connection;
     } catch (error: any) {
