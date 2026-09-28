@@ -38,6 +38,8 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptio
   arrayBindingThreshold: undefined,
   authenticator: undefined,
   browserActionTimeout: undefined,
+  browserRedirectPort: undefined,
+  browserResponseRenderer: undefined,
   clientConfigFile: undefined,
   clientRequestMFAToken: undefined,
   clientSessionKeepAlive: undefined,
@@ -84,12 +86,15 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptio
   role: undefined,
   sfRetryMaxLoginRetries: undefined,
   serviceName: undefined,
+  serverSessionKeepAlive: undefined,
   timeout: undefined,
   token: undefined,
+  tokenFilePath: undefined,
   useConnectionConfigProxyForOCSP: undefined,
   username: undefined,
   validateDefaultParameters: undefined,
   warehouse: undefined,
+  workloadIdentityAwsUseOutboundToken: undefined,
   workloadIdentityAzureClientId: undefined,
   workloadIdentityAzureEntraIdResource: undefined,
   workloadIdentityImpersonationPath: undefined,
@@ -101,6 +106,7 @@ export class SnowflakeDialect extends AbstractDialect<
   SnowflakeConnectionOptions
 > {
   static supports = AbstractDialect.extendSupport({
+    maxTableAliasLength: 255,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,

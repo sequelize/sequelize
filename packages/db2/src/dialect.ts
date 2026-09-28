@@ -38,6 +38,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<Db2ConnectionOptions>({
 
 export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2ConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
+    maxTableAliasLength: 128,
     migrations: false,
     schemas: true,
     finalTable: true,
@@ -77,6 +78,7 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
       authorization: true,
     },
     connectionTransactionMethods: true,
+    select: { dummyTable: 'SYSIBM.SYSDUMMY1' },
     startTransaction: {
       useBegin: true,
     },

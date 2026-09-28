@@ -9,7 +9,6 @@ const sinon = require('sinon');
 
 const current = Support.sequelize;
 const { dialect } = current;
-const dialectName = dialect.name;
 
 describe('Paranoid Model', () => {
   before(function () {
@@ -104,7 +103,7 @@ describe('Paranoid Model', () => {
               type: DataTypes.STRING,
             },
             data: {
-              type: dialectName === 'postgres' ? DataTypes.JSONB : DataTypes.JSON,
+              type: dialect.supports.dataTypes.JSONB ? DataTypes.JSONB : DataTypes.JSON,
             },
             deletedAt: {
               type: DataTypes.DATE,

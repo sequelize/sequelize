@@ -334,8 +334,7 @@ export function normalizeForeignKeyOptions<T extends string>(
 }
 
 export type MaybeForwardedModelStatic<M extends Model = Model> =
-  | ModelStatic<M>
-  | ((sequelize: Sequelize) => ModelStatic<M>);
+  ModelStatic<M> | ((sequelize: Sequelize) => ModelStatic<M>);
 
 export function getForwardedModel(
   model: MaybeForwardedModelStatic,

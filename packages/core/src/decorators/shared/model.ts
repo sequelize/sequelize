@@ -134,8 +134,6 @@ export function mergeAttributeOptions(
       }
 
       if (Array.isArray(optionValue)) {
-        // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- became valid in TS 5.8
-        // @ts-ignore -- runtime type checking is enforced by model
         existingOptions[optionName] = [...existingOptions[optionName], ...optionValue];
       } else {
         existingOptions[optionName] = [...existingOptions[optionName], optionValue];
@@ -177,7 +175,7 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): bo
 const NON_INHERITABLE_MODEL_OPTIONS = ['modelName', 'name', 'tableName'] as const;
 
 function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
-  const modelOptions = registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions);
+  const modelOptions = registeredOptions.get(model)?.model ?? EMPTY_OBJECT;
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {

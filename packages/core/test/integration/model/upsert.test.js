@@ -552,7 +552,7 @@ describe('Model', () => {
         });
       }
 
-      if (dialectName.startsWith('postgres')) {
+      if (sequelize.dialect.supports.dataTypes.DATETIME.infinity) {
         it('works when deletedAt is Infinity and part of primary key', async function () {
           const User = this.sequelize.define(
             'User',
@@ -594,16 +594,11 @@ describe('Model', () => {
         });
       }
 
-      if (dialectName === 'mysql' || dialectName === 'mariadb') {
+      if (sequelize.dialect.supports.inserts.updateOnDuplicate === ' ON DUPLICATE KEY UPDATE') {
         it('should allow to use calculated values on duplicate', async function () {
-          await this.User.upsert({
-            id: 1,
-            counter: this.sequelize.literal('`counter` + 1'),
-          });
-          await this.User.upsert({
-            id: 1,
-            counter: this.sequelize.literal('`counter` + 1'),
-          });
+          const counter = sql`${sql.identifier('counter')} + 1`;
+          await this.User.upsert({ id: 1, counter });
+          await this.User.upsert({ id: 1, counter });
           const user = await this.User.findByPk(1);
           expect(user.counter).to.equal(2);
         });

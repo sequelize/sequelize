@@ -45,9 +45,11 @@ import { defineAssociation, mixinMethods, normalizeBaseAssociationOptions } from
 export class BelongsToAssociation<
   S extends Model = Model,
   T extends Model = Model,
-  SourceKey extends AttributeNames<S> = any,
-  TargetKey extends AttributeNames<T> = any,
+  SourceKey extends AttributeNames<S> = AttributeNames<S>,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
 > extends Association<S, T, SourceKey, NormalizedBelongsToOptions<SourceKey, TargetKey>> {
+  readonly #foreignKey: SourceKey;
+
   readonly accessors: SingleAssociationAccessors;
 
   /**
@@ -59,7 +61,9 @@ export class BelongsToAssociation<
     return this.foreignKey;
   }
 
-  foreignKey: SourceKey;
+  get foreignKey(): SourceKey {
+    return this.#foreignKey;
+  }
 
   /**
    * The column name of the foreign key
@@ -146,7 +150,7 @@ export class BelongsToAssociation<
       foreignKey = this.inferForeignKey();
     }
 
-    this.foreignKey = foreignKey as SourceKey;
+    this.#foreignKey = foreignKey as SourceKey;
 
     this.targetKeyField = getColumnName(targetAttributes.getOrThrow(this.targetKey));
     this.targetKeyIsPrimary = this.targetKey === this.target.primaryKeyAttribute;
@@ -452,8 +456,10 @@ export type NormalizedBelongsToOptions<
  *
  * @see Association class belongsTo method
  */
-export interface BelongsToOptions<SourceKey extends string, TargetKey extends string>
-  extends AssociationOptions<SourceKey> {
+export interface BelongsToOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+> extends AssociationOptions<SourceKey> {
   /**
    * The name of the field to use as the key for the association in the target table. Defaults to the primary
    * key of the target table
@@ -472,8 +478,9 @@ export interface BelongsToOptions<SourceKey extends string, TargetKey extends st
  *
  * @see BelongsToGetAssociationMixin
  */
-export interface BelongsToGetAssociationMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>> {
+export interface BelongsToGetAssociationMixinOptions<T extends Model> extends FindOptions<
+  Attributes<T>
+> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -512,8 +519,9 @@ export type BelongsToGetAssociationMixin<T extends Model> = (
  *
  * @see BelongsToSetAssociationMixin
  */
-export interface BelongsToSetAssociationMixinOptions<T extends Model>
-  extends SaveOptions<Attributes<T>> {
+export interface BelongsToSetAssociationMixinOptions<T extends Model> extends SaveOptions<
+  Attributes<T>
+> {
   /**
    * Skip saving this after setting the foreign key if false.
    */
@@ -547,8 +555,7 @@ export type BelongsToSetAssociationMixin<T extends Model, TargetKeyType> = (
  * @see BelongsToCreateAssociationMixin
  */
 export interface BelongsToCreateAssociationMixinOptions<T extends Model>
-  extends CreateOptions<Attributes<T>>,
-    BelongsToSetAssociationMixinOptions<T> {}
+  extends CreateOptions<Attributes<T>>, BelongsToSetAssociationMixinOptions<T> {}
 
 /**
  * The createAssociation mixin applied to models with belongsTo.

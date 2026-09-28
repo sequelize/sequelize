@@ -50,6 +50,7 @@ const numericOptions: SupportableNumericOptions = {
 
 export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConnectionOptions> {
   static supports = AbstractDialect.extendSupport({
+    maxTableAliasLength: 256,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,
     lock: true,
@@ -116,7 +117,7 @@ export class MySqlDialect extends AbstractDialect<MySqlDialectOptions, MySqlConn
       sequelize,
       options,
       dataTypeOverrides: DataTypes,
-      minimumDatabaseVersion: '8.0.19',
+      minimumDatabaseVersion: '8.0.20',
       identifierDelimiter: '`',
       dataTypesDocumentationUrl: 'https://dev.mysql.com/doc/refman/8.0/en/data-types.html',
       name: 'mysql',

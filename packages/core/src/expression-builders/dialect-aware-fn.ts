@@ -6,7 +6,7 @@ import { BaseSqlExpression } from './base-sql-expression.js';
 import { JsonPath } from './json-path.js';
 
 /**
- * Unlike {@link sql.fn}, this class does not accept a function name.
+ * Unlike {@link @sequelize/core!sql.fn}, this class does not accept a function name.
  * It must instead be extended by a class that implements the {@link applyForDialect} method, in which
  * the function name is provided.
  *
@@ -73,6 +73,7 @@ export abstract class DialectAwareFn extends BaseSqlExpression {
       throw new Error(`JavaScript is not supported by the ${this.constructor.name} function.`);
     }
 
+    // eslint-disable-next-line unicorn/consistent-function-scoping -- the arrow function captures `this`
     return () => this.applyForJavaScript();
   }
 
