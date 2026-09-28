@@ -59,6 +59,8 @@ jobs:
       - name: Extract artifact
         run: tar -xf install-build-node-24.tar
       - run: yarn test:format
+      - name: Check that the generated index files are up to date
+        run: yarn test-exports
   unit-test:
     strategy:
       fail-fast: false
