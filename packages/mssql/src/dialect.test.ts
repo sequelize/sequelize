@@ -52,7 +52,7 @@ describe('MsSqlDialect#escapeString', () => {
 describe('MsSqlQuery#getSQLTypeFromJsType', () => {
   it('uses NVarChar for strings by default', () => {
     const sequelize = new Sequelize({ dialect: MsSqlDialect });
-    const query = new MsSqlQuery({} as never, sequelize, {
+    const query = new MsSqlQuery({}, sequelize, {
       logging: false,
       plain: false,
       raw: false,
@@ -70,7 +70,7 @@ describe('MsSqlQuery#getSQLTypeFromJsType', () => {
       dialect: MsSqlDialect,
       useUnicodeStrings: false,
     });
-    const query = new MsSqlQuery({} as never, sequelize, {
+    const query = new MsSqlQuery({}, sequelize, {
       logging: false,
       plain: false,
       raw: false,
