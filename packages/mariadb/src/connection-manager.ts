@@ -12,11 +12,15 @@ import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-o
 import { timeZoneToOffsetString } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { removeUndefined } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { isError } from '@sequelize/utils';
 import * as MariaDb from 'mariadb';
 import semver from 'semver';
 import type { MariaDbDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mariadb');
+
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
 
 export type MariaDbModule = typeof MariaDb;
 
@@ -91,7 +95,17 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
   async connect(config: ConnectionOptions<MariaDbDialect>): Promise<MariaDbConnection> {
     // Named timezone is not supported in mariadb, convert to offset
     let tzOffset = this.sequelize.options.timezone;
-    tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
+    if (tzOffset.includes('/')) {
+      try {
+        tzOffset = timeZoneToOffsetString(tzOffset);
+      } catch (error) {
+        if (!isError(error)) {
+          throw error;
+        }
+
+        throw new ConnectionError(error);
+      }
+    }
 
     const connectionConfig: MariaDb.ConnectionConfig = removeUndefined({
       foundRows: false,
@@ -119,17 +133,11 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
       this.sequelize.setDatabaseVersion(semver.coerce(connection.serverVersion())!.version);
 
       debug('connection acquired');
-      connection.on('error', error => {
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
+
+      // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
+      // attaches the real handler below. Without a listener here, that error would
+      // crash the process instead of waiting to be handled.
+      connection.on('error', ignoreErrorUntilInitialized);
 
       return connection;
     } catch (error: unknown) {
@@ -155,6 +163,20 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
           throw new ConnectionError(error);
       }
     }
+  }
+
+  async initializeConnection(connection: MariaDbConnection): Promise<void> {
+    connection.off('error', ignoreErrorUntilInitialized).on('error', error => {
+      switch (error.code) {
+        case 'ESOCKET':
+        case 'ECONNRESET':
+        case 'EPIPE':
+        case 'PROTOCOL_CONNECTION_LOST':
+          void this.sequelize.pool.destroy(connection);
+          break;
+        default:
+      }
+    });
   }
 
   async disconnect(connection: MariaDbConnection) {

@@ -123,7 +123,8 @@ describe('Pool', () => {
           connection = attachMSSQLUniqueId(connection);
         }
 
-        if (dialectName === 'db2' || dialectName === 'mariadb' || dialectName === 'sqlite3') {
+        // oracledb connections never emit 'error', so there is no handler to trigger
+        if (['db2', 'mariadb', 'oracle', 'sqlite3'].includes(dialectName)) {
           await newSequelize.pool.destroy(connection);
         } else {
           const error: NodeJS.ErrnoException = new Error('Test ECONNRESET Error');

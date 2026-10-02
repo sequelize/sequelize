@@ -1245,7 +1245,6 @@ ${associationOwner._getAssociationDebugList()}`);
   static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
     if (!this._modelVariantRefs) {
       // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
-      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
       this._modelVariantRefs = new Set([new WeakRef(this)]);
     }
 
@@ -1289,7 +1288,6 @@ ${associationOwner._getAssociationDebugList()}`);
       schema: schemaOptions.schema,
       schemaDelimiter: schemaOptions.schemaDelimiter,
     });
-    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
     this._modelVariantRefs.add(new WeakRef(clone));
 
     clone._scope = mergedScope;

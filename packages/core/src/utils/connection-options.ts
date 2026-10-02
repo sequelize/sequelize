@@ -9,7 +9,7 @@ import {
   parseSafeInteger,
   pojo,
 } from '@sequelize/utils';
-import type { StringKeyOf } from 'type-fest';
+import type { KeyAsString } from 'type-fest';
 import type { AbstractDialect, ConnectionOptions } from '../abstract-dialect/dialect.js';
 import type { NormalizedReplicationOptions, RawConnectionOptions } from '../sequelize';
 import type { PersistedSequelizeOptions } from '../sequelize.internals.js';
@@ -99,19 +99,19 @@ export function parseCommonConnectionUrlOptions<TConnectionOptions extends objec
   /**
    * The string options that can be set via the search parameters in the URL
    */
-  stringSearchParams?: ReadonlyArray<StringKeyOf<PickByType<TConnectionOptions, string>>>;
+  stringSearchParams?: ReadonlyArray<KeyAsString<PickByType<TConnectionOptions, string>>>;
 
   /**
    * The boolean options that can be set via the search parameters in the URL.
    * Will be parsed as a boolean.
    */
-  booleanSearchParams?: ReadonlyArray<StringKeyOf<PickByType<TConnectionOptions, boolean>>>;
+  booleanSearchParams?: ReadonlyArray<KeyAsString<PickByType<TConnectionOptions, boolean>>>;
 
   /**
    * The number options that can be set via the search parameters in the URL.
    * Will be parsed as a JS number.
    */
-  numberSearchParams?: ReadonlyArray<StringKeyOf<PickByType<TConnectionOptions, number>>>;
+  numberSearchParams?: ReadonlyArray<KeyAsString<PickByType<TConnectionOptions, number>>>;
 }): TConnectionOptions {
   const url: URL = isString(options.url) ? new URL(options.url) : options.url;
 
