@@ -10,8 +10,7 @@ import type { DynamicSqlExpression } from '../expression-builders/base-sql-expre
  * selected as.
  */
 export type FinderAttribute =
-  | string
-  | [columnNameOrExpression: string | DynamicSqlExpression, alias: string];
+  string | [columnNameOrExpression: string | DynamicSqlExpression, alias: string];
 
 export type FinderOptions<TAttributes> = {
   attributes?: FinderAttribute[];

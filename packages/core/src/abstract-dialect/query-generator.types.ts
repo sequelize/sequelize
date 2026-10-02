@@ -50,9 +50,7 @@ export interface UnionColumnDescriptor {
  * expressions that cannot be expressed as a plain column reference.
  */
 export type UnionOrderItem =
-  | string
-  | [column: string, direction: OrderDirection]
-  | BaseSqlExpression;
+  string | [column: string, direction: OrderDirection] | BaseSqlExpression;
 
 /**
  * Options that apply to the combined result set of a UNION, as opposed to its individual members.

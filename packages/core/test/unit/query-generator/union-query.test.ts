@@ -62,9 +62,10 @@ describe('QueryGenerator#unionQuery', () => {
     });
 
     it('normalizes the case of the direction', () => {
-      expect(queryGenerator.unionQuery(members, { order: [['name', 'desc' as 'DESC']] })).to.equal(
-        queryGenerator.unionQuery(members, { order: [['name', 'DESC']] }),
-      );
+      expect(
+        // @ts-expect-error -- the direction is only typed in upper case, but any case is accepted
+        queryGenerator.unionQuery(members, { order: [['name', 'desc']] }),
+      ).to.equal(queryGenerator.unionQuery(members, { order: [['name', 'DESC']] }));
     });
 
     it('supports a literal', () => {
@@ -83,7 +84,8 @@ describe('QueryGenerator#unionQuery', () => {
 
     it('rejects an invalid direction instead of silently falling back to ASC', () => {
       expect(() =>
-        queryGenerator.unionQuery(members, { order: [['name', 'DESCC' as 'DESC']] }),
+        // @ts-expect-error -- testing an invalid direction
+        queryGenerator.unionQuery(members, { order: [['name', 'DESCC']] }),
       ).to.throw('Invalid order direction: DESCC');
     });
   });
