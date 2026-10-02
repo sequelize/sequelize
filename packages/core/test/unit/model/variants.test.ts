@@ -21,3 +21,14 @@ describe('Model.getInitialModel', () => {
     expect(User.withScope('scope1').getInitialModel()).to.eq(User);
   });
 });
+
+describe('Model.withSchema / Model.withScope registry', () => {
+  it('does not replace the initial model in sequelize.models', () => {
+    const User = sequelize.define('User', {}, { scopes: { scope1: { where: literal('') } } });
+
+    User.withSchema('abc');
+    User.withScope('scope1');
+
+    expect(sequelize.models.get('User')).to.eq(User);
+  });
+});

@@ -497,6 +497,12 @@ new Sequelize({
 
     // Synchronize ModelDefinition map with the registered models set
     listenForModelDefinition(model => {
+      // Schema/scope variants (created by withSchema, withScope, ...) share their initial
+      // model's name but must not replace it (or one another) in the registry.
+      if (model.getInitialModel() !== model) {
+        return;
+      }
+
       const modelName = model.modelDefinition.modelName;
 
       // @ts-expect-error -- remove this disable once all sequelize.js has been migrated to TS
