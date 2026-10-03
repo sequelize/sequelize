@@ -12,7 +12,9 @@ export async function readFileIfExists(
   options?: ReadFileOptions,
 ): Promise<string | Buffer | null> {
   try {
-    return await fs.readFile(filePath, options);
+    // @types/node's last `readFile` overload stopped making `options` optional, so an explicit
+    // `undefined` (from this function's own optional parameter) no longer matches it. `null` does.
+    return await fs.readFile(filePath, options ?? null);
   } catch (error) {
     if (isNodeError(error) && error.code === 'ENOENT') {
       // file not found
