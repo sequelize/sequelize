@@ -78,7 +78,6 @@ export function inlineErrorCause(error: unknown): string {
 }
 
 chai.config.includeStack = true;
-chai.should();
 
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
