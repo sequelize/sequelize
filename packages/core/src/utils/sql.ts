@@ -197,7 +197,7 @@ function mapBindParametersAndReplacements(
 
       const remainingString = sqlString.slice(i, sqlString.length);
 
-      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\)|,|$|\s|::|;|])/i);
+      const match = remainingString.match(/^:(?<name>[a-z_][0-9a-z_]*)(?:\/|\)|,|$|\s|::|;|])/i);
       const replacementName = match?.groups?.name;
       if (!replacementName) {
         continue;
