@@ -2439,15 +2439,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/test@npm:5.0.0":
-  version: 5.0.0
-  resolution: "@oclif/test@npm:5.0.0"
+"@oclif/test@npm:5.0.1":
+  version: 5.0.1
+  resolution: "@oclif/test@npm:5.0.1"
   dependencies:
     ansis: "npm:^3.17.0"
     debug: "npm:^4.4.3"
   peerDependencies:
     "@oclif/core": ^5.0.0
-  checksum: 10c0/66ed8c1b9af351cd3cb2fa37acb3ea34108f9df150b5073ac3f6dde461be04671b67f64c056273690b68c3ec10d3602924d0a17013761388951849ef76e47605
+  checksum: 10c0/950f0245c8c366801694577acb79cebace45558f4e788274b30da682cde5115f639b3a79e12b0b5c7bf1c9815eb7efd4615e27fc6513fe69ad94489e23e61214
   languageName: node
   linkType: hard
 
@@ -2673,7 +2673,7 @@ __metadata:
     "@inquirer/select": "npm:^5.2.5"
     "@oclif/core": "npm:^5.1.2"
     "@oclif/plugin-help": "npm:^7.0.2"
-    "@oclif/test": "npm:5.0.0"
+    "@oclif/test": "npm:5.0.1"
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
     "@sequelize/utils": "workspace:*"
@@ -7243,17 +7243,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"get-east-asian-width@npm:^1.0.0":
+"get-east-asian-width@npm:^1.0.0, get-east-asian-width@npm:^1.5.0":
   version: 1.7.0
   resolution: "get-east-asian-width@npm:1.7.0"
   checksum: 10c0/680a5f611a186e4a065291f31821f7e4ad7742625be814e05b8ab5535c6fa53562bc0333a83138fca5f2e1030ed960a561b2fd4629e0cff0dc68b19cf46d7c53
-  languageName: node
-  linkType: hard
-
-"get-east-asian-width@npm:^1.5.0":
-  version: 1.6.0
-  resolution: "get-east-asian-width@npm:1.6.0"
-  checksum: 10c0/7e72e9550fd49ca5b246f9af6bb2afc129c96412845ff6556b3274fd44817a381702ca17028efe9866b261a3d44254cbf21e6c90cf05b4b61675630af776d431
   languageName: node
   linkType: hard
 
