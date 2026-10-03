@@ -651,6 +651,50 @@ if (dialect.startsWith('oracle')) {
           context: { options: { quoteIdentifiers: false } },
         },
       ],
+
+      describeTableQueryWithBind: [
+        {
+          title: 'passes the table and schema names as bind parameters',
+          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
+          expectation: {
+            query:
+              'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) WHERE (atc.OWNER = $sequelize_1) AND (atc.TABLE_NAME = $sequelize_2)ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC',
+            bind: { sequelize_1: 'mySchema', sequelize_2: 'myTable' },
+          },
+        },
+      ],
+
+      showConstraintsQueryWithBind: [
+        {
+          title: 'passes the table, schema, constraint name and type as bind parameters',
+          arguments: [
+            { tableName: 'myTable', schema: 'mySchema' },
+            { constraintName: 'myConstraint', constraintType: 'UNIQUE' },
+          ],
+          expectation: {
+            query:
+              "SELECT C.CONSTRAINT_NAME \"constraintName\", CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END \"constraintType\", C.TABLE_NAME \"tableName\", A.OWNER \"tableSchema\", C.OWNER \"constraintSchema\", C.COLUMN_NAME \"columnNames\", A.SEARCH_CONDITION \"definition\" FROM ALL_CONS_COLUMNS C INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME AND C.OWNER = A.OWNER WHERE C.TABLE_NAME =$sequelize_1 AND C.OWNER =$sequelize_2 AND C.CONSTRAINT_NAME =$sequelize_3 AND A.CONSTRAINT_TYPE =$sequelize_4 ORDER BY C.CONSTRAINT_NAME, C.POSITION",
+            bind: {
+              sequelize_1: 'myTable',
+              sequelize_2: 'mySchema',
+              sequelize_3: 'myConstraint',
+              sequelize_4: 'U',
+            },
+          },
+        },
+        {
+          title: 'passes the table and schema names as bind parameters for foreign keys',
+          arguments: [
+            { tableName: 'myTable', schema: 'mySchema' },
+            { constraintType: 'FOREIGN KEY' },
+          ],
+          expectation: {
+            query:
+              'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", c.owner "tableSchema", a.owner "constraintSchema", a.column_name "columnNames",CASE c.CONSTRAINT_TYPE WHEN \'P\' THEN \'PRIMARY KEY\' WHEN \'R\' THEN \'FOREIGN KEY\' WHEN \'C\' THEN \'CHECK\' WHEN \'U\' THEN \'UNIQUE\' ELSE NULL END "constraintType", c.r_owner "referencedTableSchema", c.DELETE_RULE "deleteAction", \'NO ACTION\' AS "updateAction", b.table_name "referencedTableName", b.column_name "referencedColumnNames" FROM all_cons_columns a JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name JOIN all_cons_columns b ON c.r_owner = b.owner AND c.r_constraint_name = b.constraint_name WHERE c.constraint_type  = \'R\' AND a.table_name = $sequelize_1 AND a.owner = $sequelize_2 ORDER BY a.table_name, a.column_name, b.column_name',
+            bind: { sequelize_1: 'myTable', sequelize_2: 'mySchema' },
+          },
+        },
+      ],
     };
 
     each(suites, (tests, suiteTitle) => {
