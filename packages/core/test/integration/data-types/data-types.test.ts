@@ -1397,12 +1397,7 @@ describe('DataTypes', () => {
     if (dialect.name === 'oracle') {
       // Date columns are always fetched as js dates for raw sql.
       it(`is deserialized as a date when DataType is not specified`, async () => {
-        await testSimpleInOutRaw(
-          vars.User,
-          'dateAttr',
-          '2022-01-01',
-          new Date('2022-01-01T00:00:00.000Z'),
-        );
+        await testSimpleInOutRaw(vars.User, 'dateAttr', '2022-01-01', new Date(2022, 0, 1));
       });
     } else {
       it(`is deserialized as a string when DataType is not specified`, async () => {
