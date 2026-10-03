@@ -1,5 +1,6 @@
 import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
+import oracledb from 'oracledb';
 import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#updateQuery', () => {
@@ -236,7 +237,10 @@ describe('QueryGenerator#updateQuery', () => {
           sequelize_2: 2,
         },
         oracle: {
-          sequelize_1: new Date('2011-03-27T10:01:55Z'),
+          sequelize_1: {
+            type: oracledb.DB_TYPE_TIMESTAMP_LTZ,
+            val: new Date('2011-03-27T10:01:55Z'),
+          },
           sequelize_2: 2,
         },
       },

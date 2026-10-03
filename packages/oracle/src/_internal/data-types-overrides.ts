@@ -5,24 +5,11 @@ import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-r
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import oracledbLib from 'oracledb';
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-imports
-type Lib = typeof import('oracledb');
+type Lib = typeof oracledbLib;
 
 dayjs.extend(utc);
-
-// legacy support
-let Moment: any;
-try {
-  // eslint-disable-next-line import/no-extraneous-dependencies
-  Moment = require('moment');
-} catch {
-  /* ignore */
-}
-
-function isMoment(value: any): boolean {
-  return Moment?.isMoment(value) ?? false;
-}
 
 export class STRING extends BaseTypes.STRING {
   protected _checkOptionSupport(dialect: AbstractDialect) {
@@ -169,11 +156,7 @@ export class DATE extends BaseTypes.DATE {
    * @override
    */
   getBindParamSql(value: AcceptedDate, options: BindParamOptions): string {
-    if (dayjs.isDayjs(value) || isMoment(value)) {
-      return options.bindParam(this._sanitize(value));
-    }
-
-    return options.bindParam(value);
+    return options.bindParam({ ...this._getBindDef(oracledbLib), val: this._sanitize(value) });
   }
 
   _sanitize(value: any) {
