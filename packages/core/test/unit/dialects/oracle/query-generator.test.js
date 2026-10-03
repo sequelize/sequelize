@@ -628,6 +628,29 @@ if (dialect.startsWith('oracle')) {
           context: { options: { quoteIdentifiers: false } },
         },
       ],
+
+      showIndexesQueryWithBind: [
+        {
+          title: 'passes the table and schema names as bind parameters',
+          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
+          expectation: {
+            query:
+              'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type FROM all_ind_columns i INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name) LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name) WHERE i.table_name = $sequelize_1 AND u.table_owner = $sequelize_2 ORDER BY index_name, column_position',
+            bind: { sequelize_1: 'myTable', sequelize_2: 'mySchema' },
+          },
+        },
+        {
+          title:
+            'passes the names as they are stored in the catalog when quoteIdentifiers is false',
+          arguments: [{ tableName: 'myTable', schema: 'mySchema' }],
+          expectation: {
+            query:
+              'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type FROM all_ind_columns i INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name) LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name) WHERE i.table_name = $sequelize_1 AND u.table_owner = $sequelize_2 ORDER BY index_name, column_position',
+            bind: { sequelize_1: 'MYTABLE', sequelize_2: 'MYSCHEMA' },
+          },
+          context: { options: { quoteIdentifiers: false } },
+        },
+      ],
     };
 
     each(suites, (tests, suiteTitle) => {
