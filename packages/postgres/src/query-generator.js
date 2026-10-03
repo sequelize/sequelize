@@ -110,6 +110,34 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     return `CREATE TABLE IF NOT EXISTS ${quotedTable} (${attributesClause})${comments}${columnComments};`;
   }
 
+  attributeToSql(column, options) {
+    const attribute = isPlainObject(column) ? column : { type: column };
+    const arraySubtype =
+      attribute.type instanceof DataTypes.ARRAY ? attribute.type.options.type : null;
+    const enumType =
+      attribute.type instanceof DataTypes.ENUM ? attribute.type : (arraySubtype ?? null);
+
+    if (
+      enumType instanceof DataTypes.ENUM &&
+      (enumType.options.name || enumType.options.schema !== undefined)
+    ) {
+      const qualifiedName = this.pgEnumName(options?.tableOrModel, attribute.field, {
+        enumName: enumType.options.name,
+        enumSchema: enumType.options.schema,
+      });
+      // Wrap in a sentinel so changeColumnQuery can detect this is an ENUM type and add
+      // the required USING cast. dataTypeMapping strips the wrapper before emitting SQL.
+      const sqlType =
+        attribute.type instanceof DataTypes.ARRAY
+          ? `ENUM_NAMED(${qualifiedName})[]`
+          : `ENUM_NAMED(${qualifiedName})`;
+
+      return super.attributeToSql({ ...attribute, type: sqlType }, options);
+    }
+
+    return super.attributeToSql(column, options);
+  }
+
   addColumnQuery(table, key, attribute, options) {
     options ||= {};
 
@@ -127,12 +155,21 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     let query = `ALTER TABLE ${quotedTable} ADD COLUMN ${ifNotExists} ${quotedKey} ${definition};`;
 
     if (dataType instanceof DataTypes.ENUM) {
-      query = this.pgEnum(table, key, dataType) + query;
+      query =
+        this.pgEnum(table, key, dataType, {
+          enumName: dataType.options.name,
+          enumSchema: dataType.options.schema,
+        }) + query;
     } else if (
       dataType instanceof DataTypes.ARRAY &&
       dataType.options.type instanceof DataTypes.ENUM
     ) {
-      query = this.pgEnum(table, key, dataType.options.type) + query;
+      const innerEnum = dataType.options.type;
+      query =
+        this.pgEnum(table, key, innerEnum, {
+          enumName: innerEnum.options.name,
+          enumSchema: innerEnum.options.schema,
+        }) + query;
     }
 
     return query;
@@ -186,6 +223,10 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
           : this.pgEnumName(tableName, attributeName);
 
         definition += ` USING (${this.quoteIdentifier(attributeName)}::${enumType})`;
+      } else if (attributes[attributeName].startsWith('ENUM_NAMED(')) {
+        // Custom-named ENUM: the type is managed externally; the type name is already in
+        // `definition` (ENUM_NAMED wrapper stripped by dataTypeMapping). Just add USING cast.
+        definition += ` USING (${this.quoteIdentifier(attributeName)}::${definition.trim()})`;
       }
 
       attrSql += uniqueSql;
@@ -393,15 +434,17 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   pgEnumName(tableName, columnName, options = {}) {
     const tableDetails = this.extractTableDetails(tableName, options);
 
-    const enumName = `enum_${tableDetails.tableName}_${columnName}`;
+    const rawEnumName = options.enumName ?? `enum_${tableDetails.tableName}_${columnName}`;
     if (options.noEscape) {
-      return enumName;
+      return rawEnumName;
     }
 
-    const escapedEnumName = this.quoteIdentifier(enumName);
+    const escapedEnumName = this.quoteIdentifier(rawEnumName);
 
-    if (options.schema !== false && tableDetails.schema) {
-      return this.quoteIdentifier(tableDetails.schema) + tableDetails.delimiter + escapedEnumName;
+    // enumSchema overrides the table's schema for the enum type name prefix
+    const schema = options.enumSchema !== undefined ? options.enumSchema : tableDetails.schema;
+    if (options.schema !== false && schema) {
+      return this.quoteIdentifier(schema) + tableDetails.delimiter + escapedEnumName;
     }
 
     return escapedEnumName;
@@ -416,8 +459,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
     if (tableDetails.tableName && columnName) {
       // pgEnumName escapes as an identifier, we want to escape it as a string
-      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, columnName, { noEscape: true }))}`;
+      enumName = ` AND t.typname=${this.escape(this.pgEnumName(tableDetails.tableName, columnName, { noEscape: true, enumName: options?.enumName }))}`;
     }
+
+    // enumSchema overrides the table's schema when looking up the enum type
+    const schema = options?.enumSchema !== undefined ? options.enumSchema : tableDetails.schema;
 
     return (
       'SELECT t.typname enum_name, ' +
@@ -425,7 +471,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       'FROM pg_type t ' +
       'LEFT JOIN pg_enum e ON t.oid = e.enumtypid ' +
       'JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace ' +
-      `WHERE n.nspname = ${this.escape(tableDetails.schema)} AND t.typtype = 'e'${enumName} GROUP BY 1`
+      `WHERE n.nspname = ${this.escape(schema)} AND t.typtype = 'e'${enumName} GROUP BY 1`
     );
   }
 
@@ -440,15 +486,15 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
     }
 
     let sql = `DO ${this.escape(`BEGIN CREATE TYPE ${enumName} AS ${values}; EXCEPTION WHEN duplicate_object THEN null; END`)};`;
-    if (Boolean(options) && options.force === true) {
-      sql = this.pgEnumDrop(tableName, columnName) + sql;
+    if (options?.force === true) {
+      sql = this.pgEnumDrop(null, null, enumName) + sql;
     }
 
     return sql;
   }
 
   pgEnumAdd(tableName, columnName, value, options) {
-    const enumName = this.pgEnumName(tableName, columnName);
+    const enumName = this.pgEnumName(tableName, columnName, options);
     let sql = `ALTER TYPE ${enumName} ADD VALUE IF NOT EXISTS `;
 
     sql += this.escape(value);
@@ -509,7 +555,11 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
       dataType = dataType.replace('NOT NULL', '');
     }
 
-    if (dataType.startsWith('ENUM(')) {
+    if (dataType.startsWith('ENUM_NAMED(')) {
+      // Strip the sentinel added by attributeToSQL for custom-named ENUMs,
+      // leaving just the qualified type identifier.
+      dataType = dataType.replace(/^ENUM_NAMED\((.+)\)/, '$1');
+    } else if (dataType.startsWith('ENUM(')) {
       dataType = dataType.replace(/^ENUM\(.+\)/, this.pgEnumName(tableName, attr));
     }
 
