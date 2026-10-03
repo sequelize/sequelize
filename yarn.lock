@@ -462,27 +462,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/identity@npm:^4.10.1":
-  version: 4.13.2
-  resolution: "@azure/identity@npm:4.13.2"
-  dependencies:
-    "@azure/abort-controller": "npm:^2.0.0"
-    "@azure/core-auth": "npm:^1.9.0"
-    "@azure/core-client": "npm:^1.9.2"
-    "@azure/core-process": "npm:^1.0.0"
-    "@azure/core-rest-pipeline": "npm:^1.17.0"
-    "@azure/core-tracing": "npm:^1.0.0"
-    "@azure/core-util": "npm:^1.11.0"
-    "@azure/logger": "npm:^1.0.0"
-    "@azure/msal-browser": "npm:^5.5.0"
-    "@azure/msal-node": "npm:^5.1.5"
-    open: "npm:^10.1.0"
-    tslib: "npm:^2.2.0"
-  checksum: 10c0/473486e71845d06c190aa79355164eaf08f74c620ee1bafa4668ad513b9c9362a9a170ee5dc86df4bf46037d0ad772fa6a75e54c2894f5db78e32beeda50c394
-  languageName: node
-  linkType: hard
-
-"@azure/identity@npm:^4.13.1":
+"@azure/identity@npm:^4.10.1, @azure/identity@npm:^4.13.1":
   version: 4.13.3
   resolution: "@azure/identity@npm:4.13.3"
   dependencies:
@@ -556,13 +536,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-common@npm:16.13.0":
-  version: 16.13.0
-  resolution: "@azure/msal-common@npm:16.13.0"
-  checksum: 10c0/cc2857f24bae5ac9693760a9b23c5c6f19a86ae5df16d236e85616a545e6bb15a8b7a587df9c024b43a5386485a84b662574c42cffafef9746e56135f61f654c
-  languageName: node
-  linkType: hard
-
 "@azure/msal-common@npm:16.14.0":
   version: 16.14.0
   resolution: "@azure/msal-common@npm:16.14.0"
@@ -574,16 +547,6 @@ __metadata:
   version: 16.14.1
   resolution: "@azure/msal-common@npm:16.14.1"
   checksum: 10c0/99abadb8ce40cf234e534776806e17a76904d9f99af069e20e6e7513cb3956428809672cb7fc2e1bde6ab0684b7027225514fe0d11671017b985ce7db8886087
-  languageName: node
-  linkType: hard
-
-"@azure/msal-node@npm:^5.1.5":
-  version: 5.6.0
-  resolution: "@azure/msal-node@npm:5.6.0"
-  dependencies:
-    "@azure/msal-common": "npm:16.13.0"
-    jsonwebtoken: "npm:^9.0.0"
-  checksum: 10c0/57e788bb884aa032b66ecfa339c4660b20e63ec91f25774db47b2e043ba6d5f969d66cd80c24bd4f2735388cef6acc2aba79a9b86da18aed2dbe856c88f49df2
   languageName: node
   linkType: hard
 
@@ -2455,12 +2418,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oclif/plugin-help@npm:^7.0.0":
-  version: 7.0.0
-  resolution: "@oclif/plugin-help@npm:7.0.0"
+"@oclif/plugin-help@npm:^7.0.0, @oclif/plugin-help@npm:^7.0.2":
+  version: 7.0.2
+  resolution: "@oclif/plugin-help@npm:7.0.2"
   dependencies:
     "@oclif/core": "npm:^5.0.0"
-  checksum: 10c0/851444f77ad2923bef39a78e4445b8842337469961bbc6e6f0ad2750f4410d0b803147c1afd35e029ab7cf54c86b2be55741e0de5d73bd798b89bf1b284bf19c
+  checksum: 10c0/65262d8809a2847a7c7d7a6a65ca0087ed09a04d6576dafaacbda460b5997dea8eeb655aff3888e389b7a88c223039789dbed0b47d3e900e56ba97c2f83aae01
   languageName: node
   linkType: hard
 
@@ -2730,7 +2693,7 @@ __metadata:
     "@inquirer/input": "npm:^5.1.6"
     "@inquirer/select": "npm:^5.2.5"
     "@oclif/core": "npm:^5.1.2"
-    "@oclif/plugin-help": "npm:^7.0.0"
+    "@oclif/plugin-help": "npm:^7.0.2"
     "@oclif/test": "npm:5.0.0"
     "@sequelize/core": "workspace:*"
     "@sequelize/sqlite3": "workspace:*"
