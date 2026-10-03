@@ -205,6 +205,8 @@ export type DialectSupports = {
     INET: boolean;
     MACADDR: boolean;
     MACADDR8: boolean;
+    /** Whether this dialect supports VARBINARY(n) — a variable-length binary string with a fixed max length */
+    VARBINARY: boolean;
     DATETIME: {
       /** Whether "infinity" is a valid value in this dialect's DATETIME data type */
       infinity: boolean;
@@ -463,6 +465,7 @@ export abstract class AbstractDialect<
       GEOGRAPHY: false,
       HSTORE: false,
       TSVECTOR: false,
+      VARBINARY: false,
       DATETIME: {
         infinity: false,
       },
