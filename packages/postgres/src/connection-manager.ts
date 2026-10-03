@@ -11,6 +11,7 @@ import {
 } from '@sequelize/core';
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { isError } from '@sequelize/utils';
 import type { ClientConfig } from 'pg';
 import * as Pg from 'pg';
 import type { TypeParser as PgTypeParser } from 'pg-types';
@@ -19,6 +20,9 @@ import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:pg');
+
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
 
 type TypeFormat = 'text' | 'binary';
 type TextTypeParser = PgTypeParser<string, unknown>;
@@ -47,8 +51,10 @@ export interface PostgresConnection extends AbstractConnection, Pg.Client {
   _ending?: boolean;
 }
 
-export interface PostgresConnectionOptions
-  extends Omit<ClientConfig, 'types' | 'connectionString'> {
+export interface PostgresConnectionOptions extends Omit<
+  ClientConfig,
+  'types' | 'connectionString'
+> {
   /**
    * !! DO NOT SET THIS TO TRUE !!
    * (unless you know what you're doing)
@@ -121,6 +127,11 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
     };
 
     const connection: PostgresConnection = new this.#lib.Client(connectionConfig);
+
+    // Temporary no-op placeholder: node-postgres can emit 'error' before initializeConnection()
+    // attaches the real handler below. Without a listener here, that error would
+    // crash the process instead of waiting to be handled.
+    connection.on('error', ignoreErrorUntilInitialized);
 
     await new Promise((resolve, reject) => {
       let responded = false;
@@ -197,8 +208,12 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
       });
     });
 
-    // Don't let a Postgres restart (or error) to take down the whole app
-    connection.on('error', (error: any) => {
+    return connection;
+  }
+
+  async initializeConnection(connection: PostgresConnection): Promise<void> {
+    // Don't let a Postgres restart (or error) to take down the whole app.
+    connection.off('error', ignoreErrorUntilInitialized).on('error', (error: any) => {
       connection._invalid = true;
       debug(`connection error ${error.code || error.message}`);
       void this.sequelize.pool.destroy(connection);
@@ -237,21 +252,13 @@ export class PostgresConnectionManager extends AbstractConnectionManager<
 
       await this.#refreshOidMap(connection);
     } catch (error) {
-      // The connection is already open here. Close it before propagating the setup error.
-      try {
-        await connection.end();
-      } catch (teardownError) {
-        throw new AggregateError(
-          [error, teardownError],
-          'Postgres connection setup failed and the connection could not be closed',
-          { cause: teardownError },
-        );
+      // e.g. an invalid time zone. Report it like the other dialects' setup failures.
+      if (!isError(error)) {
+        throw error;
       }
 
-      throw error;
+      throw new ConnectionError(error);
     }
-
-    return connection;
   }
 
   async disconnect(connection: PostgresConnection): Promise<void> {

@@ -48,8 +48,7 @@ export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiUpsertOptions<M extends Model>
-  extends QueryRawOptionsWithModel<M>,
-    Replaceable {}
+  extends QueryRawOptionsWithModel<M>, Replaceable {}
 
 export interface CreateFunctionOptions extends QueryRawOptions {
   force?: boolean;
@@ -174,12 +173,10 @@ export interface IndexOptions {
 }
 
 export interface QueryInterfaceIndexOptions
-  extends IndexOptions,
-    Omit<QiOptionsWithReplacements, 'type'> {}
+  extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
 
 export interface QueryInterfaceRemoveIndexOptions
-  extends QueryInterfaceIndexOptions,
-    RemoveIndexQueryOptions {}
+  extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions {}
 
 export interface FunctionParam {
   type: string;

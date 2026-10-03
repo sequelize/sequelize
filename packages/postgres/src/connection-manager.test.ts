@@ -1,154 +1,73 @@
-import { Sequelize } from '@sequelize/core';
+import { ConnectionError, Sequelize } from '@sequelize/core';
 import { PostgresDialect } from '@sequelize/postgres';
 import { expect } from 'chai';
+import { EventEmitter } from 'node:events';
 
-describe('PostgresConnectionManager#connect', () => {
-  class FakePgClient {
-    static lastInstance: FakePgClient | null = null;
-    static queryImpl: ((this: FakePgClient, sql: string) => Promise<unknown>) | null = null;
-
-    static endError: Error | null = null;
-
-    readonly connectionConfig: unknown;
-    readonly connection = {
-      on() {},
-      removeListener() {},
-    };
-
-    readonly queryCalls: string[] = [];
-    endCalls = 0;
-
-    constructor(connectionConfig: unknown) {
-      this.connectionConfig = connectionConfig;
-      FakePgClient.lastInstance = this;
-    }
-
-    connect(callback: (err?: Error | null) => void) {
-      callback(null);
-    }
-
-    once() {}
-
-    removeListener() {}
-
-    on() {}
-
-    async query(sql: string) {
-      this.queryCalls.push(sql);
-
-      if (FakePgClient.queryImpl) {
-        return FakePgClient.queryImpl.call(this, sql);
-      }
-
-      return { rows: [] };
-    }
-
-    async end() {
-      this.endCalls += 1;
-      if (FakePgClient.endError) {
-        throw FakePgClient.endError;
-      }
-    }
-  }
-
-  function createSequelize() {
-    const fakePgModule = {
-      Client: FakePgClient,
-    } as any;
-
-    return new Sequelize({
-      dialect: PostgresDialect,
-      pgModule: fakePgModule,
-      timezone: 'Asia/Kolkata',
-      keepDefaultTimezone: false,
-      clientMinMessages: false,
-      standardConformingStrings: false,
-    });
-  }
-
-  beforeEach(() => {
-    FakePgClient.lastInstance = null;
-    FakePgClient.queryImpl = null;
-    FakePgClient.endError = null;
-  });
-
-  it('runs timezone setup after connecting', async () => {
-    const sequelize = createSequelize();
-    const connection = await sequelize.dialect.connectionManager.connect({} as any);
-
-    expect(connection).to.equal(FakePgClient.lastInstance);
-    expect(FakePgClient.lastInstance?.queryCalls[0]).to.equal("SET TIME ZONE 'Asia/Kolkata';");
-    expect(FakePgClient.lastInstance?.queryCalls[1]).to.include('WITH ranges AS');
-    expect(FakePgClient.lastInstance?.endCalls).to.equal(0);
-  });
-
-  it('best-effort closes the connection when timezone setup fails', async () => {
-    const sequelize = createSequelize();
-    const queryError = new Error('post-connect setup failed');
-    FakePgClient.queryImpl = async () => {
-      throw queryError;
-    };
-
-    try {
-      await sequelize.dialect.connectionManager.connect({} as any);
-      throw new Error('Expected connect() to fail');
-    } catch (error) {
-      expect(error).to.equal(queryError);
-    }
-
-    expect(FakePgClient.lastInstance?.endCalls).to.equal(1);
-    expect(FakePgClient.lastInstance?.queryCalls).to.deep.equal(["SET TIME ZONE 'Asia/Kolkata';"]);
-  });
-
+// Setup now runs after connect(), before the pool owns the connection.
+// Exercise the real dialect methods so cleanup cannot silently move back into connect().
+describe('Postgres connection setup cleanup', () => {
   for (const stage of ['timezone setup', 'OID refresh']) {
-    it(`reports both errors when ${stage} and connection teardown fail`, async () => {
-      const sequelize = createSequelize();
-      const setupError = new Error(`${stage} failed`);
-      const teardownError = new Error('connection teardown failed');
-      FakePgClient.endError = teardownError;
-      FakePgClient.queryImpl = async sql => {
-        if (stage === 'timezone setup' || sql.includes('WITH ranges AS')) {
-          throw setupError;
+    for (const teardownFails of [false, true]) {
+      it(`preserves the ${stage} error when teardown ${teardownFails ? 'fails' : 'succeeds'}`, async () => {
+        const setupError = new Error(`${stage} failed`);
+        const teardownError = new Error('connection teardown failed');
+        let endCalls = 0;
+        const queryCalls: string[] = [];
+
+        class FailingPgClient extends EventEmitter {
+          readonly connection = new EventEmitter();
+
+          connect(callback: (error: Error | null) => void) {
+            callback(null);
+          }
+
+          async query(sql: string) {
+            queryCalls.push(sql);
+            if (stage === 'timezone setup' || sql.includes('WITH ranges AS')) {
+              throw setupError;
+            }
+
+            return { rows: [] };
+          }
+
+          async end() {
+            endCalls += 1;
+            if (teardownFails) {
+              throw teardownError;
+            }
+          }
         }
 
-        return { rows: [] };
-      };
+        const sequelize = new Sequelize({
+          dialect: PostgresDialect,
+          pgModule: { Client: FailingPgClient } as any,
+          databaseVersion: '17.0.0',
+          timezone: 'Asia/Kolkata',
+          clientMinMessages: false,
+          standardConformingStrings: false,
+        });
 
-      try {
-        await sequelize.dialect.connectionManager.connect({} as any);
-        expect.fail('Expected connect() to fail');
-      } catch (error) {
-        expect(error).to.be.instanceOf(AggregateError);
-        expect((error as AggregateError).errors).to.deep.equal([setupError, teardownError]);
-        expect((error as AggregateError).cause).to.equal(teardownError);
-      }
+        try {
+          const error = await sequelize.pool.acquire().then(
+            () => null,
+            (error_: unknown) => error_,
+          );
 
-      expect(FakePgClient.lastInstance?.endCalls).to.equal(1);
-    });
-  }
+          expect(error).to.be.instanceOf(ConnectionError);
+          expect((error as ConnectionError).cause).to.equal(setupError);
+          expect(endCalls).to.equal(1);
+          expect(queryCalls[0]).to.equal("SET TIME ZONE 'Asia/Kolkata';");
+          if (stage === 'OID refresh') {
+            expect(queryCalls[1]).to.include('WITH ranges AS');
+          }
 
-  it('best-effort closes the connection when OID refresh fails', async () => {
-    const sequelize = createSequelize();
-    const oidRefreshError = new Error('OID refresh failed');
-    FakePgClient.queryImpl = async sql => {
-      if (sql.includes('WITH ranges AS')) {
-        throw oidRefreshError;
-      }
-
-      return { rows: [] };
-    };
-
-    try {
-      await sequelize.dialect.connectionManager.connect({} as any);
-      throw new Error('Expected connect() to fail');
-    } catch (error) {
-      expect(error).to.equal(oidRefreshError);
+          expect(sequelize.pool.size).to.equal(0);
+        } finally {
+          await sequelize.close();
+        }
+      });
     }
-
-    expect(FakePgClient.lastInstance?.endCalls).to.equal(1);
-    expect(FakePgClient.lastInstance?.queryCalls[0]).to.equal("SET TIME ZONE 'Asia/Kolkata';");
-    expect(FakePgClient.lastInstance?.queryCalls[1]).to.include('WITH ranges AS');
-  });
+  }
 });
 
 const HSTORE_OID = 90_001;
@@ -217,5 +136,53 @@ describe('PostgresConnectionManager#getTypeParser', () => {
     expect(
       connectionManager.getTypeParser(HSTORE_ARRAY_OID, 'text')('{"\\"a\\"=>\\"b\\""}'),
     ).to.deep.equal([{ a: 'b' }]);
+  });
+});
+
+class FakePgClient extends EventEmitter {
+  // connect() listens to the protocol connection for server parameters.
+  readonly connection = new EventEmitter();
+
+  connect(callback: (error: Error | null) => void) {
+    process.nextTick(() => {
+      callback(null);
+    });
+  }
+
+  async query() {
+    return { rows: [] };
+  }
+}
+
+describe('PostgresConnectionManager#initializeConnection', () => {
+  it('only replaces the placeholder error listener', async () => {
+    const sequelize = new Sequelize({
+      dialect: PostgresDialect,
+      pgModule: { Client: FakePgClient } as any,
+    });
+    const { connectionManager } = sequelize.dialect;
+
+    const connection = await connectionManager.connect({});
+    const otherListener = () => {};
+
+    connection.on('error', otherListener);
+    expect(connection.listenerCount('error')).to.equal(2);
+
+    await connectionManager.initializeConnection(connection);
+
+    const listeners = connection.listeners('error');
+    expect(listeners).to.have.length(2);
+    expect(listeners).to.include(otherListener);
+
+    // The other listener is the real handler, which destroys the connection.
+    const destroyed: unknown[] = [];
+    Object.assign(sequelize.pool, {
+      async destroy(destroyedConnection: unknown) {
+        destroyed.push(destroyedConnection);
+      },
+    });
+    connection.emit('error', Object.assign(new Error('connection lost'), { code: 'ECONNRESET' }));
+    expect(destroyed).to.have.length(1);
+    expect(destroyed[0]).to.equal(connection);
   });
 });

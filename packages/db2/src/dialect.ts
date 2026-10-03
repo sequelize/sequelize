@@ -78,6 +78,7 @@ export class Db2Dialect extends AbstractDialect<Db2DialectOptions, Db2Connection
       authorization: true,
     },
     connectionTransactionMethods: true,
+    select: { dummyTable: 'SYSIBM.SYSDUMMY1' },
     startTransaction: {
       useBegin: true,
     },

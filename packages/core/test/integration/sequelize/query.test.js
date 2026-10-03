@@ -25,28 +25,8 @@ const {
 const dialectName = getTestDialect();
 const queryGenerator = sequelize.queryGenerator;
 
-const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
-    return `"${str}"`;
-  }
-
-  if (['mysql', 'mariadb', 'sqlite3'].includes(dialectName)) {
-    return `\`${str}\``;
-  }
-
-  return str;
-};
-
-const fromQuery = () => {
-  let query = '';
-  if (dialectName === 'oracle') {
-    query += ' FROM DUAL';
-  } else if (dialectName === 'ibmi') {
-    query += ' FROM SYSIBM.SYSDUMMY1';
-  }
-
-  return query;
-};
+const { dummyTable } = sequelize.dialect.supports.select;
+const fromQuery = () => (dummyTable ? ` FROM ${dummyTable}` : '');
 
 const dateLiteral = str => {
   if (dialectName === 'oracle') {
@@ -76,15 +56,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         },
       });
 
-      this.insertQuery = `INSERT INTO ${qq(this.User.tableName)} (${qq('username')}, ${qq('email_address')}, ${qq(
-        'createdAt',
-      )}, ${qq(
-        'updatedAt',
-      )}) VALUES ('john', 'john@gmail.com', ${dateLiteral('2012-01-01 10:10:10')}, ${dateLiteral('2012-01-01 10:10:10')})`;
-      if (['db2', 'ibmi'].includes(dialectName)) {
-        this.insertQuery = `INSERT INTO ${qq(this.User.tableName)}
-          ("username", "email_address", ${qq('createdAt')}, ${qq('updatedAt')}) VALUES ('john', 'john@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-      }
+      this.insertQuery = `INSERT INTO ${queryGenerator.quoteIdentifier(this.User.tableName)} (${queryGenerator.quoteIdentifier('username')}, ${queryGenerator.quoteIdentifier('email_address')}, ${queryGenerator.quoteIdentifier('createdAt')}, ${queryGenerator.quoteIdentifier('updatedAt')}) VALUES ('john', 'john@gmail.com', ${dateLiteral('2012-01-01 10:10:10')}, ${dateLiteral('2012-01-01 10:10:10')})`;
 
       await this.User.sync({ force: true });
     });
@@ -104,7 +76,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         });
 
         const [rows, count] = await this.sequelize.query(
-          `SELECT * FROM ${qq(this.User.tableName)};`,
+          `SELECT * FROM ${queryGenerator.quoteIdentifier(this.User.tableName)};`,
           {
             type: Sequelize.QueryTypes.RAW,
           },
@@ -132,7 +104,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         await expect(
           this.sequelize.query(
             `
-          INSERT INTO ${qq(this.User.tableName)} (${qq('username')},${qq('createdAt')},${qq('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
+          INSERT INTO ${queryGenerator.quoteIdentifier(this.User.tableName)} (${queryGenerator.quoteIdentifier('username')},${queryGenerator.quoteIdentifier('createdAt')},${queryGenerator.quoteIdentifier('updatedAt')}) VALUES ($username,$createdAt,$updatedAt);
         `,
             {
               bind: payload,
@@ -335,7 +307,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
     it('executes select queries correctly', async function () {
       await this.sequelize.query(this.insertQuery);
-      const [users] = await this.sequelize.query(`select * from ${qq(this.User.tableName)}`);
+      const [users] = await this.sequelize.query(
+        `select * from ${queryGenerator.quoteIdentifier(this.User.tableName)}`,
+      );
       expect(
         users.map(u => {
           return u.username;
@@ -351,7 +325,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
       destroySequelizeAfterTest(sequelize);
 
       await sequelize.query(this.insertQuery);
-      const [users] = await sequelize.query(`select * from ${qq(this.User.tableName)}`);
+      const [users] = await sequelize.query(
+        `select * from ${queryGenerator.quoteIdentifier(this.User.tableName)}`,
+      );
       expect(
         users.map(u => {
           return u.username;
@@ -360,19 +336,23 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     });
 
     it('executes select query with dot notation results', async function () {
-      await this.sequelize.query(`DELETE FROM ${qq(this.User.tableName)}`);
+      await this.sequelize.query(
+        `DELETE FROM ${queryGenerator.quoteIdentifier(this.User.tableName)}`,
+      );
       await this.sequelize.query(this.insertQuery);
       const [users] = await this.sequelize.query(
-        `select ${qq('username')} as ${qq('user.username')} from ${qq(this.User.tableName)}`,
+        `select ${queryGenerator.quoteIdentifier('username')} as ${queryGenerator.quoteIdentifier('user.username')} from ${queryGenerator.quoteIdentifier(this.User.tableName)}`,
       );
       expect(users).to.deep.equal([{ 'user.username': 'john' }]);
     });
 
     it('executes select query with dot notation results and nest it', async function () {
-      await this.sequelize.query(`DELETE FROM ${qq(this.User.tableName)}`);
+      await this.sequelize.query(
+        `DELETE FROM ${queryGenerator.quoteIdentifier(this.User.tableName)}`,
+      );
       await this.sequelize.query(this.insertQuery);
       const users = await this.sequelize.query(
-        `select ${qq('username')} as ${qq('user.username')} from ${qq(this.User.tableName)}`,
+        `select ${queryGenerator.quoteIdentifier('username')} as ${queryGenerator.quoteIdentifier('user.username')} from ${queryGenerator.quoteIdentifier(this.User.tableName)}`,
         { raw: true, nest: true },
       );
       expect(
@@ -414,7 +394,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         }
 
         await sequelize.query(
-          `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${qq(this.User.tableName)}; OPEN cr1; END`,
+          `CREATE PROCEDURE foo() DYNAMIC RESULT SETS 1 LANGUAGE SQL BEGIN DECLARE cr1 CURSOR WITH RETURN FOR SELECT * FROM ${queryGenerator.quoteIdentifier(this.User.tableName)}; OPEN cr1; END`,
         );
 
         const users = await sequelize.query('CALL foo()');
@@ -425,9 +405,12 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('uses the passed model', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
-        model: this.User,
-      });
+      const users = await this.sequelize.query(
+        `SELECT * FROM ${queryGenerator.quoteIdentifier(this.User.tableName)};`,
+        {
+          model: this.User,
+        },
+      );
 
       expect(users[0]).to.be.instanceof(this.User);
     });
@@ -435,10 +418,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('maps the field names to attributes based on the passed model', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
-        model: this.User,
-        mapToModel: true,
-      });
+      const users = await this.sequelize.query(
+        `SELECT * FROM ${queryGenerator.quoteIdentifier(this.User.tableName)};`,
+        {
+          model: this.User,
+          mapToModel: true,
+        },
+      );
 
       expect(users[0].emailAddress).to.equal('john@gmail.com');
     });
@@ -446,10 +432,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('arbitrarily map the field names', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
-        type: 'SELECT',
-        fieldMap: { username: 'userName', email_address: 'email' },
-      });
+      const users = await this.sequelize.query(
+        `SELECT * FROM ${queryGenerator.quoteIdentifier(this.User.tableName)};`,
+        {
+          type: 'SELECT',
+          fieldMap: { username: 'userName', email_address: 'email' },
+        },
+      );
 
       expect(users[0].userName).to.equal('john');
       expect(users[0].email).to.equal('john@gmail.com');
@@ -458,140 +447,117 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('keeps field names that are mapped to the same name', async function () {
       await this.sequelize.query(this.insertQuery);
 
-      const users = await this.sequelize.query(`SELECT * FROM ${qq(this.User.tableName)};`, {
-        type: 'SELECT',
-        fieldMap: { username: 'username', email_address: 'email' },
-      });
+      const users = await this.sequelize.query(
+        `SELECT * FROM ${queryGenerator.quoteIdentifier(this.User.tableName)};`,
+        {
+          type: 'SELECT',
+          fieldMap: { username: 'username', email_address: 'email' },
+        },
+      );
 
       expect(users[0].username).to.equal('john');
       expect(users[0].email).to.equal('john@gmail.com');
     });
 
-    // Only run stacktrace tests on Node 12+, since only Node 12+ supports
-    // async stacktraces
-    const nodeVersionMatch = process.version.match(/^v(\d+)/);
-    let nodeMajorVersion = 0;
-    if (nodeVersionMatch && nodeVersionMatch[1]) {
-      nodeMajorVersion = Number.parseInt(nodeVersionMatch[1], 10);
-    }
-
-    if (nodeMajorVersion >= 12) {
-      describe('stacktraces', () => {
-        beforeEach(async function () {
-          this.UserVisit = this.sequelize.define(
-            'UserVisit',
-            {
-              userId: {
-                type: DataTypes.STRING,
-                field: 'user_id',
-              },
-              visitedAt: {
-                type: DataTypes.DATE,
-                field: 'visited_at',
-              },
+    describe('stacktraces', () => {
+      beforeEach(async function () {
+        this.UserVisit = this.sequelize.define(
+          'UserVisit',
+          {
+            userId: {
+              type: DataTypes.STRING,
+              field: 'user_id',
             },
-            {
-              indexes: [{ name: 'user_id', fields: ['user_id'] }],
+            visitedAt: {
+              type: DataTypes.DATE,
+              field: 'visited_at',
             },
-          );
+          },
+          {
+            indexes: [{ name: 'user_id', fields: ['user_id'] }],
+          },
+        );
 
-          this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
+        this.User.hasMany(this.UserVisit, { foreignKey: 'user_id' });
 
-          await this.UserVisit.sync({ force: true });
-        });
-
-        it('emits raw errors if requested', async function () {
-          const sql = 'SELECT 1 FROM NotFoundTable';
-
-          await expect(
-            this.sequelize.query(sql, { rawErrors: false }),
-          ).to.eventually.be.rejectedWith(DatabaseError);
-
-          await expect(
-            this.sequelize.query(sql, { rawErrors: true }),
-          ).to.eventually.be.rejected.and.not.be.an.instanceOf(DatabaseError);
-        });
-
-        it('emits full stacktraces for generic database error', async function () {
-          let error = null;
-          try {
-            await this.sequelize.query(
-              `select * from ${qq(this.User.tableName)} where ${qq('unknown_column')} = 1`,
-            );
-          } catch (error_) {
-            error = error_;
-          }
-
-          expect(error).to.be.instanceOf(DatabaseError);
-          expect(error.stack).to.contain('query.test');
-        });
-
-        it('emits full stacktraces for unique constraint error', async function () {
-          let query;
-          if (['db2', 'ibmi', 'oracle'].includes(dialectName)) {
-            const ts =
-              dialectName === 'oracle'
-                ? "TO_TIMESTAMP('2012-01-01 10:10:10', 'YYYY-MM-DD HH24:MI:SS')"
-                : `'2012-01-01 10:10:10'`;
-            query = `INSERT INTO ${qq(this.User.tableName)} ("username", "email_address", ${qq(
-              'createdAt',
-            )}, ${qq('updatedAt')}) VALUES ('duplicate', 'duplicate@gmail.com', ${ts}, ${ts})`;
-          } else {
-            query = `INSERT INTO ${qq(this.User.tableName)} (username, email_address, ${qq(
-              'createdAt',
-            )}, ${qq(
-              'updatedAt',
-            )}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-          }
-
-          let error = null;
-          try {
-            // Insert 1 row
-            await this.sequelize.query(query);
-            // Try inserting a duplicate row
-            await this.sequelize.query(query);
-          } catch (error_) {
-            error = error_;
-          }
-
-          expect(error).to.be.instanceOf(UniqueConstraintError);
-          expect(error.stack).to.contain('query.test');
-        });
-
-        it('emits full stacktraces for constraint validation error', async function () {
-          let error = null;
-          try {
-            let query;
-            if (['db2', 'ibmi'].includes(dialectName)) {
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
-                'createdAt',
-              )}, ${qq(
-                'updatedAt',
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-            } else if (dialectName === 'oracle') {
-              const ts = "TO_TIMESTAMP('2012-01-01 10:10:10', 'YYYY-MM-DD HH24:MI:SS')";
-
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} ("user_id", "visited_at", ${qq(
-                'createdAt',
-              )}, ${qq('updatedAt')}) VALUES (123456789, ${ts}, ${ts}, ${ts})`;
-            } else {
-              query = `INSERT INTO ${qq(this.UserVisit.tableName)} (user_id, visited_at, ${qq(
-                'createdAt',
-              )}, ${qq(
-                'updatedAt',
-              )}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
-            }
-
-            await this.sequelize.query(query);
-          } catch (error_) {
-            error = error_;
-          }
-
-          expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-          expect(error.stack).to.contain('query.test');
-        });
+        await this.UserVisit.sync({ force: true });
       });
-    }
+
+      it('emits raw errors if requested', async function () {
+        const sql = 'SELECT 1 FROM NotFoundTable';
+
+        await expect(this.sequelize.query(sql, { rawErrors: false })).to.eventually.be.rejectedWith(
+          DatabaseError,
+        );
+
+        await expect(
+          this.sequelize.query(sql, { rawErrors: true }),
+        ).to.eventually.be.rejected.and.not.be.an.instanceOf(DatabaseError);
+      });
+
+      it('emits full stacktraces for generic database error', async function () {
+        let error = null;
+        try {
+          await this.sequelize.query(
+            `select * from ${queryGenerator.quoteIdentifier(this.User.tableName)} where ${queryGenerator.quoteIdentifier('unknown_column')} = 1`,
+          );
+        } catch (error_) {
+          error = error_;
+        }
+
+        expect(error).to.be.instanceOf(DatabaseError);
+        expect(error.stack).to.contain('query.test');
+      });
+
+      it('emits full stacktraces for unique constraint error', async function () {
+        let query;
+        if (['db2', 'ibmi', 'oracle'].includes(dialectName)) {
+          const ts =
+            dialectName === 'oracle'
+              ? "TO_TIMESTAMP('2012-01-01 10:10:10', 'YYYY-MM-DD HH24:MI:SS')"
+              : `'2012-01-01 10:10:10'`;
+          query = `INSERT INTO ${queryGenerator.quoteIdentifier(this.User.tableName)} ("username", "email_address", ${queryGenerator.quoteIdentifier('createdAt')}, ${queryGenerator.quoteIdentifier('updatedAt')}) VALUES ('duplicate', 'duplicate@gmail.com', ${ts}, ${ts})`;
+        } else {
+          query = `INSERT INTO ${queryGenerator.quoteIdentifier(this.User.tableName)} (username, email_address, ${queryGenerator.quoteIdentifier('createdAt')}, ${queryGenerator.quoteIdentifier('updatedAt')}) VALUES ('duplicate', 'duplicate@gmail.com', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+        }
+
+        let error = null;
+        try {
+          // Insert 1 row
+          await this.sequelize.query(query);
+          // Try inserting a duplicate row
+          await this.sequelize.query(query);
+        } catch (error_) {
+          error = error_;
+        }
+
+        expect(error).to.be.instanceOf(UniqueConstraintError);
+        expect(error.stack).to.contain('query.test');
+      });
+
+      it('emits full stacktraces for constraint validation error', async function () {
+        let error = null;
+        try {
+          let query;
+          if (['db2', 'ibmi'].includes(dialectName)) {
+            query = `INSERT INTO ${queryGenerator.quoteIdentifier(this.UserVisit.tableName)} ("user_id", "visited_at", ${queryGenerator.quoteIdentifier('createdAt')}, ${queryGenerator.quoteIdentifier('updatedAt')}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+          } else if (dialectName === 'oracle') {
+            const ts = "TO_TIMESTAMP('2012-01-01 10:10:10', 'YYYY-MM-DD HH24:MI:SS')";
+
+            query = `INSERT INTO ${queryGenerator.quoteIdentifier(this.UserVisit.tableName)} ("user_id", "visited_at", ${queryGenerator.quoteIdentifier('createdAt')}, ${queryGenerator.quoteIdentifier('updatedAt')}) VALUES (123456789, ${ts}, ${ts}, ${ts})`;
+          } else {
+            query = `INSERT INTO ${queryGenerator.quoteIdentifier(this.UserVisit.tableName)} (user_id, visited_at, ${queryGenerator.quoteIdentifier('createdAt')}, ${queryGenerator.quoteIdentifier('updatedAt')}) VALUES (123456789, '2012-01-01 10:10:10', '2012-01-01 10:10:10', '2012-01-01 10:10:10')`;
+          }
+
+          await this.sequelize.query(query);
+        } catch (error_) {
+          error = error_;
+        }
+
+        expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+        expect(error.stack).to.contain('query.test');
+      });
+    });
 
     describe('rejections', () => {
       it('reject if the query is not a string', async function () {

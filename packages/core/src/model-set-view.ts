@@ -17,8 +17,7 @@ export class ModelSetView<Dialect extends AbstractDialect> extends SetView<Model
 
   get<M extends Model = Model>(modelName: string): ModelStatic<M> | undefined {
     return this.find(model => model.modelDefinition.modelName === modelName) as
-      | ModelStatic<M>
-      | undefined;
+      ModelStatic<M> | undefined;
   }
 
   getOrThrow<M extends Model = Model>(modelName: string): ModelStatic<M> {
