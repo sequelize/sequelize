@@ -417,14 +417,39 @@ export class HasManyAssociation<
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
+
+    // Separate new (unsaved) instances from existing ones.
+    // New instances may result from passing raw plain objects.
+    const newTargets = normalizedTargets.filter(instance => instance.isNewRecord);
+    const existingTargets = normalizedTargets.filter(instance => !instance.isNewRecord);
+
+    // Collect primary keys of existing newTargets to exclude from obsolete check
+    const newTargetPks: Set<unknown> = new Set();
+    for (const t of newTargets) {
+      // @ts-expect-error -- TODO: what if the target has no primary key?
+      newTargetPks.add(t.get(this.target.primaryKeyAttribute));
+    }
+
     const obsoleteAssociations = oldAssociations.filter(old => {
-      return !normalizedTargets.some(obj => {
+      // @ts-expect-error -- old is a raw result
+      const pk = old[this.target.primaryKeyAttribute];
+      if (newTargetPks.has(pk)) {
+        return false;
+      }
+      return !existingTargets.some(obj => {
         // @ts-expect-error -- old is a raw result
-        return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
+        return obj.get(this.target.primaryKeyAttribute) === pk;
       });
     });
 
-    const unassociatedObjects = normalizedTargets.filter(obj => {
+    // Create new targets first so they get primary keys assigned.
+    if (newTargets.length > 0) {
+      for (const instance of newTargets) {
+        await instance.save({ transaction: (options as any).transaction });
+      }
+    }
+
+    const unassociatedObjects = existingTargets.filter(obj => {
       return !oldAssociations.some(old => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
@@ -484,6 +509,31 @@ export class HasManyAssociation<
       return;
     }
 
+    // Separate new (unsaved) instances from existing ones.
+    // New instances may be created from raw plain objects passed to add().
+    const newInstances = targetInstances.filter(instance => instance.isNewRecord);
+    const existingInstances = targetInstances.filter(instance => !instance.isNewRecord);
+
+    // Create new instances first, then set their foreign key.
+    // If createOptions were passed, use them; otherwise use default.
+    if (newInstances.length > 0) {
+      for (const instance of newInstances) {
+        await instance.save({ transaction: (options as any).transaction });
+        const pkAttr = this.target.primaryKeyAttribute!;
+        await this.target.withoutScope().update(
+          { [this.foreignKey]: sourceInstance.get(this.sourceKey), ...this.scope } as UpdateValues<T>,
+          {
+            ...options,
+            where: { [pkAttr]: instance.get(pkAttr) } as any,
+          },
+        );
+      }
+    }
+
+    if (existingInstances.length === 0) {
+      return;
+    }
+
     const update = {
       [this.foreignKey]: sourceInstance.get(this.sourceKey),
       ...this.scope,
@@ -491,7 +541,7 @@ export class HasManyAssociation<
 
     const where = {
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject => {
+      [this.target.primaryKeyAttribute]: existingInstances.map(unassociatedObject => {
         // @ts-expect-error -- TODO: what if the target has no primary key?
         return unassociatedObject.get(this.target.primaryKeyAttribute);
       }),
