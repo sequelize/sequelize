@@ -6,7 +6,7 @@ const {
   createMultiTransactionalTestSequelizeInstance,
   sequelize,
 } = require('../support');
-const { col, DataTypes, Op } = require('@sequelize/core');
+const { col, DataTypes, Op, ParameterStyle } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -170,9 +170,20 @@ describe('Model', () => {
           },
         ],
         {
+          ...(dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]
+            ? { parameterStyle: ParameterStyle.BIND }
+            : {}),
           logging(sql) {
             if (dialect.supports.autoIncrement.defaultValue) {
-              const idValue = dialect.supports.bulkDefault ? 'DEFAULT' : 'NULL';
+              let idValue;
+              if (dialect.supports.bulkDefault) {
+                idValue = 'DEFAULT';
+              } else if (dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]) {
+                idValue = dialectName === 'sqlite3' ? '$sequelize_1' : '?';
+              } else {
+                idValue = 'NULL';
+              }
+
               expect(sql).to.include(
                 `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
               );

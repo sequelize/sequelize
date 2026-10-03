@@ -1,7 +1,7 @@
 // Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import type { Sequelize } from '@sequelize/core';
-import { AbstractDialect } from '@sequelize/core';
+import { AbstractDialect, ParameterStyle } from '@sequelize/core';
 import type { SupportableNumericOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/dialect.js';
 import { createSpecifiedOrderedBindCollector } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { EMPTY_ARRAY } from '@sequelize/utils';
@@ -44,6 +44,9 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
     schemas: true,
     inserts: {
       ignoreDuplicates: false,
+      bulkInsertParameterStyles: {
+        [ParameterStyle.REPLACEMENT]: false,
+      },
     },
     indexViaAlter: false,
     dataTypes: {
