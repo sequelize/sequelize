@@ -3,6 +3,7 @@ set -Eeuxo pipefail # https://vaneyckt.io/posts/safer_bash_scripts_with_set_euxo
 cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744637
 
 docker compose -p sequelize-mariadb-oldest down --remove-orphans
+./../../pull-images.sh sequelize-mariadb-oldest
 docker compose -p sequelize-mariadb-oldest up -d
 
 ./../../wait-until-healthy.sh sequelize-mariadb-oldest
