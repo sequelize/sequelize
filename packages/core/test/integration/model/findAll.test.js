@@ -11,7 +11,7 @@ const Support = require('../support');
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dayjs = require('dayjs');
-const promiseProps = require('p-props');
+const { default: promiseProps } = require('p-props');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
