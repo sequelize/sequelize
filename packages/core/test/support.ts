@@ -3,7 +3,7 @@ import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString, pojo } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import chai from 'chai';
+import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
@@ -78,7 +78,6 @@ export function inlineErrorCause(error: unknown): string {
 }
 
 chai.config.includeStack = true;
-chai.should();
 
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {

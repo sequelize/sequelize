@@ -67,16 +67,16 @@
     "validator": "^13.15.35"
   },
   "devDependencies": {
-    "@types/chai": "4.3.20",
-    "@types/chai-as-promised": "7.1.8",
+    "@types/chai": "5.2.3",
+    "@types/chai-as-promised": "8.0.2",
     "@types/chai-datetime": "1.0.0",
     "@types/lodash": "4.17.25",
     "@types/mocha": "10.0.10",
     "@types/semver": "7.8.0",
     "@types/sinon": "17.0.4",
-    "@types/sinon-chai": "3.2.12",
-    "chai": "4.5.0",
-    "chai-as-promised": "7.1.2",
+    "@types/sinon-chai": "4.0.0",
+    "chai": "6.2.2",
+    "chai-as-promised": "8.0.2",
     "chai-datetime": "1.8.1",
     "delay": "5.0.0",
     "expect-type": "0.13.0",
@@ -91,7 +91,7 @@
     "p-timeout": "4.1.0",
     "rimraf": "5.0.10",
     "sinon": "18.0.1",
-    "sinon-chai": "3.7.0"
+    "sinon-chai": "4.0.1"
   },
   "keywords": [
     "mysql",

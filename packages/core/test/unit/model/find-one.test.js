@@ -58,8 +58,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Model.findAll = sinon.stub();
 
       await Model.findOne();
-      Model.findAll.should.not.have.been.called;
-      Sequelize.Model.findAll.should.have.been.called;
+      expect(Model.findAll).not.to.have.been.called;
+      expect(Sequelize.Model.findAll).to.have.been.called;
     });
   });
 });
