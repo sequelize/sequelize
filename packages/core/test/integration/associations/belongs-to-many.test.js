@@ -2315,19 +2315,27 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
     });
 
     it('runs on add', async function () {
-      await expect(this.project.addParticipant(this.employee, { through: { role: '' } })).to.be
-        .rejected;
+      const error = await expect(
+        this.project.addParticipant(this.employee, { through: { role: '' } }),
+      ).to.be.rejectedWith(Sequelize.AggregateError);
+      expect(error.errors[0].errors).to.be.instanceOf(Sequelize.ValidationError);
+      expect(error.errors[0].errors.get('role')[0].message).to.equal('too bad');
     });
 
     it('runs on set', async function () {
-      await expect(this.project.setParticipants([this.employee], { through: { role: '' } })).to.be
-        .rejected;
+      const error = await expect(
+        this.project.setParticipants([this.employee], { through: { role: '' } }),
+      ).to.be.rejectedWith(Sequelize.AggregateError);
+      expect(error.errors[0].errors).to.be.instanceOf(Sequelize.ValidationError);
+      expect(error.errors[0].errors.get('role')[0].message).to.equal('too bad');
     });
 
     it('runs on create', async function () {
-      await expect(
+      const error = await expect(
         this.project.createParticipant({ name: 'employee 2' }, { through: { role: '' } }),
-      ).to.be.rejected;
+      ).to.be.rejectedWith(Sequelize.AggregateError);
+      expect(error.errors[0].errors).to.be.instanceOf(Sequelize.ValidationError);
+      expect(error.errors[0].errors.get('role')[0].message).to.equal('too bad');
     });
   });
 

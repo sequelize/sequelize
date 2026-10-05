@@ -112,11 +112,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
 
       it('in beforeFindAfterExpandIncludeAll hook returns error', async function () {
@@ -124,11 +123,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
 
       it('in beforeFindAfterOptions hook returns error', async function () {
@@ -136,11 +134,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
 
       it('in afterFind hook returns error', async function () {
@@ -148,11 +145,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
     });
   });
