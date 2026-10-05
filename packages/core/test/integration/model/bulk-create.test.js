@@ -1,6 +1,7 @@
 'use strict';
 
 const { expect } = require('chai');
+const sinon = require('sinon');
 const {
   beforeEach2,
   createMultiTransactionalTestSequelizeInstance,
@@ -109,6 +110,7 @@ describe('Model', () => {
         },
       });
 
+      expect(users).to.have.length(10);
       for (const user of users) {
         expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
         expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
@@ -163,25 +165,26 @@ describe('Model', () => {
       const quote = identifier => this.customSequelize.queryGenerator.quoteIdentifier(identifier);
       const columns = ['style', 'createdAt', 'updatedAt'].map(quote).join(',');
 
+      const logging = sinon.spy(sql => {
+        if (dialect.supports.autoIncrement.defaultValue) {
+          const idValue = dialect.supports.bulkDefault ? 'DEFAULT' : 'NULL';
+          expect(sql).to.include(
+            `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
+          );
+        } else {
+          expect(sql).to.include(`INSERT INTO ${quote('Beers')} (${columns}) `);
+        }
+      });
+
       await Beer.bulkCreate(
         [
           {
             style: 'ipa',
           },
         ],
-        {
-          logging(sql) {
-            if (dialect.supports.autoIncrement.defaultValue) {
-              const idValue = dialect.supports.bulkDefault ? 'DEFAULT' : 'NULL';
-              expect(sql).to.include(
-                `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
-              );
-            } else {
-              expect(sql).to.include(`INSERT INTO ${quote('Beers')} (${columns}) `);
-            }
-          },
-        },
+        { logging },
       );
+      expect(logging).to.have.been.called;
     });
 
     it('properly handles disparate field lists', async function () {

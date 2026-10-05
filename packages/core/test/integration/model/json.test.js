@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -32,6 +33,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.lock) {
       it('findOrCreate supports transactions, json and locks', async function () {
         const transaction = await current.startUnmanagedTransaction();
+        const logging = sinon.spy(sql => {
+          if (sql.includes('SELECT') && !sql.includes('CREATE')) {
+            expect(sql.includes('FOR UPDATE')).to.be.true;
+          }
+        });
 
         await this.Event.findOrCreate({
           where: {
@@ -43,12 +49,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           transaction,
           lock: transaction.LOCK.UPDATE,
-          logging: sql => {
-            if (sql.includes('SELECT') && !sql.includes('CREATE')) {
-              expect(sql.includes('FOR UPDATE')).to.be.true;
-            }
-          },
+          logging,
         });
+        expect(logging).to.have.been.calledWithMatch('FOR UPDATE');
 
         const count = await this.Event.count();
         expect(count).to.equal(0);

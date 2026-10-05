@@ -738,6 +738,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       ]);
 
       const logs = await Log.findAll();
+      expect(logs).to.have.length(3);
       for (const log of logs) {
         expect(log.get('id')).not.to.be.ok;
       }

@@ -261,6 +261,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           { aNumber: 10 },
           { where: { aNumber: 1 }, individualHooks: true },
         );
+        expect(records).to.have.length(3);
         for (const record of records) {
           expect(record.username).to.equal(`User${record.id}`);
           expect(record.beforeHookTest).to.be.true;
@@ -284,6 +285,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           { aNumber: 10 },
           { where: { aNumber: 1 }, individualHooks: true },
         );
+        expect(records).to.have.length(3);
         for (const record of records) {
           expect(record.aNumber).to.equal(10 + (record.id === 1 ? 3 : 0));
         }
