@@ -82,11 +82,7 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           const project = await this.Projects.create({ title: 'New Project' });
           const task = await this.Tasks.create({ title: 'New Task' });
 
-          try {
-            await project.setTask(task);
-          } catch (error) {
-            expect(error).to.be.instanceOf(Error);
-          }
+          await expect(project.setTask(task)).to.be.rejectedWith(Error, 'Whoops!');
         });
       });
 

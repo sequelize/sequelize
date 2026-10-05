@@ -218,75 +218,74 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         },
       });
 
-      try {
-        await queryInterface.bulkInsert('Users', [{ username: 'foo' }, { username: 'foo' }]);
-      } catch (error) {
-        expect(error).to.be.instanceOf(ValidationError);
-        assert(error instanceof ValidationError);
-        if (dialect === 'db2' || dialect === 'oracle') {
-          expect(error.errors).to.have.length(0);
+      const error = await expect(
+        queryInterface.bulkInsert('Users', [{ username: 'foo' }, { username: 'foo' }]),
+      ).to.be.rejectedWith(UniqueConstraintError);
+      expect(error).to.be.instanceOf(ValidationError);
+      assert(error instanceof ValidationError);
+      if (dialect === 'db2' || dialect === 'oracle') {
+        expect(error.errors).to.have.length(0);
+      } else {
+        expect(error.errors).to.have.length(1);
+        expect(error.errors[0].type).to.equal('unique violation');
+        if (dialect === 'sqlite3') {
+          expect(error.errors[0].value).to.be.null;
         } else {
-          expect(error.errors).to.have.length(1);
-          expect(error.errors[0].type).to.equal('unique violation');
-          if (dialect === 'sqlite3') {
-            expect(error.errors[0].value).to.be.null;
-          } else {
-            expect(error.errors[0].value).to.equal('foo');
-          }
+          expect(error.errors[0].value).to.equal('foo');
         }
+      }
 
-        assert(error.cause instanceof Error);
+      assert(error.cause instanceof Error);
 
-        switch (dialect) {
-          case 'db2':
-            expect(error.cause.message).to.contain(
-              'One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.',
-            );
-            break;
+      switch (dialect) {
+        case 'db2':
+          expect(error.cause.message).to.contain(
+            'One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.',
+          );
+          break;
 
-          case 'mssql':
-            expect(error.cause.message).to.match(
-              /Violation of UNIQUE KEY constraint 'UQ__Users__\w+'\. Cannot insert duplicate key in object 'dbo.Users'\. The duplicate key value is \(foo\)\./,
-            );
-            expect(error.errors[0].path).to.match(/UQ__Users__\w+/);
-            expect(error.errors[0].message).to.match(/UQ__Users__\w+ must be unique/);
-            break;
+        case 'mssql':
+          expect(error.cause.message).to.match(
+            /Violation of UNIQUE KEY constraint 'UQ__Users__\w+'\. Cannot insert duplicate key in object 'dbo.Users'\. The duplicate key value is \(foo\)\./,
+          );
+          expect(error.errors[0].path).to.match(/UQ__Users__\w+/);
+          expect(error.errors[0].message).to.match(/UQ__Users__\w+ must be unique/);
+          break;
 
-          case 'mysql':
-            expect(error.cause.message).to.match(
-              /Duplicate entry 'foo' for key '(?:Users.)?username'/,
-            );
-            expect(error.errors[0].path).to.equal('username');
-            expect(error.errors[0].message).to.equal('username must be unique');
-            break;
+        case 'mysql':
+          expect(error.cause.message).to.match(
+            /Duplicate entry 'foo' for key '(?:Users.)?username'/,
+          );
+          expect(error.errors[0].path).to.equal('username');
+          expect(error.errors[0].message).to.equal('username must be unique');
+          break;
 
-          case 'postgres':
-            expect(error.cause.message).to.equal(
-              'duplicate key value violates unique constraint "Users_username_key"',
-            );
-            expect(error.errors[0].path).to.equal('username');
-            expect(error.errors[0].message).to.equal('username must be unique');
-            break;
+        case 'postgres':
+          expect(error.cause.message).to.equal(
+            'duplicate key value violates unique constraint "Users_username_key"',
+          );
+          expect(error.errors[0].path).to.equal('username');
+          expect(error.errors[0].message).to.equal('username must be unique');
+          break;
 
-          case 'sqlite3':
-            // https://github.com/sequelize/sequelize/pull/18117
-            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
-            expect(error.cause.message).to.match(
-              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
-            );
-            expect(error.errors[0].path).to.equal('username');
-            expect(error.errors[0].message).to.equal('username must be unique');
-            break;
+        case 'sqlite3':
+          // https://github.com/sequelize/sequelize/pull/18117
+          // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+          expect(error.cause.message).to.match(
+            /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
+          );
+          expect(error.errors[0].path).to.equal('username');
+          expect(error.errors[0].message).to.equal('username must be unique');
+          break;
 
-          case 'oracle':
-            expect(error.cause.message).to.match(/ORA-00001: unique constraint \(.*\) violated/);
-            break;
+        case 'oracle':
+          expect(error.cause.message).to.match(/ORA-00001: unique constraint \(.*\) violated/);
+          break;
 
-          default:
-            expect(error.cause.message).to.contain("Duplicate entry 'foo' for key 'username'");
-            expect(error.errors[0].path).to.equal('username');
-            expect(error.errors[0].message).to.equal('username must be unique');
-        }
+        default:
+          expect(error.cause.message).to.contain("Duplicate entry 'foo' for key 'username'");
+          expect(error.errors[0].path).to.equal('username');
+          expect(error.errors[0].message).to.equal('username must be unique');
       }
     });
 
@@ -300,73 +299,72 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         unique: true,
       });
 
-      try {
-        await queryInterface.bulkInsert('Users', [{ username: 'foo' }, { username: 'foo' }]);
-      } catch (error) {
-        expect(error).to.be.instanceOf(ValidationError);
-        assert(error instanceof ValidationError);
-        if (dialect === 'db2' || dialect === 'oracle') {
-          expect(error.errors).to.have.length(0);
+      const error = await expect(
+        queryInterface.bulkInsert('Users', [{ username: 'foo' }, { username: 'foo' }]),
+      ).to.be.rejectedWith(UniqueConstraintError);
+      expect(error).to.be.instanceOf(ValidationError);
+      assert(error instanceof ValidationError);
+      if (dialect === 'db2' || dialect === 'oracle') {
+        expect(error.errors).to.have.length(0);
+      } else {
+        expect(error.errors).to.have.length(1);
+        expect(error.errors[0].message).to.match(
+          /(?:users_username_unique|username) must be unique/,
+        );
+        expect(error.errors[0].type).to.equal('unique violation');
+        expect(error.errors[0].path).to.match(/(?:users_username_unique|username)/);
+        if (dialect === 'sqlite3') {
+          expect(error.errors[0].value).to.be.null;
         } else {
-          expect(error.errors).to.have.length(1);
-          expect(error.errors[0].message).to.match(
-            /(?:users_username_unique|username) must be unique/,
+          expect(error.errors[0].value).to.equal('foo');
+        }
+      }
+
+      assert(error.cause instanceof Error);
+
+      switch (dialect) {
+        case 'db2':
+          expect(error.cause.message).to.contain(
+            'One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.',
           );
-          expect(error.errors[0].type).to.equal('unique violation');
-          expect(error.errors[0].path).to.match(/(?:users_username_unique|username)/);
-          if (dialect === 'sqlite3') {
-            expect(error.errors[0].value).to.be.null;
-          } else {
-            expect(error.errors[0].value).to.equal('foo');
-          }
-        }
+          break;
 
-        assert(error.cause instanceof Error);
+        case 'mssql':
+          expect(error.cause.message).to.equal(
+            "Cannot insert duplicate key row in object 'dbo.Users' with unique index 'users_username_unique'. The duplicate key value is (foo).",
+          );
+          break;
 
-        switch (dialect) {
-          case 'db2':
-            expect(error.cause.message).to.contain(
-              'One or more values in the INSERT statement, UPDATE statement, or foreign key update caused by a DELETE statement are not valid because the primary key, unique constraint or unique index identified by "1" constrains table "DB2INST1.Users" from having duplicate values for the index key.',
-            );
-            break;
+        case 'mysql':
+          expect(error.cause.message).to.match(
+            /Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/,
+          );
+          break;
 
-          case 'mssql':
-            expect(error.cause.message).to.equal(
-              "Cannot insert duplicate key row in object 'dbo.Users' with unique index 'users_username_unique'. The duplicate key value is (foo).",
-            );
-            break;
+        case 'postgres':
+          expect(error.cause.message).to.equal(
+            'duplicate key value violates unique constraint "users_username_unique"',
+          );
+          break;
 
-          case 'mysql':
-            expect(error.cause.message).to.match(
-              /Duplicate entry 'foo' for key '(?:Users.)?users_username_unique'/,
-            );
-            break;
+        case 'sqlite3':
+          // https://github.com/sequelize/sequelize/pull/18117
+          // Using regex match() instead of equal() to pass UT for both sqlite3 and `@vscode/sqlite3`
+          expect(error.cause.message).to.match(
+            /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
+          );
+          break;
 
-          case 'postgres':
-            expect(error.cause.message).to.equal(
-              'duplicate key value violates unique constraint "users_username_unique"',
-            );
-            break;
+        case 'oracle':
+          expect(error.cause.message).to.match(
+            /ORA-00001: unique constraint \(.*.users_username_unique\) violated/,
+          );
+          break;
 
-          case 'sqlite3':
-            // https://github.com/sequelize/sequelize/pull/18117
-            // Using regex match() instead of equal() to pass UT for both sqlite3 and `@vscode/sqlite3`
-            expect(error.cause.message).to.match(
-              /SQLITE_CONSTRAINT.*: UNIQUE constraint failed: Users\.username/,
-            );
-            break;
-
-          case 'oracle':
-            expect(error.cause.message).to.match(
-              /ORA-00001: unique constraint \(.*.users_username_unique\) violated/,
-            );
-            break;
-
-          default:
-            expect(error.cause.message).to.contain(
-              "Duplicate entry 'foo' for key 'users_username_unique'",
-            );
-        }
+        default:
+          expect(error.cause.message).to.contain(
+            "Duplicate entry 'foo' for key 'users_username_unique'",
+          );
       }
     });
 
@@ -393,67 +391,66 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
 
       await queryInterface.bulkInsert('Users', [{ username: 'foo' }]);
       await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
-      try {
-        await queryInterface.bulkDelete('Users');
-      } catch (error) {
-        expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-        assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite3') {
-          expect(error.index).to.be.undefined;
-        } else {
-          expect(error.index).to.equal('Tasks_userId_Users_fk');
-        }
+      const error = await expect(queryInterface.bulkDelete('Users')).to.be.rejectedWith(
+        ForeignKeyConstraintError,
+      );
+      expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+      assert(error instanceof ForeignKeyConstraintError);
+      if (dialect === 'sqlite3') {
+        expect(error.index).to.be.undefined;
+      } else {
+        expect(error.index).to.equal('Tasks_userId_Users_fk');
+      }
 
-        switch (dialect) {
-          case 'db2':
-            expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain(
-              'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
-            );
-            break;
+      switch (dialect) {
+        case 'db2':
+          expect(error.table).to.equal('Tasks');
+          expect(error.fields).to.be.null;
+          expect(error.cause.message).to.contain(
+            'A parent row cannot be deleted because the relationship "DB2INST1.Tasks.Tasks_userId_Users_fk" restricts the deletion.',
+          );
+          break;
 
-          case 'mssql':
-            expect(error.table).to.equal('dbo.Tasks');
-            expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.equal(
-              'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
-            );
-            break;
+        case 'mssql':
+          expect(error.table).to.equal('dbo.Tasks');
+          expect(error.fields).to.deep.equal(['userId']);
+          expect(error.cause.message).to.equal(
+            'The DELETE statement conflicted with the REFERENCE constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Tasks", column \'userId\'.',
+          );
+          break;
 
-          case 'postgres':
-            expect(error.table).to.equal('Users');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.equal(
-              'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
-            );
-            break;
+        case 'postgres':
+          expect(error.table).to.equal('Users');
+          expect(error.fields).to.be.null;
+          expect(error.cause.message).to.equal(
+            'update or delete on table "Users" violates foreign key constraint "Tasks_userId_Users_fk" on table "Tasks"',
+          );
+          break;
 
-          case 'sqlite3':
-            expect(error.table).to.be.undefined;
-            expect(error.fields).to.be.undefined;
-            // https://github.com/sequelize/sequelize/pull/18117
-            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
-            expect(error.cause.message).to.match(
-              /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
-            );
-            break;
+        case 'sqlite3':
+          expect(error.table).to.be.undefined;
+          expect(error.fields).to.be.undefined;
+          // https://github.com/sequelize/sequelize/pull/18117
+          // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+          expect(error.cause.message).to.match(
+            /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
+          );
+          break;
 
-          case 'oracle':
-            expect(error.table).to.be.undefined;
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.match(
-              /ORA-02292: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - child record found/,
-            );
-            break;
+        case 'oracle':
+          expect(error.table).to.be.undefined;
+          expect(error.fields).to.be.null;
+          expect(error.cause.message).to.match(
+            /ORA-02292: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - child record found/,
+          );
+          break;
 
-          default:
-            expect(error.table).to.equal('Users');
-            expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.contain(
-              'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
-            );
-        }
+        default:
+          expect(error.table).to.equal('Users');
+          expect(error.fields).to.deep.equal(['userId']);
+          expect(error.cause.message).to.contain(
+            'Cannot delete or update a parent row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+          );
       }
     });
 
@@ -478,67 +475,66 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         },
       });
 
-      try {
-        await queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]);
-      } catch (error) {
-        expect(error).to.be.instanceOf(ForeignKeyConstraintError);
-        assert(error instanceof ForeignKeyConstraintError);
-        if (dialect === 'sqlite3') {
-          expect(error.index).to.be.undefined;
-        } else {
-          expect(error.index).to.equal('Tasks_userId_Users_fk');
-        }
+      const error = await expect(
+        queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]),
+      ).to.be.rejectedWith(ForeignKeyConstraintError);
+      expect(error).to.be.instanceOf(ForeignKeyConstraintError);
+      assert(error instanceof ForeignKeyConstraintError);
+      if (dialect === 'sqlite3') {
+        expect(error.index).to.be.undefined;
+      } else {
+        expect(error.index).to.equal('Tasks_userId_Users_fk');
+      }
 
-        switch (dialect) {
-          case 'db2':
-            expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.contain(
-              'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
-            );
-            break;
+      switch (dialect) {
+        case 'db2':
+          expect(error.table).to.equal('Tasks');
+          expect(error.fields).to.be.null;
+          expect(error.cause.message).to.contain(
+            'The insert or update value of the FOREIGN KEY "DB2INST1.Tasks.Tasks_userId_Users_fk" is not equal to any value of the parent key of the parent table.',
+          );
+          break;
 
-          case 'mssql':
-            expect(error.table).to.equal('dbo.Users');
-            expect(error.fields).to.deep.equal(['id']);
-            expect(error.cause.message).to.equal(
-              'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
-            );
-            break;
+        case 'mssql':
+          expect(error.table).to.equal('dbo.Users');
+          expect(error.fields).to.deep.equal(['id']);
+          expect(error.cause.message).to.equal(
+            'The INSERT statement conflicted with the FOREIGN KEY constraint "Tasks_userId_Users_fk". The conflict occurred in database "sequelize_test", table "dbo.Users", column \'id\'.',
+          );
+          break;
 
-          case 'postgres':
-            expect(error.table).to.equal('Tasks');
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.equal(
-              'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
-            );
-            break;
+        case 'postgres':
+          expect(error.table).to.equal('Tasks');
+          expect(error.fields).to.be.null;
+          expect(error.cause.message).to.equal(
+            'insert or update on table "Tasks" violates foreign key constraint "Tasks_userId_Users_fk"',
+          );
+          break;
 
-          case 'sqlite3':
-            expect(error.table).to.be.undefined;
-            expect(error.fields).to.be.undefined;
-            // https://github.com/sequelize/sequelize/pull/18117
-            // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
-            expect(error.cause.message).to.match(
-              /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
-            );
-            break;
+        case 'sqlite3':
+          expect(error.table).to.be.undefined;
+          expect(error.fields).to.be.undefined;
+          // https://github.com/sequelize/sequelize/pull/18117
+          // Using regex match() instead of equal() to pass UT for both sqlite3 and @vscode/sqlite3
+          expect(error.cause.message).to.match(
+            /SQLITE_CONSTRAINT.*: FOREIGN KEY constraint failed/,
+          );
+          break;
 
-          case 'oracle':
-            expect(error.table).to.be.undefined;
-            expect(error.fields).to.be.null;
-            expect(error.cause.message).to.match(
-              /ORA-02291: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - parent key not found/,
-            );
-            break;
+        case 'oracle':
+          expect(error.table).to.be.undefined;
+          expect(error.fields).to.be.null;
+          expect(error.cause.message).to.match(
+            /ORA-02291: integrity constraint \(.*.Tasks_userId_Users_fk\) violated - parent key not found/,
+          );
+          break;
 
-          default:
-            expect(error.table).to.equal('Users');
-            expect(error.fields).to.deep.equal(['userId']);
-            expect(error.cause.message).to.contain(
-              'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
-            );
-        }
+        default:
+          expect(error.table).to.equal('Users');
+          expect(error.fields).to.deep.equal(['userId']);
+          expect(error.cause.message).to.contain(
+            'Cannot add or update a child row: a foreign key constraint fails (`sequelize_test`.`Tasks`, CONSTRAINT `Tasks_userId_Users_fk` FOREIGN KEY (`userId`) REFERENCES `Users` (`id`))',
+          );
       }
     });
 
@@ -554,15 +550,23 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         name: 'unique_constraint',
       });
 
-      try {
-        await queryInterface.addConstraint('Users', {
-          type: 'UNIQUE',
-          fields: ['username'],
-          name: 'unique_constraint',
-        });
-      } catch (error) {
-        if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
-          expect(error).to.be.instanceOf(AggregateError);
+      const promise = queryInterface.addConstraint('Users', {
+        type: 'UNIQUE',
+        fields: ['username'],
+        name: 'unique_constraint',
+      });
+
+      switch (dialect) {
+        // MySQL & MariaDB ignore the name of PRIMARY KEY constraints (it is always "PRIMARY"),
+        // and SQLite does not require constraint names to be unique, so there is no conflict.
+        case 'mariadb':
+        case 'mysql':
+        case 'sqlite3':
+          await promise;
+          break;
+
+        case 'mssql': {
+          const error = await expect(promise).to.be.rejectedWith(AggregateError);
           assert(error instanceof AggregateError);
           expect(error.errors).to.have.length(3);
           expect(error.errors[0].message).to.equal(
@@ -574,12 +578,18 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           assert(error.errors[2] instanceof UnknownConstraintError);
           expect(error.errors[2].constraint).to.equal('unique_constraint');
           expect(error.errors[2].table).to.equal('Users');
-        } else if (dialect === 'oracle') {
-          expect(error).to.be.instanceOf(DatabaseError);
-          assert(error instanceof DatabaseError);
-          expect(error.message).to.match(/^ORA-02264: name already used by an existing constraint/);
-        } else {
-          expect(error).to.be.instanceOf(DatabaseError);
+          break;
+        }
+
+        case 'oracle':
+          await expect(promise).to.be.rejectedWith(
+            DatabaseError,
+            /^ORA-02264: name already used by an existing constraint/,
+          );
+          break;
+
+        default: {
+          const error = await expect(promise).to.be.rejectedWith(DatabaseError);
           assert(error instanceof DatabaseError);
           expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
         }

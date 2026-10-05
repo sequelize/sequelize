@@ -882,6 +882,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('should return a DAO when queryOptions are not set', async function () {
           const users = await this.User.findAll({ where: { username: 'barfooz' } });
+          expect(users).to.have.length(1);
           for (const user of users) {
             expect(user).to.be.instanceOf(this.User);
           }
@@ -889,6 +890,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('should return a DAO when raw is false', async function () {
           const users = await this.User.findAll({ where: { username: 'barfooz' }, raw: false });
+          expect(users).to.have.length(1);
           for (const user of users) {
             expect(user).to.be.instanceOf(this.User);
           }
@@ -896,6 +898,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('should return raw data when raw is true', async function () {
           const users = await this.User.findAll({ where: { username: 'barfooz' }, raw: true });
+          expect(users).to.have.length(1);
           for (const user of users) {
             expect(user).to.not.be.instanceOf(this.User);
             expect(users[0]).to.be.instanceOf(Object);
@@ -1047,7 +1050,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
             // include.attributes:[] , model doesn't exists
-            expect(kingdom.Animals).to.not.exist;
+            expect(kingdom.animals).to.not.exist;
           }
         });
 
@@ -1088,7 +1091,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
             // include.attributes: [], model doesn't exists
-            expect(kingdom.Animals).to.not.exist;
+            expect(kingdom.animals).to.not.exist;
           }
         });
       });
@@ -1514,6 +1517,8 @@ The following associations are defined on "Worker": "ToDos"`);
           attributes: ['active'],
         });
 
+        // the beforeEach hook already inserted 2 users into the same table
+        expect(users).to.have.length(3);
         for (const user of users) {
           expect(user.get('createdAt')).to.be.ok;
           expect(user.get('active')).to.equal(true);
@@ -1567,6 +1572,7 @@ The following associations are defined on "Worker": "ToDos"`);
           ],
         });
 
+        expect(users).to.have.length(1);
         for (const user of users) {
           expect(user.get('name')).to.equal('some user');
           expect(user.image.get('url')).to.equal(

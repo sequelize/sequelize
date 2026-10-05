@@ -35,7 +35,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           include: [['id', 'my_id']],
         };
       });
-      await this.User.findAll({});
+      const users = await this.User.findAll({});
+      expect(users).to.have.length(2);
+      expect(users[0].get('my_id')).to.equal(users[0].id);
     });
 
     describe('on success', () => {
@@ -112,11 +114,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
 
       it('in beforeFindAfterExpandIncludeAll hook returns error', async function () {
@@ -124,11 +125,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
 
       it('in beforeFindAfterOptions hook returns error', async function () {
@@ -136,11 +136,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
 
       it('in afterFind hook returns error', async function () {
@@ -148,11 +147,10 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           throw new Error('Oops!');
         });
 
-        try {
-          await this.User.findOne({ where: { username: 'adam' } });
-        } catch (error) {
-          expect(error.message).to.equal('Oops!');
-        }
+        await expect(this.User.findOne({ where: { username: 'adam' } })).to.be.rejectedWith(
+          Error,
+          'Oops!',
+        );
       });
     });
   });

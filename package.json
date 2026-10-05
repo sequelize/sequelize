@@ -85,6 +85,8 @@
     "cross-env": "10.1.0",
     "esbuild": "0.28.2",
     "eslint": "10.11.0",
+    "eslint-plugin-chai-expect": "4.1.0",
+    "eslint-plugin-chai-friendly": "1.2.1",
     "eslint-plugin-jsdoc": "64.5.4",
     "eslint-plugin-mocha": "12.0.2",
     "fast-glob": "3.3.3",

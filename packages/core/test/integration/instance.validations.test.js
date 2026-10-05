@@ -45,12 +45,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       await Model.sync({ force: true });
       const model = await Model.create({ name: 'World' });
 
-      try {
-        await model.update({ name: '' });
-      } catch (error) {
-        expect(error).to.be.an.instanceOf(Error);
-        expect(error.get('name')[0].message).to.equal('Validation notEmpty on name failed');
-      }
+      const error = await expect(model.update({ name: '' })).to.be.rejectedWith(
+        Sequelize.ValidationError,
+      );
+      expect(error).to.be.an.instanceOf(Error);
+      expect(error.get('name')[0].message).to.equal('Validation notEmpty on name failed');
     });
 
     it('should be able to emit an error upon updating when a validation has failed from the factory', async function () {
@@ -67,12 +66,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       await Model.sync({ force: true });
       await Model.create({ name: 'World' });
 
-      try {
-        await Model.update({ name: '' }, { where: { id: 1 } });
-      } catch (error) {
-        expect(error).to.be.an.instanceOf(Error);
-        expect(error.get('name')[0].message).to.equal('Validation notEmpty on name failed');
-      }
+      const error = await expect(
+        Model.update({ name: '' }, { where: { id: 1 } }),
+      ).to.be.rejectedWith(Sequelize.ValidationError);
+      expect(error).to.be.an.instanceOf(Error);
+      expect(error.get('name')[0].message).to.equal('Validation notEmpty on name failed');
     });
 
     it('should enforce a unique constraint', async function () {
@@ -180,11 +178,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       it('correctly throws an error using create method ', async function () {
-        try {
-          await this.Project.create({ name: 'nope' });
-        } catch (error) {
-          expect(error).to.have.ownProperty('name');
-        }
+        const error = await expect(this.Project.create({ name: 'nope' })).to.be.rejectedWith(
+          Sequelize.ValidationError,
+          'Validation isIn on name failed',
+        );
+        expect(error).to.have.ownProperty('name');
       });
 
       it('correctly validates using create method ', async function () {
@@ -193,10 +191,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         await project.setTask(task);
         await task.reload();
 
-        expect(task.ProjectId).to.not.be.null;
+        expect(task.projectId).to.equal(project.id);
         await task.setProject(project);
         await task.reload();
-        expect(task.ProjectId).to.not.be.null;
+        expect(task.projectId).to.equal(project.id);
       });
     });
 
@@ -215,12 +213,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         await User.sync({ force: true });
 
-        try {
-          await User.create({ id: 'helloworld' });
-        } catch (error) {
-          expect(error).to.be.an.instanceOf(Error);
-          expect(error.get('id')[0].message).to.equal('Validation isInt on id failed');
-        }
+        const error = await expect(User.create({ id: 'helloworld' })).to.be.rejectedWith(
+          Sequelize.ValidationError,
+        );
+        expect(error).to.be.an.instanceOf(Error);
+        expect(error.get('id')[0].message).to.equal('Validation isInt on id failed');
       });
 
       it('should emit an error when we try to enter in a string for an auto increment key (not named id)', async function () {
@@ -237,12 +234,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
 
         await User.sync({ force: true });
 
-        try {
-          await User.create({ username: 'helloworldhelloworld' });
-        } catch (error) {
-          expect(error).to.be.an.instanceOf(Error);
-          expect(error.get('username')[0].message).to.equal('Username must be an integer!');
-        }
+        const error = await expect(
+          User.create({ username: 'helloworldhelloworld' }),
+        ).to.be.rejectedWith(Sequelize.ValidationError);
+        expect(error).to.be.an.instanceOf(Error);
+        expect(error.get('username')[0].message).to.equal('Username must be an integer!');
       });
 
       describe("primaryKey with the name as id with arguments for it's validatio", () => {
@@ -262,12 +258,11 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         });
 
         it('should emit an error when we try to enter in a string for the id key with validation arguments', async function () {
-          try {
-            await this.User.create({ id: 'helloworld' });
-          } catch (error) {
-            expect(error).to.be.an.instanceOf(Error);
-            expect(error.get('id')[0].message).to.equal('ID must be an integer!');
-          }
+          const error = await expect(this.User.create({ id: 'helloworld' })).to.be.rejectedWith(
+            Sequelize.ValidationError,
+          );
+          expect(error).to.be.an.instanceOf(Error);
+          expect(error.get('id')[0].message).to.equal('ID must be an integer!');
         });
 
         it('should emit an error when we try to enter in a string for an auto increment key through .build().validate()', async function () {
@@ -280,12 +275,9 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         it('should emit an error when we try to .save()', async function () {
           const user = this.User.build({ id: 'helloworld' });
 
-          try {
-            await user.save();
-          } catch (error) {
-            expect(error).to.be.an.instanceOf(Error);
-            expect(error.get('id')[0].message).to.equal('ID must be an integer!');
-          }
+          const error = await expect(user.save()).to.be.rejectedWith(Sequelize.ValidationError);
+          expect(error).to.be.an.instanceOf(Error);
+          expect(error.get('id')[0].message).to.equal('ID must be an integer!');
         });
       });
     });
@@ -324,13 +316,12 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       it('produce 3 errors', async function () {
-        try {
-          await this.Project.create({});
-        } catch (error) {
-          expect(error).to.be.an.instanceOf(Error);
-          delete error.stack; // longStackTraces
-          expect(error.errors).to.have.length(3);
-        }
+        const error = await expect(this.Project.create({})).to.be.rejectedWith(
+          Sequelize.ValidationError,
+        );
+        expect(error).to.be.an.instanceOf(Error);
+        delete error.stack; // longStackTraces
+        expect(error.errors).to.have.length(3);
       });
     });
 
@@ -362,14 +353,13 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       });
 
       it('correctly throws an error using create method with default generated messages', async function () {
-        try {
-          await this.Project.create({});
-        } catch (error) {
-          expect(error).to.have.property('name', 'SequelizeValidationError');
-          expect(error.message).equal('notNull violation: Project.name cannot be null');
-          expect(error.errors).to.be.an('array').and.have.length(1);
-          expect(error.errors[0]).to.have.property('message', 'Project.name cannot be null');
-        }
+        const error = await expect(this.Project.create({})).to.be.rejectedWith(
+          Sequelize.ValidationError,
+        );
+        expect(error).to.have.property('name', 'SequelizeValidationError');
+        expect(error.message).equal('notNull violation: Project.name cannot be null');
+        expect(error.errors).to.be.an('array').and.have.length(1);
+        expect(error.errors[0]).to.have.property('message', 'Project.name cannot be null');
       });
     });
   });

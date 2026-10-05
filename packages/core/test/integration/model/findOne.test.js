@@ -211,8 +211,8 @@ describe('Model.findOne', () => {
         expect(user.dataValues.name).to.equal('barfooz');
       });
 
-      it('should fail with meaningful error message on invalid attributes definition', function () {
-        expect(
+      it('should fail with meaningful error message on invalid attributes definition', async function () {
+        await expect(
           this.User.findOne({
             where: { id: 1 },
             attributes: ['id', ['username']],
@@ -458,23 +458,15 @@ describe('Model.findOne', () => {
       describe('belongsTo', () => {
         describe('generic', () => {
           it('throws an error about unexpected input if include contains a non-object', async function () {
-            try {
-              await this.Worker.findOne({ include: [1] });
-            } catch (error) {
-              expect(error.message).to
-                .equal(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
+            await expect(this.Worker.findOne({ include: [1] })).to.be
+              .rejectedWith(`Invalid Include received. Include has to be either a Model, an Association, the name of an association, or a plain object compatible with IncludeOptions.
 Got { association: 1 } instead`);
-            }
           });
 
           it('throws an error if included DaoFactory is not associated', async function () {
-            try {
-              await this.Worker.findOne({ include: [this.Task] });
-            } catch (error) {
-              expect(error.message).to.equal(
-                'Invalid Include received: no associations exist between "Worker" and "Task"',
-              );
-            }
+            await expect(this.Worker.findOne({ include: [this.Task] })).to.be.rejectedWith(
+              'Invalid Include received: no associations exist between "Worker" and "Task"',
+            );
           });
 
           it('returns the associated worker via task.worker', async function () {
@@ -621,13 +613,11 @@ Got { association: 1 } instead`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Task.findOne({ include: [this.Worker] });
-          } catch (error) {
-            expect(error.message).to.equal(
-              'Invalid Include received: no associations exist between "Task" and "Worker"',
-            );
-          }
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Task.findOne({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Task" and "OtherModel"',
+          );
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -675,13 +665,9 @@ Got { association: 1 } instead`);
 
       describe('hasOne with alias', () => {
         it('throws an error if included DaoFactory is not referenced by alias', async function () {
-          try {
-            await this.Worker.findOne({ include: [this.Task] });
-          } catch (error) {
-            expect(error.message).to.equal(
-              'Invalid Include received: no associations exist between "Worker" and "Task"',
-            );
-          }
+          await expect(this.Worker.findOne({ include: [this.Task] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Worker" and "Task"',
+          );
         });
 
         describe('alias', () => {
@@ -694,13 +680,9 @@ Got { association: 1 } instead`);
           });
 
           it("throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn't match", async function () {
-            try {
-              await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
-            } catch (error) {
-              expect(error.message).to
-                .equal(`Association with alias "Work" does not exist on Worker.
+            await expect(this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] })).to.be
+              .rejectedWith(`Association with alias "Work" does not exist on Worker.
 The following associations are defined on "Worker": "ToDo"`);
-            }
           });
 
           it('returns the associated task via worker.task', async function () {
@@ -748,13 +730,11 @@ The following associations are defined on "Worker": "ToDo"`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Task.findOne({ include: [this.Worker] });
-          } catch (error) {
-            expect(error.message).to.equal(
-              'Invalid Include received: no associations exist between "Task" and "Worker"',
-            );
-          }
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Task.findOne({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Task" and "OtherModel"',
+          );
         });
 
         it('returns the associated tasks via worker.tasks', async function () {
@@ -832,13 +812,9 @@ The following associations are defined on "Worker": "ToDo"`);
 
       describe('hasMany with alias', () => {
         it('throws an error if included DaoFactory is not referenced by alias', async function () {
-          try {
-            await this.Worker.findOne({ include: [this.Task] });
-          } catch (error) {
-            expect(error.message).to.equal(
-              'Invalid Include received: no associations exist between "Worker" and "Task"',
-            );
-          }
+          await expect(this.Worker.findOne({ include: [this.Task] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Worker" and "Task"',
+          );
         });
 
         describe('alias', () => {
@@ -851,13 +827,9 @@ The following associations are defined on "Worker": "ToDo"`);
           });
 
           it("throws an error indicating an incorrect alias was entered if an association and alias exist but the alias doesn't match", async function () {
-            try {
-              await this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] });
-            } catch (error) {
-              expect(error.message).to
-                .equal(`Association with alias "Work" does not exist on Worker.
+            await expect(this.Worker.findOne({ include: [{ model: this.Task, as: 'Work' }] })).to.be
+              .rejectedWith(`Association with alias "Work" does not exist on Worker.
 The following associations are defined on "Worker": "ToDos"`);
-            }
           });
 
           it('returns the associated task via worker.task', async function () {
@@ -1043,7 +1015,7 @@ The following associations are defined on "Worker": "ToDos"`);
       it('should return raw data when raw is true', async function () {
         const user = await this.User.findOne({ where: { username: 'barfooz' }, raw: true });
         expect(user).to.not.be.instanceOf(this.User);
-        expect(user).to.be.instanceOf(Object);
+        expect(user).to.include({ username: 'barfooz' });
       });
     });
 

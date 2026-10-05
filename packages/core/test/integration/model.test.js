@@ -318,18 +318,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        try {
-          await Promise.all([
+        await expect(
+          Promise.all([
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
+          ]),
+        ).to.be.rejectedWith(Sequelize.UniqueConstraintError, 'User and email must be unique');
       });
 
       // If you use migrations to create unique indexes that have explicit names and/or contain fields
@@ -374,18 +368,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: { type: DataTypes.STRING, unique: 'user_and_email_index' },
         });
 
-        try {
-          await Promise.all([
+        await expect(
+          Promise.all([
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
+          ]),
+        ).to.be.rejectedWith(Sequelize.UniqueConstraintError, 'User and email must be unique');
       });
     }
 
@@ -869,7 +857,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('equals', () => {
     it('correctly determines equality of objects', async function () {
       const user = await this.User.create({ username: 'hallo', data: 'welt' });
-      expect(user.equals(user)).to.be.ok;
+      const sameUser = await this.User.findByPk(user.id, { rejectOnEmpty: true });
+      const otherUser = await this.User.create({ username: 'other' });
+      expect(user.equals(sameUser)).to.be.true;
+      expect(user.equals(otherUser)).to.be.false;
     });
 
     it('correctly determines equality with multiple primary keys', async function () {
@@ -882,7 +873,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await userKeys.sync({ force: true });
       const user = await userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
-      expect(user.equals(user)).to.be.ok;
+      const sameUser = await userKeys.findOne({
+        where: { foo: '1', bar: '2' },
+        rejectOnEmpty: true,
+      });
+      const otherUser = await userKeys.create({ foo: '1', bar: '3' });
+      expect(user.equals(sameUser)).to.be.true;
+      expect(user.equals(otherUser)).to.be.false;
     });
   });
 
@@ -1010,7 +1007,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to drop with schemas', async function () {
-        await this.UserSpecial.drop();
+        const UserSpecial = this.UserSpecial.withSchema('special');
+        expect(await this.sequelize.queryInterface.tableExists(UserSpecial.table)).to.be.true;
+        await UserSpecial.drop();
+        expect(await this.sequelize.queryInterface.tableExists(UserSpecial.table)).to.be.false;
       });
 
       it('should describeTable using the default schema settings', async function () {
@@ -1365,73 +1365,64 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
       Post.modelDefinition.refreshAttributes();
 
-      try {
-        // The posts table gets dropped in the before filter.
+      // The posts table gets dropped in the before filter.
+      if (dialectName === 'sqlite3') {
+        // SQLite does not check that the referenced table exists when creating the table
         await Post.sync();
-        if (dialectName === 'sqlite3') {
-          // sorry ... but sqlite is too stupid to understand whats going on ...
-          expect(1).to.equal(1);
-        } else {
-          // the parser should not end up here ...
-          expect(2).to.equal(1);
+
+        return;
+      }
+
+      const error = await expect(Post.sync()).to.be.rejected;
+
+      switch (dialectName) {
+        case 'mysql': {
+          expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
+
+          break;
         }
-      } catch (error) {
-        switch (dialectName) {
-          case 'mysql': {
-            expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
 
-            break;
-          }
+        case 'mariadb': {
+          expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
 
-          case 'sqlite3': {
-            // the parser should not end up here ... see above
-            expect(1).to.equal(2);
+          break;
+        }
 
-            break;
-          }
+        case 'postgres': {
+          expect(error.message).to.match(/relation "4uth0r5" does not exist/);
 
-          case 'mariadb': {
-            expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
+          break;
+        }
 
-            break;
-          }
+        case 'mssql': {
+          expect(error).to.be.instanceOf(AggregateError);
+          expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
 
-          case 'postgres': {
-            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+          break;
+        }
 
-            break;
-          }
+        case 'db2': {
+          expect(error.message).to.match(/ is an undefined name/);
 
-          case 'mssql': {
-            expect(error).to.be.instanceOf(AggregateError);
-            expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
+          break;
+        }
 
-            break;
-          }
+        case 'oracle': {
+          expect(error.message).to.match(/^ORA-00942:/);
 
-          case 'db2': {
-            expect(error.message).to.match(/ is an undefined name/);
+          break;
+        }
 
-            break;
-          }
+        case 'ibmi': {
+          expect(error.message).to.match(
+            /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
+          );
 
-          case 'oracle': {
-            expect(error.message).to.match(/^ORA-00942:/);
+          break;
+        }
 
-            break;
-          }
-
-          case 'ibmi': {
-            expect(error.message).to.match(
-              /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
-            );
-
-            break;
-          }
-
-          default: {
-            throw new Error('Undefined dialect!');
-          }
+        default: {
+          throw new Error('Undefined dialect!');
         }
       }
     });
@@ -1669,7 +1660,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      expect(
+      await expect(
         user.bulkCreate(data, {
           validate: true,
           individualHooks: true,

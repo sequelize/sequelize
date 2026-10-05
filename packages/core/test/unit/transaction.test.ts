@@ -82,10 +82,9 @@ describe('Transaction', () => {
       });
     } catch (error) {
       if (!sequelize.dialect.supports.isolationLevels) {
-        expect(error).to.be.instanceOf(
-          Error,
-          `Isolation levels are not supported by ${dialectName}.`,
-        );
+        expect(error)
+          .to.be.instanceOf(Error)
+          .and.have.property('message', `Isolation levels are not supported by ${dialectName}.`);
       } else {
         throw error;
       }
