@@ -1844,8 +1844,17 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return value;
   }
 
-  escape(value: string | Buffer) {
-    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+  escape(value: string | Buffer | Uint8Array | ArrayBuffer) {
+    // Always validate, even if type validation is disabled,
+    // as escapeBuffer would output other values as-is.
+    this.validate(value);
+
+    const buf =
+      typeof value === 'string'
+        ? Buffer.from(value, 'binary')
+        : Buffer.isBuffer(value)
+          ? value
+          : makeBufferFromTypedArray(value);
 
     return this._getDialect().escapeBuffer(buf);
   }
