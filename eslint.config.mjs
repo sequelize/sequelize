@@ -1,5 +1,7 @@
 import { basePreset, nodeAddon } from '@ephys/eslint-config-typescript';
 import { fixupPluginRules } from '@eslint/compat';
+import chaiExpect from 'eslint-plugin-chai-expect';
+import chaiFriendly from 'eslint-plugin-chai-friendly';
 import jsdoc from 'eslint-plugin-jsdoc';
 import mocha from 'eslint-plugin-mocha';
 import globals from 'globals';
@@ -255,6 +257,10 @@ export default [
   {
     // Disable slow rules that are not important in tests (perf)
     files: ['packages/*/test/**/*', '**/*.test.{ts,js}'],
+    plugins: {
+      'chai-expect': chaiExpect,
+      'chai-friendly': chaiFriendly,
+    },
     languageOptions: {
       globals: {
         ...globals.mocha,
@@ -275,8 +281,15 @@ export default [
       // it's fine if we're not very efficient in tests.
       'no-inner-declarations': 'off',
 
-      // because of Chai
+      // Chai assertions such as `expect(x).to.be.true` are expressions, which these rules allow.
+      // They still report anything else, such as an `expect(x)` that never reaches a matcher.
+      'no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
+      'chai-friendly/no-unused-expressions': 'error',
+      'chai-expect/missing-assertion': 'error',
+      'chai-expect/no-inner-compare': 'error',
+      'chai-expect/no-inner-literal': 'error',
+      'chai-expect/terminating-properties': 'error',
 
       // Allow regular functions (needed for this.timeout() in Mocha describe blocks)
       'func-names': 'off',
@@ -289,6 +302,7 @@ export default [
       // This code is never executed, it's typing only, so these rules make no sense:
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/no-floating-promises': 'off',
+      'chai-friendly/no-unused-expressions': 'off',
       'no-console': 'off',
     },
   },
