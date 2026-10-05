@@ -2803,7 +2803,7 @@ __metadata:
     concurrently: "npm:10.0.5"
     cross-env: "npm:10.1.0"
     esbuild: "npm:0.28.2"
-    eslint: "npm:10.11.0"
+    eslint: "npm:10.12.0"
     eslint-plugin-jsdoc: "npm:64.5.4"
     eslint-plugin-mocha: "npm:12.0.2"
     fast-glob: "npm:3.3.3"
@@ -6497,9 +6497,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:10.11.0":
-  version: 10.11.0
-  resolution: "eslint@npm:10.11.0"
+"eslint@npm:10.12.0":
+  version: 10.12.0
+  resolution: "eslint@npm:10.12.0"
   dependencies:
     "@eslint-community/eslint-utils": "npm:^4.8.0"
     "@eslint-community/regexpp": "npm:^4.12.2"
@@ -6538,7 +6538,7 @@ __metadata:
       optional: true
   bin:
     eslint: bin/eslint.js
-  checksum: 10c0/c767f45f21d1921b41d70e30b1c8fa7ec4e65c0f43a8d80cc4990ca3d923127fa7b9b3416b8f5be6e877d9286f97d3c51a04ed341bc6aa73c0dba0f463e1f861
+  checksum: 10c0/1302ce8a7df2f67fe8f4014b2f9449bd38eb86903ba7b841d9a8ca5a5daf8ee15442861ab870e96c0074d5f333b405d7b2f16388981f807db410cc3a02178af9
   languageName: node
   linkType: hard
 
