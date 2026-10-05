@@ -1431,16 +1431,36 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
     it('should allow blank creates (with timestamps: false)', async function () {
       const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
-      await Worker.sync();
-      const worker = await Worker.create({}, { fields: [] });
-      expect(worker).to.be.ok;
+      await Worker.sync({ force: true });
+      const worker = await Worker.create();
+      expect(worker.isNewRecord).to.be.false;
+      expect(await Worker.count()).to.equal(1);
     });
 
-    it('should allow truly blank creates', async function () {
-      const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
-      await Worker.sync();
-      const worker = await Worker.create({}, { fields: [] });
-      expect(worker).to.be.ok;
+    it('inserts a row when the list of fields is empty', async function () {
+      const Worker = this.customSequelize.define(
+        'Worker',
+        { name: DataTypes.STRING },
+        { timestamps: false },
+      );
+      await Worker.sync({ force: true });
+      const worker = await Worker.create({ name: 'ignored' }, { fields: [] });
+      expect(worker.isNewRecord).to.be.false;
+
+      const workers = await Worker.findAll({ raw: true });
+      expect(workers).to.have.length(1);
+      expect(workers[0].name).to.be.null;
+    });
+
+    it('sets the timestamps when the list of fields is empty', async function () {
+      const Worker = this.customSequelize.define('Worker', {});
+      await Worker.sync({ force: true });
+      await Worker.create({}, { fields: [] });
+
+      const workers = await Worker.findAll();
+      expect(workers).to.have.length(1);
+      expect(workers[0].createdAt).to.be.instanceOf(Date);
+      expect(workers[0].updatedAt).to.be.instanceOf(Date);
     });
 
     it('should only set passed fields', async function () {

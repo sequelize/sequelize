@@ -3911,11 +3911,14 @@ Instead of specifying a Model, either:
     const now = new Date();
     let updatedAtAttr = modelDefinition.timestampAttributeNames.updatedAt;
 
-    if (updatedAtAttr && options.fields.length > 0 && !options.fields.includes(updatedAtAttr)) {
+    // An empty list of fields means there is nothing to update, but a new record must still be inserted.
+    const savesRecord = options.fields.length > 0 || this.isNewRecord;
+
+    if (updatedAtAttr && savesRecord && !options.fields.includes(updatedAtAttr)) {
       options.fields.push(updatedAtAttr);
     }
 
-    if (versionAttr && options.fields.length > 0 && !options.fields.includes(versionAttr)) {
+    if (versionAttr && savesRecord && !options.fields.includes(versionAttr)) {
       options.fields.push(versionAttr);
     }
 
@@ -4057,7 +4060,7 @@ Instead of specifying a Model, either:
     const realFields = options.fields.filter(
       attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
-    if (realFields.length === 0) {
+    if (realFields.length === 0 && !this.isNewRecord) {
       return this;
     }
 
