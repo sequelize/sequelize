@@ -176,8 +176,23 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         }),
       ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
       expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-      if (dialectName !== 'ibmi') {
-        expect(error.errors[0].path).to.be.a('string', 'username');
+      switch (dialectName) {
+        case 'mssql':
+          // MSSQL reports the name of the unique constraint
+          expect(error.errors[0].path).to.match(/^UQ__users__\w+$/);
+          break;
+
+        case 'ibmi':
+          break;
+
+        case 'db2':
+        case 'oracle':
+        case 'snowflake':
+          expect(error.errors[0].path).to.be.a('string');
+          break;
+
+        default:
+          expect(error.errors[0].path).to.equal('username');
       }
     });
 

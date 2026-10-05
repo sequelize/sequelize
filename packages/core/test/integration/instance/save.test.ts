@@ -117,10 +117,11 @@ describe('Model#save', () => {
 
     it('only updates fields in passed array', async () => {
       const date = new Date(1990, 1, 1);
+      const originalPublishedAt = new Date(2000, 0, 1);
 
       const book = await vars.Book.create({
         title: 'foo',
-        publishedAt: new Date(),
+        publishedAt: originalPublishedAt,
       });
 
       book.title = 'fizz';
@@ -130,7 +131,7 @@ describe('Model#save', () => {
 
       const reloadedBook = await vars.Book.findByPk(book.id, { rejectOnEmpty: true });
       expect(reloadedBook.title).to.equal('fizz');
-      expect(reloadedBook.publishedAt).not.to.equalTime(date);
+      expect(reloadedBook.publishedAt).to.equalTime(originalPublishedAt);
     });
 
     it('sets the timestamps on insert', async () => {

@@ -289,6 +289,7 @@ export default [
       'chai-expect/missing-assertion': 'error',
       'chai-expect/no-inner-compare': 'error',
       'chai-expect/no-inner-literal': 'error',
+      'chai-expect/no-uncalled-method': 'error',
       'chai-expect/terminating-properties': 'error',
 
       // Allow regular functions (needed for this.timeout() in Mocha describe blocks)
