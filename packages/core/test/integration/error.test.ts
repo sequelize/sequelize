@@ -550,15 +550,23 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         name: 'unique_constraint',
       });
 
-      try {
-        await queryInterface.addConstraint('Users', {
-          type: 'UNIQUE',
-          fields: ['username'],
-          name: 'unique_constraint',
-        });
-      } catch (error) {
-        if (['mariadb', 'mssql', 'mysql', 'sqlite3'].includes(dialect)) {
-          expect(error).to.be.instanceOf(AggregateError);
+      const promise = queryInterface.addConstraint('Users', {
+        type: 'UNIQUE',
+        fields: ['username'],
+        name: 'unique_constraint',
+      });
+
+      switch (dialect) {
+        // MySQL & MariaDB ignore the name of PRIMARY KEY constraints (it is always "PRIMARY"),
+        // and SQLite does not require constraint names to be unique, so there is no conflict.
+        case 'mariadb':
+        case 'mysql':
+        case 'sqlite3':
+          await promise;
+          break;
+
+        case 'mssql': {
+          const error = await expect(promise).to.be.rejectedWith(AggregateError);
           assert(error instanceof AggregateError);
           expect(error.errors).to.have.length(3);
           expect(error.errors[0].message).to.equal(
@@ -570,12 +578,18 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
           assert(error.errors[2] instanceof UnknownConstraintError);
           expect(error.errors[2].constraint).to.equal('unique_constraint');
           expect(error.errors[2].table).to.equal('Users');
-        } else if (dialect === 'oracle') {
-          expect(error).to.be.instanceOf(DatabaseError);
-          assert(error instanceof DatabaseError);
-          expect(error.message).to.match(/^ORA-02264: name already used by an existing constraint/);
-        } else {
-          expect(error).to.be.instanceOf(DatabaseError);
+          break;
+        }
+
+        case 'oracle':
+          await expect(promise).to.be.rejectedWith(
+            DatabaseError,
+            /^ORA-02264: name already used by an existing constraint/,
+          );
+          break;
+
+        default: {
+          const error = await expect(promise).to.be.rejectedWith(DatabaseError);
           assert(error instanceof DatabaseError);
           expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
         }
