@@ -613,13 +613,11 @@ Got { association: 1 } instead`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Task.findOne({ include: [this.Worker] });
-          } catch (error) {
-            expect(error.message).to.equal(
-              'Invalid Include received: no associations exist between "Task" and "Worker"',
-            );
-          }
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Task.findOne({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Task" and "OtherModel"',
+          );
         });
 
         it('returns the associated task via worker.task', async function () {
@@ -732,13 +730,11 @@ The following associations are defined on "Worker": "ToDo"`);
         });
 
         it('throws an error if included DaoFactory is not associated', async function () {
-          try {
-            await this.Task.findOne({ include: [this.Worker] });
-          } catch (error) {
-            expect(error.message).to.equal(
-              'Invalid Include received: no associations exist between "Task" and "Worker"',
-            );
-          }
+          const OtherModel = this.sequelize.define('OtherModel');
+
+          await expect(this.Task.findOne({ include: [OtherModel] })).to.be.rejectedWith(
+            'Invalid Include received: no associations exist between "Task" and "OtherModel"',
+          );
         });
 
         it('returns the associated tasks via worker.tasks', async function () {

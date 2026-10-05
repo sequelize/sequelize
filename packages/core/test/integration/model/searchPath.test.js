@@ -105,21 +105,6 @@ describe('SearchPath in Model Methods', () => {
       expect(obj.foo).to.equal('one');
     });
 
-    it('should fail to insert data into schema_two using create', async function () {
-      const Restaurant = this.Restaurant;
-
-      try {
-        await Restaurant.create(
-          {
-            foo: 'test',
-          },
-          { searchPath: SEARCH_PATH_TWO },
-        );
-      } catch (error) {
-        expect(error).to.not.be.null;
-      }
-    });
-
     it('should be able to insert data into the table in schema_two using create', async function () {
       const Restaurant = this.Restaurant;
 
