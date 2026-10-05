@@ -28,17 +28,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       after(function () {
+        process.off('unhandledRejection', this.stub);
         this.findAll.resetBehavior();
         this.count.resetBehavior();
       });
 
       it('with errors in count and findAll both', async function () {
-        try {
-          await this.User.findAndCountAll({});
-          throw new Error();
-        } catch {
-          expect(this.stub.callCount).to.eql(0);
-        }
+        await expect(this.User.findAndCountAll({})).to.be.rejectedWith(Error);
+        // give Node a chance to report the other rejection as unhandled
+        await new Promise(setImmediate);
+        expect(this.stub.callCount).to.eql(0);
       });
     });
   });

@@ -6,7 +6,7 @@ const {
   createMultiTransactionalTestSequelizeInstance,
   sequelize,
 } = require('../support');
-const { col, DataTypes, Op } = require('@sequelize/core');
+const { AggregateError, col, DataTypes, Op } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -348,30 +348,29 @@ describe('Model', () => {
 
       await Tasks.sync({ force: true });
 
-      try {
-        await Tasks.bulkCreate(
+      const error = await expect(
+        Tasks.bulkCreate(
           [{ name: 'foo', code: '123' }, { code: '1234' }, { name: 'bar', code: '1' }],
           { validate: true },
-        );
-      } catch (error) {
-        const expectedValidationError = 'Validation len on code failed';
-        const expectedNotNullError = 'notNull violation: Task.name cannot be null';
+        ),
+      ).to.be.rejectedWith(AggregateError);
+      const expectedValidationError = 'Validation len on code failed';
+      const expectedNotNullError = 'notNull violation: Task.name cannot be null';
 
-        expect(error.toString())
-          .to.include(expectedValidationError)
-          .and.to.include(expectedNotNullError);
-        const { errors } = error;
-        expect(errors).to.have.length(2);
+      expect(error.toString())
+        .to.include(expectedValidationError)
+        .and.to.include(expectedNotNullError);
+      const { errors } = error;
+      expect(errors).to.have.length(2);
 
-        const e0name0 = errors[0].errors.get('name')[0];
+      const e0name0 = errors[0].errors.get('name')[0];
 
-        expect(errors[0].record.code).to.equal('1234');
-        expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
+      expect(errors[0].record.code).to.equal('1234');
+      expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
 
-        expect(errors[1].record.name).to.equal('bar');
-        expect(errors[1].record.code).to.equal('1');
-        expect(errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
-      }
+      expect(errors[1].record.name).to.equal('bar');
+      expect(errors[1].record.code).to.equal('1');
+      expect(errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
     });
 
     it("doesn't emit an error when validate is set to true but our selectedValues are fine", async function () {
@@ -482,16 +481,12 @@ describe('Model', () => {
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-        try {
-          await this.User.bulkCreate(data, {
+        await expect(
+          this.User.bulkCreate(data, {
             fields: ['uniqueName', 'secretValue'],
             ignoreDuplicates: true,
-          });
-        } catch (error) {
-          expect(error.message).to.equal(
-            `${dialectName} does not support the ignoreDuplicates option.`,
-          );
-        }
+          }),
+        ).to.be.rejectedWith(Error, `${dialectName} does not support the ignoreDuplicates option.`);
       });
     }
 

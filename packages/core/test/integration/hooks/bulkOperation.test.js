@@ -156,16 +156,14 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           user.username = `User${user.id}`;
         });
 
-        try {
-          await this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], {
+        await expect(
+          this.User.bulkCreate([{ aNumber: 5 }, { aNumber: 7 }, { aNumber: 3 }], {
             fields: ['aNumber'],
             individualHooks: true,
-          });
-        } catch (error) {
-          expect(error).to.be.instanceOf(Error);
-          expect(beforeBulkCreate).to.be.true;
-          expect(afterBulkCreate).to.be.false;
-        }
+          }),
+        ).to.be.rejectedWith(Error, 'You shall not pass!');
+        expect(beforeBulkCreate).to.be.true;
+        expect(afterBulkCreate).to.be.false;
       });
     });
   });
@@ -311,14 +309,11 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           fields: ['aNumber'],
         });
 
-        try {
-          await this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true });
-        } catch (error) {
-          expect(error).to.be.instanceOf(Error);
-          expect(error.message).to.equal('You shall not pass!');
-          expect(beforeBulk).to.have.been.calledOnce;
-          expect(afterBulk).not.to.have.been.called;
-        }
+        await expect(
+          this.User.update({ aNumber: 10 }, { where: { aNumber: 1 }, individualHooks: true }),
+        ).to.be.rejectedWith(Error, 'You shall not pass!');
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(afterBulk).not.to.have.been.called;
       });
     });
   });
@@ -436,15 +431,13 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           fields: ['aNumber'],
         });
 
-        try {
-          await this.User.destroy({ where: { aNumber: 1 }, individualHooks: true });
-        } catch (error) {
-          expect(error).to.be.instanceOf(Error);
-          expect(beforeBulk).to.be.true;
-          expect(beforeHook).to.be.true;
-          expect(afterBulk).to.be.false;
-          expect(afterHook).to.be.false;
-        }
+        await expect(
+          this.User.destroy({ where: { aNumber: 1 }, individualHooks: true }),
+        ).to.be.rejectedWith(Error, 'You shall not pass!');
+        expect(beforeBulk).to.be.true;
+        expect(beforeHook).to.be.true;
+        expect(afterBulk).to.be.false;
+        expect(afterHook).to.be.false;
       });
     });
   });
@@ -547,19 +540,17 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
         this.ParanoidUser.afterRestore(afterHook);
 
-        try {
-          await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], {
-            fields: ['aNumber'],
-          });
-          await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
-          await this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true });
-        } catch (error) {
-          expect(error).to.be.instanceOf(Error);
-          expect(beforeBulk).to.have.been.calledOnce;
-          expect(beforeHook).to.have.been.calledThrice;
-          expect(afterBulk).not.to.have.been.called;
-          expect(afterHook).not.to.have.been.called;
-        }
+        await this.ParanoidUser.bulkCreate([{ aNumber: 1 }, { aNumber: 1 }, { aNumber: 1 }], {
+          fields: ['aNumber'],
+        });
+        await this.ParanoidUser.destroy({ where: { aNumber: 1 } });
+        await expect(
+          this.ParanoidUser.restore({ where: { aNumber: 1 }, individualHooks: true }),
+        ).to.be.rejectedWith(Error, 'You shall not pass!');
+        expect(beforeBulk).to.have.been.calledOnce;
+        expect(beforeHook).to.have.been.calledThrice;
+        expect(afterBulk).not.to.have.been.called;
+        expect(afterHook).not.to.have.been.called;
       });
     });
   });

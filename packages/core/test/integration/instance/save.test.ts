@@ -206,15 +206,14 @@ describe('Model#save', () => {
     });
 
     it('validates saved attributes', async () => {
-      try {
-        await vars.Book.build({ validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save();
-      } catch (error) {
-        assert(error instanceof ValidationError);
-        expect(error.get('validateCustom')).to.exist;
-        expect(error.get('validateCustom')).to.be.instanceof(Array);
-        expect(error.get('validateCustom')[0]).to.exist;
-        expect(error.get('validateCustom')[0].message).to.equal('Length failed.');
-      }
+      const error = await expect(
+        vars.Book.build({ validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save(),
+      ).to.be.rejectedWith(ValidationError);
+      assert(error instanceof ValidationError);
+      expect(error.get('validateCustom')).to.exist;
+      expect(error.get('validateCustom')).to.be.instanceof(Array);
+      expect(error.get('validateCustom')[0]).to.exist;
+      expect(error.get('validateCustom')[0].message).to.equal('Length failed.');
     });
 
     it('does not validate non-saved attributes', async () => {

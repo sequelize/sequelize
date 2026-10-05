@@ -318,18 +318,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        try {
-          await Promise.all([
+        await expect(
+          Promise.all([
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
+          ]),
+        ).to.be.rejectedWith(Sequelize.UniqueConstraintError, 'User and email must be unique');
       });
 
       // If you use migrations to create unique indexes that have explicit names and/or contain fields
@@ -374,18 +368,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: { type: DataTypes.STRING, unique: 'user_and_email_index' },
         });
 
-        try {
-          await Promise.all([
+        await expect(
+          Promise.all([
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
+          ]),
+        ).to.be.rejectedWith(Sequelize.UniqueConstraintError, 'User and email must be unique');
       });
     }
 

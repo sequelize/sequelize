@@ -32,15 +32,17 @@ describe('AsyncQueue', () => {
 
   it('should reject if closed before execution', async () => {
     queue.close();
-    try {
-      await queue.enqueue(asyncFunction);
-    } catch (error) {
-      assert(error instanceof ConnectionError);
-      expect(error.cause).to.be.instanceOf(
-        AsyncQueueError,
+    const error = await queue.enqueue(asyncFunction).then(
+      () => expect.fail('expected enqueue to reject'),
+      (error_: unknown) => error_,
+    );
+    assert(error instanceof ConnectionError);
+    expect(error.cause)
+      .to.be.instanceOf(AsyncQueueError)
+      .and.have.property(
+        'message',
         'the connection was closed before this query could be executed',
       );
-    }
   });
 
   it('should reject if closed during execution', async () => {
