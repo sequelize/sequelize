@@ -35,7 +35,9 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
           include: [['id', 'my_id']],
         };
       });
-      await this.User.findAll({});
+      const users = await this.User.findAll({});
+      expect(users).to.have.length(2);
+      expect(users[0].get('my_id')).to.equal(users[0].id);
     });
 
     describe('on success', () => {

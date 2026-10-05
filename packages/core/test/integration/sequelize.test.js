@@ -493,7 +493,9 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('drops the table corresponding to the model', async function () {
       const User = this.sequelize.define('Users', { username: DataTypes.STRING });
       await User.sync({ force: true });
+      expect(await this.sequelize.queryInterface.tableExists(User.table)).to.be.true;
       await User.drop();
+      expect(await this.sequelize.queryInterface.tableExists(User.table)).to.be.false;
     });
   });
 

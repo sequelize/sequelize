@@ -209,7 +209,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
         User.prototype[method] = originalMethod;
       });
 
-      User.hasMany(Task, { as: 'task' });
+      User.hasMany(Task, { as: 'tasks' });
 
       const user = User.build();
 

@@ -1007,7 +1007,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to drop with schemas', async function () {
-        await this.UserSpecial.drop();
+        const UserSpecial = this.UserSpecial.withSchema('special');
+        expect(await this.sequelize.queryInterface.tableExists(UserSpecial.table)).to.be.true;
+        await UserSpecial.drop();
+        expect(await this.sequelize.queryInterface.tableExists(UserSpecial.table)).to.be.false;
       });
 
       it('should describeTable using the default schema settings', async function () {

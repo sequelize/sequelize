@@ -285,7 +285,9 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         where: {},
       });
 
-      await user.getGroups();
+      const groups = await user.getGroups();
+      expect(groups).to.have.length(1);
+      expect(groups[0].id_group).to.equal(group.id_group);
     });
 
     it('supports primary key attributes with different field and attribute names', async function () {
@@ -3263,6 +3265,10 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
         await p1.setUsers([u1]);
 
         await p1.setOwners([u2]);
+
+        const [users, owners] = await Promise.all([p1.getUsers(), p1.getOwners()]);
+        expect(users.map(user => user.name)).to.deep.equal(['u1']);
+        expect(owners.map(owner => owner.name)).to.deep.equal(['u2']);
       });
     });
   });

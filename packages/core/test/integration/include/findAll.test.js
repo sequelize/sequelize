@@ -1328,10 +1328,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ],
       });
 
+      expect(products).to.have.length(20);
       for (const product of products) {
         expect(product.tags.length).to.be.ok;
         for (const tag of product.tags) {
-          expect(tag.get().productTags).not.to.be.ok;
+          expect(tag.get()).not.to.have.property('product_tag');
         }
       }
     });
