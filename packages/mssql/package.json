@@ -41,7 +41,7 @@
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.23",
     "lodash": "^4.18.1",
-    "tedious": "^20.3.2"
+    "tedious": "^20.3.3"
   },
   "devDependencies": {
     "@types/chai": "5.2.3",
