@@ -256,24 +256,21 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
-            this.Tasks.beforeUpdate(() => {
+            // addTask uses a static Task.update() without individualHooks, so only the bulk hooks run
+            this.Tasks.beforeBulkUpdate(() => {
               beforeTask();
               throw new Error('Whoops!');
             });
-            this.Tasks.afterUpdate(afterTask);
+            this.Tasks.afterBulkUpdate(afterTask);
 
             const project = await this.Projects.create({ title: 'New Project' });
             const task = await this.Tasks.create({ title: 'New Task' });
 
-            try {
-              await project.addTask(task);
-            } catch (error) {
-              expect(error).to.be.instanceOf(Error);
-              expect(beforeProject).to.have.been.calledOnce;
-              expect(afterProject).to.have.been.calledOnce;
-              expect(beforeTask).to.have.been.calledOnce;
-              expect(afterTask).not.to.have.been.called;
-            }
+            await expect(project.addTask(task)).to.be.rejectedWith(Error, 'Whoops!');
+            expect(beforeProject).to.have.been.calledOnce;
+            expect(afterProject).to.have.been.calledOnce;
+            expect(beforeTask).to.have.been.calledOnce;
+            expect(afterTask).not.to.have.been.called;
           });
         });
       });
@@ -411,27 +408,24 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               afterProject = true;
             });
 
-            this.Tasks.beforeUpdate(async () => {
+            // addTask uses a static Task.update() without individualHooks, so only the bulk hooks run
+            this.Tasks.beforeBulkUpdate(async () => {
               beforeTask = true;
               throw new Error('Whoops!');
             });
 
-            this.Tasks.afterUpdate(async () => {
+            this.Tasks.afterBulkUpdate(async () => {
               afterTask = true;
             });
 
             const project = await this.Projects.create({ title: 'New Project' });
             const task = await this.Tasks.create({ title: 'New Task' });
 
-            try {
-              await project.addTask(task);
-            } catch (error) {
-              expect(error).to.be.instanceOf(Error);
-              expect(beforeProject).to.be.true;
-              expect(afterProject).to.be.true;
-              expect(beforeTask).to.be.true;
-              expect(afterTask).to.be.false;
-            }
+            await expect(project.addTask(task)).to.be.rejectedWith(Error, 'Whoops!');
+            expect(beforeProject).to.be.true;
+            expect(afterProject).to.be.true;
+            expect(beforeTask).to.be.true;
+            expect(afterTask).to.be.false;
           });
         });
       });

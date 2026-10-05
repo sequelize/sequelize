@@ -555,8 +555,25 @@ export function initModel<M extends Model>(
   model.sequelize.hooks.runSync('afterDefine', model);
 
   addAttributeGetterAndSetters(model);
+
+  // Model variants (withScope, withSchema, etc.) share the hooks of their initial model.
+  // A listener added by each variant would keep the variant alive as long as the initial model,
+  // so the listener of the initial model updates the variants instead.
+  if (model.getInitialModel() !== model) {
+    return;
+  }
+
   model.hooks.addListener('afterDefinitionRefresh', () => {
     addAttributeGetterAndSetters(model);
+
+    // @ts-expect-error -- TODO: type
+    const modelVariantRefs: Set<WeakRef<ModelStatic>> | undefined = model._modelVariantRefs;
+    for (const modelVariantRef of modelVariantRefs ?? []) {
+      const modelVariant = modelVariantRef.deref();
+      if (modelVariant && modelVariant !== model) {
+        addAttributeGetterAndSetters(modelVariant);
+      }
+    }
   });
 }
 
