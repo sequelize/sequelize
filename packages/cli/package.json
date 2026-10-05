@@ -4,7 +4,7 @@
   },
   "bugs": "https://github.com/sequelize/sequelize/issues",
   "dependencies": {
-    "@inquirer/checkbox": "^5.2.5",
+    "@inquirer/checkbox": "^5.2.6",
     "@inquirer/confirm": "^6.3.2",
     "@inquirer/input": "^5.1.6",
     "@inquirer/select": "^5.2.5",
