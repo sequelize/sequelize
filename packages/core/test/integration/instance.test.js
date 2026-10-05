@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('./support');
-const { DataTypes, sql } = require('@sequelize/core');
+const { DataTypes, sql, ValidationError } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 const isUUID = require('validator').isUUID;
@@ -232,32 +232,22 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       });
 
       it('should throw error when given value of incorrect type', async function () {
-        let callCount = 0;
-
-        try {
-          await this.User.build({
+        await expect(
+          this.User.build({
             username: 'a user',
             isSuperUser: 'INCORRECT_VALUE_TYPE',
-          }).save();
-
-          callCount += 1;
-        } catch (error) {
-          expect(callCount).to.equal(0);
-          expect(error).to.exist;
-          expect(error.message).to.exist;
-        }
+          }).save(),
+        ).to.be.rejectedWith(ValidationError, "'INCORRECT_VALUE_TYPE' is not a valid boolean");
       });
     });
   });
 
   describe('complete', () => {
     it('gets triggered if an error occurs', async function () {
-      try {
-        await this.User.findOne({ where: ['asdasdasd'] });
-      } catch (error) {
-        expect(error).to.exist;
-        expect(error.message).to.exist;
-      }
+      await expect(this.User.findOne({ where: ['asdasdasd'] })).to.be.rejectedWith(
+        Error,
+        'Invalid value received for the "where" option',
+      );
     });
 
     it('gets triggered if everything was ok', async function () {

@@ -7,6 +7,7 @@ import {
   Transaction,
   TransactionNestMode,
   TransactionType,
+  UniqueConstraintError,
 } from '@sequelize/core';
 import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
 import { assert, expect } from 'chai';
@@ -654,13 +655,10 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
       await Promise.all([
         (async () => {
-          try {
-            return await User.create({ name: 'omnom' }, { transaction: t2 });
-          } catch (error) {
-            expect(error).to.be.ok;
-
-            return t2.rollback();
-          }
+          await expect(User.create({ name: 'omnom' }, { transaction: t2 })).to.be.rejectedWith(
+            UniqueConstraintError,
+          );
+          await t2.rollback();
         })(),
 
         delay(100).then(async () => {
