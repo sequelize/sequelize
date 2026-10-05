@@ -76,5 +76,41 @@ describe('QueryGenerator#quoteTable', () => {
 
       expectsql(queryGenerator.quoteTable(MyModel.withSchema(null)), { default: '[myTable]' });
     });
+
+    it('omits the schema of a scoped model that does not specify one', () => {
+      const MyModel = sequelizeKeep.define('MyModel', {}, { tableName: 'myTable' });
+
+      expectsql(queryGenerator.quoteTable(MyModel.withoutScope()), { default: '[myTable]' });
+    });
+
+    it('keeps the default schema of a scoped model that specifies it', () => {
+      const MyModel = sequelizeKeep.define(
+        'MyModel',
+        {},
+        { tableName: 'myTable', schema: defaultSchema },
+      );
+
+      expectsql(queryGenerator.quoteTable(MyModel.withoutScope()), { default: qualifiedTable });
+    });
+
+    it('keeps the default schema passed to withSchema when returning to the initial scope', () => {
+      const MyModel = sequelizeKeep.define('MyModel', {}, { tableName: 'myTable' });
+
+      expectsql(queryGenerator.quoteTable(MyModel.withSchema(defaultSchema).withInitialScope()), {
+        default: qualifiedTable,
+      });
+    });
+
+    it('omits the schema reset with withSchema when returning to the initial scope', () => {
+      const MyModel = sequelizeKeep.define(
+        'MyModel',
+        {},
+        { tableName: 'myTable', schema: defaultSchema },
+      );
+
+      expectsql(queryGenerator.quoteTable(MyModel.withSchema(null).withInitialScope()), {
+        default: '[myTable]',
+      });
+    });
   });
 });

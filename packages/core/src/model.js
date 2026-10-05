@@ -1194,7 +1194,11 @@ ${associationOwner._getAssociationDebugList()}`);
 
     return initialModel._withScopeAndSchema(
       {
-        schema: modelDefinition.table.schema || '',
+        // With keepExplicitDefaultSchema, passing on a filled-in default schema would make it explicit.
+        schema:
+          modelDefinition.table.isSchemaExplicit === false
+            ? ''
+            : modelDefinition.table.schema || '',
         schemaDelimiter: modelDefinition.table.delimiter || '',
       },
       mergedScope,
@@ -1234,10 +1238,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     if (
       modelDefinition.table.schema !== initialModelDefinition.table.schema ||
-      modelDefinition.table.delimiter !== initialModelDefinition.table.delimiter
+      modelDefinition.table.delimiter !== initialModelDefinition.table.delimiter ||
+      modelDefinition.table.isSchemaExplicit !== initialModelDefinition.table.isSchemaExplicit
     ) {
       return initialModel.withSchema({
-        schema: modelDefinition.table.schema,
+        schema:
+          modelDefinition.table.isSchemaExplicit === false ? null : modelDefinition.table.schema,
         schemaDelimiter: modelDefinition.table.delimiter,
       });
     }
