@@ -1042,8 +1042,11 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const schemaOptions = typeof schema === 'string' || schema === null ? { schema } : schema;
 
-    schemaOptions.schema ||=
-      this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
+    // With keepExplicitDefaultSchema, filling in the default would make it look explicitly specified.
+    if (!this.sequelize.options.keepExplicitDefaultSchema) {
+      schemaOptions.schema ||=
+        this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
+    }
 
     return this.getInitialModel()._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
   }
@@ -1269,6 +1272,10 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (variantTable.delimiter !== newTable.delimiter) {
+        continue;
+      }
+
+      if (variantTable.isSchemaExplicit !== newTable.isSchemaExplicit) {
         continue;
       }
 

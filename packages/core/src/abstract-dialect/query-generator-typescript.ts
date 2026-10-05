@@ -614,7 +614,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       );
     }
 
-    return {
+    const tableDetails: RequiredBy<TableNameWithSchema, 'schema'> = {
       ...tableIdentifier,
       schema:
         options?.schema ||
@@ -623,6 +623,17 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
         this.dialect.getDefaultSchema(),
       delimiter: options?.delimiter || tableIdentifier.delimiter || '.',
     };
+
+    if (this.options.keepExplicitDefaultSchema) {
+      // Identifiers that already went through this method (such as Model.table) have the default schema filled in,
+      // so whether their schema was explicit can only be read from the flag they carry.
+      tableDetails.isSchemaExplicit = options?.schema
+        ? true
+        : (tableIdentifier.isSchemaExplicit ??
+          Boolean(tableIdentifier.schema || this.options.schema));
+    }
+
+    return tableDetails;
   }
 
   /**
@@ -663,17 +674,17 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       // Some users sync the same set of tables in different schemas for various reasons
       // They then set `searchPath` when running a query to use different schemas.
       // See https://github.com/sequelize/sequelize/pull/15274#discussion_r1020770364
-      // For this reason, we treat the default schema as equivalent to "no schema specified"
-      if (tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()) {
+      // For this reason, we treat the default schema as equivalent to "no schema specified",
+      // unless the keepExplicitDefaultSchema option is enabled and the schema was specified explicitly.
+      if (this.#shouldPrefixSchema(tableName)) {
         sql += `${this.quoteIdentifier(tableName.schema)}.`;
       }
 
       sql += this.quoteIdentifier(tableName.tableName);
     } else {
-      const fakeSchemaPrefix =
-        tableName.schema && tableName.schema !== this.dialect.getDefaultSchema()
-          ? tableName.schema + (tableName.delimiter || '.')
-          : '';
+      const fakeSchemaPrefix = this.#shouldPrefixSchema(tableName)
+        ? tableName.schema + (tableName.delimiter || '.')
+        : '';
 
       sql += this.quoteIdentifier(fakeSchemaPrefix + tableName.tableName);
     }
@@ -713,6 +724,14 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     return sql;
+  }
+
+  #shouldPrefixSchema(table: RequiredBy<TableNameWithSchema, 'schema'>): boolean {
+    if (!table.schema) {
+      return false;
+    }
+
+    return table.schema !== this.dialect.getDefaultSchema() || table.isSchemaExplicit === true;
   }
 
   /**
