@@ -366,9 +366,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
