@@ -156,7 +156,6 @@ describe('QueryGenerator#insertQuery', () => {
     );
   });
 
-  // This test was added due to a regression where these values were being converted to strings
   it('inserts the default value of auto-increment attributes set to null', () => {
     const { AutoIncrementModel } = vars;
 
@@ -175,6 +174,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
   });
 
+  // This test was added due to a regression where these values were being converted to strings
   it('binds number values', () => {
     if (!sequelize.dialect.supports.dataTypes.ARRAY) {
       return;
