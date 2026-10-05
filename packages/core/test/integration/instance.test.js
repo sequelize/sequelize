@@ -379,6 +379,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const user = await UserDestroy.findOne({ where: { email: 'hello' } });
 
       await user.destroy();
+      expect(await UserDestroy.count()).to.equal(0);
     });
 
     it('sets deletedAt property to a specific date when deleting an instance', async function () {

@@ -294,7 +294,7 @@ describe('Model#save', () => {
         const { Book } = vars;
 
         const unhook = Book.hooks.addListener('beforeUpdate', instance => {
-          instance.set('email', 'C');
+          instance.set('title', 'C');
         });
 
         try {
@@ -311,7 +311,7 @@ describe('Model#save', () => {
             .save();
 
           const book = await Book.findOne({ rejectOnEmpty: true });
-          expect(book.get('title')).to.equal('B');
+          expect(book.get('title')).to.equal('C');
           expect(book.get('integer1')).to.equal(2);
         } finally {
           unhook();
