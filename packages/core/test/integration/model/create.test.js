@@ -308,14 +308,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
+      const description = "$$ and !! and :: and ? and ^ and * and '";
       await User.findOrCreate({
         where: {
           objectId: 1,
         },
         defaults: {
-          description: "$$ and !! and :: and ? and ^ and * and '",
+          description,
         },
       });
+
+      const user = await User.findOne({ where: { objectId: 1 }, rejectOnEmpty: true });
+      expect(user.description).to.equal(description);
     });
 
     it('should support bools in defaults', async function () {

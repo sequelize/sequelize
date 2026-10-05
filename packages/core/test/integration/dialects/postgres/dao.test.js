@@ -98,22 +98,20 @@ describe('[POSTGRES Specific] DAO', () => {
       expect(table.document.type).to.equal('HSTORE');
     });
 
-    // TODO: move to select QueryGenerator unit tests
     it('should NOT stringify hstore with insert', async function () {
-      await this.User.create(
-        {
-          username: 'bob',
-          email: ['myemail@email.com'],
-          settings: { mailing: 'false', push: 'facebook', frequency: '3' },
-        },
-        {
-          logging(sql) {
-            const unexpected =
-              '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
-            expect(sql).not.to.include(unexpected);
-          },
-        },
-      );
+      const user = await this.User.create({
+        username: 'bob',
+        email: ['myemail@email.com'],
+        settings: { mailing: 'false', push: 'facebook', frequency: '3' },
+      });
+
+      const reloadedUser = await this.User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(reloadedUser.settings).to.deep.equal({
+        mailing: 'false',
+        push: 'facebook',
+        frequency: '3',
+      });
+      expect(reloadedUser.document).to.deep.equal({ default: "'value'" });
     });
 
     // TODO: move to select QueryGenerator unit tests
