@@ -15,6 +15,22 @@
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest", "lockFileMaintenance"],
       "automerge": true
+    },
+    {
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "1 day"
+    },
+    {
+      "groupName": "inquirer",
+      "matchPackageNames": ["@inquirer/*"]
+    },
+    {
+      "groupName": "lerna and nx",
+      "matchPackageNames": ["lerna", "nx"]
+    },
+    {
+      "groupName": "oclif",
+      "matchPackageNames": ["oclif", "@oclif/*"]
     }
   ],
   "rangeStrategy": "bump",
