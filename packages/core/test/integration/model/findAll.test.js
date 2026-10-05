@@ -1047,7 +1047,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
             // include.attributes:[] , model doesn't exists
-            expect(kingdom.Animals).to.not.exist;
+            expect(kingdom.animals).to.not.exist;
           }
         });
 
@@ -1088,7 +1088,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
             // include.attributes: [], model doesn't exists
-            expect(kingdom.Animals).to.not.exist;
+            expect(kingdom.animals).to.not.exist;
           }
         });
       });

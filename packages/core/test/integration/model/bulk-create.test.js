@@ -410,7 +410,8 @@ describe('Model', () => {
       const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
       const workers = await Worker.bulkCreate([{}, {}]);
-      expect(workers).to.be.ok;
+      expect(workers).to.have.length(2);
+      expect(await Worker.count()).to.equal(2);
     });
 
     it('should allow autoincremented attributes to be set', async function () {
@@ -961,7 +962,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
             });
@@ -981,7 +982,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.not.eq(null);
               }
 
@@ -995,7 +996,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
 
@@ -1019,7 +1020,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 if (i % 2) {
                   expect(results[i].time_deleted).to.not.eq(null);
                 } else {
@@ -1041,7 +1042,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
 
@@ -1103,7 +1104,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
               });
@@ -1123,7 +1124,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.not.eq(null);
                 }
 
@@ -1137,7 +1138,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
 
@@ -1161,7 +1162,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   if (i % 2) {
                     expect(results[i].time_deleted).to.not.eq(null);
                   } else {
@@ -1183,7 +1184,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
 

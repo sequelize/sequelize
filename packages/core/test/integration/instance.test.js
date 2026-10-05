@@ -262,7 +262,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     it('gets triggered if everything was ok', async function () {
       const result = await this.User.count();
-      expect(result).to.exist;
+      expect(result).to.equal(0);
     });
   });
 

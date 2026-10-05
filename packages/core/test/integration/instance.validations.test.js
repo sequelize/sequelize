@@ -193,10 +193,10 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         await project.setTask(task);
         await task.reload();
 
-        expect(task.ProjectId).to.not.be.null;
+        expect(task.projectId).to.equal(project.id);
         await task.setProject(project);
         await task.reload();
-        expect(task.ProjectId).to.not.be.null;
+        expect(task.projectId).to.equal(project.id);
       });
     });
 

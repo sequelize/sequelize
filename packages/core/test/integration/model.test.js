@@ -869,7 +869,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('equals', () => {
     it('correctly determines equality of objects', async function () {
       const user = await this.User.create({ username: 'hallo', data: 'welt' });
-      expect(user.equals(user)).to.be.ok;
+      const sameUser = await this.User.findByPk(user.id, { rejectOnEmpty: true });
+      const otherUser = await this.User.create({ username: 'other' });
+      expect(user.equals(sameUser)).to.be.true;
+      expect(user.equals(otherUser)).to.be.false;
     });
 
     it('correctly determines equality with multiple primary keys', async function () {
@@ -882,7 +885,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await userKeys.sync({ force: true });
       const user = await userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
-      expect(user.equals(user)).to.be.ok;
+      const sameUser = await userKeys.findOne({
+        where: { foo: '1', bar: '2' },
+        rejectOnEmpty: true,
+      });
+      const otherUser = await userKeys.create({ foo: '1', bar: '3' });
+      expect(user.equals(sameUser)).to.be.true;
+      expect(user.equals(otherUser)).to.be.false;
     });
   });
 
