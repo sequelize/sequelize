@@ -248,7 +248,8 @@ if (current.dialect.supports.groupedLimit) {
             association: User.Tasks,
             separate: true,
             limit: 2,
-            attributes: ['id', 'userId', [this.sequelize.literal(this.sequelize.escape(marker)), 'marker']]
+            // UPPER gives the value a type, as old versions of Postgres cannot infer it in the UNION used for grouped limits
+            attributes: ['id', 'userId', [this.sequelize.fn('upper', this.sequelize.literal(this.sequelize.escape(marker))), 'marker']]
           }],
           order: [['id', 'ASC']]
         });
@@ -256,7 +257,7 @@ if (current.dialect.supports.groupedLimit) {
         expect(users.map(user => user.get('tasks').length)).to.deep.equal([2, 1]);
         for (const user of users) {
           for (const task of user.get('tasks')) {
-            expect(task.get('marker')).to.equal(marker);
+            expect(task.get('marker')).to.equal(marker.toUpperCase());
           }
         }
       });

@@ -1319,7 +1319,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        await User.bulkCreate([{ id: '10' }, { id: 11 }]);
+        await User.bulkCreate([{ id: 10 }, { id: 11 }]);
         expect((await User.findAll({ order: [['id', 'ASC']] })).map(user => user.get('id'))).to.deep.equal([10, 11]);
 
         await expect(User.bulkCreate([{ id: '1),(2' }])).to.be.rejected;
