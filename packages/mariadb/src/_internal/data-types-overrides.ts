@@ -66,18 +66,29 @@ export class UUID extends BaseTypes.UUID {
 }
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
-  toBindableValue(value: GeoJson) {
-    const srid = this.options.srid ? `, ${this.options.srid}` : '';
+  escape(value: GeoJson): string {
+    const dialect = this._getDialect();
 
-    return `ST_GeomFromText(${this._getDialect().escapeString(
-      wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )}${srid})`;
+    return this.#toSqlFunctionCall(value, param => {
+      return typeof param === 'number' ? String(param) : dialect.escapeString(param);
+    });
+  }
+
+  toBindableValue(value: GeoJson) {
+    return this.escape(value);
   }
 
   getBindParamSql(value: GeoJson, options: BindParamOptions) {
-    const srid = this.options.srid ? `, ${options.bindParam(this.options.srid)}` : '';
+    return this.#toSqlFunctionCall(value, param => options.bindParam(param));
+  }
 
-    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())}${srid})`;
+  #toSqlFunctionCall(value: GeoJson, toSqlParam: (param: string | number) => string): string {
+    const { wkt, srid } = geoJsonToWkt(value, this.options.srid);
+
+    // Unlike MySQL, MariaDB does not swap the axes of geographic SRSs: WKT is always parsed as X Y (longitude latitude)
+    return srid
+      ? `ST_GeomFromText(${toSqlParam(wkt)}, ${toSqlParam(srid)})`
+      : `ST_GeomFromText(${toSqlParam(wkt)})`;
   }
 
   toSql() {
@@ -89,6 +100,26 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 
     return sql;
   }
+}
+
+function geoJsonToWkt(
+  value: GeoJson,
+  columnSrid: number | undefined,
+): { wkt: string; srid: number | undefined } {
+  const geometry = wkx.Geometry.parseGeoJSON(value);
+
+  // wkx defaults the SRID to 4326 if the GeoJSON does not specify a named crs,
+  // in which case we want to use the SRID of the column instead.
+  if (value.crs?.type !== 'name' || !value.crs.properties?.name) {
+    return { wkt: geometry.toWkt(), srid: columnSrid };
+  }
+
+  const srid = geometry.srid;
+  if (!Number.isSafeInteger(srid) || srid < 0) {
+    throw new Error(`Invalid SRID in GeoJSON crs: ${value.crs.properties.name}`);
+  }
+
+  return { wkt: geometry.toWkt(), srid };
 }
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
