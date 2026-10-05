@@ -211,8 +211,8 @@ describe('Model.findOne', () => {
         expect(user.dataValues.name).to.equal('barfooz');
       });
 
-      it('should fail with meaningful error message on invalid attributes definition', function () {
-        expect(
+      it('should fail with meaningful error message on invalid attributes definition', async function () {
+        await expect(
           this.User.findOne({
             where: { id: 1 },
             attributes: ['id', ['username']],
