@@ -114,10 +114,13 @@ function geoJsonToWkt(
     return { wkt: geometry.toWkt(), srid: columnSrid };
   }
 
-  const srid = geometry.srid;
-  if (!Number.isSafeInteger(srid) || srid < 0) {
+  // wkx only parses the digits at the start of the SRID, so we validate the whole name ourselves
+  const sridMatch = /^(?:EPSG:|urn:ogc:def:crs:EPSG::)(\d+)$/.exec(value.crs.properties.name);
+  if (!sridMatch) {
     throw new Error(`Invalid SRID in GeoJSON crs: ${value.crs.properties.name}`);
   }
+
+  const srid = Number(sridMatch[1]);
 
   return { wkt: geometry.toWkt(), srid };
 }
