@@ -108,12 +108,27 @@ describe('GEOMETRY values', () => {
     });
   });
 
-  it('rejects crs fields with an invalid SRID', () => {
-    expect(() =>
+  it('accepts crs fields that use the URN notation', () => {
+    expectsql(
       geometry.escape({
         ...point,
-        crs: { type: 'name', properties: { name: 'EPSG:invalid' } },
+        crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4326' } },
       }),
-    ).to.throw('Invalid SRID in GeoJSON crs: EPSG:invalid');
+      {
+        mysql: `ST_GeomFromText('POINT(100 39.5)', 4326, 'axis-order=long-lat')`,
+        mariadb: `ST_GeomFromText('POINT(100 39.5)', 4326)`,
+      },
+    );
   });
+
+  for (const name of ['EPSG:invalid', 'EPSG:4326invalid', 'urn:ogc:def:crs:EPSG::4326.5']) {
+    it(`rejects crs fields with an invalid SRID (${name})`, () => {
+      expect(() =>
+        geometry.escape({
+          ...point,
+          crs: { type: 'name', properties: { name } },
+        }),
+      ).to.throw(`Invalid SRID in GeoJSON crs: ${name}`);
+    });
+  }
 });
