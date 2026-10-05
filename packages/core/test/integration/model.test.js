@@ -1669,7 +1669,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      expect(
+      await expect(
         user.bulkCreate(data, {
           validate: true,
           individualHooks: true,
