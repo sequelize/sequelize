@@ -132,3 +132,56 @@ describe('GEOMETRY values', () => {
     });
   }
 });
+
+describe('GEOMETRY values (postgres)', () => {
+  if (dialect.name !== 'postgres') {
+    return;
+  }
+
+  const point: GeoJsonPoint = { type: 'Point', coordinates: [100, 39.5] };
+  const pointWithCrs: GeoJsonPoint = {
+    ...point,
+    crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+  };
+
+  for (const type of [DataTypes.GEOMETRY, DataTypes.GEOMETRY(GeoJsonType.Point, 3857)]) {
+    const normalizedType = sequelize.normalizeDataType(type);
+
+    describe(normalizedType.toSql(), () => {
+      it('escapes values as a function call', () => {
+        expectsql(normalizedType.escape(point), {
+          postgres: `ST_GeomFromGeoJSON('{"type":"Point","coordinates":[100,39.5]}')`,
+        });
+      });
+
+      it('keeps the crs field, which determines the SRID', () => {
+        expectsql(normalizedType.escape(pointWithCrs), {
+          postgres: `ST_GeomFromGeoJSON('{"type":"Point","coordinates":[100,39.5],"crs":{"type":"name","properties":{"name":"EPSG:4326"}}}')`,
+        });
+      });
+
+      it('escapes single quotes', () => {
+        expectsql(
+          normalizedType.escape({ ...point, properties: { exploit: "'); DELETE YOLO; --" } }),
+          {
+            postgres: `ST_GeomFromGeoJSON('{"type":"Point","coordinates":[100,39.5],"properties":{"exploit":"''); DELETE YOLO; --"}}')`,
+          },
+        );
+      });
+
+      it('binds the GeoJSON value', () => {
+        const bind: unknown[] = [];
+        const sql = normalizedType.getBindParamSql(pointWithCrs, {
+          bindParam(param) {
+            bind.push(param);
+
+            return `$${bind.length}`;
+          },
+        });
+
+        expect(sql).to.eq('ST_GeomFromGeoJSON($1)');
+        expect(bind).to.deep.eq([pointWithCrs]);
+      });
+    });
+  }
+});
