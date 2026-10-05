@@ -292,6 +292,26 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         });
     });
 
+    it('escapes non-null auto-increment values in bulk insert', () => {
+      const M = Support.sequelize.define('m', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        }
+      });
+
+      expectsql(sql.bulkInsertQuery(M.tableName, [{ id: '1),(2' }, { id: 3 }], {}, M.fieldRawAttributesMap),
+        {
+          query: {
+            mssql: 'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] ([id]) VALUES (N\'1),(2\'),(3);; SET IDENTITY_INSERT [ms] OFF;',
+            oracle: 'INSERT INTO "ms" ("id") VALUES (:1)',
+            'postgres db2 snowflake': 'INSERT INTO "ms" ("id") VALUES (\'1),(2\'),(3);',
+            default: 'INSERT INTO `ms` (`id`) VALUES (\'1),(2\'),(3);'
+          }
+        });
+    });
+
     if (
       current.dialect.supports.inserts.updateOnDuplicate
     ) {

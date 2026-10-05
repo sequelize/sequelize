@@ -374,9 +374,9 @@ class QueryGenerator {
         if (
           this._dialect.supports.bulkDefault
           && serials[key] === true
+          && fieldValueHash[key] == null
         ) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT' });
