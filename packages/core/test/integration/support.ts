@@ -18,7 +18,7 @@ import {
 setIsIntegrationTestSuite(true);
 
 // Store local references to `setTimeout` and `clearTimeout` asap, so that we can use them within `p-timeout`,
-// avoiding to be affected unintentionally by `sinon.useFakeTimers()` called by the tests themselves.
+// avoiding to be affected unintentionally by `useFakeTimers()` called by the tests themselves.
 
 const { setTimeout, clearTimeout } = global;
 const CLEANUP_TIMEOUT = Number.parseInt(process.env.SEQ_TEST_CLEANUP_TIMEOUT ?? '', 10) || 10_000;
@@ -298,12 +298,11 @@ async function clearDatabaseInternal(customSequelize: Sequelize) {
 }
 
 export async function clearDatabase(customSequelize: Sequelize = sequelize) {
-  await pTimeout(
-    clearDatabaseInternal(customSequelize),
-    CLEANUP_TIMEOUT,
-    `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
-    { customTimers: { setTimeout, clearTimeout } },
-  );
+  await pTimeout(clearDatabaseInternal(customSequelize), {
+    milliseconds: CLEANUP_TIMEOUT,
+    message: `Could not clear database after this test in less than ${CLEANUP_TIMEOUT}ms. This test crashed the DB, and testing cannot continue. Aborting.`,
+    customTimers: { setTimeout, clearTimeout },
+  });
 }
 
 afterEach('no running queries checker', () => {
