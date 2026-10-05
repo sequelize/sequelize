@@ -30,6 +30,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      # Concurrent node-gyp builds race on the shared ~/.cache/node-gyp header download; use Node's own headers.
+      - name: Use the headers shipped with Node for native builds
+        run: |
+          node_dir="$(dirname "$(dirname "$(command -v node)")")"
+          if [ -f "$node_dir/include/node/node.h" ]; then
+            echo "npm_config_nodedir=$node_dir" >> "$GITHUB_ENV"
+          fi
       - name: Install dependencies
         run: yarn install --immutable
       - name: Build sequelize
@@ -180,6 +187,13 @@ jobs:
         with:
           node-version: 24.21.0
           cache: yarn
+      # Concurrent node-gyp builds race on the shared ~/.cache/node-gyp header download; use Node's own headers.
+      - name: Use the headers shipped with Node for native builds
+        run: |
+          node_dir="$(dirname "$(dirname "$(command -v node)")")"
+          if [ -f "$node_dir/include/node/node.h" ]; then
+            echo "npm_config_nodedir=$node_dir" >> "$GITHUB_ENV"
+          fi
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-24
@@ -234,6 +248,13 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: yarn
+      # Concurrent node-gyp builds race on the shared ~/.cache/node-gyp header download; use Node's own headers.
+      - name: Use the headers shipped with Node for native builds
+        run: |
+          node_dir="$(dirname "$(dirname "$(command -v node)")")"
+          if [ -f "$node_dir/include/node/node.h" ]; then
+            echo "npm_config_nodedir=$node_dir" >> "$GITHUB_ENV"
+          fi
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: install-build-artifact-node-${{ matrix.node-version }}
