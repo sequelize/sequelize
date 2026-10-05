@@ -1,7 +1,6 @@
 'use strict';
 
 const chai = require('chai');
-const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -11,7 +10,7 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   after(function () {
