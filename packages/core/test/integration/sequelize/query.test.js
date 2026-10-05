@@ -562,169 +562,181 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     describe('rejections', () => {
       it('reject if the query is not a string', async function () {
         // this is a legacy, removed signature
-        await this.sequelize
-          .query(
+        await expect(
+          this.sequelize.query(
             { query: 'select ? as foo, ? as bar', values: [1, 2] },
             { raw: true, replacements: [1, 2] },
-          )
-          .should.be.rejectedWith(
-            Error,
-            '"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter',
-          );
+          ),
+        ).to.be.rejectedWith(
+          Error,
+          '"sql" cannot be an object. Pass a string instead, and pass bind and replacement parameters through the "options" parameter',
+        );
       });
 
       it('reject when key is missing in the passed object', async function () {
-        await this.sequelize
-          .query('select :one as foo, :two as bar, :three as baz', {
+        await expect(
+          this.sequelize.query('select :one as foo, :two as bar, :three as baz', {
             raw: true,
             replacements: { one: 1, two: 2 },
-          })
-          .should.be.rejectedWith(
-            Error,
-            /Named replacement ":\w+" has no entry in the replacement map\./g,
-          );
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Named replacement ":\w+" has no entry in the replacement map\./g,
+        );
       });
 
       it('rejects if replacements is a number', async function () {
-        await this.sequelize
-          .query('select :one as foo, :two as bar', { raw: true, replacements: 2 })
-          .should.be.rejectedWith(
-            Error,
-            '"replacements" must be an array or a plain object, but received 2 instead.',
-          );
+        await expect(
+          this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: 2 }),
+        ).to.be.rejectedWith(
+          Error,
+          '"replacements" must be an array or a plain object, but received 2 instead.',
+        );
       });
 
       it('rejects if a replacement is missing', async function () {
-        await this.sequelize
-          .query('select :one as foo, :two as bar', { raw: true, replacements: {} })
-          .should.be.rejectedWith(
-            Error,
-            /Named replacement ":\w+" has no entry in the replacement map\./g,
-          );
+        await expect(
+          this.sequelize.query('select :one as foo, :two as bar', { raw: true, replacements: {} }),
+        ).to.be.rejectedWith(
+          Error,
+          /Named replacement ":\w+" has no entry in the replacement map\./g,
+        );
       });
 
       it('rejects if replacements is a string', async function () {
-        await this.sequelize
-          .query('select :one as foo, :two as bar', { raw: true, replacements: 'foobar' })
-          .should.be.rejectedWith(
-            Error,
-            '"replacements" must be an array or a plain object, but received "foobar" instead.',
-          );
+        await expect(
+          this.sequelize.query('select :one as foo, :two as bar', {
+            raw: true,
+            replacements: 'foobar',
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          '"replacements" must be an array or a plain object, but received "foobar" instead.',
+        );
       });
 
       it('reject if replacements is not a plain object', async function () {
-        await this.sequelize
-          .query('select :one as foo, :two as bar', {
+        await expect(
+          this.sequelize.query('select :one as foo, :two as bar', {
             raw: true,
             replacements: new URL('http://example.com'),
-          })
-          .should.be.rejectedWith(
-            Error,
-            '"replacements" must be an array or a plain object, but received "http://example.com/" instead.',
-          );
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          '"replacements" must be an array or a plain object, but received "http://example.com/" instead.',
+        );
       });
 
       it('reject when binds passed with object and numeric $1 is also present', async function () {
         const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
 
-        await this.sequelize
-          .query(`select $one${typeCast} as foo, $two${typeCast} as bar, $1 as baz`, {
+        await expect(
+          this.sequelize.query(`select $one${typeCast} as foo, $two${typeCast} as bar, $1 as baz`, {
             raw: true,
             bind: { one: 1, two: 2 },
-          })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('rejects when binds passed as array and a named parameter is also present', async function () {
         const typeCast = ['postgres', 'db2'].includes(dialectName) ? '::int' : '';
 
-        await this.sequelize
-          .query(`select $1${typeCast} as foo, $2${typeCast} as bar, $foo as baz`, {
+        await expect(
+          this.sequelize.query(`select $1${typeCast} as foo, $2${typeCast} as bar, $foo as baz`, {
             raw: true,
             bind: [1, 2],
-          })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('reject when bind key is $0 and bind is an array', async function () {
-        await this.sequelize
-          .query('select $1 as foo, $0 as bar, $3 as baz', { raw: true, bind: [1, 2] })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+        await expect(
+          this.sequelize.query('select $1 as foo, $0 as bar, $3 as baz', {
+            raw: true,
+            bind: [1, 2],
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('reject when bind key is $01 and bind is an array', async function () {
-        await this.sequelize
-          .query('select $1 as foo, $01 as bar, $3 as baz', { raw: true, bind: [1, 2] })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+        await expect(
+          this.sequelize.query('select $1 as foo, $01 as bar, $3 as baz', {
+            raw: true,
+            bind: [1, 2],
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('reject when bind key is missing in the passed array', async function () {
-        await this.sequelize
-          .query('select $1 as foo, $2 as bar, $3 as baz', { raw: true, bind: [1, 2] })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+        await expect(
+          this.sequelize.query('select $1 as foo, $2 as bar, $3 as baz', {
+            raw: true,
+            bind: [1, 2],
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('reject when bind key is missing in the passed object', async function () {
-        await this.sequelize
-          .query('select $one as foo, $two as bar, $three as baz', {
+        await expect(
+          this.sequelize.query('select $one as foo, $two as bar, $three as baz', {
             raw: true,
             bind: { one: 1, two: 2 },
-          })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('rejects if options.bind is a number', async function () {
-        await this.sequelize
-          .query('select $one as foo, $two as bar', { raw: true, bind: 2 })
-          .should.be.rejectedWith(
-            Error,
-            'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
-          );
+        await expect(
+          this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 2 }),
+        ).to.be.rejectedWith(
+          Error,
+          'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
+        );
       });
 
       it('rejects if a bind parameter is not present in options.bind', async function () {
-        await this.sequelize
-          .query('select $one as foo, $two as bar', { raw: true, bind: {} })
-          .should.be.rejectedWith(
-            Error,
-            /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
-          );
+        await expect(
+          this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: {} }),
+        ).to.be.rejectedWith(
+          Error,
+          /Query includes bind parameter "\$\w+", but no value has been provided for that bind parameter\./g,
+        );
       });
 
       it('rejects if options.bind is a string', async function () {
-        await this.sequelize
-          .query('select $one as foo, $two as bar', { raw: true, bind: 'foobar' })
-          .should.be.rejectedWith(
-            Error,
-            'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
-          );
+        await expect(
+          this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: 'foobar' }),
+        ).to.be.rejectedWith(
+          Error,
+          'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
+        );
       });
 
       it('rejects if options.bind is a non-pojo object', async function () {
-        await this.sequelize
-          .query('select $one as foo, $two as bar', { raw: true, bind: new Date() })
-          .should.be.rejectedWith(
-            Error,
-            'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
-          );
+        await expect(
+          this.sequelize.query('select $one as foo, $two as bar', { raw: true, bind: new Date() }),
+        ).to.be.rejectedWith(
+          Error,
+          'options.bind must be either a plain object (for named parameters) or an array (for numeric parameters)',
+        );
       });
     });
 
