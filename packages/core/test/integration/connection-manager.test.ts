@@ -1,7 +1,6 @@
 import { expect } from 'chai';
 import type { SinonFakeTimers } from 'sinon';
-import sinon from 'sinon';
-import { sequelize } from './support';
+import { sequelize, useFakeTimers } from './support';
 
 describe('ConnectionManager', () => {
   // pg-native's Client#end() calls the global setImmediate, so it never resolves under fake timers
@@ -20,7 +19,7 @@ describe('ConnectionManager', () => {
     const { connectionManager } = sequelize.dialect;
     const connectionOptions = sequelize.options.replication.write;
 
-    clock = sinon.useFakeTimers();
+    clock = useFakeTimers();
 
     const connection = await connectionManager.connect(connectionOptions);
     expect(connectionManager.validate(connection)).to.equal(true);
