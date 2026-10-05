@@ -1026,10 +1026,6 @@ describe('Model', () => {
                 }
               }
 
-              for (const membership of memberships) {
-                membership.time_deleted;
-              }
-
               results = await Memberships.bulkCreate(
                 memberships.map(membership => ({
                   ...membership,
@@ -1044,9 +1040,8 @@ describe('Model', () => {
                 expect(results[i].time_deleted).to.eq(null);
               }
 
-              const count = await Memberships.count({ paranoid: false });
-
-              expect(count).to.eq(15);
+              expect(await Memberships.count({ where: { time_deleted: null } })).to.eq(10);
+              expect(await Memberships.count({ paranoid: false })).to.eq(15);
             });
           });
 
@@ -1168,10 +1163,6 @@ describe('Model', () => {
                   }
                 }
 
-                for (const membership of memberships) {
-                  membership.time_deleted;
-                }
-
                 results = await Memberships.bulkCreate(
                   memberships.map(membership => ({
                     ...membership,
@@ -1186,9 +1177,8 @@ describe('Model', () => {
                   expect(results[i].time_deleted).to.eq(null);
                 }
 
-                const count = await Memberships.count({ paranoid: false });
-
-                expect(count).to.eq(15);
+                expect(await Memberships.count({ where: { time_deleted: null } })).to.eq(10);
+                expect(await Memberships.count({ paranoid: false })).to.eq(15);
               });
             });
           }

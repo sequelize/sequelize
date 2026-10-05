@@ -2804,6 +2804,8 @@ __metadata:
     cross-env: "npm:10.1.0"
     esbuild: "npm:0.28.2"
     eslint: "npm:10.11.0"
+    eslint-plugin-chai-expect: "npm:4.1.0"
+    eslint-plugin-chai-friendly: "npm:1.2.1"
     eslint-plugin-jsdoc: "npm:64.5.4"
     eslint-plugin-mocha: "npm:12.0.2"
     fast-glob: "npm:3.3.3"
@@ -6233,6 +6235,24 @@ __metadata:
     eslint:
       optional: true
   checksum: 10c0/f917eefe0aa933192df489f6188fdf13694aca4fdf8347010b77dd0d2e812b57d47622e88206ed50e769e55777ad7ce6c55a9997d5eebb44d8531ead1cc90188
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-chai-expect@npm:4.1.0":
+  version: 4.1.0
+  resolution: "eslint-plugin-chai-expect@npm:4.1.0"
+  peerDependencies:
+    eslint: ">=2.0.0 <=10.x"
+  checksum: 10c0/9515bdb796e3c7231d63bbb3b4af97ab4bf1e18a9cdf81aa370d6da84faac55730b1742b3ed5cda0e7ca775e2c0ccc718b5cad7bb502fcaa4de1d30a2c2040da
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-chai-friendly@npm:1.2.1":
+  version: 1.2.1
+  resolution: "eslint-plugin-chai-friendly@npm:1.2.1"
+  peerDependencies:
+    eslint: ">=3.0.0"
+  checksum: 10c0/45b2e8822fd4439e1024c3d7145ec56c32175795916e393542a0d9755c86d0d3661d618cf0e7303a2e46a71cb115d7c7f419b672175152e901b9e71794710574
   languageName: node
   linkType: hard
 

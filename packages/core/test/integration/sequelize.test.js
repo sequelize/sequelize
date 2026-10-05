@@ -332,7 +332,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
     it('works with correct database credentials', async function () {
       const User = this.sequelize.define('User', { username: DataTypes.STRING });
       await User.sync();
-      expect(true).to.be.true;
+      expect(await this.sequelize.queryInterface.tableExists(User)).to.be.true;
     });
 
     if (dialect !== 'sqlite3' && dialect !== 'db2') {

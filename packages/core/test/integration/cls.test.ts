@@ -67,7 +67,7 @@ describe('AsyncLocalStorage (ContinuationLocalStorage) Transactions (CLS)', () =
         await vars.clsSequelize.transaction(async () => {
           const transactionB = vars.clsSequelize.getCurrentClsTransaction();
 
-          expect(transactionA === transactionB).to.equal(true, 'transactions should be the same');
+          expect(transactionB).to.equal(transactionA, 'transactions should be the same');
         });
       });
     });

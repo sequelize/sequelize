@@ -30,8 +30,7 @@ describe('Model#set', () => {
       user.set('meta.location', 'Copenhagen');
       expect(user.dataValues['meta.location']).not.to.be.ok;
       expect(user.get('meta').location).to.equal('Copenhagen');
-      expect(user.get('meta') === meta).to.equal(true);
-      expect(user.get('meta') === meta).to.equal(true);
+      expect(user.get('meta')).to.equal(meta);
     });
 
     it('doesnt mutate the JSONB defaultValue', () => {
