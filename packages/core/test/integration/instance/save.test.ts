@@ -18,6 +18,7 @@ import { IsInt, Len } from '@sequelize/validator.js';
 import { expect } from 'chai';
 import { describe } from 'mocha';
 import assert from 'node:assert';
+import sinon from 'sinon';
 import {
   beforeAll2,
   createSingleTransactionalTestSequelizeInstance,
@@ -172,6 +173,21 @@ describe('Model#save', () => {
       const newlySavedUser = await book.save();
 
       expect(newlySavedUser.updatedAt).to.equalTime(updatedAt);
+    });
+
+    it('does not run a query when updating an empty list of fields', async () => {
+      const book = await vars.Book.create({ title: 'title' });
+      const updatedAt = book.updatedAt;
+
+      book.title = 'new title';
+      vars.clock.tick(2000);
+      const logging = sinon.spy();
+      await book.save({ fields: [], logging });
+
+      expect(logging).not.to.have.been.called;
+      const reloadedBook = await vars.Book.findByPk(book.id, { rejectOnEmpty: true });
+      expect(reloadedBook.title).to.equal('title');
+      expect(reloadedBook.updatedAt).to.equalTime(updatedAt);
     });
 
     it('does not update timestamps when option "silent=true" is used', async () => {

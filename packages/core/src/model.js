@@ -3911,11 +3911,14 @@ Instead of specifying a Model, either:
     const now = new Date();
     let updatedAtAttr = modelDefinition.timestampAttributeNames.updatedAt;
 
-    if (updatedAtAttr && options.fields.length > 0 && !options.fields.includes(updatedAtAttr)) {
+    // An empty list of fields means there is nothing to update, but a new record must still be inserted.
+    const savesRecord = options.fields.length > 0 || this.isNewRecord;
+
+    if (updatedAtAttr && savesRecord && !options.fields.includes(updatedAtAttr)) {
       options.fields.push(updatedAtAttr);
     }
 
-    if (versionAttr && options.fields.length > 0 && !options.fields.includes(versionAttr)) {
+    if (versionAttr && savesRecord && !options.fields.includes(versionAttr)) {
       options.fields.push(versionAttr);
     }
 
@@ -4058,7 +4061,15 @@ Instead of specifying a Model, either:
       attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
     if (realFields.length === 0) {
-      return this;
+      if (!this.isNewRecord) {
+        return this;
+      }
+
+      // Like create() without fields, insert the default value of the auto-increment primary key.
+      // Some dialects (e.g. Db2) cannot insert a row without specifying at least one column.
+      if (primaryKeyAttribute?.autoIncrement) {
+        options.fields.push(primaryKeyName);
+      }
     }
 
     const versionColumnName = versionAttr && modelDefinition.getColumnName(versionAttr);
