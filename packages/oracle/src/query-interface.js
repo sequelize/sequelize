@@ -4,11 +4,13 @@ import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import intersection from 'lodash/intersection.js';
 import uniq from 'lodash/uniq.js';
+import { buildShowIndexesQuery, withBindParams } from './_internal/catalog-queries.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
   async showIndex(tableName, options) {
-    // Uses bind parameters so Oracle does not hard parse this dictionary query again for every table
-    const { bind, query } = this.queryGenerator.showIndexesQueryWithBind(tableName);
+    const { bind, query } = withBindParams(valueToSql =>
+      buildShowIndexesQuery(this.queryGenerator, tableName, valueToSql),
+    );
 
     return await this.sequelize.queryRaw(query, {
       ...options,

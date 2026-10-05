@@ -33,8 +33,8 @@ import {
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/model-utils.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
-import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { buildShowIndexesQuery } from './_internal/catalog-queries.js';
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -114,42 +114,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showIndexesQuery(table: TableNameWithSchema) {
-    return this.#showIndexesQuery(table, value => this.escape(value));
-  }
-
-  /**
-   * Same as {@link showIndexesQuery}, but the table and schema names are bind parameters instead of literals.
-   * Oracle hard parses every distinct SQL text, which is slow for queries on the dictionary views,
-   * so this lets it reuse the parsed statement across tables.
-   *
-   * @param table
-   */
-  showIndexesQueryWithBind(table: TableNameWithSchema): {
-    query: string;
-    bind: Record<string, unknown>;
-  } {
-    const bind: Record<string, unknown> = {};
-    const query = this.#showIndexesQuery(table, createBindParamGenerator(bind));
-
-    return { query, bind };
-  }
-
-  #showIndexesQuery(table: TableNameWithSchema, toSql: (value: unknown) => string) {
-    const [tableName, owner] = this.getSchemaNameAndTableName(table);
-    const sql = [
-      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type ',
-      'FROM all_ind_columns i ',
-      'INNER JOIN all_indexes u ',
-      'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
-      'LEFT OUTER JOIN all_constraints c ',
-      'ON (c.table_name = i.table_name AND c.index_name = i.index_name) ',
-      `WHERE i.table_name = ${toSql(tableName)}`,
-      ' AND u.table_owner = ',
-      owner ? toSql(owner) : 'USER',
-      ' ORDER BY index_name, column_position',
-    ];
-
-    return sql.join('');
+    return buildShowIndexesQuery(this, table, value => this.escape(value));
   }
 
   /**
