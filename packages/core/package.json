@@ -75,7 +75,7 @@
     "@types/semver": "7.8.0",
     "@types/sinon": "22.0.0",
     "@types/sinon-chai": "4.0.0",
-    "chai": "6.2.2",
+    "chai": "6.3.0",
     "chai-as-promised": "8.0.2",
     "chai-datetime": "1.8.1",
     "delay": "7.0.0",
