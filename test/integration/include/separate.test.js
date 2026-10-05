@@ -5,6 +5,7 @@ const chai = require('chai'),
   sinon = require('sinon'),
   Support = require('../support'),
   DataTypes = require('sequelize/lib/data-types'),
+  Op = require('sequelize/lib/operators'),
   current = Support.sequelize,
   dialect = Support.getTestDialect();
 
@@ -221,6 +222,43 @@ if (current.dialect.supports.groupedLimit) {
         expect(users[1].get('tasks')).to.be.ok;
         expect(users[1].get('tasks').length).to.equal(2);
         expect(sqlSpy).to.have.been.calledTwice;
+      });
+
+      it('should not splice the grouped limit where clause into user-provided values', async function() {
+        const User = this.sequelize.define('User', {}),
+          Task = this.sequelize.define('Task', {
+            userId: {
+              type: DataTypes.INTEGER,
+              field: 'user_id'
+            }
+          });
+
+        User.Tasks = User.hasMany(Task, { as: 'tasks', foreignKey: 'userId' });
+
+        await this.sequelize.sync({ force: true });
+
+        await User.create({ id: 1, tasks: [{}, {}, {}] }, { include: [User.Tasks] });
+        await User.create({ id: 2, tasks: [{}] }, { include: [User.Tasks] });
+
+        // what the grouped limit placeholder used to look like, as an escaped string value
+        const marker = this.sequelize.getQueryInterface().queryGenerator.whereItemQuery(Op.placeholder, true);
+
+        const users = await User.findAll({
+          include: [{
+            association: User.Tasks,
+            separate: true,
+            limit: 2,
+            attributes: ['id', 'userId', [this.sequelize.literal(this.sequelize.escape(marker)), 'marker']]
+          }],
+          order: [['id', 'ASC']]
+        });
+
+        expect(users.map(user => user.get('tasks').length)).to.deep.equal([2, 1]);
+        for (const user of users) {
+          for (const task of user.get('tasks')) {
+            expect(task.get('marker')).to.equal(marker);
+          }
+        }
       });
 
       it('should run a nested (from a non-separate include) hasMany association in a separate query', async function() {
