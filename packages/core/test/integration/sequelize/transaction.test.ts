@@ -45,8 +45,8 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
     it('reuses the parent transaction by default', async () => {
       await sequelize.transaction(async transaction1 => {
         await sequelize.transaction({ transaction: transaction1 }, async transaction2 => {
-          expect(transaction1 === transaction2).to.equal(
-            true,
+          expect(transaction2).to.equal(
+            transaction1,
             'transaction1 and transaction2 should be the same',
           );
         });
@@ -116,12 +116,12 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
         await sequelize.transaction(
           { transaction: transaction1, nestMode: TransactionNestMode.savepoint },
           async transaction2 => {
-            expect(transaction1 === transaction2).to.equal(
-              false,
+            expect(transaction2).to.not.equal(
+              transaction1,
               'transaction1 and transaction2 should not be the same',
             );
-            expect(transaction2.parent === transaction1).to.equal(
-              true,
+            expect(transaction2.parent).to.equal(
+              transaction1,
               'transaction2.parent should be transaction1',
             );
           },
@@ -199,18 +199,12 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
           await sequelize.transaction(
             { transaction: transaction1, nestMode: TransactionNestMode.separate },
             async transaction2 => {
-              expect(transaction1 === transaction2).to.equal(
-                false,
+              expect(transaction2).to.not.equal(
+                transaction1,
                 'transaction1 and transaction2 should not be the same',
               );
-              expect(transaction1.parent === null).to.equal(
-                true,
-                'transaction1.parent should be null',
-              );
-              expect(transaction2.parent === null).to.equal(
-                true,
-                'transaction2.parent should be null',
-              );
+              expect(transaction1.parent).to.equal(null, 'transaction1.parent should be null');
+              expect(transaction2.parent).to.equal(null, 'transaction2.parent should be null');
             },
           );
         });
@@ -246,12 +240,12 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
       await customSequelize.transaction(async transaction1 => {
         await customSequelize.transaction({ transaction: transaction1 }, async transaction2 => {
-          expect(transaction1 === transaction2).to.equal(
-            false,
+          expect(transaction2).to.not.equal(
+            transaction1,
             'transaction1 and transaction2 should not be the same',
           );
-          expect(transaction2.parent === transaction1).to.equal(
-            true,
+          expect(transaction2.parent).to.equal(
+            transaction1,
             'transaction2.parent should be transaction1',
           );
         });
