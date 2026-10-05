@@ -4060,8 +4060,16 @@ Instead of specifying a Model, either:
     const realFields = options.fields.filter(
       attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
-    if (realFields.length === 0 && !this.isNewRecord) {
-      return this;
+    if (realFields.length === 0) {
+      if (!this.isNewRecord) {
+        return this;
+      }
+
+      // Like create() without fields, insert the default value of the auto-increment primary key.
+      // Some dialects (e.g. Db2) cannot insert a row without specifying at least one column.
+      if (primaryKeyAttribute?.autoIncrement) {
+        options.fields.push(primaryKeyName);
+      }
     }
 
     const versionColumnName = versionAttr && modelDefinition.getColumnName(versionAttr);
