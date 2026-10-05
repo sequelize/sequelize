@@ -113,6 +113,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
       await this.User.bulkCreate(users);
       const users0 = await this.User.findAll();
+      expect(users0).to.have.length(10);
       for (const u of users0) {
         expect(u.isNewRecord).to.not.be.ok;
       }
