@@ -899,7 +899,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
           'FROM (',
           [
             'SELECT',
-            options.limit && `TOP ${options.limit}`,
+            options.limit && `TOP ${this.escape(options.limit)}`,
             '* FROM (',
             [
               'SELECT ROW_NUMBER() OVER (',
@@ -916,7 +916,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
               ],
               `) AS ${tmpTable}`
             ],
-            `) AS ${tmpTable} WHERE row_num > ${offset}`
+            `) AS ${tmpTable} WHERE row_num > ${this.escape(offset)}`
           ],
           `) AS ${tmpTable}`
         ]);
@@ -927,7 +927,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
         'FROM (',
         [
           'SELECT',
-          options.limit && `TOP ${options.limit}`,
+          options.limit && `TOP ${this.escape(options.limit)}`,
           '* FROM (',
           [
             'SELECT ROW_NUMBER() OVER (',
@@ -938,7 +938,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
             `) as row_num, * FROM ${tables} AS ${tmpTable}`,
             where && `WHERE ${where}`
           ],
-          `) AS ${tmpTable} WHERE row_num > ${offset}`
+          `) AS ${tmpTable} WHERE row_num > ${this.escape(offset)}`
         ],
         `) AS ${tmpTable}`
       ]);
@@ -946,7 +946,7 @@ class MSSQLQueryGenerator extends AbstractQueryGenerator {
 
     return Utils.joinSQLFragments([
       'SELECT',
-      isSQLServer2008 && options.limit && `TOP ${options.limit}`,
+      isSQLServer2008 && options.limit && `TOP ${this.escape(options.limit)}`,
       attributes.join(', '),
       `FROM ${tables}`,
       mainTableAs && `AS ${mainTableAs}`,
