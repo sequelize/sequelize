@@ -41,7 +41,7 @@
     "@sequelize/utils": "workspace:*",
     "@types/pg": "^8.23.1",
     "lodash": "^4.18.1",
-    "pg": "^8.23.0",
+    "pg": "^8.23.1",
     "pg-hstore": "^2.3.4",
     "pg-types": "^4.1.0",
     "postgres-array": "^3.0.4",
