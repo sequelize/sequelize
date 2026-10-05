@@ -130,7 +130,7 @@ describe('Model#save', () => {
 
       const reloadedBook = await vars.Book.findByPk(book.id, { rejectOnEmpty: true });
       expect(reloadedBook.title).to.equal('fizz');
-      expect(reloadedBook.publishedAt).not.to.equal(date);
+      expect(reloadedBook.publishedAt).not.to.equalTime(date);
     });
 
     it('sets the timestamps on insert', async () => {
