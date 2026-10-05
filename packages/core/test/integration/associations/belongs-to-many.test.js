@@ -2935,7 +2935,7 @@ describe(Support.getTestDialectTeaser('BelongsToMany'), () => {
 
         const project = users[0].projects[0];
 
-        expect(project.UserProjects).not.to.exist;
+        expect(project.userProject).not.to.exist;
         expect(project.status).not.to.exist;
         expect(project.myProject).to.be.ok;
         expect(project.myProject.status).to.equal('active');

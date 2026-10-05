@@ -1043,7 +1043,7 @@ The following associations are defined on "Worker": "ToDos"`);
       it('should return raw data when raw is true', async function () {
         const user = await this.User.findOne({ where: { username: 'barfooz' }, raw: true });
         expect(user).to.not.be.instanceOf(this.User);
-        expect(user).to.be.instanceOf(Object);
+        expect(user).to.include({ username: 'barfooz' });
       });
     });
 
