@@ -78,6 +78,11 @@ if (dialect === 'db2') {
           expectation: { id: 'INTEGER NOT NULL UNIQUE' }
         },
         {
+          title: 'Db2 cannot add UNIQUE through ALTER COLUMN',
+          arguments: [{ id: { type: 'INTEGER', unique: true } }, { context: 'changeColumn' }],
+          expectation: { id: 'DATA TYPE INTEGER' }
+        },
+        {
           arguments: [{ id: { type: 'INTEGER', after: 'Bar' } }],
           expectation: { id: 'INTEGER' }
         },

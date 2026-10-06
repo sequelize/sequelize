@@ -623,7 +623,8 @@ class Db2QueryGenerator extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
     }
 
-    if (attribute.unique === true) {
+    // Db2 cannot add a unique constraint through ALTER COLUMN.
+    if (attribute.unique === true && (!options || options.context !== 'changeColumn')) {
       template += ' UNIQUE';
     }
 
