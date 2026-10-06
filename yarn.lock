@@ -2922,7 +2922,7 @@ __metadata:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
     lodash: "npm:^4.18.1"
-    snowflake-sdk: "npm:^3.3.0"
+    snowflake-sdk: "npm:^3.4.0"
   languageName: unknown
   linkType: soft
 
@@ -12595,9 +12595,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"snowflake-sdk@npm:^3.3.0":
-  version: 3.3.0
-  resolution: "snowflake-sdk@npm:3.3.0"
+"snowflake-sdk@npm:^3.4.0":
+  version: 3.4.0
+  resolution: "snowflake-sdk@npm:3.4.0"
   dependencies:
     "@aws-crypto/sha256-js": "npm:^5.2.0"
     "@aws-sdk/client-s3": "npm:^3.1051.0"
@@ -12629,11 +12629,11 @@ __metadata:
     oauth4webapi: "npm:^3.0.1"
     open: "npm:^7.3.1"
     simple-lru-cache: "npm:^0.0.2"
-    toml: "npm:^3.0.0"
+    toml: "npm:^5.0.0"
     winston: "npm:^3.1.0"
   peerDependencies:
     asn1.js: ^5.4.1
-  checksum: 10c0/adec285b43f373ae1ffaa638eae305a9c837bb2ed91143c65cb0a5530def6a484ec6c901f6ba0083fe6e2ae70d30e17ad21476ace8035217dab03e8e14c945f8
+  checksum: 10c0/6a224ca0d1562a0ac8e52b43f8e916249cb8787a6549a7ac64ec3af3a327b0edd176db17b04db0933218d0b2ac0e86225652427aa236a1e391c14106fd7b6503
   languageName: node
   linkType: hard
 
@@ -13279,10 +13279,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"toml@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "toml@npm:3.0.0"
-  checksum: 10c0/8d7ed3e700ca602e5419fca343e1c595eb7aa177745141f0761a5b20874b58ee5c878cd045c408da9d130cb2b611c639912210ba96ce2f78e443569aa8060c18
+"toml@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "toml@npm:5.0.0"
+  checksum: 10c0/5a64ee61eca41d03c9caf267810a583d20058049b7c05618b213b473b9a9f6c560041ae5aad90fdeacd13df4e08965e7d0a3034e9e1b5b62fe9bc1ff5db5e5c1
   languageName: node
   linkType: hard
 
