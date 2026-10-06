@@ -59,7 +59,7 @@
   "devDependencies": {
     "@types/chai": "5.2.3",
     "@types/mocha": "10.0.10",
-    "chai": "6.2.2",
+    "chai": "6.3.0",
     "concurrently": "10.0.5",
     "expect-type": "1.4.0",
     "mocha": "12.0.3"
