@@ -4,8 +4,8 @@ const DataTypes = require('./data-types');
 const SqlString = require('./sql-string');
 const _ = require('lodash');
 const baseIsNative = require('lodash/_baseIsNative');
-const uuidv1 = require('uuid').v1;
-const uuidv4 = require('uuid').v4;
+const uuidv1 = require('./utils/uuid').v1;
+const uuidv4 = require('./utils/uuid').v4;
 const operators = require('./operators');
 const operatorsSet = new Set(Object.values(operators));
 
