@@ -10,32 +10,11 @@
 [![semantic-release](https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg)](https://github.com/semantic-release/semantic-release)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Sequelize is an easy-to-use and promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite), [DB2](https://en.wikipedia.org/wiki/IBM_Db2_Family), [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server), [Snowflake](https://www.snowflake.com/), [Oracle DB](https://www.oracle.com/database/) and [Db2 for IBM i](https://www.ibm.com/support/pages/db2-ibm-i). It features solid transaction support, relations, eager and lazy loading, read replication and more.
+Sequelize is an easy-to-use and promise-based [Node.js](https://nodejs.org/en/about/) [ORM tool](https://en.wikipedia.org/wiki/Object-relational_mapping) for [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite), [Db2](https://en.wikipedia.org/wiki/IBM_Db2_Family), [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server), [Snowflake](https://www.snowflake.com/), [Oracle DB](https://www.oracle.com/database/) and [Db2 for IBM i](https://www.ibm.com/support/pages/db2-ibm-i). It features solid transaction support, relations, eager and lazy loading, read replication and more.
 
-Would you like to contribute? Read [our contribution guidelines](./CONTRIBUTING.md) to know more. There are many ways to help! 😃
+Would you like to contribute? Read [our contribution guidelines](./CONTRIBUTING.md) to learn more. There are many ways to help! 😃
 
-## 🚀 Seeking New Maintainers for Sequelize! 🚀
-
-We're looking for new maintainers to help finalize and release the next major version of Sequelize! If you're passionate about open-source and database ORMs, we'd love to have you onboard.
-
-### 💰 Funding Available
-
-We distribute **$2,500 per quarter** among maintainers and have additional funds for full-time contributions.
-
-### 🛠️ What You’ll Work On
-
-- Finalizing and releasing Sequelize’s next major version
-- Improving TypeScript support and database integrations
-- Fixing critical issues and shaping the ORM’s future
-
-### 🤝 How to Get Involved
-
-Interested? Join our Slack and reach out to **@WikiRik** or **@sdepold**:  
-➡️ **[sequelize.org/slack](https://sequelize.org/slack)**
-
-We’d love to have you on board! 🚀
-
-## :computer: Getting Started
+## :computer: Getting started
 
 Ready to start using Sequelize? Head to [sequelize.org](https://sequelize.org) to begin!
 
@@ -46,11 +25,11 @@ Ready to start using Sequelize? Head to [sequelize.org](https://sequelize.org) t
 
 Do you like Sequelize and would like to give back to the engineering team behind it?
 
-We have recently created an [OpenCollective based money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. Every support is wholeheartedly welcome. ❤️
+We have created an [Open Collective money pool](https://opencollective.com/sequelize) which is shared amongst all core maintainers based on their contributions. All support is wholeheartedly welcome. ❤️
 
 ## :pencil: Major version changelog
 
-Please find upgrade information to major versions here:
+Please find upgrade information for major versions here:
 
 - [Upgrade from v5 to v6](https://sequelize.org/docs/v6/other-topics/upgrade-to-v6)
 - [Upgrade from v6 to v7](https://sequelize.org/docs/v7/other-topics/upgrade-to-v7)
@@ -58,7 +37,7 @@ Please find upgrade information to major versions here:
 ## :book: Resources
 
 - [Documentation](https://sequelize.org)
-- [Databases Compatibility Table](https://sequelize.org/releases/)
+- [Database Compatibility Table](https://sequelize.org/releases/)
 - [Changelog](https://github.com/sequelize/sequelize/releases)
 - [Discussions](https://github.com/sequelize/sequelize/discussions)
 - [Slack](https://sequelize.org/slack)
