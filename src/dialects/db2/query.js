@@ -1,7 +1,5 @@
 'use strict';
 
-const util = require('util');
-
 const AbstractQuery = require('../abstract/query');
 const sequelizeErrors = require('../../errors');
 const parserStore = require('../parserStore')('db2');
@@ -30,13 +28,7 @@ class Query extends AbstractQuery {
 
   async _run(connection, sql, parameters) {
     this.sql = sql;
-    const benchmark = this.sequelize.options.benchmark || this.options.benchmark;
-    let queryBegin;
-    if (benchmark) {
-      queryBegin = Date.now();
-    } else {
-      this.sequelize.log(`Executing (${ this.connection.uuid || 'default' }): ${ this.sql}`, this.options);
-    }
+    const complete = this._logQuery(sql, debug, parameters);
 
     const errStack = new Error().stack;
 
@@ -104,11 +96,7 @@ class Query extends AbstractQuery {
           }
 
           stmt.execute(params, (err, result, outparams) => {
-            debug(`executed(${this.connection.uuid || 'default'}):${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`);
-
-            if (benchmark) {
-              this.sequelize.log(`Executed (${this.connection.uuid || 'default'}): ${newSql} ${parameters ? util.inspect(parameters, { compact: true, breakLength: Infinity }) : ''}`, Date.now() - queryBegin, this.options);
-            }
+            complete();
 
             if (err && err.message) {
               err = this.filterSQLError(err, this.sql, connection);
