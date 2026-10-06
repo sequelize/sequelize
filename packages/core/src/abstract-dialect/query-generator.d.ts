@@ -5,6 +5,7 @@ import type { Literal } from '../expression-builders/literal.js';
 import type {
   AttributeOptions,
   FindOptions,
+  Includeable,
   Model,
   ModelStatic,
   NormalizedAttributeOptions,
@@ -41,7 +42,10 @@ type BulkInsertOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
 };
 
-type UpdateOptions = ParameterOptions;
+type UpdateOptions = ParameterOptions & {
+  model?: ModelStatic<any>;
+  include?: Includeable[];
+};
 
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
