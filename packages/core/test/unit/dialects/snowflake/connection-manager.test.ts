@@ -73,6 +73,40 @@ describe('[SNOWFLAKE Specific] Connection Manager', () => {
     expect(connection.isUp()).to.equal(false);
   });
 
+  for (const failureMode of ['callback', 'throw']) {
+    it(`preserves the setup error when destroy fails through its ${failureMode}`, async () => {
+      const setupError = new Error('Unknown time zone');
+      const teardownError = new Error('Session teardown failed');
+      const { sequelize, connection } = createSequelize(
+        { timezone: 'Invalid/Timezone' },
+        setupError,
+      );
+      const destroy = sinon.spy((callback: (error: Error | null) => void) => {
+        if (failureMode === 'throw') {
+          throw teardownError;
+        }
+
+        callback(teardownError);
+      });
+
+      connection.destroy = destroy;
+
+      try {
+        const error = await sequelize.pool.acquire().then(
+          () => null,
+          (error_: unknown) => error_,
+        );
+
+        expect(error).to.be.instanceOf(ConnectionError);
+        expect((error as ConnectionError).cause).to.equal(setupError);
+        expect(destroy).to.have.been.calledOnce;
+        expect(sequelize.pool.size).to.equal(0);
+      } finally {
+        await sequelize.close();
+      }
+    });
+  }
+
   it('sets the session time zone once connected', async () => {
     const { sequelize, connection } = createSequelize({});
 
