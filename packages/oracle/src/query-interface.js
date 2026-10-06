@@ -5,8 +5,13 @@ import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-ow
 import intersection from 'lodash/intersection.js';
 import uniq from 'lodash/uniq.js';
 import { buildShowIndexesQuery, withBindParams } from './_internal/catalog-queries.js';
+import { OracleQueryInterfaceInternal } from './query-interface.internal.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
+  constructor(dialect, internalQueryInterface) {
+    super(dialect, internalQueryInterface ?? new OracleQueryInterfaceInternal(dialect));
+  }
+
   async showIndex(tableName, options) {
     const { bind, query } = withBindParams(valueToSql =>
       buildShowIndexesQuery(this.queryGenerator, tableName, valueToSql),

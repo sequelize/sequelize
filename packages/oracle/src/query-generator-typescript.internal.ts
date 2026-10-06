@@ -34,7 +34,12 @@ import {
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
-import { buildShowIndexesQuery } from './_internal/catalog-queries.js';
+import {
+  buildDescribeTableQuery,
+  buildForeignKeysQuery,
+  buildShowConstraintsQuery,
+  buildShowIndexesQuery,
+} from './_internal/catalog-queries.js';
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -51,20 +56,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    const table = this.extractTableDetails(tableName);
-    const currTableName = this.getCatalogName(table.tableName);
-    const schema = this.getCatalogName(table.schema);
-
-    return [
-      'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
-      'FROM all_tab_columns atc ',
-      'LEFT OUTER JOIN ',
-      '(SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ',
-      'ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) ',
-      schema ? `WHERE (atc.OWNER = ${this.escape(schema)}) ` : 'WHERE atc.OWNER = USER ',
-      `AND (atc.TABLE_NAME = ${this.escape(currTableName)})`,
-      'ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC',
-    ].join('');
+    return buildDescribeTableQuery(this, tableName, value => this.escape(value));
   }
 
   removeIndexQuery(
@@ -286,29 +278,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   getForeignKeysQuery(table: TableOrModel) {
-    // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
-    const tableDetails = this.extractTableDetails(table);
-    const tableName = this.getCatalogName(tableDetails.tableName);
-    const schemaName = this.getCatalogName(tableDetails.schema);
-    const sql = [
-      'SELECT DISTINCT  a.table_name "tableName", a.constraint_name "constraintName", c.owner "tableSchema", a.owner "constraintSchema", a.column_name "columnNames",',
-      `CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
-      ' c.r_owner "referencedTableSchema",',
-      ' c.DELETE_RULE "deleteAction",',
-      ` 'NO ACTION' AS "updateAction",`,
-      ' b.table_name "referencedTableName", b.column_name "referencedColumnNames"',
-      ' FROM all_cons_columns a',
-      ' JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name',
-      ' JOIN all_cons_columns b ON c.r_owner = b.owner AND c.r_constraint_name = b.constraint_name',
-      " WHERE c.constraint_type  = 'R'",
-      ' AND a.table_name = ',
-      this.escape(tableName),
-      ' AND a.owner = ',
-      tableDetails.schema && schemaName !== '' ? this.escape(schemaName) : 'USER',
-      ' ORDER BY a.table_name, a.column_name, b.column_name',
-    ].join('');
-
-    return sql;
+    return buildForeignKeysQuery(this, table, value => this.escape(value));
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
@@ -316,31 +286,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       return this.getForeignKeysQuery(tableName);
     }
 
-    const tableInfo = this.extractTableDetails(tableName);
-    const schema = this.getCatalogName(tableInfo.schema);
-    const table = this.getCatalogName(tableInfo.tableName);
-
-    return joinSQLFragments([
-      'SELECT C.CONSTRAINT_NAME "constraintName",',
-      `CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType",`,
-      'C.TABLE_NAME "tableName",',
-      'A.OWNER "tableSchema",',
-      'C.OWNER "constraintSchema",',
-      'C.COLUMN_NAME "columnNames",',
-      'A.SEARCH_CONDITION "definition"',
-      'FROM ALL_CONS_COLUMNS C',
-      'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
-      'AND C.OWNER = A.OWNER',
-      `WHERE C.TABLE_NAME =${this.escape(table)}`,
-      `AND C.OWNER =${this.escape(schema)}`,
-      options?.constraintName
-        ? `AND C.CONSTRAINT_NAME =${this.escape(options.constraintName)}`
-        : '',
-      options?.constraintType
-        ? `AND A.CONSTRAINT_TYPE =${this.escape(this.getConstraintType(options.constraintType))}`
-        : '',
-      'ORDER BY C.CONSTRAINT_NAME, C.POSITION',
-    ]);
+    return buildShowConstraintsQuery(this, tableName, options, value => this.escape(value));
   }
 
   bulkDeleteQuery(tableName: TableOrModel, options: BulkDeleteQueryOptions): string {
