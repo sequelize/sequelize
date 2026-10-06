@@ -34,6 +34,7 @@ import {
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
+import { buildShowIndexesQuery } from './_internal/catalog-queries.js';
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
@@ -113,21 +114,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showIndexesQuery(table: TableNameWithSchema) {
-    const [tableName, owner] = this.getSchemaNameAndTableName(table);
-    const sql = [
-      'SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type ',
-      'FROM all_ind_columns i ',
-      'INNER JOIN all_indexes u ',
-      'ON (u.table_name = i.table_name AND u.index_name = i.index_name) ',
-      'LEFT OUTER JOIN all_constraints c ',
-      'ON (c.table_name = i.table_name AND c.index_name = i.index_name) ',
-      `WHERE i.table_name = ${this.escape(tableName)}`,
-      ' AND u.table_owner = ',
-      owner ? this.escape(owner) : 'USER',
-      ' ORDER BY index_name, column_position',
-    ];
-
-    return sql.join('');
+    return buildShowIndexesQuery(this, table, value => this.escape(value));
   }
 
   /**
