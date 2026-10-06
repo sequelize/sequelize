@@ -196,6 +196,15 @@ if (current.dialect.name === 'mssql') {
         mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP 10 * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > 10) AS myOtherName'
       });
 
+      // limit and offset are escaped
+      expectsql(modifiedGen.selectFromTableFragment({ limit: '1 * FROM x; --' }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+        mssql: 'SELECT TOP N\'1 * FROM x; --\' id, name FROM myTable AS myOtherName'
+      });
+
+      expectsql(modifiedGen.selectFromTableFragment({ limit: '1 * FROM x; --', offset: '0; --' }, { primaryKeyField: 'id' }, ['id', 'name'], 'myTable', 'myOtherName'), {
+        mssql: 'SELECT TOP 100 PERCENT id, name FROM (SELECT TOP N\'1 * FROM x; --\' * FROM (SELECT ROW_NUMBER() OVER (ORDER BY [id]) as row_num, * FROM myTable AS myOtherName) AS myOtherName WHERE row_num > N\'0; --\') AS myOtherName'
+      });
+
       // With limit, offset, include, and where
       const foo = this.sequelize.define('Foo', {
         id: {
