@@ -21,17 +21,45 @@ const debug = logger.debugContext('sql:mssql');
 const minSafeIntegerAsBigInt = BigInt(Number.MIN_SAFE_INTEGER);
 const maxSafeIntegerAsBigInt = BigInt(Number.MAX_SAFE_INTEGER);
 
+// Reasonable default precision for NUMERIC parameters, pending more sophisticated logic.
+const NUMERIC_PRECISION = 30;
+
+// Largest scale a parameter may declare: SQL Server requires the scale to be at most the
+// precision, and tedious encodes `Math.round(value * 10 ** scale)` as a 64 bit integer, so the
+// scaled value must also stay exactly representable.
+function getMaxScale(magnitude) {
+  let scale = NUMERIC_PRECISION;
+  while (scale > 0 && magnitude * 10 ** scale > Number.MAX_SAFE_INTEGER) {
+    scale -= 1;
+  }
+
+  return scale;
+}
+
 function getScale(aNum) {
   if (!Number.isFinite(aNum)) {
     return 0;
   }
 
-  let e = 1;
-  while (Math.round(aNum * e) / e !== aNum) {
-    e *= 10;
+  const magnitude = Math.abs(aNum);
+  const str = magnitude.toString();
+  const exponentIndex = str.indexOf('e');
+  let scale;
+
+  if (exponentIndex === -1) {
+    const decimalIndex = str.indexOf('.');
+    scale = decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
+  } else {
+    // Only negative exponents reach this: getScale is called for non-integer values, and
+    // `Number#toString` switches to positive exponential notation at 1e21, past which every
+    // double is an integer.
+    const significand = str.slice(0, exponentIndex);
+    const decimalIndex = significand.indexOf('.');
+    const significandDecimals = decimalIndex === -1 ? 0 : significand.length - decimalIndex - 1;
+    scale = significandDecimals - Number(str.slice(exponentIndex + 1));
   }
 
-  return Math.log10(e);
+  return Math.min(scale, getMaxScale(magnitude));
 }
 
 export class MsSqlQuery extends AbstractQuery {
@@ -50,8 +78,7 @@ export class MsSqlQuery extends AbstractQuery {
         }
       } else {
         paramType.type = TYPES.Numeric;
-        // Default to a reasonable numeric precision/scale pending more sophisticated logic
-        paramType.typeOptions = { precision: 30, scale: getScale(value) };
+        paramType.typeOptions = { precision: NUMERIC_PRECISION, scale: getScale(value) };
       }
     } else if (typeof value === 'bigint') {
       if (value < minSafeIntegerAsBigInt || value > maxSafeIntegerAsBigInt) {
