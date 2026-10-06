@@ -27,4 +27,13 @@ export class MariaDbQuery extends AbstractQuery {
   handleJsonSelectQuery(
     rows: Array<Record<string, unknown>> & { meta?: ColumnMetadata[] | undefined },
   ): void;
+
+  /**
+   * Turns the driver's response into the value the caller of this query receives.
+   *
+   * @param data The response the driver returned for this query.
+   *
+   * @internal
+   */
+  formatResults(data: unknown): unknown;
 }
