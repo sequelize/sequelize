@@ -86,7 +86,9 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
       }
 
       // Operation not allowed for reason code "7" on table "DB2INST1.users".  SQLSTATE=57007
-      if (error.cause.sqlcode !== -668 || error.cause.state !== '57007') {
+      // ibm_db reports the SQLSTATE as "sqlstate" ("state" is kept for older versions)
+      const sqlState = error.cause.sqlstate ?? error.cause.state;
+      if (error.cause.sqlcode !== -668 || sqlState !== '57007') {
         throw error;
       }
 

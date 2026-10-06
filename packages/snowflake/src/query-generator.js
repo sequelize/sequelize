@@ -185,16 +185,6 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'DROP DEFAULT'));
       }
 
-      if (/UNIQUE;*$/.test(definition)) {
-        definition = definition.replace(/UNIQUE;*$/, '');
-        attrSql.push(
-          query('ADD UNIQUE (', this.quoteIdentifier(attributeName), ')').replace(
-            'ALTER COLUMN',
-            '',
-          ),
-        );
-      }
-
       if (definition.includes('REFERENCES')) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         attrSql.push(

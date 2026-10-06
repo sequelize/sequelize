@@ -502,9 +502,13 @@ export class SqliteQueryInterface<
       delete column.unique;
     }
 
-    Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
+    // "unique" is handled after the table has been recreated, by adding a unique index if the column does not have one yet.
+    const { unique, ...attribute } = this.sequelize.normalizeAttribute(dataTypeOrOptions);
+    Object.assign(columns[columnName], attribute);
 
     await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);
+
+    await this.#internalQueryInterface.ensureUniqueKey(tableName, columnName, unique, options);
   }
 
   /**

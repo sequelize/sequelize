@@ -351,7 +351,8 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
       sql += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 
-    if (attribute.unique === true) {
+    // QueryInterface#changeColumn adds the unique key separately, only if it does not exist yet
+    if (attribute.unique === true && options?.context !== 'changeColumn') {
       sql += ' UNIQUE';
     }
 
