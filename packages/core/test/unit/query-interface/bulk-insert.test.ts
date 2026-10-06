@@ -2,7 +2,14 @@ import { DataTypes, ParameterStyle, Transaction } from '@sequelize/core';
 import { expect } from 'chai';
 import range from 'lodash/range';
 import sinon from 'sinon';
-import { beforeAll2, expectPerDialect, sequelize, toMatchRegex, toMatchSql } from '../../support';
+import {
+  beforeAll2,
+  expectPerDialect,
+  getTestDialectTeaser,
+  sequelize,
+  toMatchRegex,
+  toMatchSql,
+} from '../../support';
 
 const { bulkInsertParameterStyles } = sequelize.dialect.supports.inserts;
 const bindIfSupported = bulkInsertParameterStyles[ParameterStyle.BIND]
@@ -159,7 +166,7 @@ describe('QueryInterface#bulkInsert', () => {
     }
   });
 
-  it('accepts a model instead of a table name', async () => {
+  it(getTestDialectTeaser('accepts a model instead of a table name'), async () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
@@ -179,7 +186,7 @@ describe('QueryInterface#bulkInsert', () => {
     });
   });
 
-  it('targets the schema of the model when a model is passed', async () => {
+  it(getTestDialectTeaser('targets the schema of the model when a model is passed'), async () => {
     const { Task } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
