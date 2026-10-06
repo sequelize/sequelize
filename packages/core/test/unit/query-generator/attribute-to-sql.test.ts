@@ -703,10 +703,11 @@ describe('QueryGenerator#attributeToSql', () => {
     { context: 'changeColumn' },
   );
 
+  // QueryInterface#changeColumn adds the unique key separately, only if it does not exist yet
   testSql(
     { type: 'INTEGER', unique: true },
     {
-      default: 'INTEGER UNIQUE',
+      default: 'INTEGER',
       'mssql oracle': 'INTEGER NULL',
       db2: 'DATA TYPE INTEGER',
     },

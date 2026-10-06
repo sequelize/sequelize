@@ -4,7 +4,8 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, UniqueConstraintError } = require('@sequelize/core');
+const isEqual = require('lodash/isEqual');
 
 const dialect = Support.getTestDialect();
 
@@ -210,6 +211,163 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       }
     }
+
+    describe('unique', () => {
+      beforeEach(async function () {
+        await this.queryInterface.createTable('users', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          email: DataTypes.STRING,
+          firstName: DataTypes.STRING,
+          lastName: DataTypes.STRING,
+        });
+      });
+
+      it('adds a unique key to the column', async function () {
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          unique: true,
+        });
+
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
+
+        await this.queryInterface.bulkInsert('users', [{ email: 'a@example.com' }]);
+        await expect(
+          this.queryInterface.bulkInsert('users', [{ email: 'a@example.com' }]),
+        ).to.be.rejectedWith(UniqueConstraintError);
+      });
+
+      // https://github.com/sequelize/sequelize/issues/9057
+      it('adds a unique key to the column while making it NOT NULL', async function () {
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        });
+
+        const table = await this.queryInterface.describeTable('users');
+        expect(table.email.allowNull).to.equal(false);
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
+
+        await this.queryInterface.bulkInsert('users', [{ email: 'a@example.com' }]);
+        await expect(
+          this.queryInterface.bulkInsert('users', [{ email: 'a@example.com' }]),
+        ).to.be.rejectedWith(UniqueConstraintError);
+      });
+
+      // https://github.com/sequelize/sequelize/issues/17978
+      it('does not add a second unique key if the column is already unique', async function () {
+        const attribute = { type: DataTypes.STRING, unique: true };
+        await this.queryInterface.changeColumn('users', 'email', attribute);
+        await this.queryInterface.changeColumn('users', 'email', attribute);
+        await this.queryInterface.changeColumn('users', 'email', attribute);
+
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
+        expect(
+          await getUniqueConstraints(this.queryInterface, 'users', 'email'),
+        ).to.have.length.at.most(1);
+      });
+
+      it('does not add a unique key if the column already has a unique index', async function () {
+        await this.queryInterface.addIndex('users', {
+          fields: ['email'],
+          unique: true,
+          name: 'users_email_unique_index',
+        });
+
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          unique: true,
+        });
+
+        const indexes = await getUniqueIndexes(this.queryInterface, 'users', 'email');
+        expect(indexes.map(index => index.name)).to.deep.equal(['users_email_unique_index']);
+      });
+
+      it('does not add a unique key if the column was created unique', async function () {
+        await this.queryInterface.dropTable('users');
+        await this.queryInterface.createTable('users', {
+          id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true,
+          },
+          // Db2 does not accept unique constraints on nullable columns
+          email: { type: DataTypes.STRING, allowNull: false, unique: true },
+        });
+
+        // TODO: oracle ignores the "unique" attribute option in createTable
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(
+          dialect === 'oracle' ? 0 : 1,
+        );
+
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          allowNull: false,
+          unique: true,
+        });
+
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
+      });
+
+      it('names the unique key using the unique option', async function () {
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          unique: 'users_email_custom_unique',
+        });
+
+        await this.queryInterface.changeColumn('users', 'firstName', {
+          type: DataTypes.STRING,
+          unique: { name: 'users_first_name_custom_unique' },
+        });
+
+        const emailIndexes = await getUniqueIndexes(this.queryInterface, 'users', 'email');
+        expect(emailIndexes).to.have.length(1);
+        const firstNameIndexes = await getUniqueIndexes(this.queryInterface, 'users', 'firstName');
+        expect(firstNameIndexes).to.have.length(1);
+
+        const constraints = await getUniqueConstraints(this.queryInterface, 'users');
+        const names = [
+          ...emailIndexes.map(index => index.name),
+          ...firstNameIndexes.map(index => index.name),
+          ...constraints.map(constraint => constraint.constraintName),
+        ];
+
+        expect(names).to.include('users_email_custom_unique');
+        expect(names).to.include('users_first_name_custom_unique');
+      });
+
+      it('does not add a unique key if a unique key with the requested name already exists', async function () {
+        await this.queryInterface.addIndex('users', {
+          fields: ['firstName', 'lastName'],
+          unique: true,
+          name: 'users_full_name_unique',
+        });
+
+        await this.queryInterface.changeColumn('users', 'firstName', {
+          type: DataTypes.STRING,
+          unique: 'users_full_name_unique',
+        });
+
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'firstName')).to.have.length(0);
+      });
+
+      it('does not remove the unique key when unique is not set', async function () {
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          unique: true,
+        });
+
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+        });
+
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
+      });
+    });
 
     describe('should support foreign keys', () => {
       beforeEach(async function () {
@@ -609,3 +767,43 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     }
   });
 });
+
+/**
+ * Returns the unique indexes that cover exactly the given column (excluding the primary key).
+ * Unique constraints are backed by a unique index in all dialects tested here,
+ * so this also counts unique constraints.
+ *
+ * @param {object} queryInterface
+ * @param {string} tableName
+ * @param {string} columnName
+ */
+async function getUniqueIndexes(queryInterface, tableName, columnName) {
+  const indexes = await queryInterface.showIndex(tableName);
+
+  return indexes.filter(
+    index =>
+      index.unique &&
+      !index.primary &&
+      isEqual(
+        index.fields.map(field => field.attribute),
+        [columnName],
+      ),
+  );
+}
+
+/**
+ * Returns the unique constraints of the table, optionally only those that cover exactly the given column.
+ *
+ * @param {object} queryInterface
+ * @param {string} tableName
+ * @param {string} [columnName]
+ */
+async function getUniqueConstraints(queryInterface, tableName, columnName) {
+  const constraints = await queryInterface.showConstraints(tableName, {
+    constraintType: 'UNIQUE',
+  });
+
+  return constraints.filter(
+    constraint => columnName == null || isEqual(constraint.columnNames, [columnName]),
+  );
+}

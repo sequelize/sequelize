@@ -217,6 +217,12 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Change a column definition
    *
+   * If the new definition sets the "unique" option, a unique constraint is added to the column,
+   * unless the table already has a unique constraint or unique index on exactly that column
+   * (or one with the requested name). Only single-column unique keys are supported:
+   * if "unique" is a string or an object with a name, that name is used for the unique constraint of this column.
+   * Setting "unique" to false does not remove existing unique keys.
+   *
    * @param {string} tableName          Table name to change from
    * @param {string} attributeName      Column name
    * @param {object} dataTypeOrOptions  Attribute definition for new column
@@ -225,15 +231,23 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
-    const column = this.normalizeAttribute(dataTypeOrOptions);
-    const columns = { [column.field || column.columnName || attributeName]: column };
+    // "unique" cannot be part of an ALTER COLUMN clause in every dialect, and
+    // adding it there would add a new unique key every time changeColumn is called.
+    // It is handled separately below.
+    const { unique, ...column } = this.normalizeAttribute(dataTypeOrOptions);
+    const columnName = column.field || column.columnName || attributeName;
+    const columns = { [columnName]: column };
     const query = this.queryGenerator.attributesToSql(columns, {
       context: 'changeColumn',
       tableOrModel: tableName,
     });
     const sql = this.queryGenerator.changeColumnQuery(tableName, query, columns);
 
-    return this.sequelize.queryRaw(sql, options);
+    const result = await this.sequelize.queryRaw(sql, options);
+
+    await this.#internals.ensureUniqueKey(tableName, columnName, unique, options);
+
+    return result;
   }
 
   /**

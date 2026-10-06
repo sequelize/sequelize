@@ -162,12 +162,6 @@ export type DialectSupports = {
   };
   groupedLimit: boolean;
   indexViaAlter: boolean;
-  alterColumn: {
-    /**
-     * Can "ALTER TABLE x ALTER COLUMN y" add UNIQUE to the column in this dialect?
-     */
-    unique: boolean;
-  };
   dataTypes: {
     CHAR: boolean;
     /**
@@ -413,9 +407,6 @@ export abstract class AbstractDialect<
     },
     groupedLimit: true,
     indexViaAlter: false,
-    alterColumn: {
-      unique: true,
-    },
     dataTypes: {
       CHAR: true,
       COLLATE_BINARY: false,
