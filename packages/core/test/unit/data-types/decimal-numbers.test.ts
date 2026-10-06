@@ -61,6 +61,18 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     default: zeroFillUnsupportedError,
     'mysql mariadb': 'REAL(11, 12) UNSIGNED ZEROFILL',
   });
+
+  describe('escape', () => {
+    it('rejects values that are not numbers, even if type validation is disabled', () => {
+      const type = DataTypes.REAL().toDialectDataType(dialect);
+
+      // escape() is also called when the noTypeValidation option is enabled
+      expect(() => type.escape('0 OR 1=1')).to.throw(
+        ValidationErrorItem,
+        `'0 OR 1=1' is not a valid`,
+      );
+    });
+  });
 });
 
 describe('DataTypes.DOUBLE', () => {

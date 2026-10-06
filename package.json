@@ -80,15 +80,15 @@
     "@types/lodash": "4.17.25",
     "@types/mocha": "10.0.10",
     "@types/node": "24.19.1",
-    "chai": "6.2.2",
+    "chai": "6.3.0",
     "concurrently": "10.0.5",
     "cross-env": "10.1.0",
     "esbuild": "0.28.2",
-    "eslint": "10.11.0",
+    "eslint": "10.12.0",
     "eslint-plugin-jsdoc": "64.5.4",
     "eslint-plugin-mocha": "12.0.2",
     "fast-glob": "3.3.3",
-    "globals": "17.12.0",
+    "globals": "17.13.0",
     "husky": "9.1.7",
     "lerna": "10.0.1",
     "lint-staged": "17.5.1",
@@ -115,8 +115,8 @@
   "resolutions": {
     "@mapbox/node-pre-gyp@npm:^2.0.0": "patch:@mapbox/node-pre-gyp@npm%3A2.0.3#~/.yarn/patches/@mapbox-node-pre-gyp-npm-2.0.3-4606feb049.patch",
     "node-gyp@npm:latest": "13.0.2",
-    "@ephys/eslint-config/eslint": "10.11.0",
-    "@ephys/eslint-config-typescript/eslint": "10.11.0"
+    "@ephys/eslint-config/eslint": "10.12.0",
+    "@ephys/eslint-config-typescript/eslint": "10.12.0"
   },
   "dependenciesMeta": {
     "esbuild": {
