@@ -205,6 +205,7 @@ if (current.dialect.supports.constraints.addConstraint) {
             onUpdate: 'cascade',
             onDelete: 'no action'
           }), {
+            db2: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id") ON DELETE NO ACTION;',
             oracle: 'ALTER TABLE "myTable" ADD CONSTRAINT "myTable_myColumn_myOtherTable_fk" FOREIGN KEY ("myColumn") REFERENCES "myOtherTable" ("id");',
             default: 'ALTER TABLE [myTable] ADD CONSTRAINT [myTable_myColumn_myOtherTable_fk] FOREIGN KEY ([myColumn]) REFERENCES [myOtherTable] ([id]) ON UPDATE CASCADE ON DELETE NO ACTION;'
           });
