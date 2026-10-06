@@ -771,7 +771,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
   });
 
   it('escapes the values of auto-increment attributes', () => {
-    const { User } = vars;
+    const User = sequelize.define('User', { firstName: DataTypes.STRING }, { timestamps: false });
 
     expectsql(
       () =>
@@ -783,7 +783,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
           ],
           {},
           User.getAttributes(),
-        ),
+        ).query,
       {
         default: `INSERT INTO [Users] ([id],[firstName]) VALUES (5,'a'),(NULL,'b');`,
         postgres: `INSERT INTO "Users" ("id","firstName") VALUES (5,'a'),(DEFAULT,'b');`,
@@ -797,7 +797,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
   });
 
   it('does not inline invalid values of auto-increment attributes', () => {
-    const { User } = vars;
+    const User = sequelize.define('User', { firstName: DataTypes.STRING }, { timestamps: false });
 
     expectsql(
       () =>
@@ -806,7 +806,7 @@ describe('QueryGenerator#bulkInsertQuery', () => {
           [{ id: '1),(DEFAULT', firstName: 'a' }],
           {},
           User.getAttributes(),
-        ),
+        ).query,
       {
         default: new Error(`'1),(DEFAULT' is not a valid integer`),
         // Db2 does not pass the attribute types to escape(), but still escapes the value
