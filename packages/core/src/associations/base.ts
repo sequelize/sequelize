@@ -1,5 +1,5 @@
 import type { AllowIterable, Nullish, PartialBy } from '@sequelize/utils';
-import { isIterable } from '@sequelize/utils';
+import { isIterable, isPlainObject } from '@sequelize/utils';
 import isObject from 'lodash/isObject.js';
 import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
 import { cloneDeep } from '../utils/object.js';
@@ -245,6 +245,15 @@ export abstract class MultiAssociation<
         return element;
       }
 
+      // If element is a plain object (not a primary key value), treat it as new data
+      // to be used for creating a new record. Spread its properties.
+      if (isPlainObject(element)) {
+        const tmpInstance = Object.create(null);
+        Object.assign(tmpInstance, element);
+        return this.target.build(tmpInstance, { isNewRecord: true });
+      }
+
+      // Otherwise element is a primary key value (number, string, etc.)
       const tmpInstance = Object.create(null);
       // @ts-expect-error -- TODO: what if the target has no primary key?
       tmpInstance[this.target.primaryKeyAttribute] = element;
