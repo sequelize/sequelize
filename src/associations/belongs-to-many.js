@@ -354,10 +354,12 @@ class BelongsToMany extends Association {
     }
 
     this.toSource = new BelongsTo(this.through.model, this.source, {
-      foreignKey: this.foreignKey
+      foreignKey: this.foreignKey,
+      targetKey: this.sourceKey
     });
     this.manyFromSource = new HasMany(this.source, this.through.model, {
-      foreignKey: this.foreignKey
+      foreignKey: this.foreignKey,
+      sourceKey: this.sourceKey
     });
     this.oneFromSource = new HasOne(this.source, this.through.model, {
       foreignKey: this.foreignKey,
@@ -366,10 +368,12 @@ class BelongsToMany extends Association {
     });
 
     this.toTarget = new BelongsTo(this.through.model, this.target, {
-      foreignKey: this.otherKey
+      foreignKey: this.otherKey,
+      targetKey: this.targetKey
     });
     this.manyFromTarget = new HasMany(this.target, this.through.model, {
-      foreignKey: this.otherKey
+      foreignKey: this.otherKey,
+      sourceKey: this.targetKey
     });
     this.oneFromTarget = new HasOne(this.target, this.through.model, {
       foreignKey: this.otherKey,
@@ -379,7 +383,8 @@ class BelongsToMany extends Association {
 
     if (this.paired && this.paired.otherKeyDefault) {
       this.paired.toTarget = new BelongsTo(this.paired.through.model, this.paired.target, {
-        foreignKey: this.paired.otherKey
+        foreignKey: this.paired.otherKey,
+        targetKey: this.paired.targetKey
       });
 
       this.paired.oneFromTarget = new HasOne(this.paired.target, this.paired.through.model, {
