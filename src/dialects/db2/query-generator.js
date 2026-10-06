@@ -295,6 +295,27 @@ class Db2QueryGenerator extends AbstractQueryGenerator {
     return `ALTER TABLE ${tableName} ADD ${constraintSnippet};`;
   }
 
+  insertQuery(table, valueHash, modelAttributes, options) {
+    // The abstract insertQuery leaves out auto-increment columns whose value is null.
+    // If nothing else is inserted, Db2 (which has no "DEFAULT VALUES" nor "VALUES ()")
+    // would get "INSERT INTO table" without any VALUES, so insert DEFAULT into those columns instead.
+    if (modelAttributes && valueHash) {
+      const autoIncrementKeys = Object.keys(valueHash).filter(key => valueHash[key] == null && _.some(modelAttributes,
+        (attribute, name) => attribute.autoIncrement === true && (attribute.field || name) === key));
+      const otherKeys = Object.keys(Utils.removeNullValuesFromHash(valueHash, this.options.omitNull))
+        .filter(key => !autoIncrementKeys.includes(key));
+
+      if (autoIncrementKeys.length > 0 && otherKeys.length === 0) {
+        valueHash = {};
+        for (const key of autoIncrementKeys) {
+          valueHash[key] = new Utils.Literal('DEFAULT');
+        }
+      }
+    }
+
+    return super.insertQuery(table, valueHash, modelAttributes, options);
+  }
+
   bulkInsertQuery(tableName, attrValueHashes, options, attributes) {
     options = options || {};
     attributes = attributes || {};
