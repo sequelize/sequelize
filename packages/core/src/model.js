@@ -858,7 +858,16 @@ ${associationOwner._getAssociationDebugList()}`);
         );
       }
 
-      tableName.schema = options.schema;
+      // The table is currently in the default schema, but that alone doesn't tell us
+      // whether no schema was ever specified, or whether the model's *initial*
+      // definition explicitly requested the default schema (both resolve to the same
+      // string). Only move it in the former case; consulting the initial model (rather
+      // than `this`) also means a scoped/schema variant - which always has a concrete
+      // `schema` in its own options, even when none was ever explicitly requested - is
+      // still correctly treated as movable.
+      if (!this.getInitialModel().modelDefinition.options.schema) {
+        tableName.schema = options.schema;
+      }
     }
 
     delete options.schema;
