@@ -2,6 +2,7 @@ import { EMPTY_OBJECT, freezeDeep, getImmutablePojo, isFunction, isString } from
 import cloneDeep from 'lodash/cloneDeep';
 import merge from 'lodash/merge';
 import type { Class } from 'type-fest';
+import { ParameterStyle } from '../enums.js';
 import type { Sequelize } from '../sequelize.js';
 import { logger } from '../utils/logger.js';
 import type { DeepPartial } from '../utils/types.js';
@@ -125,6 +126,8 @@ export type DialectSupports = {
     onConflictWhere: boolean;
     /** whether the dialect supports specifying conflict fields or not */
     conflictFields: boolean;
+    /** which `parameterStyle` values bulk inserts support; requesting an unsupported one throws */
+    bulkInsertParameterStyles: Record<ParameterStyle, boolean>;
   };
   constraints: {
     restrict: boolean;
@@ -381,6 +384,10 @@ export abstract class AbstractDialect<
       onConflictDoNothing: '',
       onConflictWhere: false,
       conflictFields: false,
+      bulkInsertParameterStyles: {
+        [ParameterStyle.REPLACEMENT]: true,
+        [ParameterStyle.BIND]: true,
+      },
     },
     constraints: {
       restrict: true,

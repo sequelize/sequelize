@@ -401,17 +401,18 @@ export function createUnspecifiedOrderedBindCollector(token = '?'): BindCollecto
  */
 export function createSpecifiedOrderedBindCollector(prefix = '$'): BindCollector {
   const parameterOrder: string[] = [];
+  const positions = new Map<string, number>();
 
   return {
     collect(bindParameterName) {
-      const cachedPosition = parameterOrder.indexOf(bindParameterName);
-      if (cachedPosition === -1) {
+      let position = positions.get(bindParameterName);
+      if (position === undefined) {
         parameterOrder.push(bindParameterName);
-
-        return `${prefix}${parameterOrder.length}`;
+        position = parameterOrder.length;
+        positions.set(bindParameterName, position);
       }
 
-      return `${prefix}${cachedPosition + 1}`;
+      return `${prefix}${position}`;
     },
     getBindParameterOrder() {
       return parameterOrder;
@@ -449,7 +450,10 @@ export function assertNoReservedBind(bind: BindOrReplacements): void {
   }
 }
 
-export function combineBinds(bindA: BindOrReplacements, bindB: { [key: string]: unknown }) {
+export function combineBinds(
+  bindA: BindOrReplacements | undefined,
+  bindB: { [key: string]: unknown },
+) {
   if (Array.isArray(bindA)) {
     bindA = arrayBindToNamedBind(bindA);
   }
