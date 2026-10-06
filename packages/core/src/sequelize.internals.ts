@@ -24,6 +24,7 @@ export const PERSISTED_SEQUELIZE_OPTIONS = getSynchronizedTypeKeys<
   disableClsTransactions: undefined,
   isolationLevel: undefined,
   keepDefaultTimezone: undefined,
+  keepExplicitDefaultSchema: undefined,
   logQueryParameters: undefined,
   logging: undefined,
   minifyAliases: undefined,
@@ -85,6 +86,22 @@ export interface PersistedSequelizeOptions<Dialect extends AbstractDialect> exte
    * @default false
    */
   keepDefaultTimezone?: boolean;
+
+  /**
+   * By default, a schema equal to the dialect's default schema is omitted from generated SQL,
+   * so that the table resolves through the connection's search path.
+   *
+   * Set to `true` to keep the schema in generated SQL whenever it was specified explicitly
+   * (in the model's `schema` option, `Model.withSchema`, a table identifier, or the `schema` option of Sequelize),
+   * even if it is the default schema.
+   * Tables without an explicit schema are still unqualified and resolve through the search path.
+   *
+   * This is useful when the search path does not start with the default schema,
+   * e.g. a schema-per-tenant setup where the tenant schema comes first.
+   *
+   * @default false
+   */
+  keepExplicitDefaultSchema?: boolean;
 
   /**
    * Set to `true` to show bind parameters in log.
