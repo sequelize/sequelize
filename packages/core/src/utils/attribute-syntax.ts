@@ -81,11 +81,39 @@ const builtInModifiers: Record<string, Class<DialectAwareFn>> = pojo({
   unquote: Unquote,
 });
 
-function getModifier(name: string): Class<DialectAwareFn> {
+/**
+ * Upper bound (inclusive) for JSON array indexes.
+ *
+ * Larger indexes are not usable in practice (postgres rejects them with "operator does not exist: jsonb -> bigint",
+ * mysql rejects the path, mariadb silently wraps around at 2^32), and above Number.MAX_SAFE_INTEGER
+ * the parsed value would silently lose precision.
+ */
+export const MAX_JSON_ARRAY_INDEX = 2_147_483_647;
+
+type SyntaxKind = 'attribute' | 'json path';
+
+function createParseError(
+  kind: SyntaxKind,
+  code: string,
+  index: number,
+  reason?: string,
+): TypeError {
+  // The input is displayed escaped (as a JSON string), so that newlines and other control characters
+  // do not break the caret line. The caret position must be computed on the escaped prefix, which can be
+  // longer than the raw prefix when it contains characters that need escaping.
+  // `- 1` skips the closing quote added by JSON.stringify.
+  const caretColumn = JSON.stringify(code.slice(0, index)).length - 1;
+
+  return new TypeError(`Failed to parse syntax of ${kind}. Parse error at index ${index}${reason ? ` (${reason})` : ''}:
+${JSON.stringify(code)}
+${' '.repeat(caretColumn)}^`);
+}
+
+function getModifier(name: string, kind: SyntaxKind, code: string): Class<DialectAwareFn> {
   const ModifierClass = builtInModifiers[name.toLowerCase()];
   if (!ModifierClass) {
-    throw new Error(
-      `${name} is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`,
+    throw new TypeError(
+      `Failed to parse syntax of ${kind}. ${JSON.stringify(code)}: "${name}" is not a recognized built-in modifier. Here is the list of supported modifiers: ${Object.keys(builtInModifiers).join(', ')}`,
     );
   }
 
@@ -116,14 +144,18 @@ const attributeParser = (() => {
     indexAccess ::= %"[" number %"]" ;
     keyAccess ::= %"." key ;
     # path segments accept dashes without needing to be quoted
-    key ::= nonEmptyString | ( "A"->"Z" | "a"->"z" | digit | "_" | "-" )+ ;
-    nonEmptyString ::= ...(%"\\"" (anyExceptQuoteOrBackslash | escapedCharacter)+ %"\\"") ;
+    key ::= quotedString | ( "A"->"Z" | "a"->"z" | digit | "_" | "-" )+ ;
+    ## the empty key ("") is a valid JSON object key, so quoted strings may be empty
+    quotedString ::= ...(%"\\"" (anyExceptQuoteOrBackslash | escapedCharacter)* %"\\"") ;
     escapedCharacter ::= %"\\\\" ( "\\"" | "\\\\" );
-    any ::= !"" ;
     anyExceptQuoteOrBackslash ::= !("\\"" | "\\\\");
     castOrModifiers ::= (...cast | ...modifier)+;
-    cast ::= %"::" identifier ;
-    modifier ::= %":" identifier ;
+    cast ::= %"::" castOrModifierName ;
+    modifier ::= %":" castOrModifierName ;
+    ## The cast type is inserted verbatim in the generated SQL, so this rule is what prevents SQL injection
+    ## through the attribute syntax. Do not widen it without adding a validation step.
+    ## Unlike attribute identifiers, a cast type or modifier name cannot start with a digit.
+    castOrModifierName ::= ( "A"->"Z" | "a"->"z" | "_" ) ( "A"->"Z" | "a"->"z" | digit | "_" )* ;
   `;
 
   const parsedAttributeBnf = BNF.parse(advancedAttributeBnf);
@@ -178,9 +210,7 @@ function parseAttributeSyntaxInternal(
   // going to be slow once per attribute.
   const parsed = attributeParser.parse(code, false, 'attribute') as AttributeAst | ParseError;
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of attribute. Parse error at index ${parsed.ref.start.index}:
-${code}
-${' '.repeat(parsed.ref.start.index)}^`);
+    throw createParseError('attribute', code, parsed.ref.start.index);
   }
 
   const [attributeNode, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.value;
@@ -192,7 +222,7 @@ ${' '.repeat(parsed.ref.start.index)}^`);
   const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
   if (jsonPathNodes) {
     const path = jsonPathNodes.map(pathNode => {
-      return parseJsonPathSegment(pathNode);
+      return parseJsonPathSegment(pathNode, 'attribute', code);
     });
 
     result = new JsonPath(result, path);
@@ -208,7 +238,7 @@ ${' '.repeat(parsed.ref.start.index)}^`);
         continue;
       }
 
-      const ModifierClass = getModifier(castOrModifierNode.value);
+      const ModifierClass = getModifier(castOrModifierNode.value, 'attribute', code);
 
       result = new ModifierClass(result);
     }
@@ -268,19 +298,17 @@ interface JsonPathAst extends SyntaxNode {
 function parseJsonPropertyKeyInternal(code: string): ParsedJsonPropertyKey {
   const parsed = attributeParser.parse(code, false, 'partialJsonPath') as JsonPathAst | ParseError;
   if (parsed instanceof ParseError) {
-    throw new TypeError(`Failed to parse syntax of json path. Parse error at index ${parsed.ref.start.index}:
-${code}
-${' '.repeat(parsed.ref.start.index)}^`);
+    throw createParseError('json path', code, parsed.ref.start.index);
   }
 
   const [firstKey, jsonPathNodeRaw, castOrModifiersNodeRaw] = parsed.value;
 
-  const pathSegments: Array<string | number> = [parseJsonPathSegment(firstKey)];
+  const pathSegments: Array<string | number> = [parseJsonPathSegment(firstKey, 'json path', code)];
 
   const jsonPathNodes = jsonPathNodeRaw.value[0]?.value[0].value;
   if (jsonPathNodes) {
     for (const pathNode of jsonPathNodes) {
-      pathSegments.push(parseJsonPathSegment(pathNode));
+      pathSegments.push(parseJsonPathSegment(pathNode, 'json path', code));
     }
   }
 
@@ -296,7 +324,7 @@ ${' '.repeat(parsed.ref.start.index)}^`);
         continue;
       }
 
-      const ModifierClass = getModifier(castOrModifierNode.value);
+      const ModifierClass = getModifier(castOrModifierNode.value, 'json path', code);
 
       castsAndModifiers.push(ModifierClass);
     }
@@ -305,9 +333,23 @@ ${' '.repeat(parsed.ref.start.index)}^`);
   return { pathSegments, castsAndModifiers };
 }
 
-function parseJsonPathSegment(node: StringNode<string>): string | number {
+function parseJsonPathSegment(
+  node: StringNode<string>,
+  kind: SyntaxKind,
+  code: string,
+): string | number {
   if (node.type === 'indexAccess') {
-    return Number(node.value);
+    const index = Number(node.value);
+    if (index > MAX_JSON_ARRAY_INDEX) {
+      throw createParseError(
+        kind,
+        code,
+        node.ref.start.index,
+        `JSON array index must not exceed ${MAX_JSON_ARRAY_INDEX}`,
+      );
+    }
+
+    return index;
   }
 
   return node.value;
