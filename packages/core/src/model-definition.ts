@@ -174,6 +174,12 @@ export class ModelDefinition<M extends Model = Model> {
 
   // TODO: add generic type to ModelHooks (model, attributes)
   get hooks(): HookHandler<ModelHooks> {
+    // Model variants (created by withScope, withSchema, etc.) share the hooks of their initial model
+    const initialModel = this.model.getInitialModel();
+    if (initialModel !== this.model) {
+      return initialModel.modelDefinition.hooks;
+    }
+
     return staticModelHooks.getFor(this);
   }
 
@@ -238,7 +244,8 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
 
     this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
 
-    if (this.options.hooks) {
+    // Model variants share the hooks of their initial model, which already includes these.
+    if (this.options.hooks && this.model.getInitialModel() === this.model) {
       this.hooks.addListeners(this.options.hooks);
     }
 
