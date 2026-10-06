@@ -5,7 +5,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const sinon = require('sinon');
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, sql } = require('@sequelize/core');
 
 const current = Support.sequelize;
 
@@ -511,6 +511,36 @@ if (current.dialect.supports.groupedLimit) {
         expect(results[0].user.tasks.length).to.equal(1);
         expect(results[0].user.tasks[0].user.id).to.equal(2);
         expect(results[0].user.tasks[0].user.company.id).to.equal(3);
+      });
+
+      it('does not modify values that look like the placeholder used for grouped limits', async function () {
+        const User = this.sequelize.define('User', {});
+        const Task = this.sequelize.define('Task', {});
+        User.Tasks = User.hasMany(Task, { as: 'tasks' });
+
+        await this.sequelize.sync({ force: true });
+        await User.bulkCreate([{ id: 1 }, { id: 2 }]);
+        await Task.bulkCreate([{ userId: 1 }, { userId: 1 }, { userId: 1 }, { userId: 2 }]);
+
+        const placeholderLookalike = '"$PLACEHOLDER$" = true';
+        const users = await User.findAll({
+          include: [
+            {
+              association: User.Tasks,
+              separate: true,
+              limit: 2,
+              attributes: ['id', 'userId', [sql`${placeholderLookalike}`, 'marker']],
+            },
+          ],
+          order: [['id', 'ASC']],
+        });
+
+        expect(users.map(user => user.tasks.length)).to.deep.equal([2, 1]);
+        for (const user of users) {
+          for (const task of user.tasks) {
+            expect(task.get('marker')).to.equal(placeholderLookalike);
+          }
+        }
       });
     });
   });
