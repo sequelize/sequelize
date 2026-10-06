@@ -39,7 +39,7 @@ import { Model } from './model';
 import { setTransactionFromCls } from './model-internals.js';
 import { ManualOnDelete } from './model-repository.types.js';
 import { Op } from './operators';
-import { SequelizeTypeScript } from './sequelize-typescript';
+import { removeCyclicForeignKeyConstraints, SequelizeTypeScript } from './sequelize-typescript';
 import {
   COMPLETES_TRANSACTION,
   IsolationLevel,
@@ -560,6 +560,8 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const model of this.models) {
         await model.drop(options);
       }
+
+      return;
     }
 
     const sortedModels = this.models.getModelsTopoSortedByForeignKey();
@@ -569,6 +571,8 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const model of sortedModels) {
         await model.drop(options);
       }
+
+      return;
     }
 
     if (this.dialect.name === 'sqlite3') {
@@ -583,18 +587,7 @@ Use Sequelize#query if you wish to use replacements.`);
     }
 
     // has cyclic dependency: we first remove each foreign key, then delete each model.
-    for (const model of this.models) {
-      const foreignKeys = await this.queryInterface.showConstraints(model, {
-        ...options,
-        constraintType: 'FOREIGN KEY',
-      });
-
-      await Promise.all(
-        foreignKeys.map(foreignKey => {
-          return this.queryInterface.removeConstraint(model, foreignKey.constraintName, options);
-        }),
-      );
-    }
+    await removeCyclicForeignKeyConstraints(this, options);
 
     for (const model of this.models) {
       await model.drop(options);
