@@ -98,6 +98,18 @@ describe('DataTypes.ENUM', () => {
     );
   });
 
+  it('throws if the "name" option is an empty string', () => {
+    expect(() => {
+      DataTypes.ENUM({ values: ['a', 'b'], name: '' });
+    }).to.throw(TypeError, 'DataTypes.ENUM option "name" must be a non-empty string.');
+  });
+
+  it('throws if the "schema" option is an empty string', () => {
+    expect(() => {
+      DataTypes.ENUM({ values: ['a', 'b'], schema: '' });
+    }).to.throw(TypeError, 'DataTypes.ENUM option "schema" must be a non-empty string.');
+  });
+
   typeTest('accepts readonly arrays', () => {
     const values: readonly string[] = ['value 1', 'value 2'];
 
