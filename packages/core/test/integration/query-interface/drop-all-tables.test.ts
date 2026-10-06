@@ -41,6 +41,20 @@ describe('QueryInterface#dropAllTables', () => {
       const tables = await queryInterface.listTables();
       expect(tables).to.be.empty;
     });
+
+    if (sequelize.dialect.supports.dropTable.cascade) {
+      it('should drop tables with cyclic foreign keys when cascade is disabled', async () => {
+        // the cycle means no table can be dropped before the foreign keys are removed
+        await queryInterface.addColumn('levels', 'bossId', {
+          type: DataTypes.INTEGER,
+          references: { table: 'actors', key: 'id' },
+        });
+
+        await queryInterface.dropAllTables({ cascade: false });
+        const tables = await queryInterface.listTables();
+        expect(tables).to.be.empty;
+      });
+    }
   });
 
   if (sequelize.dialect.supports.schemas) {
