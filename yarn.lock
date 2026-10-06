@@ -2737,7 +2737,7 @@ __metadata:
     sinon-chai: "npm:4.0.1"
     toposort-class: "npm:^1.0.1"
     type-fest: "npm:^5.10.0"
-    uuid: "npm:^11.1.1"
+    uuid: "npm:^14.0.2"
     validator: "npm:^13.15.35"
   languageName: unknown
   linkType: soft
@@ -13863,12 +13863,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"uuid@npm:^11.1.1":
-  version: 11.1.1
-  resolution: "uuid@npm:11.1.1"
+"uuid@npm:^14.0.2":
+  version: 14.0.2
+  resolution: "uuid@npm:14.0.2"
   bin:
-    uuid: dist/esm/bin/uuid
-  checksum: 10c0/9e3af58eba872ece5a5e76f4773a94fc78a0ef2c2444c38dbe6b42f41dadf76c01850fd783604f27986f6195e6286aef064d45987d401b2a33127b98ddf7c0c5
+    uuid: dist-node/bin/uuid
+  checksum: 10c0/88906237004db370b013129c8372a2149f6fa1aad7a5f78fa65ddf2ba0a8663097022300d81fa01f551efee9d6bbe8c7ab140dc6d49f1b03d289f855096990c9
   languageName: node
   linkType: hard
 
