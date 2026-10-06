@@ -366,9 +366,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
@@ -1229,7 +1232,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
 
         // TODO: do not use a placeholder!
-        const placeholder = '"$PLACEHOLDER$" = true';
+        // The placeholder must not be predictable, as it is searched for in the generated query,
+        // which can contain user-provided values.
+        const placeholder = `"$PLACEHOLDER_${crypto.randomUUID().replaceAll('-', '')}$" = true`;
 
         if (options.groupedLimit.on instanceof BelongsToManyAssociation) {
           // BTM includes needs to join the through table on to check ID
