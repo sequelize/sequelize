@@ -412,6 +412,24 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(options.include[0].subQueryFilter).to.equal(true);
       });
 
+      it('should not tag an optional hasMany association with a required nested include', function () {
+        const options = _validateIncludedElements({
+          model: this.Company,
+          include: [
+            {
+              association: this.Company.Employees,
+              required: false,
+              include: [{ association: this.User.Tasks, required: true }],
+            },
+          ],
+          limit: 3,
+        });
+
+        expect(options.subQuery).to.equal(true);
+        expect(options.include[0].subQuery).to.equal(false);
+        expect(options.include[0].subQueryFilter).to.equal(false);
+      });
+
       it('should not tag a required hasMany association with duplicating false', function () {
         const options = _validateIncludedElements({
           model: this.User,
