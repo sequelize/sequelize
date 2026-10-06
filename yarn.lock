@@ -2807,7 +2807,7 @@ __metadata:
     eslint-plugin-jsdoc: "npm:64.5.4"
     eslint-plugin-mocha: "npm:12.0.2"
     fast-glob: "npm:3.3.3"
-    globals: "npm:17.12.0"
+    globals: "npm:17.13.0"
     husky: "npm:9.1.7"
     lerna: "npm:10.0.1"
     lint-staged: "npm:17.5.1"
@@ -7342,10 +7342,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"globals@npm:17.12.0, globals@npm:^17.0.0":
-  version: 17.12.0
-  resolution: "globals@npm:17.12.0"
-  checksum: 10c0/8325cf8818c848871d17c32974c2c74e9c5f09c1b0e04421886f64f21e77c3e95f3ba25586743895a73acd860ada151132481d87d44a1f12993ae7758a694d03
+"globals@npm:17.13.0, globals@npm:^17.0.0":
+  version: 17.13.0
+  resolution: "globals@npm:17.13.0"
+  checksum: 10c0/8371d9e4e5581640141b5cce70a098edd765d2e3ab063b14998e590698071e0afb4a4a6739ccfbdcbdeb2565c5553697ba07d95703c51039912cf341a7dba7a7
   languageName: node
   linkType: hard
 
