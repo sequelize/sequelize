@@ -327,8 +327,16 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           }
           expect(results.filter(r => r.name === 'another_index_email_mobile')).to.have.length(1);
           expect(results.filter(r => r.name === 'another_index_phone_mobile')).to.have.length(1);
-          expect(results.filter(r => r.name === 'another_index_email')).to.have.length(1);
-          expect(results.filter(r => r.name === 'another_index_mobile')).to.have.length(1);
+          if (dialect === 'db2') {
+            // Db2 makes the columns of single-column indexes unique (see createTableQuery),
+            // so it skips these named indexes as duplicates of its own unique indexes.
+            const uniqueIndexOn = field => results.filter(r => r.unique && r.fields.length === 1 && r.fields[0].attribute === field);
+            expect(uniqueIndexOn('email')).to.have.length(1);
+            expect(uniqueIndexOn('mobile')).to.have.length(1);
+          } else {
+            expect(results.filter(r => r.name === 'another_index_email')).to.have.length(1);
+            expect(results.filter(r => r.name === 'another_index_mobile')).to.have.length(1);
+          }
         });
 
         it('should not duplicate unnamed indexes after multiple sync calls', async function() {

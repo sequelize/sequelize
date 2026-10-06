@@ -78,6 +78,11 @@ if (dialect === 'db2') {
           expectation: { id: 'INTEGER NOT NULL UNIQUE' }
         },
         {
+          title: 'Db2 cannot add UNIQUE through ALTER COLUMN',
+          arguments: [{ id: { type: 'INTEGER', unique: true } }, { context: 'changeColumn' }],
+          expectation: { id: 'DATA TYPE INTEGER' }
+        },
+        {
           arguments: [{ id: { type: 'INTEGER', after: 'Bar' } }],
           expectation: { id: 'INTEGER' }
         },
@@ -500,6 +505,28 @@ if (dialect === 'db2') {
             bind: []
           },
           needsSequelize: true
+        }, {
+          title: 'inserts DEFAULT into a null auto-increment column when there is nothing else to insert',
+          arguments: [{ tableName: 'myTable', schema: 'mySchema' }, { id: null }, { id: { autoIncrement: true } }],
+          expectation: {
+            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "mySchema"."myTable" ("id") VALUES (DEFAULT));',
+            bind: []
+          }
+        }, {
+          title: 'inserts DEFAULT into a null auto-increment column when the other values are omitted',
+          arguments: ['myTable', { id: null, name: null }, { id: { autoIncrement: true, field: 'id' }, name: {} }],
+          expectation: {
+            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("id") VALUES (DEFAULT));',
+            bind: []
+          },
+          context: { options: { omitNull: true } }
+        }, {
+          title: 'omits a null auto-increment column when other values are inserted',
+          arguments: ['myTable', { id: null, name: 'foo' }, { id: { autoIncrement: true } }],
+          expectation: {
+            query: 'SELECT * FROM FINAL TABLE(INSERT INTO "myTable" ("name") VALUES ($1));',
+            bind: ['foo']
+          }
         }
       ],
 
