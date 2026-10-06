@@ -111,7 +111,7 @@ describe('QueryGenerator#updateQuery', () => {
         postgres: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE "data"#>ARRAY['field','deep']::VARCHAR(255)[] = $sequelize_2`,
         mysql: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_extract(\`data\`,'$.field.deep') = CAST($sequelize_2 AS JSON)`,
         mariadb: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_compact(json_extract(\`data\`,'$.field.deep')) = $sequelize_2`,
-        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."field"."deep"') = $sequelize_2`,
+        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$.field.deep') = $sequelize_2`,
       });
       expect(bind).to.deep.eq({
         sequelize_1: 'John',
@@ -134,7 +134,7 @@ describe('QueryGenerator#updateQuery', () => {
         postgres: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE "data"->'status' IN ($sequelize_2, $sequelize_3)`,
         mysql: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_extract(\`data\`,'$.status') IN (CAST($sequelize_2 AS JSON), CAST($sequelize_3 AS JSON))`,
         mariadb: `UPDATE \`JsonUsers\` SET \`name\`=$sequelize_1 WHERE json_compact(json_extract(\`data\`,'$.status')) IN ($sequelize_2, $sequelize_3)`,
-        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$."status"') IN ($sequelize_2, $sequelize_3)`,
+        oracle: `UPDATE "JsonUsers" SET "name"=$sequelize_1 WHERE json_value("data",'$.status') IN ($sequelize_2, $sequelize_3)`,
       });
       expect(bind).to.deep.eq({
         sequelize_1: 'John',
