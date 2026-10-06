@@ -91,6 +91,7 @@ jobs:
         node-version: [10, 18]
     name: DB2 (Node ${{ matrix.node-version }})
     runs-on: ubuntu-22.04
+    timeout-minutes: 90
     env:
       DIALECT: db2
       SEQ_DB: testdb
