@@ -1,7 +1,8 @@
 'use strict';
 
 const { expect } = require('chai');
-const { DataTypes, Deferrable, Model } = require('@sequelize/core');
+const { DataTypes, Deferrable, Model, UniqueConstraintError } = require('@sequelize/core');
+const isEqual = require('lodash/isEqual');
 const { getTestDialect, getTestDialectTeaser, sequelize } = require('../support');
 
 const dialect = getTestDialect();
@@ -186,6 +187,38 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       syncResults,
       '"alter" should not create new indexes if they already exist.',
     );
+  });
+
+  // https://github.com/sequelize/sequelize/issues/17978
+  it('does not add duplicate unique keys when { alter: true } is used repeatedly', async () => {
+    const User = sequelize.define(
+      'User',
+      {
+        name: {
+          type: DataTypes.STRING(30),
+          allowNull: false,
+          unique: true,
+        },
+      },
+      { timestamps: false },
+    );
+
+    await User.sync({ force: true });
+    await User.sync({ alter: true });
+    await User.sync({ alter: true });
+
+    const uniqueIndexes = (await getNonPrimaryIndexes(User)).filter(
+      index => index.unique && isEqual(getIndexFields(index), ['name']),
+    );
+    expect(uniqueIndexes).to.have.length(1);
+
+    const uniqueConstraints = (
+      await sequelize.queryInterface.showConstraints(User, { constraintType: 'UNIQUE' })
+    ).filter(constraint => isEqual(constraint.columnNames, ['name']));
+    expect(uniqueConstraints).to.have.length.at.most(1);
+
+    await User.create({ name: 'a' });
+    await expect(User.create({ name: 'a' })).to.be.rejectedWith(UniqueConstraintError);
   });
 
   it('creates one unique index per unique:true columns, and per entry in options.indexes', async () => {

@@ -279,7 +279,8 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 
-    if (attribute.unique === true && !attribute.primaryKey) {
+    // QueryInterface#changeColumn adds the unique key separately, only if it does not exist yet
+    if (attribute.unique === true && !attribute.primaryKey && options?.context !== 'changeColumn') {
       template += ' UNIQUE';
     }
 
