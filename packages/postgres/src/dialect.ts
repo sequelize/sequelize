@@ -213,6 +213,10 @@ export class PostgresDialect extends AbstractDialect<
     return `'${value}'`;
   }
 
+  toBindableRawValue(value: unknown): unknown {
+    return value;
+  }
+
   canBackslashEscape() {
     // postgres can use \ to escape if one of these is true:
     // - standard_conforming_strings is off
