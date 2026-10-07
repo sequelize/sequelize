@@ -81,7 +81,7 @@ if (Support.sequelize.dialect.supports.upserts) {
           });
 
           await this.User.upsert(valuesOriginal);
-          expect(valuesOriginal.mood).to.equal('happy');
+          expect(valuesOriginal.mood).to.equal('sad');
           expect(hookCalled).to.equal(1);
         });
       });
