@@ -124,7 +124,8 @@ if (current.dialect.supports['UNION ALL']) {
                 values: this.projects.map(item => item.get('id'))
               },
               order: [
-                Sequelize.fn('ABS', Sequelize.col('age'))
+                Sequelize.fn('ABS', Sequelize.col('age')),
+                'id'
               ],
               include: [this.User.Tasks]
             });
