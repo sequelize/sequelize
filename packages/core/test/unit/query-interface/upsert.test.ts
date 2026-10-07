@@ -111,7 +111,7 @@ describe('QueryInterface#upsert', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (object bind)', async () => {
-    if (dialectName === 'oracle') {
+    if (sequelize.dialect.supports.returnIntoValues) {
       return;
     }
 
@@ -172,7 +172,7 @@ describe('QueryInterface#upsert', () => {
   });
 
   it('merges user-provided bind parameters with sequelize-generated bind parameters (array bind)', async () => {
-    if (dialectName === 'oracle') {
+    if (sequelize.dialect.supports.returnIntoValues) {
       return;
     }
 

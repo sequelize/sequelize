@@ -1,6 +1,7 @@
 import { Sequelize } from '@sequelize/core';
 import { PostgresDialect } from '@sequelize/postgres';
 import { expect } from 'chai';
+import { EventEmitter } from 'node:events';
 
 const HSTORE_OID = 90_001;
 const HSTORE_ARRAY_OID = 90_002;
@@ -68,5 +69,53 @@ describe('PostgresConnectionManager#getTypeParser', () => {
     expect(
       connectionManager.getTypeParser(HSTORE_ARRAY_OID, 'text')('{"\\"a\\"=>\\"b\\""}'),
     ).to.deep.equal([{ a: 'b' }]);
+  });
+});
+
+class FakePgClient extends EventEmitter {
+  // connect() listens to the protocol connection for server parameters.
+  readonly connection = new EventEmitter();
+
+  connect(callback: (error: Error | null) => void) {
+    process.nextTick(() => {
+      callback(null);
+    });
+  }
+
+  async query() {
+    return { rows: [] };
+  }
+}
+
+describe('PostgresConnectionManager#initializeConnection', () => {
+  it('only replaces the placeholder error listener', async () => {
+    const sequelize = new Sequelize({
+      dialect: PostgresDialect,
+      pgModule: { Client: FakePgClient } as any,
+    });
+    const { connectionManager } = sequelize.dialect;
+
+    const connection = await connectionManager.connect({});
+    const otherListener = () => {};
+
+    connection.on('error', otherListener);
+    expect(connection.listenerCount('error')).to.equal(2);
+
+    await connectionManager.initializeConnection(connection);
+
+    const listeners = connection.listeners('error');
+    expect(listeners).to.have.length(2);
+    expect(listeners).to.include(otherListener);
+
+    // The other listener is the real handler, which destroys the connection.
+    const destroyed: unknown[] = [];
+    Object.assign(sequelize.pool, {
+      async destroy(destroyedConnection: unknown) {
+        destroyed.push(destroyedConnection);
+      },
+    });
+    connection.emit('error', Object.assign(new Error('connection lost'), { code: 'ECONNRESET' }));
+    expect(destroyed).to.have.length(1);
+    expect(destroyed[0]).to.equal(connection);
   });
 });

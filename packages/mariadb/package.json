@@ -46,9 +46,9 @@
     "wkx": "^0.5.0"
   },
   "devDependencies": {
-    "@types/chai": "4.3.20",
+    "@types/chai": "5.2.3",
     "@types/mocha": "10.0.10",
-    "chai": "4.5.0",
-    "mocha": "11.7.5"
+    "chai": "6.3.0",
+    "mocha": "12.0.3"
   }
 }

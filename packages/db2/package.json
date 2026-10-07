@@ -27,6 +27,7 @@
     "build": "../../build-packages.mjs db2",
     "test": "concurrently \"npm:test-*\"",
     "test-typings": "tsc --noEmit --project tsconfig.json",
+    "test-unit": "mocha src/**/*.test.ts",
     "test-exports": "../../dev/sync-exports.mjs ./src --check-outdated",
     "sync-exports": "../../dev/sync-exports.mjs ./src"
   },
@@ -39,7 +40,13 @@
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
     "dayjs": "^1.11.23",
-    "ibm_db": "^3.3.5",
+    "ibm_db": "^4.0.1",
     "lodash": "^4.18.1"
+  },
+  "devDependencies": {
+    "@types/chai": "5.2.3",
+    "@types/mocha": "10.0.10",
+    "chai": "6.3.0",
+    "mocha": "12.0.3"
   }
 }

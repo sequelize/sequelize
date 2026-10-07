@@ -541,8 +541,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   it('defaults to schema provided to sync() for references #11276', async function () {
-    // TODO: this should work with MSSQL / MariaDB too
-    if (!dialect !== 'postgres') {
+    if (!sequelize.dialect.supports.schemas) {
       return;
     }
 

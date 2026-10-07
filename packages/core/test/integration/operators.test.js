@@ -6,8 +6,6 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
-
 describe(Support.getTestDialectTeaser('Operators'), () => {
   describe('REGEXP', () => {
     beforeEach(async function () {
@@ -45,7 +43,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
       });
     });
 
-    if (['mysql', 'postgres'].includes(dialect)) {
+    if (Support.sequelize.dialect.supports.REGEXP) {
       describe('case sensitive', () => {
         it('should work with a regexp where', async function () {
           await this.User.create({ name: 'Foobar' });
@@ -84,7 +82,7 @@ describe(Support.getTestDialectTeaser('Operators'), () => {
       });
     }
 
-    if (dialect === 'postgres') {
+    if (Support.sequelize.dialect.supports.IREGEXP) {
       describe('case insensitive', () => {
         it('should work with a case-insensitive regexp where', async function () {
           await this.User.create({ name: 'Foobar' });

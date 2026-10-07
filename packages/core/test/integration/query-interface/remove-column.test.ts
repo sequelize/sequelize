@@ -207,13 +207,13 @@ describe(getTestDialectTeaser('QueryInterface#removeColumn'), () => {
       });
       expect(constraints).to.deep.equal([
         {
-          ...(['mssql', 'postgres'].includes(dialectName) && {
+          ...(sequelize.dialect.supports.multiDatabases && {
             constraintCatalog: 'sequelize_test',
           }),
           constraintSchema: defaultSchema,
           constraintName: dialectName === 'sqlite3' ? 'FOREIGN' : 'actors_level_id_fkey',
           constraintType: 'FOREIGN KEY',
-          ...(['mssql', 'postgres'].includes(dialectName) && { tableCatalog: 'sequelize_test' }),
+          ...(sequelize.dialect.supports.multiDatabases && { tableCatalog: 'sequelize_test' }),
           tableSchema: defaultSchema,
           tableName: 'actors',
           columnNames: ['level_id'],

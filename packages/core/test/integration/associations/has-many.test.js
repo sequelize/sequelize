@@ -11,11 +11,8 @@ const {
   createSequelizeInstance,
   createSingleTransactionalTestSequelizeInstance,
   destroySequelizeAfterTest,
-  getTestDialect,
   sequelize: current,
 } = require('../support');
-
-const dialectName = getTestDialect();
 
 describe('HasMany', () => {
   describe('Model.associations', () => {
@@ -1113,8 +1110,10 @@ describe('HasMany', () => {
         expect(tasks).to.have.length(0);
       });
 
-      // NOTE: mssql does not support changing an autoincrement primary key
-      if (!['mssql', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
+      if (
+        current.dialect.supports.autoIncrement.update &&
+        current.dialect.supports.constraints.onUpdate
+      ) {
         it('can cascade updates', async function () {
           const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
           const User = this.sequelize.define('User', { username: DataTypes.STRING });

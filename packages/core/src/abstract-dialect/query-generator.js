@@ -366,9 +366,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
@@ -1229,7 +1232,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
 
         // TODO: do not use a placeholder!
-        const placeholder = '"$PLACEHOLDER$" = true';
+        // The placeholder must not be predictable, as it is searched for in the generated query,
+        // which can contain user-provided values.
+        const placeholder = `"$PLACEHOLDER_${crypto.randomUUID().replaceAll('-', '')}$" = true`;
 
         if (options.groupedLimit.on instanceof BelongsToManyAssociation) {
           // BTM includes needs to join the through table on to check ID
@@ -2291,7 +2296,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
         const tmpColumns = returnFields.map((field, i) => {
-          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+          return `${field} ${attributeTypeToSql(returnTypes[i])}`;
         });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;

@@ -9,10 +9,10 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
-const delay = require('delay');
+const { default: delay } = require('delay');
 const assert = require('node:assert');
 
-const pTimeout = require('p-timeout');
+const { default: pTimeout, TimeoutError } = require('p-timeout');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -448,14 +448,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   no: 1,
                 },
               }),
-              1000,
+              { milliseconds: 1000 },
             );
           } catch (error) {
             if (error instanceof Sequelize.ValidationError) {
               return test(times + 1);
             }
 
-            if (error instanceof pTimeout.TimeoutError) {
+            if (error instanceof TimeoutError) {
               throw new TypeError(error);
             }
 
@@ -1058,7 +1058,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.ARRAY) {
       it('does not cast arrays for postgresql insert', async function () {
         const User = this.customSequelize.define('UserWithArray', {
           myvals: { type: DataTypes.ARRAY(DataTypes.INTEGER) },
@@ -1150,7 +1150,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
     }
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.TSVECTOR) {
       it('allows the creation of a TSVECTOR field', async function () {
         const User = this.customSequelize.define('UserWithTSVECTOR', {
           name: DataTypes.TSVECTOR,

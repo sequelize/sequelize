@@ -7,7 +7,7 @@ const expect = chai.expect;
 const Support = require('../support');
 
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
-const pMap = require('p-map');
+const { default: pMap } = require('p-map');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -392,7 +392,7 @@ describe('Model.findOne', () => {
         });
       }
 
-      if (dialectName === 'postgres') {
+      if (dialect.supports.dataTypes.TSVECTOR) {
         it('should allow case-sensitive find on TSVECTOR type', async function () {
           const User = this.sequelize.define('UserWithCaseInsensitiveName', {
             username: DataTypes.TSVECTOR,

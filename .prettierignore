@@ -2,3 +2,7 @@
 /packages/cli/migrations
 /packages/cli/seeds
 *.tar
+
+/.nx/cache
+/.nx/workspace-data
+.nx/self-healing

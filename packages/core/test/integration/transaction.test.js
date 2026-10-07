@@ -17,15 +17,13 @@ const {
 const sinon = require('sinon');
 
 const current = Support.sequelize;
-const delay = require('delay');
-const pSettle = require('p-settle');
+const { default: delay } = require('delay');
+const { default: pSettle } = require('p-settle');
 
 const fromQuery = () => {
-  if (dialect === 'oracle') {
-    return ' FROM DUAL';
-  }
+  const { dummyTable } = current.dialect.supports.select;
 
-  return '';
+  return dummyTable ? ` FROM ${dummyTable}` : '';
 };
 
 describe(Support.getTestDialectTeaser('Transaction'), () => {

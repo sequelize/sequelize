@@ -6,8 +6,6 @@ const expect = chai.expect;
 const { DataTypes } = require('@sequelize/core');
 const Support = require('./support');
 
-chai.should();
-
 describe(Support.getTestDialectTeaser('Vectors'), () => {
   it('should not allow insert backslash', async function () {
     const Student = this.sequelize.define(

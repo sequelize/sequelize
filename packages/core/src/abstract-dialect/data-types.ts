@@ -189,7 +189,7 @@ export abstract class AbstractDataType<
    * @param value The value to parse.
    */
   parseDatabaseValue(value: unknown): unknown {
-    return value as AcceptedType;
+    return value;
   }
 
   /**
@@ -208,6 +208,7 @@ export abstract class AbstractDataType<
    *
    * @param value
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- used by the assertion signature
   validate(value: any): asserts value is AcceptedType {}
 
   /**
@@ -411,10 +412,7 @@ export class STRING extends AbstractDataType<string | Buffer> {
   /** @hidden */
   constructor(
     ...args:
-      | []
-      | [length: number]
-      | [length: number, binary: boolean]
-      | [options: StringTypeOptions]
+      [] | [length: number] | [length: number, binary: boolean] | [options: StringTypeOptions]
   );
 
   constructor(lengthOrOptions?: number | StringTypeOptions, binary?: boolean) {
@@ -1846,8 +1844,17 @@ export class BLOB extends AbstractDataType<AcceptedBlob> {
     return value;
   }
 
-  escape(value: string | Buffer) {
-    const buf = typeof value === 'string' ? Buffer.from(value, 'binary') : value;
+  escape(value: string | Buffer | Uint8Array | ArrayBuffer) {
+    // Always validate, even if type validation is disabled,
+    // as escapeBuffer would output other values as-is.
+    this.validate(value);
+
+    const buf =
+      typeof value === 'string'
+        ? Buffer.from(value, 'binary')
+        : Buffer.isBuffer(value)
+          ? value
+          : makeBufferFromTypedArray(value);
 
     return this._getDialect().escapeBuffer(buf);
   }
