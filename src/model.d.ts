@@ -9,6 +9,7 @@ import { Sequelize, SyncOptions } from './sequelize';
 import { Col, Fn, Literal, Where, MakeNullishOptional, AnyFunction, Cast, Json } from './utils';
 import { LOCK, Transaction, Op, Optional } from './index';
 import { SetRequired } from './utils/set-required';
+import { QueryBuilder } from './query-builder';
 
 // Backport of https://github.com/sequelize/sequelize/blob/a68b439fb3ea748d3f3d37356d9fe610f86184f6/src/utils/index.ts#L85
 export type AllowReadonlyArray<T> = T | readonly T[];
@@ -2103,6 +2104,22 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
     this: ModelStatic<M>,
     options?: string | ScopeOptions | readonly (string | ScopeOptions)[] | WhereAttributeHash<M>
   ): ModelCtor<M>;
+
+  /**
+   * [EXPERIMENTAL] Creates a new QueryBuilder instance for this model.
+   * This enables functional/chainable query building.
+   *
+   * @returns A new QueryBuilder instance for this model
+   *
+   * @example
+   * ```js
+   * const query = User.select()
+   *   .attributes(['name', 'email'])
+   *   .where({ active: true })
+   *   .getQuery();
+   * ```
+   */
+  static select<M extends Model>(this: ModelStatic<M>): QueryBuilder<M>;
 
   /**
    * Add a new scope to the model

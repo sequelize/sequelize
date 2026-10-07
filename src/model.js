@@ -18,6 +18,7 @@ const Hooks = require('./hooks');
 const associationsMixin = require('./associations/mixin');
 const Op = require('./operators');
 const { noDoubleNestedGroup } = require('./utils/deprecations');
+const QueryBuilder = require('./query-builder');
 
 
 // This list will quickly become dated, but failing to maintain this list just means
@@ -1532,6 +1533,10 @@ class Model {
     } else {
       this.options.scopes[name] = scope;
     }
+  }
+
+  static select() {
+    return new QueryBuilder(this).select();
   }
 
   /**
