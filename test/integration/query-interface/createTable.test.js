@@ -177,6 +177,27 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           expect(table.someEnum.comment).to.equal('special enum col');
         }
       });
+
+      it('should work with multiple enums', async function() {
+        await this.queryInterface.createTable('SomeTable', {
+          someEnum: DataTypes.ENUM('value1', 'value2', 'value3')
+        });
+
+        // Drop the table, this will leave the enum type behind
+        await this.queryInterface.dropTable('SomeTable');
+
+        // Create the table again with a second enum this time
+        await this.queryInterface.createTable('SomeTable', {
+          someEnum: DataTypes.ENUM('value1', 'value2', 'value3'),
+          someOtherEnum: DataTypes.ENUM('otherValue1', 'otherValue2', 'otherValue3')
+        });
+
+        const table = await this.queryInterface.describeTable('SomeTable');
+        if (dialect.includes('postgres')) {
+          expect(table.someEnum.special).to.deep.equal(['value1', 'value2', 'value3']);
+          expect(table.someOtherEnum.special).to.deep.equal(['otherValue1', 'otherValue2', 'otherValue3']);
+        }
+      });
     });
   });
 });

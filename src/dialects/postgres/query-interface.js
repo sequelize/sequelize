@@ -130,9 +130,10 @@ class PostgresQueryInterface extends QueryInterface {
               addEnumValue(field, remainingEnumValues[reverseIdx], lastOldEnumValue, 'after');
             }
           }
-
-          enumIdx++;
         }
+
+        // Continue to the next enum
+        enumIdx++;
       }
     }
 
