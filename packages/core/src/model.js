@@ -1541,6 +1541,8 @@ ${associationOwner._getAssociationDebugList()}`);
         const map = await include.association.get(results, {
           ...omit(options, nonCascadingOptions),
           ...omit(include, ['parent', 'association', 'as', 'originalAttributes']),
+          // The main query already found its rows: an empty include must not reject.
+          rejectOnEmpty: false,
         });
 
         for (const result of results) {
