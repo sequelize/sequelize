@@ -1,6 +1,8 @@
 'use strict';
 
 const { MsSqlQuery: Query } = require('@sequelize/mssql');
+const { MsSqlDialect } = require('@sequelize/mssql');
+const { Sequelize } = require('@sequelize/core');
 const Support = require('../../../support');
 
 const dialect = Support.getTestDialect();
@@ -106,6 +108,28 @@ if (dialect === 'mssql') {
           type: TYPES.Numeric,
           typeOptions: { precision: 30, scale: 16 },
           value: 2.5e-15,
+        });
+      });
+
+      it('should bind strings as NVarChar by default', () => {
+        expect(query.getSQLTypeFromJsType('foo', TYPES)).to.eql({
+          type: TYPES.NVarChar,
+          typeOptions: {},
+          value: 'foo',
+        });
+      });
+
+      it('should bind strings as VarChar when the dialect is configured to not use unicode strings', () => {
+        const sequelizeWithoutUnicode = new Sequelize({
+          dialect: MsSqlDialect,
+          useUnicodeStrings: false,
+        });
+        const queryWithoutUnicode = new Query(connectionStub, sequelizeWithoutUnicode, {});
+
+        expect(queryWithoutUnicode.getSQLTypeFromJsType('foo', TYPES)).to.eql({
+          type: TYPES.VarChar,
+          typeOptions: {},
+          value: 'foo',
         });
       });
     });
