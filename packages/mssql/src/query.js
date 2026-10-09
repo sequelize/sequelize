@@ -68,6 +68,15 @@ export class MsSqlQuery extends AbstractQuery {
       paramType.type = TYPES.VarBinary;
     }
 
+    // String values are bound as Unicode (NVarChar) by default, to match the NVARCHAR
+    // columns created by Sequelize. When the dialect is configured to use non-Unicode
+    // strings, they are bound as VarChar instead — comparing a VARCHAR column to a
+    // Unicode parameter would force SQL Server to implicitly convert the column for
+    // every row, which prevents the query optimizer from using an index seek.
+    if (typeof value === 'string' && !this.sequelize.dialect.useUnicodeStrings) {
+      paramType.type = TYPES.VarChar;
+    }
+
     return paramType;
   }
 
