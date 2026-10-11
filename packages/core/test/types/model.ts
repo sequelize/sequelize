@@ -308,18 +308,24 @@ const modelWithAttributes = ModelWithAttributes.build();
  * Tests for set() type
  */
 expectTypeOf(modelWithAttributes.set).toBeFunction();
-expectTypeOf(modelWithAttributes.set).parameter(0).toEqualTypeOf<Partial<MyModelAttributes>>();
+expectTypeOf(modelWithAttributes.set)
+  .parameter(0)
+  .toEqualTypeOf<keyof MyModelAttributes | Partial<MyModelAttributes>>();
 
 /**
  * Tests for previous() type
  */
 expectTypeOf(modelWithAttributes.previous).toBeFunction();
 expectTypeOf(modelWithAttributes.previous).toBeCallableWith('name');
-expectTypeOf(modelWithAttributes.previous).parameter(0).toEqualTypeOf<keyof MyModelAttributes>();
+expectTypeOf(modelWithAttributes.previous)
+  .parameter(0)
+  .toEqualTypeOf<keyof MyModelAttributes | undefined>();
 expectTypeOf(modelWithAttributes.previous)
   .parameter(0)
   .not.toEqualTypeOf<'unreferencedAttribute'>();
-expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<string | number | undefined>();
+expectTypeOf(modelWithAttributes.previous).returns.toEqualTypeOf<
+  Partial<MyModelAttributes> | string | number | undefined
+>();
 expectTypeOf(modelWithAttributes.previous('name')).toEqualTypeOf<string | undefined>();
 expectTypeOf(modelWithAttributes.previous()).toEqualTypeOf<Partial<CreationAttributes>>();
 

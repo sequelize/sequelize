@@ -1115,7 +1115,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
         ['userId', 'groupId', 'createdAt', 'updatedAt'].sort(),
       );
 
-      expect(throughModel === MyGroups.through.model);
+      expect(throughModel).to.equal(MyGroups.through.model);
       expect(throughModel.getAttributes().userId.onUpdate).to.equal('RESTRICT');
       expect(throughModel.getAttributes().userId.onDelete).to.equal('SET NULL');
       expect(throughModel.getAttributes().groupId.onUpdate).to.equal('SET NULL');
@@ -1146,7 +1146,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const MyUsers = Group.associations.MyUsers as BelongsToManyAssociation;
       const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
 
-      expect(MyUsers.through.model === MyGroups.through.model);
+      expect(MyUsers.through.model).to.equal(MyGroups.through.model);
 
       const Through = MyUsers.through.model;
 
@@ -1231,7 +1231,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
 
       const Through = MyUsers.through.model;
-      expect(Through === MyGroups.through.model);
+      expect(Through).to.equal(MyGroups.through.model);
 
       expect(Object.keys(Through.getAttributes()).sort()).to.deep.equal(
         [
@@ -1294,8 +1294,8 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       const MyUsers = Group.associations.MyUsers as BelongsToManyAssociation;
       const MyGroups = User.associations.MyGroups as BelongsToManyAssociation;
 
-      expect(MyUsers.through.model === UserGroup);
-      expect(MyGroups.through.model === UserGroup);
+      expect(MyUsers.through.model).to.equal(UserGroup);
+      expect(MyGroups.through.model).to.equal(UserGroup);
 
       expect(UserGroup.getIndexes()).to.deep.equal([
         {

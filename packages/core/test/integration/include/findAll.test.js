@@ -8,7 +8,7 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op } = require('@sequelize/core');
-const promiseProps = require('p-props');
+const { default: promiseProps } = require('p-props');
 
 function sortById(a, b) {
   return a.id < b.id ? -1 : 1;
