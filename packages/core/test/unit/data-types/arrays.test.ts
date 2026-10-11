@@ -173,5 +173,26 @@ describe('DataTypes.ARRAY', () => {
         );
       });
     }
+
+    // Regression test for https://github.com/sequelize/sequelize/issues/11748
+    // Empty arrays cannot be bound as parameters (driver has no element type information).
+    // getBindParamSql must emit a typed empty array literal instead.
+    it('emits typed empty array literal for empty INTEGER array', () => {
+      expectsql(queryGenerator.escape([], { type: DataTypes.ARRAY(DataTypes.INTEGER) }), {
+        postgres: `'{}'::integer[]`,
+      });
+    });
+
+    it('emits typed empty array literal for empty STRING array', () => {
+      expectsql(queryGenerator.escape([], { type: DataTypes.ARRAY(DataTypes.STRING) }), {
+        postgres: `'{}'::text[]`,
+      });
+    });
+
+    it('emits typed empty array literal for empty JSONB array', () => {
+      expectsql(queryGenerator.escape([], { type: DataTypes.ARRAY(DataTypes.JSONB) }), {
+        postgres: `'{}'::jsonb[]`,
+      });
+    });
   });
 });
