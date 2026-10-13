@@ -34,26 +34,42 @@ function escapeRegExp(value: string): string {
 }
 
 /**
- * Removes SQL comments and single-quoted string literals from a `CREATE TABLE` statement,
- * so that literal text (e.g. a `CHECK` constraint or `DEFAULT` comparing against the string
- * `'AUTOINCREMENT'`) can't be mistaken for the `AUTOINCREMENT` keyword itself.
+ * Removes SQL comments, string literals, and unrelated quoted identifiers from a `CREATE TABLE`
+ * statement, so their contents can't be mistaken for the `AUTOINCREMENT` keyword itself.
  *
- * This must be done in a single scan rather than as separate comment/string passes: if string
- * literals were stripped last, a literal that happens to contain `--` or `/*` (e.g.
- * `DEFAULT 'a--b'`) would be misread as starting a comment by an earlier pass, which can
- * swallow the rest of a single-line `CREATE TABLE` statement, including a later column's
- * genuine `AUTOINCREMENT` keyword.
+ * These tokens must be scanned together: a quoted identifier or literal containing `--` or `/*`
+ * must not be mistaken for a comment that swallows a later column's real constraint.
  *
  * @param sql The raw `CREATE TABLE` statement, as read from `sqlite_master`.
+ * @param columnName The column whose quoted identifier must remain available for matching.
  */
-function stripSqlStringLiteralsAndComments(sql: string): string {
-  return sql.replaceAll(/\/\*[\s\S]*?\*\/|--[^\n]*|'(?:[^']|'')*'/g, match => {
-    return match.startsWith(`'`) ? `''` : ' ';
-  });
+function sanitizeCreateTableSql(sql: string, columnName: string): string {
+  return sql.replaceAll(
+    /"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[[^\]]*\]|'(?:[^']|'')*'|\/\*[\s\S]*?\*\/|--[^\n]*/g,
+    match => {
+      if (match.startsWith(`'`)) {
+        return `''`;
+      }
+
+      if (match.startsWith('"')) {
+        return match.slice(1, -1).replaceAll('""', '"') === columnName ? match : '""';
+      }
+
+      if (match.startsWith('`')) {
+        return match.slice(1, -1).replaceAll('``', '`') === columnName ? match : '``';
+      }
+
+      if (match.startsWith('[')) {
+        return match.slice(1, -1) === columnName ? match : '[]';
+      }
+
+      return ' ';
+    },
+  );
 }
 
 function columnDefinitionHasAutoIncrement(createTableSql: string, columnName: string): boolean {
-  const sanitizedCreateTableSql = stripSqlStringLiteralsAndComments(createTableSql);
+  const sanitizedCreateTableSql = sanitizeCreateTableSql(createTableSql, columnName);
   const escapedColumnName = escapeRegExp(columnName);
   const escapedDoubleQuotedColumnName = escapeRegExp(columnName.replaceAll('"', '""'));
   const escapedBacktickQuotedColumnName = escapeRegExp(columnName.replaceAll('`', '``'));

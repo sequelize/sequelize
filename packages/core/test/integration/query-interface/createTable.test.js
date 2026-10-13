@@ -55,6 +55,22 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
 
         expect(result.id.autoIncrement).to.be.true;
       });
+
+      it('does not treat comment markers inside quoted column names as comments', async function () {
+        for (const [tableName, quotedColumnName] of [
+          ['TableWithDashesInColumnName', '"note--old"'],
+          ['TableWithEscapedQuotesInColumnName', '"note""--old"'],
+          ['TableWithBlockMarkerInColumnName', '`note/*old`'],
+        ]) {
+          await this.sequelize.query(
+            `CREATE TABLE "${tableName}" (${quotedColumnName} TEXT, "id" INTEGER PRIMARY KEY AUTOINCREMENT)`,
+          );
+
+          const result = await this.queryInterface.describeTable(tableName);
+
+          expect(result.id.autoIncrement, tableName).to.be.true;
+        }
+      });
     }
 
     // SQLITE does not respect the index name when the index is created through CREATE TABLE

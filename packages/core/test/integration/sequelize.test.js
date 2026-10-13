@@ -462,7 +462,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
     if (dialect === 'sqlite3') {
       it('preserves AUTOINCREMENT after sync alter recreates a sqlite table', async function () {
-        this.sequelize.define(
+        const AutoIncrementAlter = this.sequelize.define(
           'auto_increment_alter',
           {
             id: {
@@ -479,6 +479,10 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         );
 
         await this.sequelize.sync({ force: true });
+        await AutoIncrementAlter.create({ name: 'first' });
+        const deleted = await AutoIncrementAlter.create({ name: 'second' });
+        await deleted.destroy();
+
         await this.sequelize.sync({ alter: true });
 
         const [rows] = await this.sequelize.query(
@@ -486,6 +490,15 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         );
 
         expect(rows[0].sql).to.include('AUTOINCREMENT');
+
+        const next = await AutoIncrementAlter.create({ name: 'next' });
+        expect(next.id).to.be.greaterThan(deleted.id);
+
+        await AutoIncrementAlter.destroy({ where: {} });
+        await this.sequelize.sync({ alter: true });
+
+        const nextAfterEmpty = await AutoIncrementAlter.create({ name: 'after empty' });
+        expect(nextAfterEmpty.id).to.be.greaterThan(next.id);
       });
     }
 
