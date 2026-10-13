@@ -2157,7 +2157,6 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const createdAtAttr = modelDefinition.timestampAttributeNames.createdAt;
     const updatedAtAttr = modelDefinition.timestampAttributeNames.updatedAt;
-    let hasPrimary = this.primaryKeyField in values || this.primaryKeyAttribute in values;
     const instance = this.build(values);
 
     options.model = this;
@@ -2171,6 +2170,11 @@ ${associationOwner._getAssociationDebugList()}`);
       options.fields = changed;
     }
 
+    // Validate before running the hook, so `beforeUpsert` never receives invalid data.
+    if (options.validate) {
+      await instance.validate(options);
+    }
+
     // Map conflict fields to column names
     if (options.conflictFields) {
       options.conflictFields = options.conflictFields.map(attrName => {
@@ -2179,34 +2183,45 @@ ${associationOwner._getAssociationDebugList()}`);
     }
 
     if (options.hooks) {
-      const beforeHookValues = cloneDeep(values);
+      // These are shallow copies: like for `save`, nested data must be replaced, not mutated.
+      const valuesBeforeHook = { ...values };
+      const dataValuesBeforeHook = { ...instance.dataValues };
+      const fieldsBeforeHook = options.fields;
+      const fieldNamesBeforeHook = [...options.fields];
+
       await this.hooks.runAsync('beforeUpsert', values, options);
 
-      const hookChangedValues = {};
-      for (const key of union(Object.keys(beforeHookValues), Object.keys(values))) {
-        if (!isEqual(values[key], beforeHookValues[key])) {
+      const hookChangedValues = pojo();
+      for (const key of union(Object.keys(valuesBeforeHook), Object.keys(values))) {
+        if (values[key] !== valuesBeforeHook[key]) {
           hookChangedValues[key] = values[key];
         }
       }
 
       instance.set(hookChangedValues);
-
-      hasPrimary =
-        this.primaryKeyField in values ||
-        this.primaryKeyAttribute in values ||
-        instance._changed.has(this.primaryKeyAttribute) ||
-        instance._changed.has(this.primaryKeyField);
       changed = [...instance._changed];
-      if (!fieldsSpecified) {
+
+      // Follow the changed attributes only if `fields` is still the default list.
+      // A list passed by the caller, or changed by the hook, is left as is.
+      if (
+        !fieldsSpecified &&
+        options.fields === fieldsBeforeHook &&
+        isEqual(options.fields, fieldNamesBeforeHook)
+      ) {
         options.fields = changed;
+      }
+
+      // The hook can write invalid data, so validate again if it changed anything.
+      if (options.validate && hasShallowDifference(instance.dataValues, dataValuesBeforeHook)) {
+        await instance.validate(options);
       }
     }
 
-    // Validate after beforeUpsert so hook-driven mutations are validated
-    // before being written to the database.
-    if (options.validate) {
-      await instance.validate(options);
-    }
+    const hasPrimary =
+      this.primaryKeyField in values ||
+      this.primaryKeyAttribute in values ||
+      instance._changed.has(this.primaryKeyAttribute) ||
+      instance._changed.has(this.primaryKeyField);
 
     // Map field names
     const updatedDataValues = pick(instance.dataValues, changed);
@@ -4709,4 +4724,21 @@ function combineWheresWithAnd(whereA, whereB) {
   return {
     [Op.and]: [unpackedA, unpackedB].flat(),
   };
+}
+
+/**
+ * Whether two objects differ in their own keys or in the values of these keys, compared by identity.
+ *
+ * @param {object} a
+ * @param {object} b
+ * @returns {boolean}
+ */
+function hasShallowDifference(a, b) {
+  for (const key of union(Object.keys(a), Object.keys(b))) {
+    if (a[key] !== b[key]) {
+      return true;
+    }
+  }
+
+  return false;
 }

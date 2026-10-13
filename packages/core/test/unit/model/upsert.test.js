@@ -177,6 +177,85 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(updateValues.id).to.equal(42);
       });
 
+      it('validates before beforeUpsert, so the hook does not receive invalid values', async function () {
+        const hook = sinon.spy();
+        const unhook = this.User.hooks.addListener('beforeUpsert', hook);
+
+        try {
+          await expect(
+            this.User.upsert({
+              name: 'Old Cat',
+              secretValue: 'not a number',
+            }),
+          ).to.be.rejectedWith(Sequelize.ValidationError);
+        } finally {
+          unhook();
+        }
+
+        expect(hook).not.to.have.been.called;
+        expect(this.stub).not.to.have.been.called;
+      });
+
+      it('validates again when beforeUpsert changes values', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', values => {
+          values.secretValue = 'not a number';
+        });
+
+        try {
+          await expect(
+            this.User.upsert({
+              name: 'Old Cat',
+              secretValue: 1,
+            }),
+          ).to.be.rejectedWith(Sequelize.ValidationError);
+        } finally {
+          unhook();
+        }
+
+        expect(this.stub).not.to.have.been.called;
+      });
+
+      it('validates once when beforeUpsert changes nothing', async function () {
+        const validate = sinon.spy(this.User.prototype, 'validate');
+        const unhook = this.User.hooks.addListener('beforeUpsert', () => {});
+
+        try {
+          await this.User.upsert({
+            name: 'Old Cat',
+            secretValue: 1,
+          });
+        } finally {
+          unhook();
+          validate.restore();
+        }
+
+        expect(validate).to.have.been.calledOnce;
+      });
+
+      it('keeps the changes beforeUpsert makes to options.fields', async function () {
+        const unhook = this.User.hooks.addListener('beforeUpsert', (values, options) => {
+          values.name = 'Hooked Cat';
+          values.virtualValue = '222';
+          options.fields = ['name'];
+        });
+
+        try {
+          await this.User.upsert({
+            name: 'Old Cat',
+            secretValue: 1,
+          });
+        } finally {
+          unhook();
+        }
+
+        const [, insertValues, updateValues] = this.stub.getCall(0).args;
+        expect(insertValues.name).to.equal('Hooked Cat');
+        expect(insertValues.value).to.equal('222');
+        expect(updateValues.name).to.equal('Hooked Cat');
+        expect(updateValues).not.to.have.property('value');
+        expect(updateValues).not.to.have.property('secretValue');
+      });
+
       it('removes properties deleted in beforeUpsert from insert and update values', async function () {
         const unhook = this.User.hooks.addListener('beforeUpsert', values => {
           delete values.name;
