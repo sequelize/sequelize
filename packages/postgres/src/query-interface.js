@@ -271,18 +271,17 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
       return;
     }
 
-    const getTableName =
-      (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) +
-      tableName;
-
     const attributes = model.modelDefinition.attributes;
 
     for (const attribute of attributes.values()) {
-      if (!(attribute.type instanceof DataTypes.ENUM)) {
+      const enumType =
+        attribute.type instanceof DataTypes.ARRAY ? attribute.type.options.type : attribute.type;
+
+      if (!(enumType instanceof DataTypes.ENUM)) {
         continue;
       }
 
-      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      const sql = this.queryGenerator.pgEnumDrop(tableName, attribute.columnName);
       promises.push(
         this.sequelize.queryRaw(sql, {
           ...options,

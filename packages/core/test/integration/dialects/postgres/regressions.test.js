@@ -65,5 +65,66 @@ if (dialect.startsWith('postgres')) {
       const enumRow = enums.find(enumType => enumType.enum_name === enumTypeName);
       expect(enumRow.enum_value).to.deep.equal(['image', 'video', 'audio']);
     });
+
+    it('drops the enum types of a model along with its table', async function () {
+      const Media = this.sequelize.define(
+        'Media',
+        {
+          type: DataTypes.ENUM(['image', 'video']),
+          tags: DataTypes.ARRAY(DataTypes.ENUM(['new', 'old'])),
+        },
+        { tableName: 'regression_drop_enum_media' },
+      );
+
+      await Media.sync({ force: true });
+      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(2);
+
+      await Media.drop();
+      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(0);
+    });
+
+    it('drops the enum types of a model in a schema with renamed columns', async function () {
+      const schema = 'regression_drop_enum_schema';
+      await this.sequelize.createSchema(schema);
+
+      const Media = this.sequelize.define(
+        'Media',
+        {
+          mediaType: { type: DataTypes.ENUM(['image', 'video']), columnName: 'media_type' },
+          mediaTags: {
+            type: DataTypes.ARRAY(DataTypes.ENUM(['new', 'old'])),
+            columnName: 'media_tags',
+          },
+        },
+        { tableName: 'regression_drop_enum_media', schema },
+      );
+
+      await Media.sync({ force: true });
+      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(2);
+
+      await Media.drop();
+      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(0);
+    });
+
+    it('recreates the enum types of a model on a forced sync', async function () {
+      const tableName = 'regression_force_enum_media';
+      const MediaV1 = this.sequelize.define(
+        'MediaV1',
+        { type: DataTypes.ENUM(['image', 'video']) },
+        { tableName },
+      );
+      const MediaV2 = this.sequelize.define(
+        'MediaV2',
+        { type: DataTypes.ENUM(['audio']) },
+        { tableName },
+      );
+
+      await MediaV1.sync({ force: true });
+      await MediaV2.sync({ force: true });
+
+      const enums = await this.sequelize.queryInterface.pgListEnums(MediaV2.table);
+      expect(enums).to.have.lengthOf(1);
+      expect(enums[0].enum_value).to.deep.equal(['audio']);
+    });
   });
 }
