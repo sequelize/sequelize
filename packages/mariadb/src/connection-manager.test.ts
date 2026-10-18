@@ -215,6 +215,52 @@ describe('MariaDbConnectionManager#connect', () => {
     expect(await connectionManager.connect({ charset: 'uca1400_ai_ci' })).to.equal(fakeConnection);
   });
 
+  it('attaches the temporary error listener before verifying the charset', async () => {
+    const errorListeners: Array<() => void> = [];
+    const fakeConnection = {
+      serverVersion: () => '10.11.0-MariaDB',
+      opts: { collation: { charset: 'utf8', maxLength: 4 } },
+      on(_event: string, listener: () => void) {
+        errorListeners.push(listener);
+
+        return this;
+      },
+      off() {
+        return this;
+      },
+      async query() {
+        // The connector's unexpectedPacket() emits 'error' directly for out-of-band
+        // fatal packets; without a listener Node would throw an unhandled 'error'
+        // event while this query is in flight.
+        if (errorListeners.length === 0) {
+          throw new Error("Unhandled 'error' event");
+        }
+
+        for (const listener of errorListeners) {
+          listener();
+        }
+
+        return [{ cs: 'utf8mb4' }];
+      },
+      async end() {},
+      isValid: () => true,
+    };
+    const sequelize = new Sequelize<MariaDbDialect>({
+      dialect: MariaDbDialect,
+      mariaDbModule: {
+        async createConnection() {
+          return fakeConnection;
+        },
+      } as any,
+    });
+
+    const connection = await sequelize.dialect.connectionManager.connect({
+      charset: 'utf8mb4',
+    });
+
+    expect(connection).to.equal(fakeConnection);
+  });
+
   it('closes the connection and rethrows the original error when the verification query fails', async () => {
     let endCalled = false;
     const queryError = Object.assign(new Error('query timeout'), { code: 'ETIMEDOUT' });

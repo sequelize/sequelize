@@ -181,6 +181,12 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
+      // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
+      // attaches the real handler below - unexpectedPacket() emits it directly for out-of-band
+      // fatal packets. Without a listener here, that error would crash the process instead of
+      // waiting to be handled, including while the charset check below is awaiting its query.
+      connection.on('error', ignoreErrorUntilInitialized);
+
       try {
         await this.#assertServerHonoredCharset(connection, connectionConfig);
       } catch (error: unknown) {
@@ -189,11 +195,6 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
         throw error;
       }
-
-      // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
-      // attaches the real handler below. Without a listener here, that error would
-      // crash the process instead of waiting to be handled.
-      connection.on('error', ignoreErrorUntilInitialized);
 
       return connection;
     } catch (error: unknown) {
