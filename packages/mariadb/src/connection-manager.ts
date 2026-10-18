@@ -74,12 +74,30 @@ function normalizeCharsetName(charset: string | undefined): string | undefined {
 }
 
 /**
- * Extracts the charset part of a collation name (e.g. `gb18030_chinese_ci` -> `gb18030`).
+ * Returns the charset the connector resolved for this connection from the requested
+ * `charset` and/or `collation` options. The connector owns the collation -> charset mapping
+ * (collation names such as `uca1400_ai_ci` cannot be parsed reliably, and `charset` may
+ * itself hold a collation name), so its resolved collation is used instead of parsing names.
  *
- * @param collation
+ * @param connection
  */
-function charsetOfCollation(collation: string | undefined): string | undefined {
-  return collation?.split('_', 1)[0];
+function getResolvedCharset(connection: MariaDbConnection): string | undefined {
+  const collation = (
+    connection as unknown as {
+      info?: { collation?: { charset?: string; maxLength?: number } | null } | null;
+    }
+  ).info?.collation;
+
+  if (!collation?.charset) {
+    return undefined;
+  }
+
+  // The connector reports both utf8mb3 and utf8mb4 as `utf8`, told apart by byte length
+  if (collation.charset === 'utf8') {
+    return collation.maxLength === 4 ? 'utf8mb4' : 'utf8mb3';
+  }
+
+  return collation.charset;
 }
 
 /**
@@ -159,7 +177,14 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      await this.#assertServerHonoredCharset(connection, connectionConfig);
+      try {
+        await this.#assertServerHonoredCharset(connection, connectionConfig);
+      } catch (error: unknown) {
+        // do not leak the connection: it is not registered in the pool yet
+        await connection.end().catch(() => {});
+
+        throw error;
+      }
 
       // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
@@ -210,12 +235,13 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     connection: MariaDbConnection,
     connectionConfig: MariaDb.ConnectionConfig,
   ): Promise<void> {
-    const requested = normalizeCharsetName(
-      connectionConfig.charset ?? charsetOfCollation(connectionConfig.collation),
-    );
-
     // No explicit charset/collation requested: the connector and server negotiate
     // the default together, nothing to verify.
+    if (connectionConfig.charset === undefined && connectionConfig.collation === undefined) {
+      return;
+    }
+
+    const requested = normalizeCharsetName(getResolvedCharset(connection));
     if (requested === undefined) {
       return;
     }
@@ -226,7 +252,6 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     const actual = normalizeCharsetName(rows[0]?.cs);
 
     if (actual !== requested) {
-      await connection.end();
       throw new ConnectionError(
         new Error(
           `The MariaDB server does not support the requested charset '${connectionConfig.charset ?? connectionConfig.collation}' (session uses '${actual}'). ` +
