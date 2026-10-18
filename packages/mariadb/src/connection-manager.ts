@@ -58,6 +58,31 @@ export interface MariaDbConnectionOptions extends Omit<
 > {}
 
 /**
+ * Normalizes a charset name for comparison (lowercase, common aliases resolved).
+ * `utf8` is an alias of `utf8mb3` in MySQL/MariaDB.
+ *
+ * @param charset
+ */
+function normalizeCharsetName(charset: string | undefined): string | undefined {
+  if (charset === undefined) {
+    return undefined;
+  }
+
+  const normalized = charset.toLowerCase();
+
+  return normalized === 'utf8' ? 'utf8mb3' : normalized;
+}
+
+/**
+ * Extracts the charset part of a collation name (e.g. `gb18030_chinese_ci` -> `gb18030`).
+ *
+ * @param collation
+ */
+function charsetOfCollation(collation: string | undefined): string | undefined {
+  return collation?.split('_', 1)[0];
+}
+
+/**
  * MariaDB Connection Manager
  *
  * Get connections, validate and disconnect them.
@@ -134,6 +159,8 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
+      await this.#assertServerHonoredCharset(connection, connectionConfig);
+
       // Temporary no-op placeholder: the driver can emit 'error' before initializeConnection()
       // attaches the real handler below. Without a listener here, that error would
       // crash the process instead of waiting to be handled.
@@ -162,6 +189,51 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
         default:
           throw new ConnectionError(error);
       }
+    }
+  }
+
+  /**
+   * Verifies that the server actually honored a user-requested `charset` or `collation`.
+   *
+   * The mariadb connector switches its client-side string escaper to the requested
+   * charset even when the server does not support that charset and silently keeps the
+   * session on the fallback one. Client and server then disagree on how bytes decode,
+   * and a crafted string parameter can break out of its quotes (SQL injection) under
+   * the default sql_mode. See https://github.com/sequelize/sequelize/issues/18282
+   *
+   * Fail fast instead of running with a desynced escaper.
+   *
+   * @param connection
+   * @param connectionConfig
+   */
+  async #assertServerHonoredCharset(
+    connection: MariaDbConnection,
+    connectionConfig: MariaDb.ConnectionConfig,
+  ): Promise<void> {
+    const requested = normalizeCharsetName(
+      connectionConfig.charset ?? charsetOfCollation(connectionConfig.collation),
+    );
+
+    // No explicit charset/collation requested: the connector and server negotiate
+    // the default together, nothing to verify.
+    if (requested === undefined) {
+      return;
+    }
+
+    const rows: Array<{ cs?: string }> = await connection.query(
+      'SELECT @@character_set_client AS cs',
+    );
+    const actual = normalizeCharsetName(rows[0]?.cs);
+
+    if (actual !== requested) {
+      await connection.end();
+      throw new ConnectionError(
+        new Error(
+          `The MariaDB server does not support the requested charset '${connectionConfig.charset ?? connectionConfig.collation}' (session uses '${actual}'). ` +
+            'Refusing to connect: the client-side string escaper would be desynced from the server, ' +
+            'which can enable SQL injection (https://github.com/sequelize/sequelize/issues/18282).',
+        ),
+      );
     }
   }
 
