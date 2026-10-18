@@ -77,16 +77,20 @@ function normalizeCharsetName(charset: string | undefined): string | undefined {
  * Returns the charset the connector resolved for this connection from the requested
  * `charset` and/or `collation` options. The connector owns the collation -> charset mapping
  * (collation names such as `uca1400_ai_ci` cannot be parsed reliably, and `charset` may
- * itself hold a collation name), so its resolved collation is used instead of parsing names.
+ * itself hold a collation name), so its resolved collation option is used instead of parsing
+ * names. `connection.info.collation` cannot be used here: it holds the server's default
+ * collation from the initial handshake and is not updated when a collation is requested,
+ * so it would make this check reject a valid connection whose requested collation differs
+ * from the server default.
  *
  * @param connection
  */
-function getResolvedCharset(connection: MariaDbConnection): string | undefined {
+function getRequestedCharset(connection: MariaDbConnection): string | undefined {
   const collation = (
     connection as unknown as {
-      info?: { collation?: { charset?: string; maxLength?: number } | null } | null;
+      opts?: { collation?: { charset?: string; maxLength?: number } | null } | null;
     }
-  ).info?.collation;
+  ).opts?.collation;
 
   if (!collation?.charset) {
     return undefined;
@@ -241,7 +245,7 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
       return;
     }
 
-    const requested = normalizeCharsetName(getResolvedCharset(connection));
+    const requested = normalizeCharsetName(getRequestedCharset(connection));
     if (requested === undefined) {
       return;
     }

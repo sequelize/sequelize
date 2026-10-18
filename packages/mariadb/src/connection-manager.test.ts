@@ -33,7 +33,7 @@ describe('MariaDbConnectionManager#connect', () => {
     let verificationQueryRan = false;
     const fakeConnection = {
       serverVersion: () => '10.11.0-MariaDB',
-      info: { collation: { charset: 'utf8', maxLength: 4 } },
+      opts: { collation: { charset: 'utf8', maxLength: 4 } },
       on() {
         return this;
       },
@@ -73,7 +73,7 @@ describe('MariaDbConnectionManager#connect', () => {
     let endCalled = false;
     const fakeConnection = {
       serverVersion: () => '10.11.0-MariaDB',
-      info: { collation: { charset: 'gb18030', maxLength: 4 } },
+      opts: { collation: { charset: 'gb18030', maxLength: 4 } },
       on() {
         return this;
       },
@@ -145,10 +145,47 @@ describe('MariaDbConnectionManager#connect', () => {
     expect(queryCalled).to.equal(false);
   });
 
+  it('accepts a requested collation honored by the server that differs from the server default', async () => {
+    const fakeConnection = {
+      serverVersion: () => '10.11.0-MariaDB',
+      // Server default from the initial handshake; the connector does not update
+      // info.collation when a collation is requested.
+      info: { collation: { charset: 'utf8', maxLength: 4 } },
+      // The connector's resolved collation for `collation: 'latin1_swedish_ci'`
+      opts: { collation: { charset: 'latin1', maxLength: 1 } },
+      on() {
+        return this;
+      },
+      off() {
+        return this;
+      },
+      async query() {
+        // The server honored latin1: the session charset is latin1, not the utf8mb4 default
+        return [{ cs: 'latin1' }];
+      },
+      async end() {},
+      isValid: () => true,
+    };
+    const sequelize = new Sequelize<MariaDbDialect>({
+      dialect: MariaDbDialect,
+      mariaDbModule: {
+        async createConnection() {
+          return fakeConnection;
+        },
+      } as any,
+    });
+
+    const connection = await sequelize.dialect.connectionManager.connect({
+      collation: 'latin1_swedish_ci',
+    });
+
+    expect(connection).to.equal(fakeConnection);
+  });
+
   it('accepts a valid collation whose name does not start with its charset', async () => {
     const fakeConnection = {
       serverVersion: () => '10.11.0-MariaDB',
-      info: { collation: { charset: 'utf8', maxLength: 4 } },
+      opts: { collation: { charset: 'utf8', maxLength: 4 } },
       on() {
         return this;
       },
@@ -183,7 +220,7 @@ describe('MariaDbConnectionManager#connect', () => {
     const queryError = Object.assign(new Error('query timeout'), { code: 'ETIMEDOUT' });
     const fakeConnection = {
       serverVersion: () => '10.11.0-MariaDB',
-      info: { collation: { charset: 'utf8', maxLength: 4 } },
+      opts: { collation: { charset: 'utf8', maxLength: 4 } },
       on() {
         return this;
       },
