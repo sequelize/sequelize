@@ -4,16 +4,20 @@ import type { TableNameWithSchema } from '../abstract-dialect/query-interface.js
 import type { Model, ModelStatic } from '../model';
 import { ModelDefinition } from '../model-definition.js';
 
+// Cache for the lazily-required Model class, see isModelStatic below.
+let cachedModelClass: ModelStatic | undefined;
+
 /**
  * Returns true if the value is a model subclass.
  *
  * @param val The value whose type will be checked
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
-  // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
-  const { Model: TmpModel } = require('../model');
+  if (cachedModelClass == null) {
+    cachedModelClass = require('../model').Model as ModelStatic;
+  }
 
-  return typeof val === 'function' && val.prototype instanceof TmpModel;
+  return typeof val === 'function' && val.prototype instanceof cachedModelClass;
 }
 
 /**
