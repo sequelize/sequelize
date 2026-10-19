@@ -14,8 +14,7 @@ let cachedModelClass: typeof Model | undefined;
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
   if (cachedModelClass == null) {
-    // Cyclic import: a static import of Model here breaks the module load order
-    // ("Cannot access 'MultiAssociation' before initialization").
+    // Cyclic import: a static import of Model here breaks the module load order.
     cachedModelClass = require('../model').Model as typeof Model;
   }
 
