@@ -1,5 +1,4 @@
 import { isIterable } from '@sequelize/utils';
-import pickBy from 'lodash/pickBy';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 
 /**
@@ -35,21 +34,32 @@ export function rejectInvalidOptions<T extends string>(
   dialect: AbstractDialect,
   allSupportableOptions: Set<T>,
   supportedOptions: Iterable<T> | Partial<Record<T, boolean>>,
-  receivedOptions: object,
+  receivedOptions: object | undefined,
 ): void {
-  const receivedOptionNames = Object.keys(
-    // This removes any undefined or false values from the object
+  if (receivedOptions == null) {
+    return;
+  }
+
+  const receivedOptionNames: string[] = [];
+  for (const optionName of allSupportableOptions) {
+    const value = (receivedOptions as Record<string, unknown>)[optionName];
+
+    // This ignores any undefined or false values
     // It is therefore _essential_ that boolean options are false by default!
-    pickBy(receivedOptions, value => value !== undefined && value !== false),
-  );
+    if (value !== undefined && value !== false) {
+      receivedOptionNames.push(optionName);
+    }
+  }
+
   const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
 
   const unsupportedOptions = receivedOptionNames.filter(optionName => {
-    return allSupportableOptions.has(optionName as T) && !parsedSupportedOptions.has(optionName);
+    return !parsedSupportedOptions.has(optionName);
   });
 
   if (unsupportedOptions.length > 0) {
-    throw buildInvalidOptionReceivedError(methodName, dialect.name, unsupportedOptions);
+    // sorted so the error does not depend on the declaration order of allSupportableOptions
+    throw buildInvalidOptionReceivedError(methodName, dialect.name, unsupportedOptions.sort());
   }
 }
 
