@@ -4,8 +4,7 @@ import type { TableNameWithSchema } from '../abstract-dialect/query-interface.js
 import type { Model, ModelStatic } from '../model';
 import { ModelDefinition } from '../model-definition.js';
 
-// Model is required lazily because a static import breaks the module load order (cyclic import).
-// The result is cached because isModelStatic runs on hot paths.
+// Cached because isModelStatic runs on hot paths, see the lazy require below.
 let cachedModelClass: typeof Model | undefined;
 
 /**
@@ -15,6 +14,8 @@ let cachedModelClass: typeof Model | undefined;
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
   if (cachedModelClass == null) {
+    // Cyclic import: a static import of Model here breaks the module load order
+    // ("Cannot access 'MultiAssociation' before initialization").
     cachedModelClass = require('../model').Model as typeof Model;
   }
 

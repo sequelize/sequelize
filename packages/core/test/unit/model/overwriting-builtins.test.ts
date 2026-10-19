@@ -22,7 +22,7 @@ describe('Model', () => {
     expect(user.get('set')).to.equal('B');
   });
 
-  it('logs a warning when an attribute shadows a built-in model method or property', () => {
+  it('logs a warning when an attribute shadows a built-in model method', () => {
     const logSpy = sinon.spy(sequelize, 'log');
 
     try {
