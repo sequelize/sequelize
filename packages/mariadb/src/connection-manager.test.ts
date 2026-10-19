@@ -100,6 +100,68 @@ describe('MariaDbConnectionManager#connect', () => {
     );
   });
 
+  it('connects with charset utf8 when the server resolves utf8 to utf8mb4', async () => {
+    // On MariaDB >= 10.6 with old_mode missing UTF8_IS_UTF8MB3 (and by default on
+    // MariaDB >= 13.1), `utf8` is an alias of `utf8mb4`, so SET NAMES utf8 puts the
+    // session on utf8mb4 while the connector escapes with its utf8mb3 resolution.
+    // Same escaping family: the check must not reject the connection.
+    const fakeConnection = makeFakeConnection({
+      async query() {
+        return [{ cs: 'utf8mb4', coll: 'utf8mb4_general_ci' }];
+      },
+    });
+    const sequelize = makeSequelize(fakeConnection);
+
+    expect(await sequelize.dialect.connectionManager.connect({ charset: 'utf8' })).to.equal(
+      fakeConnection,
+    );
+  });
+
+  it('connects with a utf8_* collation that the connector resolved to utf8mb4', async () => {
+    // The connector resolves bare `utf8_*` collation names to their utf8mb4 variant,
+    // on every server version, so the session reports utf8mb4.
+    const fakeConnection = makeFakeConnection({
+      async query() {
+        return [{ cs: 'utf8mb4', coll: 'utf8mb4_unicode_ci' }];
+      },
+    });
+    const sequelize = makeSequelize(fakeConnection);
+
+    expect(
+      await sequelize.dialect.connectionManager.connect({ collation: 'utf8_unicode_ci' }),
+    ).to.equal(fakeConnection);
+  });
+
+  it('connects with charset utf8mb3 when an old server still reports it as utf8', async () => {
+    // MariaDB <= 10.5 has no utf8mb3 name: the 3-byte charset is reported as utf8.
+    const fakeConnection = makeFakeConnection({
+      async query() {
+        return [{ cs: 'utf8', coll: 'utf8_general_ci' }];
+      },
+    });
+    const sequelize = makeSequelize(fakeConnection);
+
+    expect(await sequelize.dialect.connectionManager.connect({ charset: 'utf8mb3' })).to.equal(
+      fakeConnection,
+    );
+  });
+
+  it('throws when the session charset is outside the requested charset family', async () => {
+    const fakeConnection = makeFakeConnection({
+      async query() {
+        return [{ cs: 'latin1', coll: 'latin1_swedish_ci' }];
+      },
+    });
+    const sequelize = makeSequelize(fakeConnection);
+
+    const error = await sequelize.dialect.connectionManager.connect({ charset: 'utf8' }).then(
+      () => null,
+      (error_: unknown) => error_,
+    );
+
+    expect(error).to.be.instanceOf(ConnectionError);
+  });
+
   it('throws a ConnectionError when the server does not support the requested charset', async () => {
     let endCalled = false;
     const fakeConnection = makeFakeConnection({

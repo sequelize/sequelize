@@ -58,9 +58,16 @@ export interface MariaDbConnectionOptions extends Omit<
 > {}
 
 /**
- * Normalizes a charset or collation name for comparison (lowercase, `utf8` alias resolved).
- * `utf8` is an alias of `utf8mb3` in MySQL/MariaDB, both as a charset and as a collation
- * prefix (`utf8_general_ci` is `utf8mb3_general_ci`).
+ * Normalizes a charset or collation name for comparison (lowercase, `utf8` family unified).
+ *
+ * `utf8` is an alias whose meaning depends on the server: it is `utf8mb3` on
+ * MariaDB <= 10.5, and on MariaDB >= 10.6 it resolves to `utf8mb3` only while the
+ * server's `old_mode` includes `UTF8_IS_UTF8MB3` (the default until MariaDB 13.1,
+ * where `utf8` becomes an alias of `utf8mb4`). The connector likewise resolves a
+ * requested `utf8` charset to `utf8mb3`, but a requested `utf8_*` collation to
+ * `utf8mb4`. The requested spelling therefore cannot be compared literally, so all
+ * three names normalize to `utf8`: they share the same client-side escaping, which
+ * means the escaper and the session are in sync for any match inside the family.
  *
  * @param name
  */
@@ -69,12 +76,7 @@ function normalizeName(name: string | undefined): string | undefined {
     return undefined;
   }
 
-  const normalized = name.toLowerCase();
-  if (normalized === 'utf8') {
-    return 'utf8mb3';
-  }
-
-  return normalized.startsWith('utf8_') ? `utf8mb3_${normalized.slice(5)}` : normalized;
+  return name.toLowerCase().replace(/^utf8mb[34]/, 'utf8');
 }
 
 /**
