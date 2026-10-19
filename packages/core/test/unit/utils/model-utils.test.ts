@@ -18,7 +18,7 @@ describe('isModelStatic', () => {
     isModelStatic(MyModel);
 
     // Every require() goes through Module._load, including cache hits, so spying on it lets us
-    // assert that no further resolution of the Model module happens once the class is cached.
+    // assert that no module resolution happens at all once the class is cached.
     const loadSpy = sinon.spy(Module as unknown as { _load(...args: any[]): unknown }, '_load');
 
     try {
@@ -29,11 +29,7 @@ describe('isModelStatic', () => {
       loadSpy.restore();
     }
 
-    const modelModuleLoads = loadSpy
-      .getCalls()
-      .filter(call => String(call.args[0]).endsWith('/model') || call.args[0] === '../model');
-
-    expect(modelModuleLoads).to.have.length(0);
+    expect(loadSpy.callCount).to.equal(0);
   });
 
   it('returns false for model instances', () => {
