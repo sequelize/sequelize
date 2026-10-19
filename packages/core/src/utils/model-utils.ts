@@ -16,7 +16,7 @@ export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> 
   if (cachedModelClass == null) {
     cachedModelClass = require('../model').Model as ModelStatic;
   }
-  
+
   return typeof val === 'function' && val.prototype instanceof cachedModelClass;
 }
 
