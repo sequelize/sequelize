@@ -2,6 +2,41 @@ import { ConnectionError, Sequelize } from '@sequelize/core';
 import { MariaDbDialect } from '@sequelize/mariadb';
 import { expect } from 'chai';
 
+const VERIFY_QUERY = 'SELECT @@character_set_client AS cs, @@collation_connection AS coll';
+
+// The connector's promise API resolves to a ConnectionPromise wrapper: it exposes
+// threadId/info/prepareCache getters and methods, but NOT the inner connection's
+// resolved options. Fakes deliberately model that shape (no `opts`) so the tests
+// cannot pass by reading state a real connection does not expose.
+function makeFakeConnection(overrides: Record<string, unknown>) {
+  return {
+    serverVersion: () => '10.11.0-MariaDB',
+    on() {
+      return this;
+    },
+    off() {
+      return this;
+    },
+    async query(sql: string) {
+      throw new Error(`unexpected query: ${sql}`);
+    },
+    async end() {},
+    isValid: () => true,
+    ...overrides,
+  };
+}
+
+function makeSequelize(fakeConnection: unknown) {
+  return new Sequelize<MariaDbDialect>({
+    dialect: MariaDbDialect,
+    mariaDbModule: {
+      async createConnection() {
+        return fakeConnection;
+      },
+    } as any,
+  });
+}
+
 describe('MariaDbConnectionManager#connect', () => {
   it('throws a ConnectionError when the named time zone is invalid', async () => {
     let createConnectionCalled = false;
@@ -31,35 +66,18 @@ describe('MariaDbConnectionManager#connect', () => {
 
   it('connects when the server honors the requested charset', async () => {
     let verificationQueryRan = false;
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      opts: { collation: { charset: 'utf8', maxLength: 4 } },
-      on() {
-        return this;
-      },
-      off() {
-        return this;
-      },
+    const fakeConnection = makeFakeConnection({
       async query(sql: string) {
-        if (sql === 'SELECT @@character_set_client AS cs') {
+        if (sql === VERIFY_QUERY) {
           verificationQueryRan = true;
 
-          return [{ cs: 'utf8mb4' }];
+          return [{ cs: 'utf8mb4', coll: 'utf8mb4_unicode_ci' }];
         }
 
         throw new Error(`unexpected query: ${sql}`);
       },
-      async end() {},
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
     });
+    const sequelize = makeSequelize(fakeConnection);
 
     const connection = await sequelize.dialect.connectionManager.connect({
       charset: 'utf8mb4',
@@ -69,34 +87,31 @@ describe('MariaDbConnectionManager#connect', () => {
     expect(verificationQueryRan).to.equal(true);
   });
 
+  it('connects when the server honors the utf8 alias of utf8mb3', async () => {
+    const fakeConnection = makeFakeConnection({
+      async query() {
+        return [{ cs: 'utf8mb3', coll: 'utf8mb3_general_ci' }];
+      },
+    });
+    const sequelize = makeSequelize(fakeConnection);
+
+    expect(await sequelize.dialect.connectionManager.connect({ charset: 'utf8' })).to.equal(
+      fakeConnection,
+    );
+  });
+
   it('throws a ConnectionError when the server does not support the requested charset', async () => {
     let endCalled = false;
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      opts: { collation: { charset: 'gb18030', maxLength: 4 } },
-      on() {
-        return this;
-      },
-      off() {
-        return this;
-      },
+    const fakeConnection = makeFakeConnection({
       // The server does not know gb18030: the session silently stays on utf8mb4
       async query() {
-        return [{ cs: 'utf8mb4' }];
+        return [{ cs: 'utf8mb4', coll: 'utf8mb4_unicode_ci' }];
       },
       async end() {
         endCalled = true;
       },
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
     });
+    const sequelize = makeSequelize(fakeConnection);
 
     const error = await sequelize.dialect.connectionManager.connect({ charset: 'gb18030' }).then(
       () => null,
@@ -106,7 +121,7 @@ describe('MariaDbConnectionManager#connect', () => {
     expect(error).to.be.instanceOf(ConnectionError);
     expect((error as ConnectionError).cause).to.have.property(
       'message',
-      "The MariaDB server does not support the requested charset 'gb18030' (session uses 'utf8mb4'). " +
+      "The MariaDB server does not support the requested charset/collation 'gb18030' (session uses charset 'utf8mb4', collation 'utf8mb4_unicode_ci'). " +
         'Refusing to connect: the client-side string escaper would be desynced from the server, ' +
         'which can enable SQL injection (https://github.com/sequelize/sequelize/issues/18282).',
     );
@@ -115,30 +130,14 @@ describe('MariaDbConnectionManager#connect', () => {
 
   it('does not verify the session charset when no charset or collation was requested', async () => {
     let queryCalled = false;
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      on() {
-        return this;
-      },
-      off() {
-        return this;
-      },
+    const fakeConnection = makeFakeConnection({
       async query() {
         queryCalled = true;
 
         return [];
       },
-      async end() {},
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
     });
+    const sequelize = makeSequelize(fakeConnection);
 
     await sequelize.dialect.connectionManager.connect({});
 
@@ -146,34 +145,16 @@ describe('MariaDbConnectionManager#connect', () => {
   });
 
   it('accepts a requested collation honored by the server that differs from the server default', async () => {
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      // Server default from the initial handshake; the connector does not update
-      // info.collation when a collation is requested.
+    const fakeConnection = makeFakeConnection({
+      // info.collation is the server default from the initial handshake; the connector
+      // does not update it for a requested collation, so the check must not read it.
       info: { collation: { charset: 'utf8', maxLength: 4 } },
-      // The connector's resolved collation for `collation: 'latin1_swedish_ci'`
-      opts: { collation: { charset: 'latin1', maxLength: 1 } },
-      on() {
-        return this;
-      },
-      off() {
-        return this;
-      },
       async query() {
-        // The server honored latin1: the session charset is latin1, not the utf8mb4 default
-        return [{ cs: 'latin1' }];
+        // The server honored latin1: the session uses it, not the utf8mb4 default
+        return [{ cs: 'latin1', coll: 'latin1_swedish_ci' }];
       },
-      async end() {},
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
     });
+    const sequelize = makeSequelize(fakeConnection);
 
     const connection = await sequelize.dialect.connectionManager.connect({
       collation: 'latin1_swedish_ci',
@@ -182,30 +163,38 @@ describe('MariaDbConnectionManager#connect', () => {
     expect(connection).to.equal(fakeConnection);
   });
 
-  it('accepts a valid collation whose name does not start with its charset', async () => {
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      opts: { collation: { charset: 'utf8', maxLength: 4 } },
-      on() {
-        return this;
-      },
-      off() {
-        return this;
-      },
+  it('throws when the server silently keeps its default instead of the requested collation', async () => {
+    let endCalled = false;
+    const fakeConnection = makeFakeConnection({
+      info: { collation: { charset: 'utf8', maxLength: 4 } },
+      // The server does not know latin1 here: the session stays on the utf8mb4 default
       async query() {
-        return [{ cs: 'utf8mb4' }];
+        return [{ cs: 'utf8mb4', coll: 'utf8mb4_unicode_ci' }];
       },
-      async end() {},
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
+      async end() {
+        endCalled = true;
+      },
     });
+    const sequelize = makeSequelize(fakeConnection);
+
+    const error = await sequelize.dialect.connectionManager
+      .connect({ collation: 'latin1_swedish_ci' })
+      .then(
+        () => null,
+        (error_: unknown) => error_,
+      );
+
+    expect(error).to.be.instanceOf(ConnectionError);
+    expect(endCalled).to.equal(true);
+  });
+
+  it('accepts a valid collation whose name does not start with its charset', async () => {
+    const fakeConnection = makeFakeConnection({
+      async query() {
+        return [{ cs: 'utf8mb4', coll: 'uca1400_ai_ci' }];
+      },
+    });
+    const sequelize = makeSequelize(fakeConnection);
 
     const { connectionManager } = sequelize.dialect;
 
@@ -217,15 +206,10 @@ describe('MariaDbConnectionManager#connect', () => {
 
   it('attaches the temporary error listener before verifying the charset', async () => {
     const errorListeners: Array<() => void> = [];
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      opts: { collation: { charset: 'utf8', maxLength: 4 } },
+    const fakeConnection = makeFakeConnection({
       on(_event: string, listener: () => void) {
         errorListeners.push(listener);
 
-        return this;
-      },
-      off() {
         return this;
       },
       async query() {
@@ -240,19 +224,10 @@ describe('MariaDbConnectionManager#connect', () => {
           listener();
         }
 
-        return [{ cs: 'utf8mb4' }];
+        return [{ cs: 'utf8mb4', coll: 'utf8mb4_unicode_ci' }];
       },
-      async end() {},
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
     });
+    const sequelize = makeSequelize(fakeConnection);
 
     const connection = await sequelize.dialect.connectionManager.connect({
       charset: 'utf8mb4',
@@ -264,31 +239,15 @@ describe('MariaDbConnectionManager#connect', () => {
   it('closes the connection and rethrows the original error when the verification query fails', async () => {
     let endCalled = false;
     const queryError = Object.assign(new Error('query timeout'), { code: 'ETIMEDOUT' });
-    const fakeConnection = {
-      serverVersion: () => '10.11.0-MariaDB',
-      opts: { collation: { charset: 'utf8', maxLength: 4 } },
-      on() {
-        return this;
-      },
-      off() {
-        return this;
-      },
+    const fakeConnection = makeFakeConnection({
       async query() {
         throw queryError;
       },
       async end() {
         endCalled = true;
       },
-      isValid: () => true,
-    };
-    const sequelize = new Sequelize<MariaDbDialect>({
-      dialect: MariaDbDialect,
-      mariaDbModule: {
-        async createConnection() {
-          return fakeConnection;
-        },
-      } as any,
     });
+    const sequelize = makeSequelize(fakeConnection);
 
     const error = await sequelize.dialect.connectionManager.connect({ charset: 'utf8mb4' }).then(
       () => null,

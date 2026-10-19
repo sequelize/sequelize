@@ -58,50 +58,23 @@ export interface MariaDbConnectionOptions extends Omit<
 > {}
 
 /**
- * Normalizes a charset name for comparison (lowercase, common aliases resolved).
- * `utf8` is an alias of `utf8mb3` in MySQL/MariaDB.
+ * Normalizes a charset or collation name for comparison (lowercase, `utf8` alias resolved).
+ * `utf8` is an alias of `utf8mb3` in MySQL/MariaDB, both as a charset and as a collation
+ * prefix (`utf8_general_ci` is `utf8mb3_general_ci`).
  *
- * @param charset
+ * @param name
  */
-function normalizeCharsetName(charset: string | undefined): string | undefined {
-  if (charset === undefined) {
+function normalizeName(name: string | undefined): string | undefined {
+  if (name === undefined) {
     return undefined;
   }
 
-  const normalized = charset.toLowerCase();
-
-  return normalized === 'utf8' ? 'utf8mb3' : normalized;
-}
-
-/**
- * Returns the charset the connector resolved for this connection from the requested
- * `charset` and/or `collation` options. The connector owns the collation -> charset mapping
- * (collation names such as `uca1400_ai_ci` cannot be parsed reliably, and `charset` may
- * itself hold a collation name), so its resolved collation option is used instead of parsing
- * names. `connection.info.collation` cannot be used here: it holds the server's default
- * collation from the initial handshake and is not updated when a collation is requested,
- * so it would make this check reject a valid connection whose requested collation differs
- * from the server default.
- *
- * @param connection
- */
-function getRequestedCharset(connection: MariaDbConnection): string | undefined {
-  const collation = (
-    connection as unknown as {
-      opts?: { collation?: { charset?: string; maxLength?: number } | null } | null;
-    }
-  ).opts?.collation;
-
-  if (!collation?.charset) {
-    return undefined;
+  const normalized = name.toLowerCase();
+  if (normalized === 'utf8') {
+    return 'utf8mb3';
   }
 
-  // The connector reports both utf8mb3 and utf8mb4 as `utf8`, told apart by byte length
-  if (collation.charset === 'utf8') {
-    return collation.maxLength === 4 ? 'utf8mb4' : 'utf8mb3';
-  }
-
-  return collation.charset;
+  return normalized.startsWith('utf8_') ? `utf8mb3_${normalized.slice(5)}` : normalized;
 }
 
 /**
@@ -240,26 +213,33 @@ export class MariaDbConnectionManager extends AbstractConnectionManager<
     connection: MariaDbConnection,
     connectionConfig: MariaDb.ConnectionConfig,
   ): Promise<void> {
+    const requested = connectionConfig.collation ?? connectionConfig.charset;
+
     // No explicit charset/collation requested: the connector and server negotiate
     // the default together, nothing to verify.
-    if (connectionConfig.charset === undefined && connectionConfig.collation === undefined) {
-      return;
-    }
-
-    const requested = normalizeCharsetName(getRequestedCharset(connection));
     if (requested === undefined) {
       return;
     }
 
-    const rows: Array<{ cs?: string }> = await connection.query(
-      'SELECT @@character_set_client AS cs',
+    // The session is the only reliable source of what the server honored. The connector's
+    // promise API resolves to a ConnectionPromise wrapper whose inner Connection (and its
+    // resolved options) is a private field, and connection.info.collation is the server's
+    // default collation from the initial handshake - neither reflects an explicit request.
+    // When the server honors the request, @@character_set_client is the requested charset
+    // or @@collation_connection is the requested collation; when it does not, the session
+    // silently stays on the fallback.
+    const rows: Array<{ coll?: string; cs?: string }> = await connection.query(
+      'SELECT @@character_set_client AS cs, @@collation_connection AS coll',
     );
-    const actual = normalizeCharsetName(rows[0]?.cs);
 
-    if (actual !== requested) {
+    const expected = normalizeName(requested);
+    const sessionCharset = normalizeName(rows[0]?.cs);
+    const sessionCollation = normalizeName(rows[0]?.coll);
+
+    if (sessionCharset !== expected && sessionCollation !== expected) {
       throw new ConnectionError(
         new Error(
-          `The MariaDB server does not support the requested charset '${connectionConfig.charset ?? connectionConfig.collation}' (session uses '${actual}'). ` +
+          `The MariaDB server does not support the requested charset/collation '${requested}' (session uses charset '${rows[0]?.cs}', collation '${rows[0]?.coll}'). ` +
             'Refusing to connect: the client-side string escaper would be desynced from the server, ' +
             'which can enable SQL injection (https://github.com/sequelize/sequelize/issues/18282).',
         ),
