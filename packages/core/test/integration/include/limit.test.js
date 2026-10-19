@@ -159,6 +159,61 @@ describe(Support.getTestDialectTeaser('Include'), () => {
     /*
      * many-to-many
      */
+    describe('optional many-to-many association with a required nested include', () => {
+      async function findPostNames(Post, include, options = {}) {
+        const posts = await Post.findAll({
+          attributes: ['name'],
+          include,
+          limit: 10,
+          order: [['name', 'ASC']],
+          ...options,
+        });
+
+        return posts.map(post => post.name);
+      }
+
+      beforeEach(async function () {
+        await this.sequelize.sync({ force: true });
+
+        const [posts, tags, colors] = await Promise.all([
+          this.Post.bulkCreate(build('alpha', 'bravo')),
+          this.Tag.bulkCreate(build('tag')),
+          this.Color.bulkCreate(build('color')),
+        ]);
+
+        await Promise.all([posts[0].addTag(tags[0]), tags[0].setColor(colors[0])]);
+
+        this.include = [
+          {
+            model: this.Tag,
+            attributes: [],
+            through: { attributes: [] },
+            required: false,
+            include: [{ model: this.Color, attributes: [], required: true }],
+          },
+        ];
+        this.expectedPostNames = ['alpha', 'bravo'];
+      });
+
+      it('preserves root rows with subQuery false', async function () {
+        const names = await findPostNames(this.Post, this.include, { subQuery: false });
+
+        expect(names).to.deep.equal(this.expectedPostNames);
+      });
+
+      it('preserves root rows with subQuery true', async function () {
+        const names = await findPostNames(this.Post, this.include, { subQuery: true });
+
+        expect(names).to.deep.equal(this.expectedPostNames);
+      });
+
+      it('preserves root rows when the subquery is selected automatically', async function () {
+        const names = await findPostNames(this.Post, this.include);
+
+        expect(names).to.deep.equal(this.expectedPostNames);
+      });
+    });
+
     it('supports many-to-many association with where clause', async function () {
       await this.sequelize.sync({ force: true });
 
