@@ -41,7 +41,9 @@ export class MsSqlQuery extends AbstractQuery {
 
   getSQLTypeFromJsType(value, TYPES) {
     const paramType = { type: TYPES.NVarChar, typeOptions: {}, value };
-    if (typeof value === 'number') {
+    if (typeof value === 'string' && this.sequelize.dialect.options.useUnicodeStrings === false) {
+      paramType.type = TYPES.VarChar;
+    } else if (typeof value === 'number') {
       if (Number.isInteger(value)) {
         if (value >= -2_147_483_648 && value <= 2_147_483_647) {
           paramType.type = TYPES.Int;

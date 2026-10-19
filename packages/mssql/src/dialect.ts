@@ -29,10 +29,24 @@ export interface MsSqlDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   tediousModule?: TediousModule;
+
+  /**
+   * Whether string literals should be prefixed with `N` and string bind parameters
+   * should use Tedious' `NVarChar` type.
+   *
+   * Disable this only when the target schema uses `VARCHAR` columns and the values
+   * are compatible with the database collation's code page. Disabling this option
+   * can prevent SQL Server from converting indexed `VARCHAR` columns to `NVARCHAR`
+   * during comparisons.
+   *
+   * @default true
+   */
+  useUnicodeStrings?: boolean;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
   tediousModule: undefined,
+  useUnicodeStrings: undefined,
 });
 
 export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConnectionOptions> {
@@ -149,7 +163,9 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     // http://stackoverflow.com/q/603572/130598
     value = value.replaceAll("'", "''");
 
-    return `N'${value}'`;
+    const prefix = this.options.useUnicodeStrings === false ? '' : 'N';
+
+    return `${prefix}'${value}'`;
   }
 
   getDefaultSchema(): string {
