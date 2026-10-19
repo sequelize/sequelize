@@ -13,13 +13,10 @@ let cachedModelClass: ModelStatic | undefined;
  * @param val The value whose type will be checked
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
-  // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
-  // The result of this require() is cached after the first call: isModelStatic runs on a hot path (it is called
-  // once per association while building queries), and re-running require() on every call adds non-trivial
-  // module-resolution overhead under some loaders. The resolved Model class never changes once the module graph
-  // is initialized, so caching it is safe.
-  cachedModelClass ??= require('../model').Model as ModelStatic;
-
+  if (cachedModelClass == null) {
+    cachedModelClass = require('../model').Model as ModelStatic;
+  }
+  
   return typeof val === 'function' && val.prototype instanceof cachedModelClass;
 }
 
