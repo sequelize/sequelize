@@ -1,3 +1,26 @@
 {
-  "$schema": "https://typedoc.org/schema.json"
+  "$schema": "https://typedoc.org/schema.json",
+  "externalSymbolLinkMappings": {
+    "@sequelize/core": {
+      "decorators-legacy.Table": "../functions/_sequelize_core.decorators-legacy.Table.html",
+      "importModels": "../functions/_sequelize_core.index.importModels.html",
+      "InferAttributes": "../types/_sequelize_core.index.InferAttributes.html",
+      "InferCreationAttributes": "../types/_sequelize_core.index.InferCreationAttributes.html",
+      "JSON_NULL": "../variables/_sequelize_core.index.JSON_NULL.html",
+      "SQL_NULL": "../variables/_sequelize_core.index.SQL_NULL.html",
+      "sql": "../functions/_sequelize_core.index.sql.html",
+      "sql.attribute": "../functions/_sequelize_core.index.sql.html#attribute",
+      "sql.cast": "../functions/_sequelize_core.index.sql.html#cast",
+      "sql.col": "../functions/_sequelize_core.index.sql.html#col",
+      "sql.fn": "../functions/_sequelize_core.index.sql.html#fn",
+      "sql.identifier": "../functions/_sequelize_core.index.sql.html#identifier",
+      "sql.jsonPath": "../functions/_sequelize_core.index.sql.html#jsonpath",
+      "sql.list": "../functions/_sequelize_core.index.sql.html#list",
+      "sql.literal": "../functions/_sequelize_core.index.sql.html#literal",
+      "sql.random": "../functions/_sequelize_core.index.sql.html#random",
+      "sql.where": "../functions/_sequelize_core.index.sql.html#where",
+      "TimeoutError": "../classes/_sequelize_core.index.TimeoutError.html",
+      "ValidationError": "../classes/_sequelize_core.index.ValidationError.html"
+    }
+  }
 }

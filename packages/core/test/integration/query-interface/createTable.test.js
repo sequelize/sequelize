@@ -91,14 +91,11 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         await this.sequelize.createSchema('hero');
 
         await this.queryInterface.createTable(
-          'User',
+          { tableName: 'User', schema: 'hero' },
           {
             name: {
               type: DataTypes.STRING,
             },
-          },
-          {
-            schema: 'hero',
           },
         );
       });
@@ -148,14 +145,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           await this.queryInterface.createSchema('archive');
 
           await this.queryInterface.createTable(
-            'SomeTable',
+            { tableName: 'SomeTable', schema: 'archive' },
             {
               someEnum: {
                 type: DataTypes.ENUM(['value1', 'value2', 'value3']),
                 field: 'otherName',
               },
             },
-            { schema: 'archive' },
           );
 
           const table = await this.queryInterface.describeTable({

@@ -1,10 +1,6 @@
 import { DataTypes, literal } from '@sequelize/core';
 import { expect } from 'chai';
-import { beforeAll2, getTestDialect, sequelize, setResetMode } from '../support';
-
-const dialect = getTestDialect();
-
-const supportedByDialect = ['postgres'].includes(dialect);
+import { beforeAll2, sequelize, setResetMode } from '../support';
 
 describe('QueryInterface#select', () => {
   setResetMode('truncate');
@@ -14,7 +10,7 @@ describe('QueryInterface#select', () => {
     const User = sequelize.define(
       'user',
       {
-        name: { type: DataTypes.TEXT },
+        name: { type: DataTypes.STRING },
       },
       { timestamps: false },
     );
@@ -67,16 +63,14 @@ describe('QueryInterface#select', () => {
     });
   });
 
-  if (supportedByDialect) {
-    it('fetches records with alias minification', async () => {
-      await vars.User.create({ name: 'Sourav' });
+  it('fetches records with alias minification', async () => {
+    await vars.User.create({ name: 'Sourav' });
 
-      const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.table, {
-        minifyAliases: true,
-        where: { name: 'Sourav' },
-      });
-
-      expect(result[0].name).to.equal('Sourav');
+    const result: Array<Record<string, any>> = await qi.select(vars.User, vars.User.table, {
+      minifyAliases: true,
+      where: { name: 'Sourav' },
     });
-  }
+
+    expect(result[0].name).to.equal('Sourav');
+  });
 });

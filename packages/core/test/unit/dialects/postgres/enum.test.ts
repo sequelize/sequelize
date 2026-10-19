@@ -1,10 +1,9 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import type { PostgresQueryGenerator } from '@sequelize/postgres';
+import { expect } from 'chai';
+import { beforeAll2, expectsql, sequelize } from '../../../support';
 
-const { beforeAll2, expectsql, sequelize } = require('../../../support');
-const { DataTypes } = require('@sequelize/core');
-const { expect } = require('chai');
-
-const queryGenerator = sequelize.dialect.queryGenerator;
+const queryGenerator = sequelize.dialect.queryGenerator as PostgresQueryGenerator;
 
 describe('PostgresQueryGenerator', () => {
   if (sequelize.dialect.name !== 'postgres') {
@@ -25,7 +24,7 @@ describe('PostgresQueryGenerator', () => {
     const PublicUser = sequelize.define('user', {
       mood: {
         type: DataTypes.ENUM('happy', 'sad'),
-        field: 'theirMood',
+        columnName: 'theirMood',
       },
     });
 
@@ -47,12 +46,23 @@ describe('PostgresQueryGenerator', () => {
     it('properly quotes both the schema and the enum name', () => {
       const { FooUser, PublicUser } = vars;
 
-      expect(
-        queryGenerator.pgEnumName(PublicUser.table, 'mood', PublicUser.getAttributes().mood.type),
-      ).to.equal('"public"."enum_users_mood"');
-      expect(
-        queryGenerator.pgEnumName(FooUser.table, 'theirMood', FooUser.getAttributes().mood.type),
-      ).to.equal('"foo"."enum_users_theirMood"');
+      expect(queryGenerator.pgEnumName(PublicUser.table, 'mood')).to.equal(
+        '"public"."enum_users_mood"',
+      );
+      expect(queryGenerator.pgEnumName(FooUser.table, 'theirMood')).to.equal(
+        '"foo"."enum_users_theirMood"',
+      );
+    });
+
+    it('does not escape the enum name when options: { noEscape: true }', () => {
+      const { FooUser, PublicUser } = vars;
+
+      expect(queryGenerator.pgEnumName(PublicUser.table, 'mood', { noEscape: true })).to.equal(
+        'enum_users_mood',
+      );
+      expect(queryGenerator.pgEnumName(FooUser.table, 'theirMood', { noEscape: true })).to.equal(
+        'enum_users_theirMood',
+      );
     });
   });
 
@@ -93,11 +103,11 @@ describe('PostgresQueryGenerator', () => {
       const { FooUser } = vars;
 
       expectsql(queryGenerator.pgListEnums(FooUser.table, 'mood'), {
-        postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+        postgres: `SELECT t.typname enum_name, COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value
                    FROM pg_type t
-                          JOIN pg_enum e ON t.oid = e.enumtypid
+                          LEFT JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-                   WHERE n.nspname = 'foo'
+                   WHERE n.nspname = 'foo' AND t.typtype = 'e'
                      AND t.typname='enum_users_mood'
                    GROUP BY 1`,
       });
@@ -105,11 +115,11 @@ describe('PostgresQueryGenerator', () => {
 
     it('uses the default schema if no options given', () => {
       expectsql(queryGenerator.pgListEnums(), {
-        postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+        postgres: `SELECT t.typname enum_name, COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value
                    FROM pg_type t
-                          JOIN pg_enum e ON t.oid = e.enumtypid
+                          LEFT JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-                   WHERE n.nspname = 'public'
+                   WHERE n.nspname = 'public' AND t.typtype = 'e'
                    GROUP BY 1`,
       });
     });
@@ -118,11 +128,11 @@ describe('PostgresQueryGenerator', () => {
       expectsql(
         queryGenerator.pgListEnums({ tableName: `ta'"ble`, schema: `sche'"ma` }, `attri'"bute`),
         {
-          postgres: `SELECT t.typname enum_name, array_agg(e.enumlabel ORDER BY enumsortorder) enum_value
+          postgres: `SELECT t.typname enum_name, COALESCE(array_agg(e.enumlabel ORDER BY enumsortorder) FILTER (WHERE e.enumlabel IS NOT NULL), ARRAY[]::text[]) enum_value
                    FROM pg_type t
-                          JOIN pg_enum e ON t.oid = e.enumtypid
+                          LEFT JOIN pg_enum e ON t.oid = e.enumtypid
                           JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
-                   WHERE n.nspname = 'sche''"ma'
+                   WHERE n.nspname = 'sche''"ma' AND t.typtype = 'e'
                      AND t.typname='enum_ta''"ble_attri''"bute'
                    GROUP BY 1`,
         },

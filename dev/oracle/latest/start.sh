@@ -7,12 +7,10 @@ cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")" # https://stackoverflow.com/a/17744
 docker compose -p sequelize-oracle-latest down --remove-orphans
 docker compose -p sequelize-oracle-latest up -d
 
-./../../wait-until-healthy.sh sequelize-oracle-latest
-
-sleep 30s
+HEALTHCHECK_TIMEOUT=300 ./../../wait-until-healthy.sh sequelize-oracle-latest
 
 docker cp ../privileges.sql sequelize-oracle-latest:/opt/oracle/.
 
-docker exec -t sequelize-oracle-latest sqlplus system/password@localhost:1521/XEPDB1 @privileges.sql
+docker exec sequelize-oracle-latest sqlplus -L system/password@localhost:1521/XEPDB1 @privileges.sql
 
 DIALECT=oracle ts-node ../../check-connection.ts

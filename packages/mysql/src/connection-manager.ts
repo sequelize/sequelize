@@ -19,36 +19,61 @@ import type { MySqlDialect } from './dialect.js';
 
 const debug = logger.debugContext('connection:mysql');
 
+// Attached by connect() until initializeConnection() replaces it with the real handler.
+function ignoreErrorUntilInitialized() {}
+
+function convertError(error: unknown): never {
+  if (!isError(error)) {
+    throw error;
+  }
+
+  const code = isNodeError(error) ? error.code : null;
+
+  switch (code) {
+    case 'ECONNREFUSED':
+      throw new ConnectionRefusedError(error);
+    case 'ER_ACCESS_DENIED_ERROR':
+      throw new AccessDeniedError(error);
+    case 'ENOTFOUND':
+      throw new HostNotFoundError(error);
+    case 'EHOSTUNREACH':
+      throw new HostNotReachableError(error);
+    case 'EINVAL':
+      throw new InvalidConnectionError(error);
+    default:
+      throw new ConnectionError(error);
+  }
+}
+
 export type MySql2Module = typeof MySql2;
 
 export interface MySqlConnection extends MySql2.Connection, AbstractConnection {}
 
-export interface MySqlConnectionOptions
-  extends Omit<
-    MySql2.ConnectionOptions,
-    // The user cannot modify these options:
-    // This option is currently a global Sequelize option
-    | 'timezone'
-    // Conflicts with our own features
-    | 'nestTables'
-    // We provide our own placeholders.
-    // TODO: should we use named placeholders for mysql?
-    | 'namedPlaceholders'
-    // We provide our own pool
-    | 'pool'
-    // Our code expects specific response formats, setting any of the following option would break Sequelize
-    | 'typeCast'
-    | 'bigNumberStrings'
-    | 'supportBigNumbers'
-    | 'dateStrings'
-    | 'decimalNumbers'
-    | 'rowsAsArray'
-    | 'stringifyObjects'
-    | 'queryFormat'
-    | 'Promise'
-    // We provide our own "url" implementation
-    | 'uri'
-  > {}
+export interface MySqlConnectionOptions extends Omit<
+  MySql2.ConnectionOptions,
+  // The user cannot modify these options:
+  // This option is currently a global Sequelize option
+  | 'timezone'
+  // Conflicts with our own features
+  | 'nestTables'
+  // We provide our own placeholders.
+  // TODO: should we use named placeholders for mysql?
+  | 'namedPlaceholders'
+  // We provide our own pool
+  | 'pool'
+  // Our code expects specific response formats, setting any of the following option would break Sequelize
+  | 'typeCast'
+  | 'bigNumberStrings'
+  | 'supportBigNumbers'
+  | 'dateStrings'
+  | 'decimalNumbers'
+  | 'rowsAsArray'
+  | 'stringifyObjects'
+  | 'queryFormat'
+  | 'Promise'
+  // We provide our own "url" implementation
+  | 'uri'
+> {}
 
 /**
  * MySQL Connection Manager
@@ -107,51 +132,47 @@ export class MySqlConnectionManager extends AbstractConnectionManager<
 
       debug('connection acquired');
 
-      connection.on('error', (error: unknown) => {
-        if (!isNodeError(error)) {
-          return;
-        }
-
-        switch (error.code) {
-          case 'ESOCKET':
-          case 'ECONNRESET':
-          case 'EPIPE':
-          case 'PROTOCOL_CONNECTION_LOST':
-            void this.sequelize.pool.destroy(connection);
-            break;
-          default:
-        }
-      });
-
-      if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
-        // set timezone for this connection
-        // but named timezone are not directly supported in mysql, so get its offset first
-        let tzOffset = this.sequelize.options.timezone;
-        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
-        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
-      }
+      // Temporary no-op placeholder: mysql2 can emit 'error' before initializeConnection()
+      // attaches the real handler below. Without a listener here, that error would
+      // crash the process instead of waiting to be handled.
+      connection.on('error', ignoreErrorUntilInitialized);
 
       return connection;
     } catch (error) {
-      if (!isError(error)) {
-        throw error;
+      convertError(error);
+    }
+  }
+
+  async initializeConnection(connection: MySqlConnection): Promise<void> {
+    connection.off('error', ignoreErrorUntilInitialized).on('error', (error: unknown) => {
+      if (!isNodeError(error)) {
+        return;
       }
 
-      const code = isNodeError(error) ? error.code : null;
-
-      switch (code) {
-        case 'ECONNREFUSED':
-          throw new ConnectionRefusedError(error);
-        case 'ER_ACCESS_DENIED_ERROR':
-          throw new AccessDeniedError(error);
-        case 'ENOTFOUND':
-          throw new HostNotFoundError(error);
-        case 'EHOSTUNREACH':
-          throw new HostNotReachableError(error);
-        case 'EINVAL':
-          throw new InvalidConnectionError(error);
+      switch (error.code) {
+        case 'ESOCKET':
+        case 'ECONNRESET':
+        case 'EPIPE':
+        case 'PROTOCOL_CONNECTION_LOST':
+          void this.sequelize.pool.destroy(connection);
+          break;
         default:
-          throw new ConnectionError(error);
+      }
+    });
+
+    if (!this.sequelize.options.keepDefaultTimezone && this.sequelize.options.timezone) {
+      // set timezone for this connection
+      // but named timezone are not directly supported in mysql, so get its offset first
+      try {
+        let tzOffset = this.sequelize.options.timezone;
+        tzOffset = tzOffset.includes('/') ? timeZoneToOffsetString(tzOffset) : tzOffset;
+        await promisify(cb => connection.query(`SET time_zone = '${tzOffset}'`, cb))();
+      } catch (error) {
+        // Close the socket now rather than leaving it to disconnect(), which would
+        // first send COM_QUIT on a connection whose setup query just failed.
+        // disconnect() skips connections that are already closing.
+        connection.destroy();
+        convertError(error);
       }
     }
   }
@@ -187,12 +208,11 @@ async function createConnection(
   config: MySql2.ConnectionOptions,
 ): Promise<MySqlConnection> {
   return new Promise((resolve, reject) => {
-    const connection: MySqlConnection = lib.createConnection(config) as MySqlConnection;
+    const connection: MySqlConnection = lib.createConnection(config);
 
     const errorHandler = (e: unknown) => {
       // clean up connect & error event if there is error
       connection.removeListener('connect', connectHandler);
-      connection.removeListener('error', connectHandler);
       reject(e);
     };
 

@@ -101,6 +101,28 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
           const vals = enumType.options.values;
 
+          // The enum type already exists, but has no values yet (e.g. it was created with
+          // CREATE TYPE ... AS ENUM ()). There's no existing value to anchor a BEFORE/AFTER
+          // clause to, so just append every value in order instead of going through the
+          // relative-positioning logic below, which requires at least one old value.
+          if (enumVals.length === 0) {
+            for (const val of vals) {
+              promises.push(() => {
+                return this.sequelize.queryRaw(
+                  this.queryGenerator.pgEnumAdd(tableName, field, val, {
+                    ...options,
+                    before: null,
+                    after: null,
+                  }),
+                  options,
+                );
+              });
+            }
+
+            enumIdx++;
+            continue;
+          }
+
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values
           // Then we append the rest of new values AFTER the latest already existing value

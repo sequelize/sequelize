@@ -1657,32 +1657,27 @@ describe('DataTypes', () => {
       );
     });
 
-    // Node 14 doesn't support Blob
-    if (Blob) {
-      it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
-        await expect(
-          vars.User.create({
-            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
-            // @ts-ignore -- intentionally testing invalid input
-            attr: new Blob(['abcd']),
-          }),
-        ).to.be.rejectedWith(
-          ValidationError,
-          'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.',
-        );
+    it('rejects Blobs & non-Uint8Array ArrayBufferViews', async () => {
+      await expect(
+        vars.User.create({
+          // @ts-expect-error -- intentionally testing invalid input
+          attr: new Blob(['abcd']),
+        }),
+      ).to.be.rejectedWith(
+        ValidationError,
+        'Validation error: Blob instances are not supported values, because reading their data is an async operation. Call blob.arrayBuffer() to get a buffer, and pass that to Sequelize instead.',
+      );
 
-        await expect(
-          vars.User.create({
-            // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- error only appears in TS 5.5+
-            // @ts-ignore -- intentionally testing invalid input
-            attr: new Uint16Array([49, 50, 51, 52]),
-          }),
-        ).to.be.rejectedWith(
-          ValidationError,
-          'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.',
-        );
-      });
-    }
+      await expect(
+        vars.User.create({
+          // @ts-expect-error -- intentionally testing invalid input
+          attr: new Uint16Array([49, 50, 51, 52]),
+        }),
+      ).to.be.rejectedWith(
+        ValidationError,
+        'Validation error: Uint16Array(4) [ 49, 50, 51, 52 ] is not a valid binary value: Only strings, Buffer, Uint8Array and ArrayBuffer are supported.',
+      );
+    });
 
     it('accepts strings', async () => {
       await testSimpleInOut(vars.User, 'attr', 'abc', Buffer.from([97, 98, 99]));

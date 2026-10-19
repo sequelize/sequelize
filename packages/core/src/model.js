@@ -865,7 +865,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
     let tableExists;
     if (options.force) {
-      await this.drop({
+      await this.queryInterface.dropTable(tableName, {
         ...options,
         cascade: this.sequelize.dialect.supports.dropTable.cascade || undefined,
       });
@@ -1245,7 +1245,6 @@ ${associationOwner._getAssociationDebugList()}`);
   static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
     if (!this._modelVariantRefs) {
       // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
-      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
       this._modelVariantRefs = new Set([new WeakRef(this)]);
     }
 
@@ -1289,7 +1288,6 @@ ${associationOwner._getAssociationDebugList()}`);
       schema: schemaOptions.schema,
       schemaDelimiter: schemaOptions.schemaDelimiter,
     });
-    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
     this._modelVariantRefs.add(new WeakRef(clone));
 
     clone._scope = mergedScope;
@@ -1943,7 +1941,7 @@ ${associationOwner._getAssociationDebugList()}`);
    * before the insert call.
    * However, it is not always possible to handle this case in SQLite, specifically if one transaction inserts
    * and another tries to select before the first one has committed.
-   * In this case, an instance of {@link TimeoutError} will be thrown instead.
+   * In this case, an instance of {@link @sequelize/core!TimeoutError} will be thrown instead.
    *
    * If a transaction is passed, a savepoint will be created instead,
    * and any unique constraint violation will be handled internally.
@@ -2108,12 +2106,10 @@ ${associationOwner._getAssociationDebugList()}`);
 
       return [created, true];
     } catch (error) {
-      if (
-        !(
-          error instanceof SequelizeErrors.UniqueConstraintError ||
-          error instanceof SequelizeErrors.EmptyResultError
-        )
-      ) {
+      if (!(
+        error instanceof SequelizeErrors.UniqueConstraintError ||
+        error instanceof SequelizeErrors.EmptyResultError
+      )) {
         throw error;
       }
 
@@ -3855,7 +3851,7 @@ Instead of specifying a Model, either:
   /**
    * Validates this instance, and if the validation passes, persists it to the database.
    *
-   * Returns a Promise that resolves to the saved instance (or rejects with a {@link ValidationError},
+   * Returns a Promise that resolves to the saved instance (or rejects with a {@link @sequelize/core!ValidationError},
    * which will have a property for each of the fields for which the validation failed, with the error message for that
    * field).
    *

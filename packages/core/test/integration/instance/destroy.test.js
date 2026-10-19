@@ -8,7 +8,6 @@ const dayjs = require('dayjs');
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -405,7 +404,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(ms0[0].guruguru).to.equal('gu');
     });
 
-    if (dialect.startsWith('postgres')) {
+    if (current.dialect.supports.dataTypes.DATETIME.infinity) {
       it('converts Infinity in where clause to a timestamp', async function () {
         const Date = this.sequelize.define(
           'Date',

@@ -62,7 +62,7 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
     if (include.subQuery !== false && options.hasDuplicating && options.topLimit) {
       if (include.duplicating) {
         include.subQuery = include.subQuery || false;
-        include.subQueryFilter = include.hasRequired;
+        include.subQueryFilter = include.required;
       } else {
         include.subQuery = include.hasRequired;
         include.subQueryFilter = false;

@@ -36,6 +36,28 @@ describe('QueryGenerator#addColumnQuery', () => {
     );
   });
 
+  it('accepts a bare data type', () => {
+    const { User } = vars;
+
+    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', DataTypes.INTEGER), {
+      default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
+      mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
+      postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
+      oracle: `ALTER TABLE "Users" ADD "age" INTEGER NULL;`,
+    });
+  });
+
+  it('accepts a bare data type as a string', () => {
+    const { User } = vars;
+
+    expectsql(() => queryGenerator.addColumnQuery(User.table, 'age', 'INTEGER'), {
+      default: `ALTER TABLE [Users] ADD [age] INTEGER;`,
+      mssql: `ALTER TABLE [Users] ADD [age] INTEGER NULL;`,
+      postgres: `ALTER TABLE "Users" ADD COLUMN "age" INTEGER;`,
+      oracle: `ALTER TABLE "Users" ADD "age" INTEGER NULL;`,
+    });
+  });
+
   it('generates a ADD COLUMN IF NOT EXISTS query in supported dialects', () => {
     const { User } = vars;
 

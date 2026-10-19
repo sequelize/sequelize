@@ -1,5 +1,12 @@
-import type { ForeignKey, InferAttributes } from '@sequelize/core';
+import type {
+  BelongsToAssociation,
+  ForeignKey,
+  HasManyAssociation,
+  HasOneAssociation,
+  InferAttributes,
+} from '@sequelize/core';
 import { Model } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 
 class Car extends Model<InferAttributes<Car>> {
   declare person: ForeignKey<number>;
@@ -130,3 +137,8 @@ Person.belongsToMany(Country, {
   // @ts-expect-error -- this key does not exist on Country
   targetKey: 'doesNotExist',
 });
+
+// Unparameterized associations must not leak `any` for their key properties
+expectTypeOf<HasOneAssociation['sourceKey']>().toEqualTypeOf<string>();
+expectTypeOf<HasManyAssociation['sourceKey']>().toEqualTypeOf<string>();
+expectTypeOf<BelongsToAssociation['targetKey']>().toEqualTypeOf<string>();

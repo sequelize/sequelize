@@ -19,18 +19,7 @@ const sinon = require('sinon');
 const { CONFIG } = require('../config/config');
 
 const dialect = getTestDialect();
-
-const qq = str => {
-  if (['postgres', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
-    return `"${str}"`;
-  }
-
-  if (['mysql', 'mariadb', 'sqlite3'].includes(dialect)) {
-    return `\`${str}\``;
-  }
-
-  return str;
-};
+const quote = identifier => current.queryGenerator.quoteIdentifier(identifier);
 
 const badUsernameConfig = {
   postgres: {
@@ -593,8 +582,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
             this.t1 = t1;
             await vars.sequelizeWithTransaction.query(
-              `INSERT INTO ${qq('TransactionTests')} (${qq('name')})
-                                                       VALUES ('foo');`,
+              `INSERT INTO ${quote('TransactionTests')} (${quote('name')}) VALUES ('foo');`,
               { transaction: t1 },
             );
             await expect(count()).to.eventually.equal(0);
@@ -631,15 +619,13 @@ describe(getTestDialectTeaser('Sequelize'), () => {
             const t1 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
             this.t1 = t1;
             await vars.sequelizeWithTransaction.query(
-              `INSERT INTO ${qq('TransactionTests')} (${qq('name')})
-                                                       VALUES ('foo');`,
+              `INSERT INTO ${quote('TransactionTests')} (${quote('name')}) VALUES ('foo');`,
               { transaction: t1 },
             );
             const t2 = await vars.sequelizeWithTransaction.startUnmanagedTransaction();
             this.t2 = t2;
             await vars.sequelizeWithTransaction.query(
-              `INSERT INTO ${qq('TransactionTests')} (${qq('name')})
-                                                       VALUES ('bar');`,
+              `INSERT INTO ${quote('TransactionTests')} (${quote('name')}) VALUES ('bar');`,
               { transaction: t2 },
             );
             await expect(count()).to.eventually.equal(0);

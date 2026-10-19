@@ -1,4 +1,4 @@
-import { IsolationLevel } from '@sequelize/core';
+import { IsolationLevel, TransactionNestMode } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { beforeAll2, getTestDialect, sequelize } from '../support';
@@ -17,6 +17,9 @@ describe('Transaction', () => {
 
     return {
       stub: sinon.stub(sequelize, 'queryRaw').resolves([[], {}]),
+      stubInitializeConnection: sinon
+        .stub(sequelize.dialect.connectionManager, 'initializeConnection')
+        .resolves(),
       stubConnection: sinon.stub(sequelize.dialect.connectionManager, 'connect').resolves({
         uuid: 'ssfdjd-434fd-43dfg23-2d',
         close() {},
@@ -32,6 +35,7 @@ describe('Transaction', () => {
   beforeEach(() => {
     vars.stub.resetHistory();
     vars.stubConnection.resetHistory();
+    vars.stubInitializeConnection.resetHistory();
     vars.stubValidate.resetHistory();
     vars.stubRelease.resetHistory();
   });
@@ -39,6 +43,7 @@ describe('Transaction', () => {
   after(() => {
     vars.stub.restore();
     vars.stubConnection.restore();
+    vars.stubInitializeConnection.restore();
     vars.stubValidate.restore();
     vars.stubRelease.restore();
     vars.stubTransactionId.restore();
@@ -85,6 +90,39 @@ describe('Transaction', () => {
         throw error;
       }
     }
+  });
+
+  it('uses a unique name for each nested savepoint', async function () {
+    if (!sequelize.dialect.supports.savepoints) {
+      return this.skip();
+    }
+
+    let counter = 0;
+    vars.stubTransactionId.callsFake(() => `txn-${counter++}`);
+
+    await sequelize.transaction(async t1 => {
+      await sequelize.transaction(
+        { transaction: t1, nestMode: TransactionNestMode.savepoint },
+        async t2 => {
+          await sequelize.transaction(
+            { transaction: t2, nestMode: TransactionNestMode.savepoint },
+            async () => {},
+          );
+        },
+      );
+    });
+
+    const isSavepointCreation = (sql: string) =>
+      (sql.includes('SAVEPOINT') || sql.includes('SAVE TRANSACTION')) &&
+      !sql.includes('RELEASE') &&
+      !sql.includes('ROLLBACK');
+
+    const savepointCreations = vars.stub.args
+      .map(args => String(args[0]))
+      .filter(isSavepointCreation);
+
+    expect(savepointCreations).to.have.lengthOf(2);
+    expect(new Set(savepointCreations).size).to.equal(2);
   });
 });
 

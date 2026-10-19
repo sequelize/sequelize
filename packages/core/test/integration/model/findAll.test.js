@@ -11,7 +11,7 @@ const Support = require('../support');
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dayjs = require('dayjs');
-const promiseProps = require('p-props');
+const { default: promiseProps } = require('p-props');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -35,6 +35,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('findAll', () => {
+    it('restores minified aliases in included models', async function () {
+      const Task = this.sequelize.define(
+        'MinifiedAliasTask',
+        { title: DataTypes.STRING },
+        { timestamps: false },
+      );
+      const User = this.sequelize.define('MinifiedAliasUser', {}, { timestamps: false });
+
+      User.belongsTo(Task, { as: 'task', foreignKey: 'taskId' });
+
+      await Task.sync({ force: true });
+      await User.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+      await User.create({ taskId: task.id });
+
+      const [user] = await User.findAll({
+        include: [{ association: User.associations.task }],
+        minifyAliases: true,
+      });
+
+      expect(user.task.title).to.equal('task');
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
