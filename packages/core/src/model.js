@@ -197,7 +197,9 @@ export class Model extends ModelTypeScript {
     this._previousDataValues = {};
     this.uniqno = 1;
     this._changed = new Set();
-    this._options = omit(options, ['comesFromDatabase']);
+    const { comesFromDatabase: ignoreComesFromDatabase, ...optionsWithoutComesFromDatabase } =
+      options;
+    this._options = optionsWithoutComesFromDatabase;
 
     /**
      * Returns true if this instance has not yet been persisted to the database

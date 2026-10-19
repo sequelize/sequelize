@@ -111,5 +111,16 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
         expect(Model.build().get('data')).to.eql({ foo: 'bar' });
       });
     }
+
+    it('should not store comesFromDatabase in the instance options', () => {
+      const Model = current.define('Model', {});
+      const options = { comesFromDatabase: true, isNewRecord: false, raw: true };
+      const instance = Model.build({}, options);
+
+      expect(instance._options).not.to.equal(options);
+      expect(instance._options).not.to.have.property('comesFromDatabase');
+      expect(instance._options).to.include({ isNewRecord: false, raw: true, model: Model });
+      expect(options).to.have.property('comesFromDatabase', true);
+    });
   });
 });
