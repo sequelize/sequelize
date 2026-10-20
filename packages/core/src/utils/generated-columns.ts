@@ -50,8 +50,9 @@ export function getGeneratedColumnDependencies(model: ModelStatic): GeneratedCol
   const dependencies = new Map<string, GeneratedColumnDependency>();
 
   function add(dependency: GeneratedColumnDependency) {
+    // two associations to one table differ by the key of the model they match
     dependencies.set(
-      `${queryGenerator.quoteTable(dependency.table)} ${dependency.selectKeys('')}`,
+      `${queryGenerator.quoteTable(dependency.table)} ${dependency.key} ${dependency.selectKeys('')}`,
       dependency,
     );
   }

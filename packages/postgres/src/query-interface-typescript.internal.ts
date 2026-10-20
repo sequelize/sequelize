@@ -6,7 +6,12 @@ import type {
   QueryRawOptions,
   TableOrModel,
 } from '@sequelize/core';
-import { AbstractQueryInterface, QueryTypes, TransactionNestMode } from '@sequelize/core';
+import {
+  AbstractQueryInterface,
+  DataTypes,
+  QueryTypes,
+  TransactionNestMode,
+} from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import {
   getGeneratedAttributeDependsOn,
@@ -36,15 +41,12 @@ export class PostgresQueryInterfaceTypescript<
   }
 
   async dropTable(tableName: TableOrModel, options?: QiDropTableOptions): Promise<void> {
-    // the triggers that maintain its generated columns also live on the tables they read
-    const { queryGenerator } = this;
-    const quotedTable = queryGenerator.quoteTable(queryGenerator.extractTableDetails(tableName));
-    const usesDependsOn = [...this.sequelize.models].some(
-      model =>
-        queryGenerator.quoteTable(queryGenerator.extractTableDetails(model)) === quotedTable &&
-        [...model.modelDefinition.attributes.values()].some(attribute =>
-          getGeneratedAttributeDependsOn(attribute),
-        ),
+    // the triggers that maintain its generated columns also live on the tables they read.
+    // Any model that uses dependsOn enables the lookup, not only the table's own, which a migration may not load.
+    const usesDependsOn = [...this.sequelize.models].some(model =>
+      [...model.modelDefinition.attributes.values()].some(attribute =>
+        getGeneratedAttributeDependsOn(attribute),
+      ),
     );
     const functions = usesDependsOn ? await this.#generatedColumnFunctions(tableName, options) : [];
     for (const name of functions) {
@@ -76,8 +78,14 @@ export class PostgresQueryInterfaceTypescript<
     tableName: TableOrModel,
     options?: QueryRawOptions,
   ): Promise<string[]> {
+    const { queryGenerator } = this;
+    const quotedTable = queryGenerator.quoteTable(queryGenerator.extractTableDetails(tableName));
+    // the functions live in the schema of the table, which keeps apart the tables of the same name in other schemas
     const functions = await this.sequelize.queryRaw<{ name: string }>(
-      `SELECT objoid::regprocedure::text AS name FROM pg_description WHERE classoid = 'pg_proc'::regclass AND description = ${this.#generatedColumnsOwner(tableName)}`,
+      `SELECT proc.oid::regprocedure::text AS name FROM pg_description AS description
+         INNER JOIN pg_proc AS proc ON proc.oid = description.objoid
+         INNER JOIN pg_class AS class ON class.oid = to_regclass(${queryGenerator.escape(quotedTable)}) AND class.relnamespace = proc.pronamespace
+        WHERE description.classoid = 'pg_proc'::regclass AND description.description = ${this.#generatedColumnsOwner(tableName)}`,
       { ...options, type: QueryTypes.SELECT },
     );
 
@@ -88,11 +96,10 @@ export class PostgresQueryInterfaceTypescript<
     const { queryGenerator, sequelize } = this;
     const quotedTable = queryGenerator.quoteTable(model.table);
     const owner = this.#generatedColumnsOwner(model);
-    const functions = await this.#generatedColumnFunctions(model, options);
     const usesDependsOn = [...model.modelDefinition.attributes.values()].some(attribute =>
       getGeneratedAttributeDependsOn(attribute),
     );
-    if (functions.length === 0 && !usesDependsOn) {
+    if (!usesDependsOn && (await this.#generatedColumnFunctions(model, options)).length === 0) {
       return;
     }
 
@@ -100,8 +107,16 @@ export class PostgresQueryInterfaceTypescript<
       { nestMode: TransactionNestMode.savepoint, transaction: options?.transaction },
       async transaction => {
         const queryOptions = { ...options, transaction };
+        // processes that sync the same table at once, such as app replicas starting together, take turns
+        await sequelize.queryRaw(`SELECT pg_advisory_xact_lock(hashtext(${owner}));`, {
+          ...queryOptions,
+          type: QueryTypes.SELECT,
+        });
+
         // dropping the functions drops their triggers too
-        const statements = functions.map(name => `DROP FUNCTION ${name} CASCADE;`);
+        const statements = (await this.#generatedColumnFunctions(model, queryOptions)).map(
+          name => `DROP FUNCTION ${name} CASCADE;`,
+        );
 
         if (usesDependsOn && (await this.tableExists(model.table, queryOptions))) {
           statements.push(
@@ -155,11 +170,21 @@ export class PostgresQueryInterfaceTypescript<
 
     const q = queryGenerator.quoteIdentifier.bind(queryGenerator);
     const alias = q(table.tableName);
-    // unique per schema-qualified table, and short enough that the suffixes are not truncated
-    const prefix = `${table.tableName.slice(0, 20)}_${createHash('md5').update(quotedTable).digest('hex').slice(0, 8)}_generated`;
+    // unique per schema-qualified table, and short enough that the suffixes are not truncated:
+    // only ASCII word characters of the name are kept, as identifiers are limited to 63 bytes
+    const prefix = `${table.tableName.replaceAll(/\W/g, '').slice(0, 20)}_${createHash('md5').update(quotedTable).digest('hex').slice(0, 8)}_generated`;
     const functionName = (suffix: string) =>
       queryGenerator.quoteTable({ ...table, tableName: `${prefix}${suffix}` });
     const columnNames = attributes.map(attribute => q(attribute.columnName));
+    // json has no equality operator, so its values are compared as jsonb
+    const compared = (relation: string) =>
+      attributes
+        .map((attribute, i) => {
+          const column = `${relation}.${columnNames[i]}`;
+
+          return attribute.type instanceof DataTypes.JSON ? `${column}::jsonb` : column;
+        })
+        .join(', ');
     // sql.attribute() resolves to columns of this table, not of the subqueries of the expression
     const expressions = attributes.map(
       attribute =>
@@ -172,7 +197,7 @@ export class PostgresQueryInterfaceTypescript<
          FROM (SELECT ${primaryKeys.map(key => `${alias}.${q(key)}`).join(', ')}, ${expressions.map((expression, i) => `${expression} AS ${columnNames[i]}`).join(', ')}
                FROM ${quotedTable}${where}) AS refreshed
         WHERE ${primaryKeys.map(key => `${alias}.${q(key)} = refreshed.${q(key)}`).join(' AND ')}
-          AND ROW(${columnNames.map(column => `${alias}.${column}`).join(', ')}) IS DISTINCT FROM ROW(${columnNames.map(column => `refreshed.${column}`).join(', ')});`;
+          AND ROW(${compared(alias)}) IS DISTINCT FROM ROW(${compared('refreshed')});`;
 
     // locking the rows first gives the refresh a snapshot taken after concurrent changes to them commit
     const lockAndRefresh = (where: string) =>

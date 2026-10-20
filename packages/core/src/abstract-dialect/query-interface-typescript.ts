@@ -332,12 +332,6 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
   }
 
   /**
-   * Returns a promise that will resolve to true if the table or model exists in the database, false otherwise.
-   *
-   * @param tableName - The name of the table or model
-   * @param options - Query options
-   */
-  /**
    * Creates, replaces or drops the triggers that maintain the generated attributes of a model that use `dependsOn`,
    * then recomputes those attributes for the existing rows. Only the columns that already exist are maintained.
    *
@@ -352,6 +346,12 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     _options?: QueryRawOptions,
   ): Promise<void> {}
 
+  /**
+   * Returns a promise that will resolve to true if the table or model exists in the database, false otherwise.
+   *
+   * @param tableName - The name of the table or model
+   * @param options - Query options
+   */
   async tableExists(tableName: TableOrModel, options?: QueryRawOptions): Promise<boolean> {
     const sql = this.queryGenerator.tableExistsQuery(tableName);
     const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });

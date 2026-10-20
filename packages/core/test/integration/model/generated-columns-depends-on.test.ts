@@ -31,7 +31,7 @@ const fuelCustomerExpression = sql`(
    LIMIT 1
 )`;
 
-async function defineModels({ dependsOn = true } = {}) {
+async function defineModels({ dependsOn = true, locationTable = 'dep_locations' } = {}) {
   const suffix = modelCount++;
 
   @Table({ modelName: `DepCustomer${suffix}`, tableName: 'dep_customers', paranoid: true })
@@ -66,7 +66,7 @@ async function defineModels({ dependsOn = true } = {}) {
     declare endAt: Date | null;
   }
 
-  @Table({ modelName: `DepLocation${suffix}`, tableName: 'dep_locations', timestamps: false })
+  @Table({ modelName: `DepLocation${suffix}`, tableName: locationTable, timestamps: false })
   class Location extends Model<InferAttributes<Location>, InferCreationAttributes<Location>> {
     declare id: CreationOptional<number>;
 
@@ -98,12 +98,15 @@ async function defineModels({ dependsOn = true } = {}) {
   return { Customer, Link, Location };
 }
 
-// the triggers of the functions that maintain the generated columns of dep_locations
-async function countTriggers(): Promise<number> {
+// the triggers of the functions that maintain the generated columns of a table
+async function countTriggers(table = 'dep_locations'): Promise<number> {
   const [{ count }] = await sequelize.query<{ count: string }>(
     `SELECT count(*) FROM pg_trigger JOIN pg_description ON objoid = tgfoid AND classoid = 'pg_proc'::regclass
-      WHERE description = 'sequelize generated columns of "dep_locations"'`,
-    { type: QueryTypes.SELECT },
+      WHERE description = :description`,
+    {
+      type: QueryTypes.SELECT,
+      replacements: { description: `sequelize generated columns of "${table}"` },
+    },
   );
 
   return Number(count);
@@ -240,6 +243,124 @@ async function countTriggers(): Promise<number> {
 
       // writes to the remaining table do not run a trigger that updates the dropped one
       await Customer.update({ name: 'renamed' }, { where: {} });
+    });
+
+    it('drops the triggers of a table dropped without its model', async () => {
+      const { Customer, Link, Location } = await defineModels();
+      await Customer.sync({ force: true });
+      await Location.sync({ force: true });
+      await Link.sync({ force: true });
+      await Customer.create({ name: 'owner' });
+
+      // a migration drops the table while its model is not loaded, and other models use dependsOn
+      sequelize.removeAllModels();
+      await defineModels({ locationTable: 'dep_other_locations' });
+      await sequelize.queryInterface.dropTable('dep_locations', { cascade: true });
+      expect(await countTriggers()).to.equal(0);
+      await sequelize.query(`UPDATE dep_customers SET name = 'renamed'`);
+    });
+
+    it('leaves alone the functions of a table of the same name in another schema', async () => {
+      const { Customer, Link, Location } = await defineModels();
+      await Customer.sync({ force: true });
+      await Location.sync({ force: true });
+      await Link.sync({ force: true });
+      await sequelize.query(`DROP SCHEMA IF EXISTS dep_other CASCADE; CREATE SCHEMA dep_other;
+        CREATE FUNCTION dep_other.maintain() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NULL; END $$;
+        COMMENT ON FUNCTION dep_other.maintain() IS 'sequelize generated columns of "dep_locations"';`);
+
+      try {
+        await Location.sync();
+        expect(await countTriggers()).to.equal(7);
+        const [{ exists }] = await sequelize.query<{ exists: boolean }>(
+          `SELECT to_regprocedure('dep_other.maintain()') IS NOT NULL AS exists`,
+          { type: QueryTypes.SELECT },
+        );
+        expect(exists).to.equal(true);
+      } finally {
+        await sequelize.query('DROP SCHEMA dep_other CASCADE');
+      }
+    });
+
+    it('lets concurrent syncs of the same table take turns', async () => {
+      const { Customer, Link, Location } = await defineModels();
+      await Customer.sync({ force: true });
+      await Location.sync({ force: true });
+      await Link.sync({ force: true });
+
+      await Promise.all([
+        sequelize.queryInterface.syncGeneratedColumnTriggers(Location),
+        sequelize.queryInterface.syncGeneratedColumnTriggers(Location),
+      ]);
+      expect(await countTriggers()).to.equal(7);
+    });
+
+    it('names the triggers of a table with a non-ASCII name within the identifier limit', async () => {
+      const locationTable = '位置'.repeat(10);
+      const { Customer, Link, Location } = await defineModels({ locationTable });
+      await Customer.sync({ force: true });
+      await Location.sync({ force: true });
+      await Link.sync({ force: true });
+
+      expect(await countTriggers(locationTable)).to.equal(7);
+      await Link.drop();
+      await Location.drop();
+    });
+
+    it('refreshes each association to the same table', async () => {
+      const { Customer } = await defineModels();
+      await Customer.sync({ force: true });
+
+      @Table({ modelName: `DepOrder${modelCount++}`, tableName: 'dep_orders', timestamps: false })
+      class Order extends Model<InferAttributes<Order>, InferCreationAttributes<Order>> {
+        declare id: CreationOptional<number>;
+
+        @Attribute(DataTypes.INTEGER)
+        declare billingCustomerId: number;
+
+        @Attribute(DataTypes.INTEGER)
+        declare shippingCustomerId: number;
+
+        @Attribute(DataTypes.JSON)
+        @GeneratedAs({
+          expression: sql`(SELECT json_build_array(billing.name, shipping.name) FROM dep_customers AS billing, dep_customers AS shipping
+            WHERE billing.id = ${sql.attribute('billingCustomerId')} AND shipping.id = ${sql.attribute('shippingCustomerId')})`,
+          dependsOn: ['billingCustomer', 'shippingCustomer'],
+        })
+        declare names: CreationOptional<string[] | null>;
+
+        @BelongsTo(() => Customer, {
+          foreignKey: 'billingCustomerId',
+          foreignKeyConstraints: false,
+        })
+        declare billingCustomer?: NonAttribute<InstanceType<typeof Customer>>;
+
+        @BelongsTo(() => Customer, {
+          foreignKey: 'shippingCustomerId',
+          foreignKeyConstraints: false,
+        })
+        declare shippingCustomer?: NonAttribute<InstanceType<typeof Customer>>;
+      }
+
+      sequelize.addModels([Order]);
+      // a json column has no equality operator, which the refresh of the existing rows needs
+      await Order.sync({ force: true });
+
+      const [billing, shipping] = await Customer.bulkCreate([
+        { name: 'billing' },
+        { name: 'shipping' },
+      ]);
+      const order = await Order.create({
+        billingCustomerId: billing.id,
+        shippingCustomerId: shipping.id,
+      });
+      expect(order.names).to.deep.equal(['billing', 'shipping']);
+
+      await billing.update({ name: 'billed' });
+      await shipping.update({ name: 'shipped' });
+      await order.reload();
+      expect(order.names).to.deep.equal(['billed', 'shipped']);
+      await Order.drop();
     });
 
     it('fills existing rows when a migration adds the column', async () => {
