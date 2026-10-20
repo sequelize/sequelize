@@ -199,6 +199,8 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
     const attribute = normalizeAttributeToSqlColumn(column);
+    // rejects "generatedAs", this dialect does not support generated columns
+    this.getGeneratedColumn(attribute);
 
     // `toString` does not accept any argument, but this call has historically passed the dialect
     const attributeString = (attribute.type as { toString(options: unknown): string }).toString({

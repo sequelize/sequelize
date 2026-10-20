@@ -245,6 +245,8 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
     const attribute = normalizeAttributeToSqlColumn(column);
+    // rejects "generatedAs", this dialect does not support generated columns
+    this.getGeneratedColumn(attribute);
 
     let template;
 

@@ -6,6 +6,7 @@ import cloneDeepLodash from 'lodash/cloneDeep';
 import defaultsLodash from 'lodash/defaults';
 import difference from 'lodash/difference';
 import each from 'lodash/each';
+import escapeRegExp from 'lodash/escapeRegExp';
 import flattenDepth from 'lodash/flattenDepth';
 import forEach from 'lodash/forEach';
 import forIn from 'lodash/forIn';
@@ -914,6 +915,12 @@ ${associationOwner._getAssociationDebugList()}`);
         options.alter === true ||
         (typeof options.alter === 'object' && options.alter.drop !== false)
       ) {
+        // Most databases refuse to alter a column that a generated column reads, even to the same type,
+        // so neither generated columns nor the columns their expression mentions are altered.
+        const generatedExpressions = [...modelDefinition.physicalAttributes.values()]
+          .filter(attribute => attribute.generatedAs != null)
+          .map(attribute => this.queryGenerator.getGeneratedColumn(attribute).expression);
+
         for (const columnName in columns) {
           if (!Object.hasOwn(columns, columnName)) {
             continue;
@@ -925,7 +932,13 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
-          if (currentAttribute.primaryKey) {
+          if (
+            currentAttribute.primaryKey ||
+            currentAttribute.generatedAs != null ||
+            generatedExpressions.some(expression =>
+              new RegExp(`(?<![\\w$])${escapeRegExp(columnName)}(?![\\w$])`).test(expression),
+            )
+          ) {
             continue;
           }
 
@@ -2332,7 +2345,11 @@ ${associationOwner._getAssociationDebugList()}`);
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
           options.updateOnDuplicate = intersection(
-            without(Object.keys(model.tableAttributes), createdAtAttr),
+            without(
+              Object.keys(model.tableAttributes),
+              createdAtAttr,
+              ...modelDefinition.generatedAttributeNames,
+            ),
             options.updateOnDuplicate,
           );
         } else {
@@ -3691,6 +3708,11 @@ Instead of specifying a Model, either:
         // If attempting to set read only attributes, return
         const readOnlyAttributeNames = modelDefinition.readOnlyAttributeNames;
         if (!this.isNewRecord && readOnlyAttributeNames.has(key)) {
+          return this;
+        }
+
+        // The database computes generated attributes
+        if (modelDefinition.generatedAttributeNames.has(key)) {
           return this;
         }
       }

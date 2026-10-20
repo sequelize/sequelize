@@ -335,6 +335,11 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let sql = type.toString();
 
+    const generated = this.getGeneratedColumn(attribute);
+    if (generated) {
+      sql += ` GENERATED ALWAYS AS (${generated.expression}) ${generated.stored ? 'STORED' : 'VIRTUAL'}`;
+    }
+
     if (attribute.allowNull === false) {
       sql += ' NOT NULL';
     }

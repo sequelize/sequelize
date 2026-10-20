@@ -1,15 +1,18 @@
 import type {
+  AddColumnOptions,
   AddConstraintOptions,
   AttributeOptions,
   ConstraintDescription,
   ConstraintType,
   DataType,
   DescribeTableOptions,
+  GeneratedColumnOptions,
   QiDropAllTablesOptions,
   QueryRawOptions,
   RemoveColumnOptions,
   RemoveConstraintOptions,
   ShowConstraintsOptions,
+  TableName,
   TableOrModel,
 } from '@sequelize/core';
 import {
@@ -17,6 +20,7 @@ import {
   BaseError,
   QueryTypes,
   UnknownConstraintError,
+  literal,
 } from '@sequelize/core';
 import { isErrorWithStringCode } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import {
@@ -26,7 +30,10 @@ import {
 import { withSqliteForeignKeysOff } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import isEmpty from 'lodash/isEmpty';
 import type { SqliteDialect } from './dialect.js';
-import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
+import {
+  SqliteQueryInterfaceInternal,
+  getGeneratedColumnExpressions,
+} from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 
 export class SqliteQueryInterface<
@@ -106,6 +113,21 @@ export class SqliteQueryInterface<
         for (const field of index.fields) {
           if (index.unique !== undefined) {
             data[field.attribute].unique = index.unique;
+          }
+        }
+      }
+
+      if (Object.values(data).some(column => column.generatedAs)) {
+        const [{ sql: createTableSql }] = await this.sequelize.queryRaw<{ sql: string }>(
+          this.queryGenerator.describeCreateTableQuery(tableName),
+          { ...options, type: QueryTypes.SELECT },
+        );
+        const expressions = getGeneratedColumnExpressions(createTableSql);
+        for (const [columnName, column] of Object.entries(data)) {
+          const expression = expressions.get(columnName);
+          // without an expression, rebuilding the table throws instead of writing invalid SQL
+          if (column.generatedAs && expression != null) {
+            column.generatedAs.expression = literal(expression);
           }
         }
       }
@@ -456,6 +478,33 @@ export class SqliteQueryInterface<
     }
 
     return constraintData;
+  }
+
+  async addColumn(
+    table: TableName,
+    key: string,
+    attribute: AttributeOptions | DataType,
+    options?: AddColumnOptions,
+  ): Promise<void> {
+    const generatedAs = (attribute as AttributeOptions | undefined)?.generatedAs;
+
+    // SQLite cannot add a stored generated column to a table, so the table is rebuilt with it
+    if (generatedAs != null && (generatedAs as GeneratedColumnOptions).stored !== false) {
+      const columns = await this.describeTable(table, options);
+      for (const existingColumn of Object.values(columns)) {
+        // unique columns keep their index, which alterTableInternal copies over
+        delete existingColumn.unique;
+      }
+
+      columns[key] = this.sequelize.normalizeAttribute(
+        attribute,
+      ) as SqliteColumnsDescription[string];
+      await this.#internalQueryInterface.alterTableInternal(table, columns, options);
+
+      return;
+    }
+
+    await super.addColumn(table, key, attribute, options);
   }
 
   /**
