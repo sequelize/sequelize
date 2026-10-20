@@ -172,7 +172,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
-    valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
+    valueHash = removeNullishValuesFromHash(valueHash, options.omitNull);
     for (const key in valueHash) {
       if (Object.hasOwn(valueHash, key)) {
         // if value is undefined, we replace it with null
