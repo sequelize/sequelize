@@ -100,7 +100,7 @@ Most operating systems provide all the needed tools (including Windows, Linux an
 
 - Mandatory:
 
-  - [Node.js](https://nodejs.org) 22, 24 or 26. CI tests all three; the lint, typings and docs jobs run Node 24. `@sequelize/core` declares `"node": "^22.13.0 || >=24.0.0"`
+  - [Node.js](https://nodejs.org) 22, 24 or 26. CI tests all three; the lint, typings and docs jobs run Node 24. `@sequelize/core` declares `"node": "^22.18.0 || >=24.0.0"`
   - [Git](https://git-scm.com/)
 
 - Optional (recommended):

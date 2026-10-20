@@ -32,7 +32,7 @@ cd packages/core && DIALECT=sqlite3 yarn mocha test/integration/utils.test.ts   
 ```
 
 - Non-SQLite integration tests need the matching database. Start one with `yarn start-<dialect>-oldest` or `yarn start-<dialect>-latest` (Docker; definitions in `dev/<dialect>/{oldest,latest}`), stop with `yarn stop-<dialect>`, and wipe containers and volumes with `yarn reset-<dialect>`. Only mariadb, mysql, postgres, mssql, db2 and oracle have these scripts; snowflake and ibmi need an external server.
-- CI runs oldest and latest for mariadb, mysql, postgres, db2 and oracle. mssql is latest-only (the oldest job is disabled at `ci.yml:300`), and snowflake and ibmi have no integration CI at all — only unit tests, so a regression there is not caught for you.
+- CI runs oldest and latest for mariadb, mysql, postgres, db2 and oracle. mssql is latest-only (the `test-mssql-oldest` job is commented out in `.github/workflows/ci.yml`), and snowflake and ibmi have no integration CI at all — only unit tests, so a regression there is not caught for you.
 - `yarn test-unit` starts with `test/esm-named-exports.test.js`, which imports every published package. `packages/core/test/config/config.ts` also imports every dialect package, so even SQLite-scoped core tests need every connector installed. A failure here is usually a missing local prerequisite, not a code defect — confirm which before changing source.
 - `yarn sscce-sqlite3` (or `yarn sscce-<dialect>`) is the quickest end-to-end smoke check after a build.
 
