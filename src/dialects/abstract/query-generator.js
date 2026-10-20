@@ -1,5 +1,6 @@
 'use strict';
 
+const crypto = require('crypto');
 const util = require('util');
 const _ = require('lodash');
 const uuidv4 = require('uuid').v4;
@@ -374,9 +375,9 @@ class QueryGenerator {
         if (
           this._dialect.supports.bulkDefault
           && serials[key] === true
+          && fieldValueHash[key] == null
         ) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key], fieldMappedAttributes[key], { context: 'INSERT' });
@@ -1377,6 +1378,9 @@ class QueryGenerator {
           mainTable.as = mainTable.quotedName;
         }
         const where = { ...options.where };
+        // The placeholder is located with indexOf in the generated query, so it must not be predictable:
+        // user-provided values that end up earlier in the query (e.g. in attributes) could otherwise contain it.
+        const placeholderValue = crypto.randomBytes(16).toString('hex');
         let groupedLimitOrder,
           whereKey,
           include,
@@ -1397,7 +1401,7 @@ class QueryGenerator {
               duplicating: false, // The UNION'ed query may contain duplicates, but each sub-query cannot
               required: true,
               where: {
-                [Op.placeholder]: true,
+                [Op.placeholder]: placeholderValue,
                 ...options.groupedLimit.through && options.groupedLimit.through.where
               }
             }],
@@ -1441,7 +1445,7 @@ class QueryGenerator {
           if (!this._dialect.supports.topLevelOrderByRequired) {
             delete options.order;
           }
-          where[Op.placeholder] = true;
+          where[Op.placeholder] = placeholderValue;
         }
 
         // Caching the base query and splicing the where part into it is consistently > twice
@@ -1461,7 +1465,7 @@ class QueryGenerator {
           },
           model
         ).replace(/;$/, '')}) ${this.getAliasToken()} sub`; // Every derived table must have its own alias
-        const placeHolder = this.whereItemQuery(Op.placeholder, true, { model });
+        const placeHolder = this.whereItemQuery(Op.placeholder, placeholderValue, { model });
         const splicePos = baseQuery.indexOf(placeHolder);
 
         mainQueryItems.push(this.selectFromTableFragment(options, mainTable.model, attributes.main, `(${

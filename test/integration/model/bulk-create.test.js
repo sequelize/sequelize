@@ -1313,6 +1313,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(users[1].get('id')).to.equal(4);
         expect(users[2].get('id')).to.equal(5);
       });
+
+      it('should escape supplied values on auto-increment primary keys', async function() {
+        const User = this.sequelize.define('user', {}, { timestamps: false });
+
+        await User.sync({ force: true });
+
+        await User.bulkCreate([{ id: 10 }, { id: 11 }]);
+        expect((await User.findAll({ order: [['id', 'ASC']] })).map(user => user.get('id'))).to.deep.equal([10, 11]);
+
+        await expect(User.bulkCreate([{ id: '1),(2' }])).to.be.rejected;
+        expect(await User.count()).to.equal(2);
+      });
     });
 
     describe('virtual attribute', () => {
