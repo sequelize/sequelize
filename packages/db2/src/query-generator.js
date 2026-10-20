@@ -52,31 +52,14 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
     const primaryKeys = [];
     const foreignKeys = {};
     const attrStr = [];
-    const commentTemplate = ` -- <%= comment %>, TableName = <%= table %>, ColumnName = <%= column %>;`;
-
-    let commentStr = '';
 
     for (const attr in attributes) {
       if (Object.hasOwn(attributes, attr)) {
         let dataType = attributes[attr];
         let match;
 
-        if (dataType.includes('COMMENT ')) {
-          const commentMatch = dataType.match(/^(.+) (COMMENT.*)$/);
-          if (commentMatch && commentMatch.length > 2) {
-            const commentText = commentMatch[2].replace(/COMMENT/, '').trim();
-            commentStr += template(
-              commentTemplate,
-              this._templateSettings,
-            )({
-              table: this.quoteTable(tableName),
-              comment: this.escape(commentText),
-              column: this.quoteIdentifier(attr),
-            });
-            // remove comment related substring from dataType
-            dataType = commentMatch[1];
-          }
-        }
+        // https://github.com/sequelize/sequelize/issues/18289
+        // Column comments are now handled via Db2QueryInterface#createTable -> commentOnColumnQuery
 
         if (includes(dataType, 'PRIMARY KEY')) {
           primaryKeys.push(attr);
@@ -142,7 +125,11 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
     }
 
-    return `${template(query, this._templateSettings)(values).trim()};${commentStr}`;
+    return `${template(query, this._templateSettings)(values).trim()};`;
+  }
+
+  commentOnColumnQuery(tableName, columnName, comment) {
+    return `COMMENT ON COLUMN ${this.quoteTable(tableName)}.${this.quoteIdentifier(columnName)} IS ${this.escape(comment)};`;
   }
 
   addColumnQuery(table, key, dataType, options) {
