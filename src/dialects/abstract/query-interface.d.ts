@@ -241,9 +241,14 @@ export interface AddPrimaryKeyConstraintOptions extends BaseConstraintOptions {
 
 export interface AddForeignKeyConstraintOptions extends BaseConstraintOptions {
   type: 'foreign key';
-  references?: {
+  references?: 
+  | {
     table: TableName;
     field: string;
+  }
+  | {
+    table: TableName;
+    fields: string[];
   };
   onDelete: string;
   onUpdate: string;
