@@ -3,6 +3,8 @@ import { fixupPluginRules } from '@eslint/compat';
 import jsdoc from 'eslint-plugin-jsdoc';
 import mocha from 'eslint-plugin-mocha';
 import globals from 'globals';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // These plugins (pulled in by @ephys/eslint-config) still use rule context APIs
 // that were removed in ESLint 10, so their rules are wrapped with @eslint/compat.
@@ -47,6 +49,21 @@ const ephysPreset = basePreset(import.meta.dirname).map(config => {
 
   return result;
 });
+
+// Test files that were written in JavaScript before new tests had to be written in TypeScript.
+// Remove a file from this list when converting it. Do not add files to it.
+const legacyJsTestsFile = 'packages/core/test/legacy-js-tests.json';
+const legacyJsTests = JSON.parse(
+  fs.readFileSync(path.join(import.meta.dirname, legacyJsTestsFile)),
+);
+const removedLegacyJsTests = legacyJsTests.filter(
+  file => !fs.existsSync(path.join(import.meta.dirname, file)),
+);
+if (removedLegacyJsTests.length > 0) {
+  throw new Error(
+    `These files no longer exist. Remove them from ${legacyJsTestsFile}:\n${removedLegacyJsTests.join('\n')}`,
+  );
+}
 
 export default [
   {
@@ -296,6 +313,37 @@ export default [
     files: ['**/tsconfig.json'],
     rules: {
       'json/*': ['error', { allowComments: true }],
+    },
+  },
+  {
+    files: ['packages/**/*.test.js'],
+    ignores: legacyJsTests,
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Program',
+          message: `Write new tests in TypeScript. Only the legacy files listed in ${legacyJsTestsFile} may remain in JavaScript.`,
+        },
+      ],
+    },
+  },
+  {
+    files: ['packages/*/test/**/*.test.ts'],
+    rules: {
+      // TODO: enable once all legacy JavaScript tests have been converted to TypeScript.
+      //  Models shared by a test suite should be classes, not sequelize.define() calls,
+      //  but conversions are allowed to keep using sequelize.define().
+      //  Some existing TypeScript tests also need to be updated before this can be enabled.
+      'no-restricted-syntax': [
+        'off',
+        {
+          selector:
+            'CallExpression[callee.name=/^(before|beforeEach|beforeAll2|beforeEach2)$/] CallExpression[callee.property.name="define"]',
+          message:
+            'Declare models shared by a test suite as classes and register them with sequelize.addModels(). sequelize.define() is fine for a model used by a single test.',
+        },
+      ],
     },
   },
   {
