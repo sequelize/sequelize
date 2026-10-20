@@ -19,7 +19,6 @@ import {
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import type {
-  AttributesToSqlColumns,
   AttributeToSqlInput,
   AttributeToSqlOptions,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
@@ -174,7 +173,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
 
-    const tableAttributes = this.attributesToSql(attributes as AttributesToSqlColumns);
+    const tableAttributes = this.attributesToSql(attributes);
     const attributeNamesImport = Object.keys(tableAttributes)
       .map(attr => {
         return attrNameAfter === attr
@@ -211,7 +210,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedTableName = this.quoteTable(table);
     const quotedBackupTableName = this.quoteTable(backupTable);
 
-    const tableAttributes = this.attributesToSql(attributes as AttributesToSqlColumns);
+    const tableAttributes = this.attributesToSql(attributes);
     const attributeNames = Object.keys(tableAttributes)
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');

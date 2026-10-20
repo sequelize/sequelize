@@ -3,7 +3,7 @@ import { Sequelize } from '@sequelize/core';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString, pojo } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import chai from 'chai';
+import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
@@ -13,6 +13,8 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
+import type { SinonFakeTimers } from 'sinon';
+import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import type { Class } from 'type-fest';
 import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
@@ -78,7 +80,6 @@ export function inlineErrorCause(error: unknown): string {
 }
 
 chai.config.includeStack = true;
-chai.should();
 
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
@@ -478,6 +479,28 @@ function replaceGenericIdentifierQuotes(sql: string, dialect: AbstractDialect): 
     /(?<!ARRAY)\[([^\]]+)]/g,
     `${dialect.TICK_CHAR_LEFT}$1${dialect.TICK_CHAR_RIGHT}`,
   );
+}
+
+/**
+ * Installs sinon's fake timers, except for `process.nextTick` and `queueMicrotask`.
+ *
+ * sinon 22 (fake-timers 13+) fakes those two by default, which stalls the socket I/O
+ * of the database drivers and makes every query hang.
+ */
+export function useFakeTimers(): SinonFakeTimers {
+  return sinon.useFakeTimers({
+    toFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setImmediate',
+      'clearImmediate',
+      'setInterval',
+      'clearInterval',
+      'Date',
+      'hrtime',
+      'performance',
+    ],
+  });
 }
 
 export function rand() {

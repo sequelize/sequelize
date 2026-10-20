@@ -104,19 +104,6 @@ interface HashEntry {
 }
 
 /**
- * Legacy unique key definition shape used by historical model definitions.
- */
-type LegacyUniqueKeyDefinition = { fields?: readonly string[] };
-
-/**
- * Model type guard for models that expose legacy `uniqueKeys` metadata.
- */
-type ModelWithLegacyUniqueKeys = ModelStatic & {
-  /** A record of legacy unique keys keyed by name. */
-  uniqueKeys?: Record<string, LegacyUniqueKeyDefinition>;
-};
-
-/**
  * Metadata describing a single dotted key in the raw result set and how it maps into the include tree.
  */
 type metaEntry = {
@@ -596,7 +583,7 @@ function getUniqueKeyAttributes(model: ModelStatic): readonly string[] {
     return cached;
   }
 
-  const uniqueKeys = (model as ModelWithLegacyUniqueKeys).uniqueKeys ?? {};
+  const uniqueKeys = model.uniqueKeys ?? {};
   const uniqueKeyAttributes: string[] = [];
 
   if (!isEmpty(uniqueKeys)) {
@@ -1155,10 +1142,7 @@ export class AbstractQuery {
         buildOptions.include = includeOption;
       }
 
-      result = model.bulkBuild(
-        parsedRows as unknown as Parameters<typeof model.bulkBuild>[0],
-        buildOptions as unknown as Parameters<typeof model.bulkBuild>[1],
-      );
+      result = model.bulkBuild(parsedRows, buildOptions);
     } else if (this.model) {
       const model = this.model;
       const parsedRows = this._parseDataArrayByType(
@@ -1173,10 +1157,7 @@ export class AbstractQuery {
         attributes: this.options.originalAttributes ?? this.options.attributes,
       };
 
-      result = model.bulkBuild(
-        parsedRows as unknown as Parameters<typeof model.bulkBuild>[0],
-        buildOptions as unknown as Parameters<typeof model.bulkBuild>[1],
-      );
+      result = model.bulkBuild(parsedRows, buildOptions);
     }
 
     if (result == null) {

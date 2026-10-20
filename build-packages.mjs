@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-/* eslint-disable unicorn/prefer-top-level-await */
-
 import { build } from 'esbuild';
 import glob from 'fast-glob';
 import childProcess from 'node:child_process';

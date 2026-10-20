@@ -365,10 +365,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     if (
       attribute.references &&
       attribute.Model &&
-      this.isSameTable(
-        (attribute.Model as { tableName: string }).tableName,
-        attribute.references.table,
-      )
+      this.isSameTable(attribute.Model.tableName, attribute.references.table)
     ) {
       this.sequelize.log(
         'MSSQL does not support self-referential constraints, ' +

@@ -826,7 +826,7 @@ export class WhereSqlBuilder {
       return handlePart(
         this.#wrapSimpleJsonPath(leftOperand, parentJsonPath),
         undefined,
-        whereValue as Expression,
+        whereValue,
       );
     }
 

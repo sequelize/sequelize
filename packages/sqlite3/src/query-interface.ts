@@ -79,10 +79,10 @@ export class SqliteQueryInterface<
 
     const sql = this.queryGenerator.describeTableQuery(table);
     try {
-      const data = (await this.sequelize.queryRaw(sql, {
+      const data: SqliteColumnsDescription = await this.sequelize.queryRaw(sql, {
         ...options,
         type: QueryTypes.DESCRIBE,
-      })) as SqliteColumnsDescription;
+      });
       /*
        * If no data is returned from the query, then the table name may be wrong.
        * Query generators that use information_schema for retrieving table info will just return an empty result set,
