@@ -6,6 +6,7 @@ import type {
 } from '@sequelize/core';
 import { DataTypes, Model } from '@sequelize/core';
 import { expect } from 'chai';
+import sinon from 'sinon';
 import { sequelize } from '../../support';
 
 describe('Model', () => {
@@ -19,6 +20,28 @@ describe('Model', () => {
     expect(user.get('set')).to.equal('A');
     user.set('set', 'B');
     expect(user.get('set')).to.equal('B');
+  });
+
+  it('logs a warning when an attribute shadows a built-in model method', () => {
+    const logSpy = sinon.spy(sequelize, 'log');
+
+    try {
+      sequelize.define('ShadowingAttributes', {
+        set: DataTypes.STRING,
+        firstName: DataTypes.STRING,
+      });
+    } finally {
+      logSpy.restore();
+    }
+
+    const shadowingLogs = logSpy
+      .getCalls()
+      .map(call => String(call.args[0]))
+      .filter(message => message.includes('is shadowing a built-in property'));
+
+    expect(shadowingLogs).to.deep.equal([
+      'Attribute set in model ShadowingAttributes is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.',
+    ]);
   });
 
   it('makes attributes take priority over class properties defined on the model', () => {
