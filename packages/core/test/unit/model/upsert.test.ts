@@ -1,4 +1,4 @@
-import { DataTypes, ValidationError } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
@@ -60,7 +60,7 @@ describe(getTestDialectTeaser('Model'), () => {
           vars.User.upsert({
             name: 'Grumpy Cat',
           }),
-        ).not.to.be.rejectedWith(ValidationError);
+        ).to.be.fulfilled;
       });
 
       it('creates new record with correct field names', async () => {

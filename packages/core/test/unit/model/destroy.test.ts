@@ -34,7 +34,7 @@ describe(getTestDialectTeaser('Model'), () => {
           // @ts-expect-error -- testing that class instances are rejected
           where: new Where(),
         }),
-      ).to.be.rejected;
+      ).to.be.rejectedWith('Invalid value received for the "where" option.');
     });
   });
 });

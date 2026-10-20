@@ -24,17 +24,14 @@ describe(getTestDialectTeaser('Model'), () => {
       });
 
       after(() => {
-        vars.findAll.resetBehavior();
-        vars.count.resetBehavior();
+        process.off('unhandledRejection', vars.stub);
+        vars.findAll.restore();
+        vars.count.restore();
       });
 
       it('with errors in count and findAll both', async () => {
-        try {
-          await vars.User.findAndCountAll({});
-          throw new Error('findAndCountAll should have rejected');
-        } catch {
-          expect(vars.stub.callCount).to.eql(0);
-        }
+        await expect(vars.User.findAndCountAll({})).to.be.rejected;
+        expect(vars.stub.callCount).to.eql(0);
       });
     });
   });

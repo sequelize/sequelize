@@ -83,10 +83,10 @@ describe(getTestDialectTeaser('Model'), () => {
     });
 
     describe('handles input validation', () => {
-      it('calls _warnOnInvalidOptions', () => {
+      it('calls _warnOnInvalidOptions', async () => {
         const { MyModel } = vars;
 
-        MyModel.findAll();
+        await MyModel.findAll();
         expect(_warnOnInvalidOptionsStub.calledOnce).to.equal(true);
       });
 

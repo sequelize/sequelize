@@ -50,7 +50,9 @@ describe(getTestDialectTeaser('Model'), () => {
           // @ts-expect-error -- testing that class instances are rejected
           where: new Where(),
         }),
-      ).to.be.rejected;
+      ).to.be.rejectedWith(
+        'Expected plain object, array or sequelize method in the options.where parameter',
+      );
     });
   });
 
