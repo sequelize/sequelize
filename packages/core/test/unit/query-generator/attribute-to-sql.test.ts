@@ -837,6 +837,26 @@ describe('QueryGenerator#attributeToSql', () => {
       },
     );
 
+    testSql(
+      { type: 'INTEGER', generatedAs: { expression: literal('a + b'), dependsOn: ['links'] } },
+      {
+        // a plain column, maintained by triggers
+        postgres: 'INTEGER',
+        default: new Error('dialect does not support generated columns that use "dependsOn"'),
+      },
+    );
+
+    testSql(
+      {
+        type: 'INTEGER',
+        generatedAs: { expression: literal('a + b'), dependsOn: ['links'], stored: false },
+      },
+      {
+        postgres: new Error('Generated columns that use "dependsOn" are always stored.'),
+        default: new Error('dialect does not support generated columns that use "dependsOn"'),
+      },
+    );
+
     it('resolves attributes to the column names of their model', () => {
       const LineItem = sequelize.define(
         'LineItem',

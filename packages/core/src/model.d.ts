@@ -1858,6 +1858,31 @@ export interface GeneratedColumnOptions {
    * Defaults to `true`, except in dialects that only support virtual generated columns (oracle).
    */
   stored?: boolean | undefined;
+
+  /**
+   * The associations whose tables the expression reads, which lets the expression use other tables (postgres only).
+   *
+   * Databases only compute generated columns from their own row, so Sequelize maintains these columns with triggers instead:
+   * one recomputes the column when its row is written, and others refresh the rows affected by a change to the tables of these associations.
+   * `sync` creates the triggers. Migrations create them with {@link AbstractQueryInterface#syncGeneratedColumnTriggers}.
+   * `TRUNCATE` does not run them, so truncating a table it reads leaves the column as it was.
+   *
+   * In the expression, use `sql.attribute()` for the columns of this model: they are qualified with the table name,
+   * so they do not resolve to the columns of a subquery.
+   *
+   * @example
+   * ```ts
+   * // the most recent order of a customer
+   * lastOrderId: {
+   *   type: DataTypes.INTEGER,
+   *   generatedAs: {
+   *     expression: sql`(SELECT max(id) FROM orders WHERE "customerId" = ${sql.attribute('id')})`,
+   *     dependsOn: ['orders'],
+   *   },
+   * }
+   * ```
+   */
+  dependsOn?: readonly string[] | undefined;
 }
 
 export interface AttributeIndexOptions extends Omit<IndexOptions, 'fields'> {

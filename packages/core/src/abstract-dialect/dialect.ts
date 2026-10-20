@@ -298,6 +298,8 @@ export type DialectSupports = {
   generatedColumns: {
     stored: boolean;
     virtual: boolean;
+    /** Whether generated columns can read other tables through `dependsOn`, maintained by triggers */
+    dependsOn: boolean;
   };
 };
 
@@ -535,6 +537,7 @@ export abstract class AbstractDialect<
     generatedColumns: {
       stored: false,
       virtual: false,
+      dependsOn: false,
     },
   });
 

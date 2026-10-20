@@ -61,6 +61,7 @@ import {
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
+import { getGeneratedColumnDependencies } from './utils/generated-columns.js';
 import { logger } from './utils/logger';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import {
@@ -918,8 +919,8 @@ ${associationOwner._getAssociationDebugList()}`);
         // Most databases refuse to alter a column that a generated column reads, even to the same type,
         // so neither generated columns nor the columns their expression mentions are altered.
         const generatedExpressions = [...modelDefinition.physicalAttributes.values()]
-          .filter(attribute => attribute.generatedAs != null)
-          .map(attribute => this.queryGenerator.getGeneratedColumn(attribute).expression);
+          .map(attribute => this.queryGenerator.getGeneratedColumn(attribute)?.expression)
+          .filter(expression => expression != null);
 
         for (const columnName in columns) {
           if (!Object.hasOwn(columns, columnName)) {
@@ -1000,6 +1001,22 @@ ${associationOwner._getAssociationDebugList()}`);
     for (const index of missingIndexes) {
       // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.
       await this.queryInterface.addIndex(tableName, index, options);
+    }
+
+    if (this.sequelize.dialect.supports.generatedColumns.dependsOn) {
+      // the triggers of a generated column can only be created once all the tables it reads exist,
+      // so syncing a table also syncs the triggers of the models that read it
+      const quotedTable = this.queryGenerator.quoteTable(this);
+      for (const model of this.sequelize.models) {
+        if (
+          model === this ||
+          getGeneratedColumnDependencies(model).some(
+            dependency => this.queryGenerator.quoteTable(dependency.table) === quotedTable,
+          )
+        ) {
+          await this.queryInterface.syncGeneratedColumnTriggers(model, options);
+        }
+      }
     }
 
     if (options.hooks) {

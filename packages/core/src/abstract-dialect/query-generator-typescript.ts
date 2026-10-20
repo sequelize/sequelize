@@ -1047,7 +1047,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
 
   /**
    * Returns the SQL of a generated column's expression and whether the column is stored,
-   * or undefined if the column is not generated.
+   * or undefined if the column is not generated, or is maintained by triggers because it uses `dependsOn`.
    *
    * @param attribute the column about to be generated
    * @hidden
@@ -1060,8 +1060,11 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       return undefined;
     }
 
-    const { expression, stored = this.dialect.supports.generatedColumns.stored } =
-      generatedAs instanceof BaseSqlExpression ? { expression: generatedAs } : generatedAs;
+    const {
+      expression,
+      stored = this.dialect.supports.generatedColumns.stored,
+      dependsOn,
+    } = generatedAs instanceof BaseSqlExpression ? { expression: generatedAs } : generatedAs;
 
     if (!(expression instanceof BaseSqlExpression)) {
       throw new TypeError(
@@ -1070,6 +1073,21 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     const supported = this.dialect.supports.generatedColumns;
+    if (dependsOn) {
+      if (!supported.dependsOn) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support generated columns that use "dependsOn".`,
+        );
+      }
+
+      if (!stored) {
+        throw new Error('Generated columns that use "dependsOn" are always stored.');
+      }
+
+      // a plain column, see syncGeneratedColumnTriggers
+      return undefined;
+    }
+
     if (!(stored ? supported.stored : supported.virtual)) {
       const kind = supported.stored || supported.virtual ? (stored ? 'stored ' : 'virtual ') : '';
 

@@ -6,6 +6,7 @@ import { Deferrable } from '../deferrable';
 import { QueryTypes } from '../enums';
 import { BaseError } from '../errors';
 import { setTransactionFromCls } from '../model-internals.js';
+import type { ModelStatic } from '../model.js';
 import type { QueryRawOptions, QueryRawOptionsWithType, Sequelize } from '../sequelize';
 import { COMPLETES_TRANSACTION, Transaction } from '../transaction';
 import { isErrorWithStringCode } from '../utils/check.js';
@@ -336,6 +337,21 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param tableName - The name of the table or model
    * @param options - Query options
    */
+  /**
+   * Creates, replaces or drops the triggers that maintain the generated attributes of a model that use `dependsOn`,
+   * then recomputes those attributes for the existing rows. Only the columns that already exist are maintained.
+   *
+   * `sync` calls it. In migrations, call it after adding, changing or removing such a column.
+   * It does nothing in dialects that do not support `dependsOn`.
+   *
+   * @param _model
+   * @param _options
+   */
+  async syncGeneratedColumnTriggers(
+    _model: ModelStatic,
+    _options?: QueryRawOptions,
+  ): Promise<void> {}
+
   async tableExists(tableName: TableOrModel, options?: QueryRawOptions): Promise<boolean> {
     const sql = this.queryGenerator.tableExistsQuery(tableName);
     const out = await this.sequelize.query(sql, { ...options, type: QueryTypes.SELECT });
