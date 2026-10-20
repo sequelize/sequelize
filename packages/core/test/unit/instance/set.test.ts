@@ -1,9 +1,7 @@
-'use strict';
-
-const { expect } = require('chai');
-const { beforeAll2, sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const sinon = require('sinon');
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import sinon from 'sinon';
+import { beforeAll2, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
@@ -29,9 +27,8 @@ describe('Model#set', () => {
 
       user.set('meta.location', 'Copenhagen');
       expect(user.dataValues['meta.location']).not.to.be.ok;
-      expect(user.get('meta').location).to.equal('Copenhagen');
-      expect(user.get('meta') === meta).to.equal(true);
-      expect(user.get('meta') === meta).to.equal(true);
+      expect((user.get('meta') as { location: string }).location).to.equal('Copenhagen');
+      expect(user.get('meta')).to.equal(meta);
     });
 
     it('doesnt mutate the JSONB defaultValue', () => {
@@ -61,7 +58,7 @@ describe('Model#set', () => {
     });
     user1.set('date', '1970-01-01');
     expect(user1.get('date')).to.be.ok;
-    expect(user1.get('date').getTime()).to.equal(new Date('1970-01-01').getTime());
+    expect((user1.get('date') as Date).getTime()).to.equal(new Date('1970-01-01').getTime());
   });
 
   it('overwrites non-date originalValue with date', () => {
@@ -80,7 +77,7 @@ describe('Model#set', () => {
 
     user.set('date', new Date());
     expect(user.get('date')).to.be.an.instanceof(Date);
-    expect(user.get('date')).not.to.be.NaN;
+    expect((user.get('date') as Date).getTime()).not.to.be.NaN;
   });
 
   describe('custom setter', () => {
@@ -89,7 +86,11 @@ describe('Model#set', () => {
         .stub(sequelize.queryInterface, 'insert')
         .callsFake(async instance => [instance, 1]);
       const stubGetNextPrimaryKeyValue = sinon
-        .stub(sequelize.queryInterface, 'getNextPrimaryKeyValue')
+        // getNextPrimaryKeyValue is a private method that is not part of the typings
+        .stub(
+          sequelize.queryInterface as unknown as { getNextPrimaryKeyValue(): Promise<unknown> },
+          'getNextPrimaryKeyValue',
+        )
         .callsFake(async () => undefined);
       const User = sequelize.define('User', {
         phoneNumber: {
