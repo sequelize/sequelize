@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const util = require('util');
 const _ = require('lodash');
-const uuidv4 = require('uuid').v4;
+const uuidv4 = require('../../utils/uuid').v4;
 
 const Utils = require('../../utils');
 const deprecations = require('../../utils/deprecations');
