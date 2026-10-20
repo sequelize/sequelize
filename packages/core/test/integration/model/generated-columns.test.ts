@@ -4,9 +4,18 @@ import type {
   GeneratedColumnOptions,
   InferAttributes,
   InferCreationAttributes,
+  NonAttribute,
 } from '@sequelize/core';
-import { DataTypes, Model, sql } from '@sequelize/core';
-import { Attribute, GeneratedAs, NotNull, Table } from '@sequelize/core/decorators-legacy';
+import { DataTypes, ForeignKeyConstraintError, Model, sql } from '@sequelize/core';
+import {
+  Attribute,
+  BelongsTo,
+  GeneratedAs,
+  NotNull,
+  PrimaryKey,
+  Table,
+  Unique,
+} from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import semver from 'semver';
 import { sequelize } from '../support';
@@ -66,10 +75,12 @@ async function syncLineItem({
     const LineItem = await syncLineItem();
 
     const item = await LineItem.create({ unitPrice: 3, quantity: 2, total: 100 });
-    await item.reload();
     expect(item.total).to.equal(6);
 
     await item.update({ quantity: 5 });
+    expect(item.total).to.equal(15);
+    expect(item.changed()).to.equal(false);
+
     await item.reload();
     expect(item.total).to.equal(15);
   });
@@ -127,6 +138,72 @@ async function syncLineItem({
 
     const [item] = await LineItem.findAll();
     expect(item.total).to.equal(6);
+  });
+
+  it('supports generated foreign keys, and foreign keys to generated columns', async () => {
+    @Table({ modelName: 'GeneratedTenant', timestamps: false })
+    class Tenant extends Model<InferAttributes<Tenant>, InferCreationAttributes<Tenant>> {
+      @Attribute(DataTypes.INTEGER)
+      @PrimaryKey
+      declare id: number;
+
+      @Attribute(DataTypes.STRING)
+      @NotNull
+      declare name: string;
+
+      @Attribute(DataTypes.STRING)
+      @Unique
+      @GeneratedAs(sql`lower(${sql.attribute('name')})`)
+      declare slug: CreationOptional<string>;
+
+      declare documents?: NonAttribute<Document[]>;
+    }
+
+    @Table({ modelName: 'GeneratedDocument', timestamps: false })
+    class Document extends Model<InferAttributes<Document>, InferCreationAttributes<Document>> {
+      declare id: CreationOptional<number>;
+
+      @Attribute(DataTypes.INTEGER)
+      @NotNull
+      declare externalTenantId: number;
+
+      @Attribute(DataTypes.INTEGER)
+      @GeneratedAs(sql`${sql.attribute('externalTenantId')} - 1000`)
+      declare tenantId: CreationOptional<number>;
+
+      @BelongsTo(() => Tenant, {
+        foreignKey: 'tenantId',
+        inverse: { as: 'documents', type: 'hasMany' },
+      })
+      declare tenant?: NonAttribute<Tenant>;
+
+      @Attribute(DataTypes.STRING)
+      declare tenantSlug: string | null;
+
+      @BelongsTo(() => Tenant, { foreignKey: 'tenantSlug', targetKey: 'slug' })
+      declare tenantBySlug?: NonAttribute<Tenant>;
+    }
+
+    sequelize.addModels([Tenant, Document]);
+    await Tenant.sync({ force: true });
+    await Document.sync({ force: true });
+
+    await Tenant.create({ id: 1, name: 'Acme' });
+    await Document.create({ externalTenantId: 1001, tenantSlug: 'acme' });
+
+    const document = await Document.findOne({
+      include: ['tenant', 'tenantBySlug'],
+      rejectOnEmpty: true,
+    });
+    expect(document.tenant?.id).to.equal(1);
+    expect(document.tenantBySlug?.id).to.equal(1);
+
+    const tenant = await Tenant.findByPk(1, { include: ['documents'], rejectOnEmpty: true });
+    expect(tenant.documents).to.have.length(1);
+
+    await expect(Document.create({ externalTenantId: 1009, tenantSlug: null })).to.be.rejectedWith(
+      ForeignKeyConstraintError,
+    );
   });
 
   it('supports virtual generated columns', async function () {

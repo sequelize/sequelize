@@ -3915,10 +3915,13 @@ Instead of specifying a Model, either:
       options.defaultFields = options.fields;
     }
 
+    const hasGeneratedAttributes = modelDefinition.generatedAttributeNames.size > 0;
+    const { returnValues } = this.sequelize.dialect.supports;
     if (options.returning === undefined) {
       if (options.association) {
         options.returning = false;
-      } else if (this.isNewRecord) {
+      } else if (this.isNewRecord || (hasGeneratedAttributes && returnValues)) {
+        // the database recomputes generated attributes on every write
         options.returning = true;
       }
     }
@@ -4139,6 +4142,27 @@ Instead of specifying a Model, either:
     Object.assign(values, result.dataValues);
 
     Object.assign(result.dataValues, values);
+
+    // read back the generated attributes the write could not return
+    if (
+      hasGeneratedAttributes &&
+      !(returnValues && options.returning) &&
+      this.constructor.primaryKeyAttributes.length > 0
+    ) {
+      const generatedValues = await this.constructor.findOne({
+        where: this.where(),
+        attributes: [...modelDefinition.generatedAttributeNames],
+        connection: options.connection,
+        transaction: options.transaction,
+        logging: options.logging,
+        hooks: false,
+        paranoid: false,
+        raw: true,
+      });
+
+      Object.assign(result.dataValues, generatedValues);
+    }
+
     if (wasNewRecord && this._options.include && this._options.include.length > 0) {
       await Promise.all(
         this._options.include

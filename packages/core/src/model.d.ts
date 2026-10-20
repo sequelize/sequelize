@@ -1775,6 +1775,9 @@ export interface AttributeOptions<M extends Model = Model> {
    * `sync({ alter: true })` does not alter generated columns, nor the columns their expression reads, as most databases refuse it.
    * Use a migration to change them.
    *
+   * After `save()`, the instance holds the value computed by the database. The expression can only read columns of the same row,
+   * but the column itself can be a foreign key, such as the foreign key of a `belongsTo` association.
+   *
    * @example
    * ```ts
    * total: {
