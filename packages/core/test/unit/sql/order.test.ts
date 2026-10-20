@@ -221,7 +221,6 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         Subtask.table,
         {
           model: Subtask,
-          // @ts-expect-error -- no access to attribute typing, as models are defined using sequelize.define
           attributes: ['id', 'name', 'createdAt'],
           include: _validateIncludedElements({
             include: [
@@ -343,7 +342,6 @@ describe('QueryGenerator#selectQuery with "order"', () => {
         Subtask.table,
         {
           model: Subtask,
-          // @ts-expect-error -- no access to attribute typing, as models are defined using sequelize.define
           attributes: ['id', 'name'],
           order: [sql.random],
         },
