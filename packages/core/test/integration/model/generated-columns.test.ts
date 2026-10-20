@@ -85,6 +85,44 @@ async function syncLineItem({
     expect(item.total).to.equal(15);
   });
 
+  it('only refreshes the generated attributes after an update', async () => {
+    const LineItem = await syncLineItem();
+    const { id } = await LineItem.create({ unitPrice: 3, quantity: 2 });
+
+    // an unsaved change survives saving another attribute
+    const item = (await LineItem.findByPk(id))!;
+    item.unitPrice = 10;
+    await item.update({ quantity: 5 });
+    expect(item.total).to.equal(15);
+    expect(item.unitPrice).to.equal(10);
+    expect(item.changed()).to.deep.equal(['unitPrice']);
+
+    // attributes left out of the query stay out
+    const partial = (await LineItem.findByPk(id, { attributes: ['id', 'quantity'] }))!;
+    await partial.update({ quantity: 6 });
+    expect(partial.get({ plain: true })).to.deep.equal({ id, quantity: 6, total: 18 });
+  });
+
+  it('does not write generated attributes listed in fields', async () => {
+    const LineItem = await syncLineItem();
+    const item = await LineItem.create({ unitPrice: 3, quantity: 2 });
+
+    item.quantity = 4;
+    item.changed('total', true);
+    await item.save({ fields: ['quantity', 'total'] });
+    expect(item.total).to.equal(12);
+  });
+
+  it('reads the generated attributes back regardless of the default scope', async () => {
+    const LineItem = await syncLineItem();
+    LineItem.addScope('defaultScope', { where: { quantity: 1 } }, { override: true });
+
+    const item = await LineItem.create({ unitPrice: 3, quantity: 2 });
+    expect(item.total).to.equal(6);
+    await item.update({ quantity: 4 });
+    expect(item.total).to.equal(12);
+  });
+
   it('does not write generated columns in bulkCreate', async () => {
     const LineItem = await syncLineItem();
 

@@ -3920,9 +3920,18 @@ Instead of specifying a Model, either:
     if (options.returning === undefined) {
       if (options.association) {
         options.returning = false;
-      } else if (this.isNewRecord || (hasGeneratedAttributes && returnValues)) {
-        // the database recomputes generated attributes on every write
+      } else if (this.isNewRecord) {
         options.returning = true;
+      } else if (hasGeneratedAttributes && returnValues) {
+        // the database recomputes generated attributes on every write. Only those are returned,
+        // so unsaved changes and attributes the instance was loaded without are left alone.
+        // ponytail: mssql tables with triggers return every column, because the table that captures
+        // the output needs their types, which a list of names does not carry.
+        options.returning = this.constructor.options.hasTrigger
+          ? true
+          : [...modelDefinition.generatedAttributeNames].map(attributeName =>
+              modelDefinition.getColumnName(attributeName),
+            );
       }
     }
 
@@ -4079,6 +4088,10 @@ Instead of specifying a Model, either:
       );
     }
 
+    // the database computes generated attributes, so they are never written
+    options.fields = options.fields.filter(
+      attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+    );
     const realFields = options.fields.filter(
       attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
@@ -4149,7 +4162,8 @@ Instead of specifying a Model, either:
       !(returnValues && options.returning) &&
       this.constructor.primaryKeyAttributes.length > 0
     ) {
-      const generatedValues = await this.constructor.findOne({
+      // built rather than raw, so the values go through the same parsing as any other read
+      const generatedValues = await this.constructor.withoutScope().findOne({
         where: this.where(),
         attributes: [...modelDefinition.generatedAttributeNames],
         connection: options.connection,
@@ -4157,10 +4171,10 @@ Instead of specifying a Model, either:
         logging: options.logging,
         hooks: false,
         paranoid: false,
-        raw: true,
+        rejectOnEmpty: false,
       });
 
-      Object.assign(result.dataValues, generatedValues);
+      Object.assign(result.dataValues, generatedValues?.dataValues);
     }
 
     if (wasNewRecord && this._options.include && this._options.include.length > 0) {
