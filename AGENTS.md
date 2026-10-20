@@ -57,54 +57,12 @@ cd packages/core && DIALECT=sqlite3 yarn mocha test/integration/utils.test.ts   
 
 ## Testing conventions
 
+Read [TESTING.md](TESTING.md) before writing or changing a test. The points that most often go wrong:
+
 - Every bug fix and new feature needs an automated regression test that fails without the change.
-- Put the test where the behaviour lives. Behaviour that is not dialect-specific belongs in `packages/core/test` so it runs against every dialect; only genuinely dialect-specific tests belong in `packages/<dialect>/src/*.test.ts`. Prefer one shared test over per-dialect copies.
-- Use unit tests for pure logic and integration tests when the behaviour depends on real database semantics.
-- Mocha picks up `*.test.js` and `*.test.ts` under `packages/core/test/{unit,integration}`. Write new tests in TypeScript.
-- Integration tests import from `packages/core/test/integration/support.ts`: `sequelize` (the shared instance for the current `DIALECT`), `beforeAll2` (runs setup once, returns its result to every test), and `setResetMode('drop' | 'truncate' | 'destroy' | 'none')`. **`drop` is the default and unregisters every model after each test**, so a suite that defines its models once in `beforeAll2` — like the example below — must call `setResetMode('destroy')` or `'truncate'`, or every test after the first fails.
-- Unit tests import from `packages/core/test/support.ts`; `expectsql` asserts generated SQL per dialect. Chai assertions use the extensions in `packages/core/test/chai-extensions.d.ts`.
-- Guard dialect-specific tests with `sequelize.dialect.supports.<feature>`. Adding a capability flag is three edits: the type in `DialectSupports` (`packages/core/src/abstract-dialect/dialect.ts:47`), the default in the `freezeDeep` block (`:337`), and an `AbstractDialect.extendSupport()` call in each dialect that overrides it. Prefer that over branching on `sequelize.dialect.name`.
-
-```typescript
-import type { CreationOptional, InferAttributes, InferCreationAttributes } from '@sequelize/core';
-import { DataTypes, Model } from '@sequelize/core';
-import { Attribute, NotNull } from '@sequelize/core/decorators-legacy';
-import { expect } from 'chai';
-import { beforeAll2, sequelize, setResetMode } from '../support';
-
-describe('Model#newFeature', () => {
-  if (!sequelize.dialect.supports.newFeature) {
-    return;
-  }
-
-  setResetMode('destroy');
-
-  const vars = beforeAll2(async () => {
-    class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
-      declare id: CreationOptional<number>;
-
-      @Attribute(DataTypes.INTEGER)
-      @NotNull
-      declare someField: number;
-    }
-
-    sequelize.addModels([User]);
-    await sequelize.sync({ force: true });
-
-    return { User };
-  });
-
-  beforeEach(async () => {
-    await vars.User.create({ someField: 1 });
-  });
-
-  it('works', async () => {
-    const user = await vars.User.findByPk(1, { rejectOnEmpty: true });
-    await user.newFeature();
-    expect(user.someField).to.equal(2);
-  });
-});
-```
+- Write new tests in TypeScript, using the helpers in `packages/core/test/support.ts` and `packages/core/test/integration/support.ts` (`sequelize`, `beforeAll2`, `setResetMode`, `expectsql`) instead of Mocha's `this` context. Many legacy `.js` tests do not follow the conventions; do not copy their style.
+- **The default integration reset mode, `drop`, unregisters every model after each test**, so a suite that defines its models once in `beforeAll2` must call `setResetMode('destroy')` or `'truncate'`, or every test after the first fails.
+- Skip unsupported dialects where the test is registered, based on `sequelize.dialect.supports` flags. Never `return` early inside a test: it then passes without asserting anything.
 
 ## Branching and PRs
 

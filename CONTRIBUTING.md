@@ -90,6 +90,8 @@ A pull request that fixes a bug or implements a new feature must add at least on
 - Passes
 - Would not pass if executed without your implementation
 
+See [TESTING.md](TESTING.md) for how tests should be written.
+
 ## How to prepare a development environment for Sequelize
 
 ### 0. Requirements
