@@ -178,7 +178,10 @@ describe('DataTypes.ARRAY', () => {
     // Empty arrays cannot be bound as parameters (driver has no element type information).
     // getBindParamSql must emit a typed empty array literal instead.
     it('emits typed empty array literal for empty INTEGER array', () => {
-      expectsql(queryGenerator.escape([], { type: DataTypes.ARRAY(DataTypes.INTEGER) }), {
+      expectsql(queryGenerator.escape([], {
+        type: DataTypes.ARRAY(DataTypes.INTEGER),
+        bindParam: () => '$1',
+      }), {
         postgres: `'{}'::integer[]`,
       });
     });
