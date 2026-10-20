@@ -105,17 +105,50 @@ describe('utils / check', () => {
           { ifExists: true },
         );
       }).not.to.throw();
+    });
 
+    it('rejects options that are disabled in the supported options object', () => {
       expect(() => {
         rejectInvalidOptions(
-          'acceptsSupportedObject',
+          'rejectsDisabledInObject',
           dialect,
           supportableOptions,
           { ifExists: true, cascade: false },
           { cascade: true },
         );
       }).to.throw(
-        buildInvalidOptionReceivedError('acceptsSupportedObject', dialect.name, ['cascade'])
+        buildInvalidOptionReceivedError('rejectsDisabledInObject', dialect.name, ['cascade'])
+          .message,
+      );
+    });
+
+    it('ignores non-enumerable properties, but not enumerable inherited ones', () => {
+      class OptionsWithGetter {
+        get cascade() {
+          return true;
+        }
+      }
+
+      expect(() => {
+        rejectInvalidOptions(
+          'ignoresNonEnumerable',
+          dialect,
+          supportableOptions,
+          [],
+          new OptionsWithGetter(),
+        );
+      }).not.to.throw();
+
+      expect(() => {
+        rejectInvalidOptions(
+          'rejectsEnumerableInherited',
+          dialect,
+          supportableOptions,
+          [],
+          Object.create({ cascade: true }),
+        );
+      }).to.throw(
+        buildInvalidOptionReceivedError('rejectsEnumerableInherited', dialect.name, ['cascade'])
           .message,
       );
     });

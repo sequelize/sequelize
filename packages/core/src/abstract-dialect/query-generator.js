@@ -34,8 +34,36 @@ import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
-import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
+import {
+  AbstractQueryGeneratorTypeScript,
+  QUOTE_TABLE_SUPPORTABLE_OPTIONS,
+} from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
+
+/**
+ * quoteTable is called for every table of a SELECT query, so we only pass it the options it supports
+ * instead of spreading the entire query options into a new object for each table.
+ *
+ * @param {string | boolean} alias The alias of the table
+ * @param {...object} optionSources Where to read the options from. Later sources take precedence, like with object spread.
+ * @returns {object}
+ */
+function getQuoteTableOptions(alias, ...optionSources) {
+  const quoteTableOptions = { alias };
+  for (const source of optionSources) {
+    if (source == null) {
+      continue;
+    }
+
+    for (const optionName of QUOTE_TABLE_SUPPORTABLE_OPTIONS) {
+      if (Object.hasOwn(source, optionName)) {
+        quoteTableOptions[optionName] = source[optionName];
+      }
+    }
+  }
+
+  return quoteTableOptions;
+}
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
@@ -1134,12 +1162,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       mainTable.as && this.quoteIdentifier(mainTable.as, mainTable.as.startsWith('%'));
 
     mainTable.quotedName = !Array.isArray(mainTable.name)
-      ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false })
+      ? this.quoteTable(mainTable.name, getQuoteTableOptions(mainTable.as ?? false, options))
       : tableName
           .map(t => {
             return Array.isArray(t)
-              ? this.quoteTable(t[0], { ...options, alias: t[1] })
-              : this.quoteTable(t, { ...options, alias: true });
+              ? this.quoteTable(t[0], getQuoteTableOptions(t[1], options))
+              : this.quoteTable(t, getQuoteTableOptions(true, options));
           })
           .join(', ');
 
@@ -2219,11 +2247,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         : include.right && this.dialect.supports['RIGHT JOIN']
           ? 'RIGHT OUTER JOIN'
           : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, {
-        ...topLevelInfo.options,
-        ...include,
-        alias: minifiedAsRight,
-      }),
+      body: this.quoteTable(
+        tableRight,
+        getQuoteTableOptions(minifiedAsRight, topLevelInfo.options, include),
+      ),
       condition: joinOn,
       attributes: {
         main: [],
@@ -2498,7 +2525,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: minifiedThroughAs })} INNER JOIN ${this.quoteTable(include.model.table, { ...topLevelInfo.options, ...include, alias: minifiedIncludeAs })} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, getQuoteTableOptions(minifiedThroughAs, topLevelInfo.options, include))} INNER JOIN ${this.quoteTable(include.model.table, getQuoteTableOptions(minifiedIncludeAs, topLevelInfo.options, include))} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }

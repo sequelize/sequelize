@@ -23,11 +23,14 @@ export function isDevEnv(): boolean {
  * For use in per-dialect implementation of methods to warn the user when they use an option that TypeScript declares as valid,
  * but that the dialect they use does not support.
  *
+ * Only the options listed in {@link allSupportableOptions} are checked, any other property of {@link receivedOptions} is ignored.
+ * Options whose value is undefined or false are considered as not received.
+ *
  * @param methodName The name of the method that received the options
  * @param dialect The dialect to which the implementation belongs
  * @param allSupportableOptions All options that this method *can* support. The ones that are declared in TypeScript typings.
  * @param supportedOptions The subset of options that this dialect *actually does* support.
- * @param receivedOptions The user provided options passed to the method.
+ * @param receivedOptions The user provided options passed to the method. Can be undefined if the user did not provide any.
  */
 export function rejectInvalidOptions<T extends string>(
   methodName: string,
@@ -40,27 +43,56 @@ export function rejectInvalidOptions<T extends string>(
     return;
   }
 
-  const receivedOptionNames: string[] = [];
+  const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
+
+  let unsupportedOptions: string[] | undefined;
   for (const optionName of allSupportableOptions) {
+    if (parsedSupportedOptions.has(optionName)) {
+      continue;
+    }
+
     const value = (receivedOptions as Record<string, unknown>)[optionName];
 
     // This ignores any undefined or false values
     // It is therefore _essential_ that boolean options are false by default!
-    if (value !== undefined && value !== false) {
-      receivedOptionNames.push(optionName);
+    if (
+      value === undefined ||
+      value === false ||
+      !isEnumerableProperty(receivedOptions, optionName)
+    ) {
+      continue;
     }
+
+    unsupportedOptions ??= [];
+    unsupportedOptions.push(optionName);
   }
 
-  const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
-
-  const unsupportedOptions = receivedOptionNames.filter(optionName => {
-    return !parsedSupportedOptions.has(optionName);
-  });
-
-  if (unsupportedOptions.length > 0) {
+  if (unsupportedOptions) {
     // sorted so the error does not depend on the declaration order of allSupportableOptions
     throw buildInvalidOptionReceivedError(methodName, dialect.name, unsupportedOptions.sort());
   }
+}
+
+/**
+ * Returns whether the property is enumerable, either as an own property or one inherited from the prototype chain.
+ * Non-enumerable properties (such as getters declared on a class) are not considered to be options.
+ *
+ * @param obj The object to check
+ * @param propertyName The name of the property
+ */
+function isEnumerableProperty(obj: object, propertyName: string): boolean {
+  for (
+    let current: object | null = obj;
+    current != null;
+    current = Object.getPrototypeOf(current)
+  ) {
+    const descriptor = Object.getOwnPropertyDescriptor(current, propertyName);
+    if (descriptor) {
+      return descriptor.enumerable ?? false;
+    }
+  }
+
+  return false;
 }
 
 const SUPPORTED_OPTIONS_CACHE = new WeakMap<AbstractDialect, Map<string, Set<string>>>();
