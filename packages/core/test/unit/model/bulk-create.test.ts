@@ -1,9 +1,8 @@
-'use strict';
-
-const { expect } = require('chai');
-const sinon = require('sinon');
-const { beforeAll2, sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import type { SinonStub } from 'sinon';
+import sinon from 'sinon';
+import { beforeAll2, sequelize } from '../../support';
 
 describe('Model#bulkCreate', () => {
   const vars = beforeAll2(() => {
@@ -18,13 +17,12 @@ describe('Model#bulkCreate', () => {
         purchaseCount: {
           type: DataTypes.INTEGER(11).UNSIGNED,
           allowNull: false,
-          underscored: true,
         },
       },
       { timestamps: false },
     );
 
-    const stub = sinon.stub(sequelize.queryInterface, 'bulkInsert').resolves([]);
+    const stub: SinonStub = sinon.stub(sequelize.queryInterface, 'bulkInsert').resolves([]);
 
     return { TestModel, stub };
   });
