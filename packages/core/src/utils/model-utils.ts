@@ -4,8 +4,8 @@ import type { TableNameWithSchema } from '../abstract-dialect/query-interface.js
 import type { Model, ModelStatic } from '../model';
 import { ModelDefinition } from '../model-definition.js';
 
-// Cache for the lazily-required Model class, see isModelStatic below.
-let cachedModelClass: ModelStatic | undefined;
+// Cached because isModelStatic runs on hot paths, see the lazy require below.
+let cachedModelClass: typeof Model | undefined;
 
 /**
  * Returns true if the value is a model subclass.
@@ -14,7 +14,8 @@ let cachedModelClass: ModelStatic | undefined;
  */
 export function isModelStatic<M extends Model>(val: any): val is ModelStatic<M> {
   if (cachedModelClass == null) {
-    cachedModelClass = require('../model').Model as ModelStatic;
+    // Cyclic import: a static import of Model here breaks the module load order.
+    cachedModelClass = require('../model').Model as typeof Model;
   }
 
   return typeof val === 'function' && val.prototype instanceof cachedModelClass;
