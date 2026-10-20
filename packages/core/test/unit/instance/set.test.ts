@@ -28,8 +28,7 @@ describe('Model#set', () => {
       user.set('meta.location', 'Copenhagen');
       expect(user.dataValues['meta.location']).not.to.be.ok;
       expect((user.get('meta') as { location: string }).location).to.equal('Copenhagen');
-      expect(user.get('meta') === meta).to.equal(true);
-      expect(user.get('meta') === meta).to.equal(true);
+      expect(user.get('meta')).to.equal(meta);
     });
 
     it('doesnt mutate the JSONB defaultValue', () => {
@@ -78,7 +77,7 @@ describe('Model#set', () => {
 
     user.set('date', new Date());
     expect(user.get('date')).to.be.an.instanceof(Date);
-    expect(user.get('date')).not.to.be.NaN;
+    expect((user.get('date') as Date).getTime()).not.to.be.NaN;
   });
 
   describe('custom setter', () => {

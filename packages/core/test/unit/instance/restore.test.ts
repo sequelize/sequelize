@@ -32,7 +32,7 @@ describe('Model#restore', () => {
       stub.restore();
     });
 
-    it('should allow restores even if options are not given', () => {
+    it('should allow restores even if options are not given', async () => {
       const User = sequelize.define(
         'User',
         {
@@ -48,9 +48,7 @@ describe('Model#restore', () => {
       );
 
       const instance = User.build({ id: 1 }, { isNewRecord: false });
-      expect(() => {
-        instance.restore();
-      }).to.not.throw();
+      await expect(instance.restore()).to.be.fulfilled;
     });
   });
 });

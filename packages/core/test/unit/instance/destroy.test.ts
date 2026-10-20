@@ -25,7 +25,7 @@ describe('Model#destroy', () => {
       stub.restore();
     });
 
-    it('should allow destroys even if options are not given', () => {
+    it('should allow destroys even if options are not given', async () => {
       const User = sequelize.define('User', {
         id: {
           type: DataTypes.INTEGER,
@@ -35,9 +35,7 @@ describe('Model#destroy', () => {
       });
 
       const instance = User.build({ id: 1 }, { isNewRecord: false });
-      expect(() => {
-        instance.destroy();
-      }).to.not.throw();
+      await expect(instance.destroy()).to.be.fulfilled;
     });
   });
 });

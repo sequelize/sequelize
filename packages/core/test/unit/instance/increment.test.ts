@@ -26,7 +26,7 @@ describe('Model#increment', () => {
       stub.restore();
     });
 
-    it('should allow increments even if options are not given', () => {
+    it('should allow increments even if options are not given', async () => {
       const User = sequelize.define('User', {
         id: {
           type: DataTypes.INTEGER,
@@ -36,9 +36,7 @@ describe('Model#increment', () => {
       });
 
       const instance = User.build({ id: 1 }, { isNewRecord: false });
-      expect(() => {
-        instance.increment(['id']);
-      }).to.not.throw();
+      await expect(instance.increment(['id'])).to.be.fulfilled;
     });
   });
 });

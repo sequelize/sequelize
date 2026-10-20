@@ -32,7 +32,7 @@ describe('Model#save', () => {
       stub.restore();
     });
 
-    it('should allow saves even if options are not given', () => {
+    it('should allow saves even if options are not given', async () => {
       const User = sequelize.define('User', {
         id: {
           type: DataTypes.INTEGER,
@@ -42,9 +42,7 @@ describe('Model#save', () => {
       });
 
       const instance = User.build({});
-      expect(() => {
-        instance.save();
-      }).to.not.throw();
+      await expect(instance.save()).to.be.fulfilled;
     });
   });
 });
