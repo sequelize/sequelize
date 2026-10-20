@@ -236,7 +236,7 @@ Add `--grep` to narrow it further. You can also set `spec` and `grep` in the rep
 _Hint:_ if you're creating a new test, you can run just that test against every dialect you have running locally (see [Section 3.1](#31-with-docker-recommended)) from the package's root directory:
 
 ```bash
-DIALECT=mariadb yarn mocha test/integration/your-new.test.ts && DIALECT=mysql yarn mocha test/integration/your-new.test.ts && DIALECT=postgres yarn mocha test/integration/your-new.test.ts && DIALECT=sqlite3 yarn mocha test/integration/your-new.test.ts && DIALECT=mssql yarn mocha test/integration/your-new.test.ts && DIALECT=db2 yarn mocha test/integration/your-new.test.ts
+DIALECT=mariadb yarn mocha test/integration/your-new.test.ts && DIALECT=mysql yarn mocha test/integration/your-new.test.ts && DIALECT=postgres yarn mocha test/integration/your-new.test.ts && DIALECT=sqlite3 yarn mocha test/integration/your-new.test.ts && DIALECT=mssql yarn mocha test/integration/your-new.test.ts && DIALECT=db2 yarn mocha test/integration/your-new.test.ts && DIALECT=oracle yarn mocha test/integration/your-new.test.ts
 ```
 
 ### 5. Running an SSCCE

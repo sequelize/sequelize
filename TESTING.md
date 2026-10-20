@@ -23,13 +23,17 @@ Many existing tests, mostly the `.js` files under `packages/core/test`, predate 
 
 - Write new tests in **TypeScript**. Do not add new `.test.js` files.
 - Use arrow functions for `describe`, `it` and hooks. Do not use Mocha's `this` context to share state (`this.sequelize`, `this.User = …`). Use the helpers described below instead.
-- Name suites after what they test, such as `describe('Model#restore')` or `describe('QueryGenerator#removeColumnQuery')`. `Support.getTestDialectTeaser()` is legacy; don't use it in new suites.
+- Name each suite after what it tests: `Class.staticMethod` or `Class#instanceMethod`, such as `describe('Model.findAll')`, `describe('Model#restore')` or `describe('QueryGenerator#removeColumnQuery')`. `Support.getTestDialectTeaser()` is legacy; don't use it in new suites.
+- Keep suites flat. Nest a `describe` only to group tests that share a fixture or setup, not to wrap a single test, to scope one stub, or to hold a dialect check.
+- Import `sequelize` from the support file and use it under that name. Don't alias it (`const current = sequelize`).
 - Use Chai's `expect` (`import { expect } from 'chai'`). [chai-as-promised](https://www.npmjs.com/package/chai-as-promised), [sinon-chai](https://www.npmjs.com/package/sinon-chai) and [chai-datetime](https://www.npmjs.com/package/chai-datetime) are enabled, plus the custom assertions declared in [`packages/core/test/chai-extensions.d.ts`](packages/core/test/chai-extensions.d.ts).
 - Every assertion must be able to fail:
   - Always `await` promise assertions: `await expect(promise).to.be.rejectedWith(…)`. An un-awaited assertion never fails the test.
   - Specify what you expect to be thrown. Bare `.to.be.rejected` or `.to.throw()` also passes when the code fails for an unrelated reason. Pass an error class, a message, or both.
   - Never end a test early with `return` because the dialect does not support something. The test then passes without checking anything. See [Dialect differences](#dialect-differences).
-- When you stub or spy with Sinon, restore it in an `afterEach(() => { sinon.restore(); })`. Use `useFakeTimers()` from the support file rather than `sinon.useFakeTimers()`: it leaves `process.nextTick` and `queueMicrotask` alone, which the database drivers need.
+- Create Sinon stubs and spies in the test that uses them, and restore them in an `afterEach(() => { sinon.restore(); })`. A stub that a whole suite shares through `beforeAll2` must be restored in `after` instead, because `sinon.restore()` would remove it after the first test. Use `useFakeTimers()` from the support file rather than `sinon.useFakeTimers()`: it leaves `process.nextTick` and `queueMicrotask` alone, which the database drivers need.
+- Mocha does not type-check tests: they are transpiled without type checking. `yarn test-typings` does, against the built `lib/` declarations, so run it before pushing, and rebuild after changing a `.d.ts` file.
+- Mark intentionally invalid input with `// @ts-expect-error -- <reason>` rather than casting to `any`. When the typings reject something the runtime supports, fix the typings, or link the issue that tracks the gap in the comment.
 
 ## Helpers
 
@@ -46,16 +50,18 @@ Unit tests import from [`packages/core/test/support.ts`](packages/core/test/supp
 | `expectPerDialect(fn, expectations)`         | Like `expectsql`, but for any value. `fn` must be synchronous.                                                                        |
 | `allowDeprecationsInSuite(codes)`            | Allows the listed deprecation codes in the current suite. Any other deprecation warning fails the run.                                |
 
+Node.js emits each deprecation warning only once per process. A suite that triggers a deprecation without allowing it can therefore pass in the full run, because another file triggered it first, and fail when its file runs alone. Call `allowDeprecationsInSuite` in every suite that triggers the deprecation.
+
 ### Resetting the database
 
 After each integration test, the database is reset according to the mode set with `setResetMode`:
 
 - `drop` (the default): drops every table **and unregisters every model**.
-- `destroy`: deletes every row and resets identity columns. Models stay registered.
-- `truncate`: truncates every table. Models stay registered.
+- `destroy`: deletes every row from the tables of the registered models. Identity columns are not reset. Models stay registered.
+- `truncate`: truncates the tables of the registered models. Whether identity columns restart depends on the dialect. Models stay registered.
 - `none`: does nothing.
 
-Define a suite's models once, in `beforeAll2`, and call `setResetMode('destroy')` or `setResetMode('truncate')`. With the default `drop` mode, the models defined in `beforeAll2` are gone after the first test, and every following test fails. Use `beforeEach2` only when each test really needs fresh models.
+Define a suite's models once, in `beforeAll2`, and call `setResetMode('destroy')` or `setResetMode('truncate')`. With the default `drop` mode, the models defined in `beforeAll2` are gone after the first test, and every following test fails. Use `beforeEach2` only when each test really needs fresh models. With `destroy` and `truncate`, don't rely on generated primary key values such as `1`; use the instances the test created.
 
 ## Defining models
 
@@ -136,12 +142,8 @@ describe('Model#newFeature', () => {
     return { User };
   });
 
-  beforeEach(async () => {
-    await vars.User.create({ someField: 1 });
-  });
-
   it('works', async () => {
-    const user = await vars.User.findByPk(1, { rejectOnEmpty: true });
+    const user = await vars.User.create({ someField: 1 });
     await user.newFeature();
     expect(user.someField).to.equal(2);
   });
@@ -153,9 +155,12 @@ describe('Model#newFeature', () => {
 When converting a `.js` test file to TypeScript:
 
 1. Rename it to `.test.ts` and replace `require` calls with `import`s.
-2. Replace `this.sequelize` with the imported `sequelize`, and state stored on `this` with `beforeAll2` / `beforeEach2`. Arrow functions then replace `function () {}`.
+2. Replace `this.sequelize` and aliases such as `const current = Support.sequelize` with the imported `sequelize`, and state stored on `this` with `beforeAll2` / `beforeEach2`. Arrow functions then replace `function () {}`.
 3. If the models no longer need to be recreated before every test, move them to `beforeAll2` and set an appropriate reset mode.
-4. Replace `describe(Support.getTestDialectTeaser('X'))` with a plain title.
+4. Replace `describe(Support.getTestDialectTeaser('X'), () => { describe('y', …) })` with a single suite named after what it tests, such as `describe('Model.y', …)`, and flatten describes that no longer group anything.
 5. Move dialect checks that `return` inside a test to where the test is registered.
+6. Run `yarn test-typings`. Type errors are often the first sign of a test that does not test what it claims, such as an option name with a typo.
+7. Fix assertions that cannot fail (see [General style](#general-style)) and list them in the pull request description.
+8. Compare the number of tests per dialect before and after the conversion. A difference means a test was lost, or that one which never ran is now skipped.
 
 Keeping `sequelize.define()` while converting is fine. Converting models to classes is welcome but not required, and keeping the diff close to the original makes the conversion easier to review.
