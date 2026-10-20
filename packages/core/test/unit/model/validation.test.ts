@@ -1,295 +1,242 @@
 import type { ModelStatic } from '@sequelize/core';
 import { DataTypes, Op, ValidationError, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
+import { inspect } from 'node:util';
 import type { SinonSpy, SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { rand, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
-type CheckValue = string | null;
-
 interface ValidatorCheck {
-  spec?: { args: unknown } | unknown[] | number;
-  fail: CheckValue | CheckValue[];
-  pass: CheckValue | CheckValue[];
-  raw?: boolean;
-  stringOrBoolean?: boolean;
+  /** The arguments of the validator, if it accepts any */
+  args?: unknown;
+  /** Whether the validator can also be enabled with `true` even though it accepts arguments */
+  allowTrue?: boolean;
+  fail: string[];
+  pass: Array<string | null>;
 }
-
-type NormalizedValidatorCheck = ValidatorCheck & { fail: CheckValue[]; pass: CheckValue[] };
 
 describe('InstanceValidator', () => {
   describe('validations', () => {
     const checks: Record<string, ValidatorCheck> = {
       is: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: '0',
-        pass: 'a',
+        args: ['[a-z]', 'i'],
+        fail: ['0'],
+        pass: ['a'],
       },
       not: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: 'a',
-        pass: '0',
+        args: ['[a-z]', 'i'],
+        fail: ['a'],
+        pass: ['0'],
       },
       isEmail: {
-        fail: 'a',
-        pass: 'abc@abc.com',
+        fail: ['a'],
+        pass: ['abc@abc.com'],
       },
       isUrl: {
-        fail: 'abc',
-        pass: 'http://abc.com',
+        fail: ['abc'],
+        pass: ['http://abc.com'],
       },
       isIP: {
-        fail: 'abc',
-        pass: '129.89.23.1',
+        fail: ['abc'],
+        pass: ['129.89.23.1'],
       },
       isIPv4: {
-        fail: 'abc',
-        pass: '129.89.23.1',
+        fail: ['abc'],
+        pass: ['129.89.23.1'],
       },
       isIPv6: {
-        fail: '1111:2222:3333::5555:',
-        pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156',
+        fail: ['1111:2222:3333::5555:'],
+        pass: ['fe80:0000:0000:0000:0204:61ff:fe9d:f156'],
       },
       isAlpha: {
-        stringOrBoolean: true,
-        spec: { args: 'en-GB' },
-        fail: '012',
-        pass: 'abc',
+        allowTrue: true,
+        args: 'en-GB',
+        fail: ['012'],
+        pass: ['abc'],
       },
       isAlphanumeric: {
-        stringOrBoolean: true,
-        spec: { args: 'en-GB' },
-        fail: '_abc019',
-        pass: 'abc019',
+        allowTrue: true,
+        args: 'en-GB',
+        fail: ['_abc019'],
+        pass: ['abc019'],
       },
       isNumeric: {
-        fail: 'abc',
-        pass: '019',
+        fail: ['abc'],
+        pass: ['019'],
       },
       isInt: {
-        fail: '9.2',
-        pass: '-9',
+        fail: ['9.2'],
+        pass: ['-9'],
       },
       isLowercase: {
-        fail: 'AB',
-        pass: 'ab',
+        fail: ['AB'],
+        pass: ['ab'],
       },
       isUppercase: {
-        fail: 'ab',
-        pass: 'AB',
+        fail: ['ab'],
+        pass: ['AB'],
       },
       isDecimal: {
-        fail: 'a',
-        pass: '0.2',
+        fail: ['a'],
+        pass: ['0.2'],
       },
       isFloat: {
-        fail: 'a',
-        pass: '9.2',
+        fail: ['a'],
+        pass: ['9.2'],
       },
       isNull: {
-        fail: '0',
-        pass: null,
+        fail: ['0'],
+        pass: [null],
       },
       notEmpty: {
-        fail: '       ',
-        pass: 'a',
+        fail: ['       '],
+        pass: ['a'],
       },
       equals: {
-        spec: { args: 'bla bla bla' },
-        fail: 'bla',
-        pass: 'bla bla bla',
+        args: 'bla bla bla',
+        fail: ['bla'],
+        pass: ['bla bla bla'],
       },
       contains: {
-        spec: { args: 'bla' },
-        fail: 'la',
-        pass: '0bla23',
+        args: 'bla',
+        fail: ['la'],
+        pass: ['0bla23'],
       },
       notContains: {
-        spec: { args: 'bla' },
-        fail: '0bla23',
-        pass: 'la',
+        args: 'bla',
+        fail: ['0bla23'],
+        pass: ['la'],
       },
       regex: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: '0',
-        pass: 'a',
+        args: ['[a-z]', 'i'],
+        fail: ['0'],
+        pass: ['a'],
       },
       notRegex: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: 'a',
-        pass: '0',
+        args: ['[a-z]', 'i'],
+        fail: ['a'],
+        pass: ['0'],
       },
       len: {
-        spec: { args: [2, 4] },
+        args: [2, 4],
         fail: ['1', '12345'],
         pass: ['12', '123', '1234'],
-        raw: true,
-      },
-      len$: {
-        spec: [2, 4],
-        fail: ['1', '12345'],
-        pass: ['12', '123', '1234'],
-        raw: true,
       },
       isUUID: {
-        spec: { args: 4 },
-        fail: 'f47ac10b-58cc-3372-a567-0e02b2c3d479',
-        pass: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        args: 4,
+        fail: ['f47ac10b-58cc-3372-a567-0e02b2c3d479'],
+        pass: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
       },
       isDate: {
-        fail: 'not a date',
-        pass: '2011-02-04',
+        fail: ['not a date'],
+        pass: ['2011-02-04'],
       },
       isAfter: {
-        spec: { args: '2011-11-05' },
-        fail: '2011-11-04',
-        pass: '2011-11-06',
+        args: '2011-11-05',
+        fail: ['2011-11-04'],
+        pass: ['2011-11-06'],
       },
       isBefore: {
-        spec: { args: '2011-11-05' },
-        fail: '2011-11-06',
-        pass: '2011-11-04',
+        args: '2011-11-05',
+        fail: ['2011-11-06'],
+        pass: ['2011-11-04'],
       },
       isIn: {
-        spec: { args: 'abcdefghijk' },
-        fail: 'ghik',
-        pass: 'ghij',
+        args: 'abcdefghijk',
+        fail: ['ghik'],
+        pass: ['ghij'],
       },
       notIn: {
-        spec: { args: 'abcdefghijk' },
-        fail: 'ghij',
-        pass: 'ghik',
+        args: 'abcdefghijk',
+        fail: ['ghij'],
+        pass: ['ghik'],
       },
       max: {
-        spec: { args: 23 },
-        fail: '24',
-        pass: '23',
-      },
-      max$: {
-        spec: 23,
-        fail: '24',
-        pass: '23',
+        args: 23,
+        fail: ['24'],
+        pass: ['23'],
       },
       min: {
-        spec: { args: 23 },
-        fail: '22',
-        pass: '23',
-      },
-      min$: {
-        spec: 23,
-        fail: '22',
-        pass: '23',
+        args: 23,
+        fail: ['22'],
+        pass: ['23'],
       },
       isCreditCard: {
-        fail: '401288888888188f',
-        pass: '4012888888881881',
+        fail: ['401288888888188f'],
+        pass: ['4012888888881881'],
       },
     };
 
-    const applyFailTest = function applyFailTest(
-      validatorDetails: NormalizedValidatorCheck,
-      i: number,
-      validator: string,
-    ) {
-      const failingValue = validatorDetails.fail[i];
-      it(`correctly specifies an instance as invalid using a value of "${failingValue}" for the validation "${validator}"`, async () => {
-        const validations: Record<string, any> = {};
-        const message = `${validator}(${failingValue})`;
-
-        validations[validator] = validatorDetails.spec || {};
-        validations[validator].msg = message;
-
-        const UserFail = sequelize.define(`User${rand()}`, {
-          name: {
-            type: DataTypes.STRING,
-            validate: validations,
-          },
-        });
-
-        const failingUser = UserFail.build({ name: failingValue });
-
-        const _errors = await expect(failingUser.validate()).to.be.rejected;
-        expect(_errors.get('name')[0].message).to.equal(message);
-        expect(_errors.get('name')[0].value).to.equal(failingValue);
+    async function validateWith(validator: string, spec: unknown, value: string | null) {
+      const User = sequelize.define(`User${rand()}`, {
+        name: {
+          type: DataTypes.STRING,
+          validate: { [validator]: spec },
+        },
       });
-    };
 
-    const applyPassTest = function applyPassTest(
-      validatorDetails: NormalizedValidatorCheck,
-      j: number,
-      validator: string,
-      type?: 'msg' | 'args' | 'true',
-    ) {
-      const succeedingValue = validatorDetails.pass[j];
-      it(`correctly specifies an instance as valid using a value of "${succeedingValue}" for the validation "${validator}"`, async () => {
-        const validations: Record<string, any> = {};
-        const message = `${validator}(${succeedingValue})`;
+      return User.build({ name: value }).validate();
+    }
 
-        validations[validator] = validatorDetails.spec || {};
+    for (const [validator, check] of Object.entries(checks)) {
+      describe(validator, () => {
+        // An options object is created for each test, as the validator could mutate it
+        const getOptions = () => (check.args === undefined ? {} : { args: check.args });
 
-        switch (type) {
-          case 'msg': {
-            validations[validator].msg = message;
-
-            break;
-          }
-
-          case 'args': {
-            validations[validator].args = validations[validator].args || true;
-            validations[validator].msg = message;
-
-            break;
-          }
-
-          case 'true': {
-            validations[validator] = true;
-
-            break;
-          }
-          // No default
+        // Validators can also be enabled without an options object, by passing their arguments directly, or true
+        const shorthands: Array<{ title: string; spec: unknown }> = [];
+        if (check.args !== undefined) {
+          shorthands.push({ title: `${validator}: ${inspect(check.args)}`, spec: check.args });
         }
 
-        const UserSuccess = sequelize.define(`User${rand()}`, {
-          name: {
-            type: DataTypes.STRING,
-            validate: validations,
-          },
-        });
-        const successfulUser = UserSuccess.build({ name: succeedingValue });
-        await expect(successfulUser.validate()).not.to.be.rejected;
+        if (check.args === undefined || check.allowTrue) {
+          shorthands.push({ title: `${validator}: true`, spec: true });
+        }
+
+        for (const value of check.fail) {
+          it(`rejects ${inspect(value)} with a custom message`, async () => {
+            const message = `${validator}(${value})`;
+
+            const error = await expect(
+              validateWith(validator, { ...getOptions(), msg: message }, value),
+            ).to.be.rejectedWith(ValidationError);
+            expect(error.get('name')[0].message).to.equal(message);
+            expect(error.get('name')[0].value).to.equal(value);
+          });
+
+          for (const { title, spec } of shorthands) {
+            it(`rejects ${inspect(value)} using ${title}`, async () => {
+              const error = await expect(validateWith(validator, spec, value)).to.be.rejectedWith(
+                ValidationError,
+              );
+              expect(error.get('name')[0].message).to.equal(
+                `Validation ${validator} on name failed`,
+              );
+              expect(error.get('name')[0].value).to.equal(value);
+            });
+          }
+        }
+
+        for (const value of check.pass) {
+          it(`accepts ${inspect(value)}`, async () => {
+            await expect(validateWith(validator, getOptions(), value)).to.be.fulfilled;
+          });
+
+          it(`accepts ${inspect(value)} with a custom message`, async () => {
+            await expect(
+              validateWith(validator, { ...getOptions(), msg: `${validator}(${value})` }, value),
+            ).to.be.fulfilled;
+          });
+
+          for (const { title, spec } of shorthands) {
+            it(`accepts ${inspect(value)} using ${title}`, async () => {
+              await expect(validateWith(validator, spec, value)).to.be.fulfilled;
+            });
+          }
+        }
       });
-    };
-
-    for (let validator in checks) {
-      if (Object.hasOwn(checks, validator)) {
-        validator = validator.replace(/\$$/, '');
-        // fail & pass are normalized to arrays below, or already are arrays if "raw" is set
-        const validatorDetails = checks[validator] as NormalizedValidatorCheck;
-
-        if (!validatorDetails.raw) {
-          validatorDetails.fail = Array.isArray(validatorDetails.fail)
-            ? validatorDetails.fail
-            : [validatorDetails.fail];
-          validatorDetails.pass = Array.isArray(validatorDetails.pass)
-            ? validatorDetails.pass
-            : [validatorDetails.pass];
-        }
-
-        for (let i = 0; i < validatorDetails.fail.length; i++) {
-          applyFailTest(validatorDetails, i, validator);
-        }
-
-        for (let i = 0; i < validatorDetails.pass.length; i++) {
-          applyPassTest(validatorDetails, i, validator);
-          applyPassTest(validatorDetails, i, validator, 'msg');
-          applyPassTest(validatorDetails, i, validator, 'args');
-          if (validatorDetails.stringOrBoolean || validatorDetails.spec === undefined) {
-            applyPassTest(validatorDetails, i, validator, 'true');
-          }
-        }
-      }
     }
   });
 
