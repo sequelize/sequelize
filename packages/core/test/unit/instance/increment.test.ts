@@ -1,35 +1,32 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import type { SinonStub } from 'sinon';
+import sinon from 'sinon';
+import { sequelize } from '../../support';
 
-const { expect } = require('chai');
-const { sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const sinon = require('sinon');
-
-describe('Model#destroy', () => {
+describe('Model#increment', () => {
   it('is not allowed if the instance does not have a primary key defined', async () => {
     const User = sequelize.define('User', {});
     const instance = User.build({});
 
-    await expect(instance.destroy()).to.be.rejectedWith(
+    // @ts-expect-error -- the primary key check happens before the arguments are validated
+    await expect(instance.increment()).to.be.rejectedWith(
       'but this model instance is missing the value of its primary key',
     );
   });
 
   describe('options tests', () => {
-    let stub;
+    let stub: SinonStub;
 
     before(() => {
-      stub = sinon.stub(sequelize, 'queryRaw').resolves({
-        _previousDataValues: {},
-        dataValues: { id: 1 },
-      });
+      stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
     });
 
     after(() => {
       stub.restore();
     });
 
-    it('should allow destroys even if options are not given', () => {
+    it('should allow increments even if options are not given', () => {
       const User = sequelize.define('User', {
         id: {
           type: DataTypes.INTEGER,
@@ -40,7 +37,7 @@ describe('Model#destroy', () => {
 
       const instance = User.build({ id: 1 }, { isNewRecord: false });
       expect(() => {
-        instance.destroy();
+        instance.increment(['id']);
       }).to.not.throw();
     });
   });

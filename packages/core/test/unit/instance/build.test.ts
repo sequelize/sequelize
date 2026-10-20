@@ -1,15 +1,11 @@
-'use strict';
+import type { InferAttributes, Model } from '@sequelize/core';
+import { DataTypes, sql } from '@sequelize/core';
+import { expect } from 'chai';
+import { sequelize as current, getTestDialectTeaser } from '../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../../support');
-const { DataTypes, sql } = require('@sequelize/core');
-
-const current = Support.sequelize;
 const dialect = current.dialect;
 
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe(getTestDialectTeaser('Instance'), () => {
   describe('build', () => {
     it('should populate NOW default values', async () => {
       const Model = current.define(
@@ -41,7 +37,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
           },
         },
         {
-          timestamp: false,
+          timestamps: false,
         },
       );
       const instance = Model.build({ ip: '127.0.0.1', ip2: '0.0.0.0' });
@@ -98,7 +94,11 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
 
     if (dialect.supports.dataTypes.JSONB) {
       it('should clone the default values', () => {
-        const Model = current.define('Model', {
+        interface TModel extends Model<InferAttributes<TModel>> {
+          data: { foo: string };
+        }
+
+        const Model = current.define<TModel>('Model', {
           data: {
             type: DataTypes.JSONB,
             defaultValue: { foo: 'bar' },

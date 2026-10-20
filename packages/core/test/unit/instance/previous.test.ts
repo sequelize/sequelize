@@ -1,14 +1,8 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import { sequelize as current, getTestDialectTeaser } from '../../support';
 
-const chai = require('chai');
-
-const expect = chai.expect;
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-
-const current = Support.sequelize;
-
-describe(Support.getTestDialectTeaser('Instance'), () => {
+describe(getTestDialectTeaser('Instance'), () => {
   describe('previous', () => {
     it('should return correct previous value', () => {
       const Model = current.define('Model', {

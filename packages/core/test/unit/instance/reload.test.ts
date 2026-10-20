@@ -1,9 +1,8 @@
-'use strict';
-
-const { expect } = require('chai');
-const { sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const sinon = require('sinon');
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import type { SinonStub } from 'sinon';
+import sinon from 'sinon';
+import { sequelize } from '../../support';
 
 describe('Model#reload', () => {
   it('is not allowed if the instance does not have a primary key defined', async () => {
@@ -16,13 +15,14 @@ describe('Model#reload', () => {
   });
 
   describe('options tests', () => {
-    let stub;
+    let stub: SinonStub;
 
     before(() => {
+      // The typings of queryRaw don't cover the found instance being returned when "plain" is set
       stub = sinon.stub(sequelize, 'queryRaw').resolves({
         _previousDataValues: { id: 1 },
         dataValues: { id: 2 },
-      });
+      } as any);
     });
 
     after(() => {
@@ -38,7 +38,6 @@ describe('Model#reload', () => {
             primaryKey: true,
             autoIncrement: true,
           },
-          deletedAt: {},
         },
         {
           paranoid: true,
