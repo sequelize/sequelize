@@ -334,23 +334,21 @@ describe('InstanceValidator', () => {
       });
 
       describe('findAll', () => {
-        it('should allow $in', async () => {
-          if (!dialect.supports.dataTypes.ARRAY) {
-            return;
-          }
-
-          await expect(
-            User.findAll({
-              where: {
-                name: {
-                  [Op.like]: {
-                    [Op.any]: ['foo%', 'bar%'],
+        if (dialect.supports.dataTypes.ARRAY) {
+          it('should allow $in', async () => {
+            await expect(
+              User.findAll({
+                where: {
+                  name: {
+                    [Op.like]: {
+                      [Op.any]: ['foo%', 'bar%'],
+                    },
                   },
                 },
-              },
-            }),
-          ).not.to.be.rejected;
-        });
+              }),
+            ).not.to.be.rejected;
+          });
+        }
 
         it('should allow $like for uuid if cast', async () => {
           await expect(
