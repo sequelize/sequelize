@@ -1,4 +1,4 @@
-import { isIterable } from '@sequelize/utils';
+import { isAnyObject, isIterable } from '@sequelize/utils';
 import type { AbstractDialect } from '../abstract-dialect/dialect.js';
 
 /**
@@ -39,27 +39,24 @@ export function rejectInvalidOptions<T extends string>(
   supportedOptions: Iterable<T> | Partial<Record<T, boolean>>,
   receivedOptions: object | undefined,
 ): void {
-  if (receivedOptions == null) {
+  if (!isAnyObject(receivedOptions)) {
     return;
   }
 
-  const parsedSupportedOptions = parseSupportedOptions(dialect, methodName, supportedOptions);
-
+  let parsedSupportedOptions: Set<string> | undefined;
   let unsupportedOptions: string[] | undefined;
   for (const optionName of allSupportableOptions) {
-    if (parsedSupportedOptions.has(optionName)) {
-      continue;
-    }
-
-    const value = (receivedOptions as Record<string, unknown>)[optionName];
+    const value = getEnumerablePropertyValue(receivedOptions, optionName);
 
     // This ignores any undefined or false values
     // It is therefore _essential_ that boolean options are false by default!
-    if (
-      value === undefined ||
-      value === false ||
-      !isEnumerableProperty(receivedOptions, optionName)
-    ) {
+    if (value === undefined || value === false) {
+      continue;
+    }
+
+    // Parsed lazily, as most calls do not receive any option
+    parsedSupportedOptions ??= parseSupportedOptions(dialect, methodName, supportedOptions);
+    if (parsedSupportedOptions.has(optionName)) {
       continue;
     }
 
@@ -74,13 +71,18 @@ export function rejectInvalidOptions<T extends string>(
 }
 
 /**
- * Returns whether the property is enumerable, either as an own property or one inherited from the prototype chain.
- * Non-enumerable properties (such as getters declared on a class) are not considered to be options.
+ * Returns the value of a property if it is enumerable, either as an own property or one inherited from the prototype chain.
+ * Non-enumerable properties (such as getters declared on a class) are not considered to be options,
+ * and their getters are not called.
  *
- * @param obj The object to check
+ * @param obj The object to read the property from
  * @param propertyName The name of the property
  */
-function isEnumerableProperty(obj: object, propertyName: string): boolean {
+function getEnumerablePropertyValue(obj: object, propertyName: string): unknown {
+  if (!(propertyName in obj)) {
+    return undefined;
+  }
+
   for (
     let current: object | null = obj;
     current != null;
@@ -88,11 +90,18 @@ function isEnumerableProperty(obj: object, propertyName: string): boolean {
   ) {
     const descriptor = Object.getOwnPropertyDescriptor(current, propertyName);
     if (descriptor) {
-      return descriptor.enumerable ?? false;
+      if (!descriptor.enumerable) {
+        return undefined;
+      }
+
+      // Getters are called on obj, not on the prototype that declares them
+      return 'value' in descriptor
+        ? descriptor.value
+        : (obj as Record<string, unknown>)[propertyName];
     }
   }
 
-  return false;
+  return undefined;
 }
 
 const SUPPORTED_OPTIONS_CACHE = new WeakMap<AbstractDialect, Map<string, Set<string>>>();

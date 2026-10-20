@@ -122,10 +122,10 @@ describe('utils / check', () => {
       );
     });
 
-    it('ignores non-enumerable properties, but not enumerable inherited ones', () => {
+    it('ignores non-enumerable properties without calling their getter, but not enumerable inherited ones', () => {
       class OptionsWithGetter {
-        get cascade() {
-          return true;
+        get cascade(): boolean {
+          throw new Error('getter should not be called');
         }
       }
 

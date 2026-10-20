@@ -34,35 +34,46 @@ import { createBindParamGenerator } from '../utils/sql.js';
 import { nameIndex, spliceStr } from '../utils/string';
 import { attributeTypeToSql } from './data-types-utils';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
-import {
-  AbstractQueryGeneratorTypeScript,
-  QUOTE_TABLE_SUPPORTABLE_OPTIONS,
-} from './query-generator-typescript';
+import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
 
+const { propertyIsEnumerable } = Object.prototype;
+
 /**
- * quoteTable is called for every table of a SELECT query, so we only pass it the options it supports
+ * quoteTable is called for every table of a SELECT query, so we only pass it the options it uses
  * instead of spreading the entire query options into a new object for each table.
  *
  * @param {string | boolean} alias The alias of the table
- * @param {...object} optionSources Where to read the options from. Later sources take precedence, like with object spread.
+ * @param {object} options The options of the query
+ * @param {object} [include] The include the table belongs to. Its options take precedence over the ones of the query.
  * @returns {object}
  */
-function getQuoteTableOptions(alias, ...optionSources) {
-  const quoteTableOptions = { alias };
-  for (const source of optionSources) {
-    if (source == null) {
-      continue;
-    }
+function getQuoteTableOptions(alias, options, include) {
+  return {
+    alias,
+    indexHints: getSpreadValue('indexHints', options, include),
+    tableHints: getSpreadValue('tableHints', options, include),
+  };
+}
 
-    for (const optionName of QUOTE_TABLE_SUPPORTABLE_OPTIONS) {
-      if (Object.hasOwn(source, optionName)) {
-        quoteTableOptions[optionName] = source[optionName];
-      }
-    }
+/**
+ * Returns the value that the property would have in `{ ...options, ...include }`
+ *
+ * @param {string} propertyName
+ * @param {object} options
+ * @param {object} [include]
+ * @returns {unknown}
+ */
+function getSpreadValue(propertyName, options, include) {
+  if (include != null && propertyIsEnumerable.call(include, propertyName)) {
+    return include[propertyName];
   }
 
-  return quoteTableOptions;
+  if (options != null && propertyIsEnumerable.call(options, propertyName)) {
+    return options[propertyName];
+  }
+
+  return undefined;
 }
 
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
