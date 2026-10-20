@@ -197,9 +197,8 @@ export class Model extends ModelTypeScript {
     this._previousDataValues = {};
     this.uniqno = 1;
     this._changed = new Set();
-    const { comesFromDatabase: ignoreComesFromDatabase, ...optionsWithoutComesFromDatabase } =
-      options;
-    this._options = optionsWithoutComesFromDatabase;
+    // `options` is the fresh object built above, so it can be kept as is
+    this._options = options;
 
     /**
      * Returns true if this instance has not yet been persisted to the database
@@ -210,6 +209,12 @@ export class Model extends ModelTypeScript {
     this.isNewRecord = options.isNewRecord;
 
     this._initValues(values, options);
+
+    // comesFromDatabase only applies to the values set during construction.
+    // It is set to false instead of deleted, so that _options keeps its shape.
+    if (options.comesFromDatabase) {
+      options.comesFromDatabase = false;
+    }
   }
 
   _initValues(values, options) {
