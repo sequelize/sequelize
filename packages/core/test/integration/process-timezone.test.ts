@@ -5,6 +5,7 @@ import { useProcessTimezone } from '../support';
 import { beforeAll2, createSequelizeInstance, sequelize as defaultSequelize } from './support';
 
 const dates = [new Date('2012-01-10T09:10:10Z'), new Date('2012-07-10T09:10:10Z')];
+const dateOnlyStrings = ['2012-01-10', '2012-07-10'];
 
 for (const timezone of ['Europe/Amsterdam', 'America/New_York', 'Asia/Kolkata']) {
   describe(`process timezone ${timezone}`, () => {
@@ -100,6 +101,34 @@ for (const timezone of ['Europe/Amsterdam', 'America/New_York', 'Asia/Kolkata'])
 
       expect(users[0].get('date')).to.deep.equal(dates[0]);
       expect((users[0].get('tasks') as any[]).map(task => task.get('date'))).to.deep.equal(dates);
+    });
+
+    it('stores and finds date-only values', async () => {
+      const Event = vars.sequelize.define(
+        'Event',
+        { day: DataTypes.DATEONLY },
+        { timestamps: false },
+      );
+      await vars.sequelize.sync({ force: true });
+
+      await Event.create({ day: dateOnlyStrings[0] });
+      await Event.create({ day: dates[1] });
+      const updated = await Event.create({ day: dateOnlyStrings[0] });
+      await updated.update({ day: dateOnlyStrings[1] });
+      await Event.bulkCreate([{ day: dateOnlyStrings[0] }, { day: dates[1] }]);
+
+      const events = await Event.findAll({ order: [['id', 'ASC']] });
+      expect(events.map(event => event.get('day'))).to.deep.equal([
+        ...dateOnlyStrings,
+        dateOnlyStrings[1],
+        ...dateOnlyStrings,
+      ]);
+
+      const counts = await Promise.all([
+        ...dateOnlyStrings.map(async day => Event.count({ where: { day } })),
+        ...dates.map(async day => Event.count({ where: { day } })),
+      ]);
+      expect(counts).to.deep.equal([2, 3, 2, 3]);
     });
   });
 }
