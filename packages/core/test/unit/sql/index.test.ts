@@ -1,18 +1,15 @@
-'use strict';
+import { literal, Op } from '@sequelize/core';
+import { expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
-const Support = require('../../support');
-const { literal, Op } = require('@sequelize/core');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
+const current = sequelize;
 const queryGenerator = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
-const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
+const TICK_LEFT = sequelize.dialect.TICK_CHAR_LEFT;
+const TICK_RIGHT = sequelize.dialect.TICK_CHAR_RIGHT;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   if (current.dialect.name === 'snowflake') {
     return;
   }
@@ -96,7 +93,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       expectsql(
         queryGenerator.addIndexQuery(
           'User',
-          ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }],
+          [
+            'fieldB',
+            // @ts-expect-error -- "attribute" is a legacy alias of "name" that is missing from the typings
+            { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 },
+          ],
           {
             name: 'a_b_uniq',
             unique: true,

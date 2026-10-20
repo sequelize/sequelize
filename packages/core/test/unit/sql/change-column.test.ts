@@ -1,8 +1,6 @@
-'use strict';
-
-const sinon = require('sinon');
-const { beforeAll2, expectsql, sequelize } = require('../../support');
-const { DataTypes } = require('@sequelize/core');
+import { DataTypes } from '@sequelize/core';
+import sinon from 'sinon';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 describe('QueryInterface#changeColumn', () => {
   if (sequelize.dialect.name === 'sqlite3') {
@@ -41,12 +39,12 @@ describe('QueryInterface#changeColumn', () => {
   it('properly generate alter queries', async () => {
     const { User } = vars;
 
-    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+    await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
       type: DataTypes.FLOAT,
       allowNull: false,
     });
 
-    expectsql(sql, {
+    expectsql(vars.stub.lastCall.args[0], {
       ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL',
       mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
       db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
@@ -63,14 +61,14 @@ describe('QueryInterface#changeColumn', () => {
   it('properly generates alter queries for enums with a default value', async () => {
     const { User } = vars;
 
-    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+    await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
       type: DataTypes.ENUM(['pending', 'complete']),
       defaultValue: 'pending',
     });
 
     // mssql and oracle drop the default: their attributeToSQL never emits a DEFAULT clause
     // for changeColumn, so the column keeps whatever default it had.
-    expectsql(sql, {
+    expectsql(vars.stub.lastCall.args[0], {
       ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE VARCHAR(255) ADD CHECK ("level_id" IN(\'pending\', \'complete\')) DEFAULT \'pending\'',
       mssql:
         "ALTER TABLE [users] ALTER COLUMN [level_id] NVARCHAR(255) CHECK ([level_id] IN(N'pending', N'complete'));",
@@ -90,13 +88,13 @@ describe('QueryInterface#changeColumn', () => {
   it('uses the column name when it differs from the attribute name', async () => {
     const { User } = vars;
 
-    const sql = await sequelize.queryInterface.changeColumn(User.table, 'levelId', {
+    await sequelize.queryInterface.changeColumn(User.table, 'levelId', {
       type: DataTypes.FLOAT,
       allowNull: false,
       field: 'level_id',
     });
 
-    expectsql(sql, {
+    expectsql(vars.stub.lastCall.args[0], {
       ibmi: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL',
       mssql: 'ALTER TABLE [users] ALTER COLUMN [level_id] REAL NOT NULL;',
       db2: 'ALTER TABLE "users" ALTER COLUMN "level_id" SET DATA TYPE REAL ALTER COLUMN "level_id" SET NOT NULL;',
@@ -113,17 +111,17 @@ describe('QueryInterface#changeColumn', () => {
   it('properly generate alter queries for foreign keys', async () => {
     const { User } = vars;
 
-    const sql = await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+    await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
       type: DataTypes.INTEGER,
       references: {
         table: 'level',
         key: 'id',
       },
-      onUpdate: 'cascade',
-      onDelete: 'cascade',
+      onUpdate: 'CASCADE',
+      onDelete: 'CASCADE',
     });
 
-    expectsql(sql, {
+    expectsql(vars.stub.lastCall.args[0], {
       ibmi: 'ALTER TABLE "users" ADD CONSTRAINT "level_id" FOREIGN KEY ("level_id") REFERENCES "level" ("id") ON DELETE CASCADE',
       mssql:
         'ALTER TABLE [users] ADD FOREIGN KEY ([level_id]) REFERENCES [level] ([id]) ON DELETE CASCADE;',

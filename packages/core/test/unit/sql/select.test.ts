@@ -1,45 +1,54 @@
-'use strict';
+import type { TableName } from '@sequelize/core';
+import { DataTypes, Op } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import util from 'node:util';
+import type { SqlExpectations } from '../../support';
+import {
+  allowDeprecationsInSuite,
+  beforeAll2,
+  createSequelizeInstance,
+  expectsql,
+  getTestDialectTeaser,
+  sequelize,
+} from '../../support';
 
-const Support = require('../../support');
-const { DataTypes, Op } = require('@sequelize/core');
-const util = require('node:util');
-const {
-  _validateIncludedElements,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
-const { beforeAll2, createSequelizeInstance } = require('../../support');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
+const current = sequelize;
 const queryGenerator = current.queryGenerator;
 
-const TICK_LEFT = Support.sequelize.dialect.TICK_CHAR_LEFT;
-const TICK_RIGHT = Support.sequelize.dialect.TICK_CHAR_RIGHT;
+type SelectQueryOptions = NonNullable<Parameters<typeof queryGenerator.selectQuery>[1]> & {
+  table?: TableName;
+  // normally set by _validateIncludedElements
+  hasMultiAssociation?: boolean;
+};
+
+const TICK_LEFT = sequelize.dialect.TICK_CHAR_LEFT;
+const TICK_RIGHT = sequelize.dialect.TICK_CHAR_RIGHT;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   describe('select', () => {
-    function expectSelect(options, expectation) {
+    function expectSelect(options: SelectQueryOptions, expectation: SqlExpectations) {
       const model = options.model;
 
       return expectsql(
-        () =>
-          queryGenerator.selectQuery(
-            options.table || (model && model.table),
-            options,
-            options.model,
-          ),
+        () => queryGenerator.selectQuery((options.table || model?.table)!, options, options.model),
         expectation,
       );
     }
 
-    const testsql = function (options, expectation, testFunction = it) {
+    const testsql = function (
+      options: SelectQueryOptions,
+      expectation: SqlExpectations,
+      testFunction: Mocha.TestFunction | Mocha.ExclusiveTestFunction = it,
+    ) {
       testFunction(util.inspect(options, { depth: 2 }), () => {
         expectSelect(options, expectation);
       });
     };
 
-    testsql.only = (options, expectation) => testsql(options, expectation, it.only);
+    testsql.only = (options: SelectQueryOptions, expectation: SqlExpectations) =>
+      testsql(options, expectation, it.only);
 
     testsql(
       {
@@ -97,7 +106,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('With BelongsToMany', () => {
       const vars = beforeAll2(() => {
-        const User = Support.sequelize.define('user', {
+        const User = sequelize.define('user', {
           id: {
             type: DataTypes.INTEGER,
             primaryKey: true,
@@ -106,11 +115,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         });
 
-        const Project = Support.sequelize.define('project', {
+        const Project = sequelize.define('project', {
           title: DataTypes.STRING,
         });
 
-        const ProjectUser = Support.sequelize.define(
+        const ProjectUser = sequelize.define(
           'project_user',
           {
             userId: {
@@ -125,10 +134,10 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           { timestamps: false },
         );
 
-        User.Projects = User.belongsToMany(Project, { through: ProjectUser });
+        const userProjects = User.belongsToMany(Project, { through: ProjectUser });
         Project.belongsToMany(User, { through: ProjectUser });
 
-        return { User, Project, ProjectUser };
+        return { User, Project, ProjectUser, userProjects };
       });
 
       it('supports groupedLimit', () => {
@@ -136,13 +145,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectSelect(
           {
-            table: User.table,
             model: User,
             attributes: [['id_user', 'id']],
             order: [['last_name', 'ASC']],
             groupedLimit: {
               limit: 3,
-              on: User.Projects,
+              on: vars.userProjects,
               values: [1, 5],
             },
           },
@@ -236,7 +244,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectSelect(
           {
-            table: User.table,
             model: User,
             attributes: [['id_user', 'id']],
             order: [['last_name', 'ASC']],
@@ -247,7 +254,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                   status: 1,
                 },
               },
-              on: User.Projects,
+              on: vars.userProjects,
               values: [1, 5],
             },
           },
@@ -347,7 +354,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectSelect(
           {
-            table: User.table,
             model: User,
             attributes: [['id_user', 'id']],
             order: [['id_user', 'ASC']],
@@ -358,7 +364,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             },
             groupedLimit: {
               limit: 3,
-              on: User.Projects,
+              on: vars.userProjects,
               values: [1, 5],
             },
           },
@@ -457,7 +463,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('With HasMany', () => {
       const vars = beforeAll2(() => {
-        const User = Support.sequelize.define(
+        const User = sequelize.define(
           'user',
           {
             id: {
@@ -480,7 +486,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             tableName: 'users',
           },
         );
-        const Post = Support.sequelize.define(
+        const Post = sequelize.define(
           'Post',
           {
             title: DataTypes.STRING,
@@ -494,9 +500,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         );
 
-        User.Posts = User.hasMany(Post, { foreignKey: 'userId', as: 'POSTS' });
+        const userPosts = User.hasMany(Post, { foreignKey: 'userId', as: 'POSTS' });
 
-        const Comment = Support.sequelize.define(
+        const Comment = sequelize.define(
           'Comment',
           {
             title: DataTypes.STRING,
@@ -510,19 +516,19 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         );
 
-        Post.Comments = Post.hasMany(Comment, { foreignKey: 'postId', as: 'COMMENTS' });
+        const postComments = Post.hasMany(Comment, { foreignKey: 'postId', as: 'COMMENTS' });
 
         const include = _validateIncludedElements({
           include: [
             {
               attributes: ['title'],
-              association: User.Posts,
+              association: userPosts,
             },
           ],
           model: User,
         }).include;
 
-        return { User, Post, include };
+        return { User, Post, include, userPosts, postComments };
       });
 
       it('supports groupedLimit', () => {
@@ -530,7 +536,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectSelect(
           {
-            table: User.table,
             model: User,
             include,
             attributes: [
@@ -580,7 +585,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectSelect(
           {
-            table: User.table,
             model: User,
             include,
             attributes: [
@@ -594,8 +598,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             order: [
               [
                 '[last_name]'
-                  .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
-                  .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                  .replaceAll('[', sequelize.dialect.TICK_CHAR_LEFT)
+                  .replaceAll(']', sequelize.dialect.TICK_CHAR_RIGHT),
                 'ASC',
               ],
             ],
@@ -619,7 +623,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         //  This checks the result when the query is forced to be ran without a subquery
         expectSelect(
           {
-            table: User.table,
             model: User,
             include,
             attributes: [
@@ -633,8 +636,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             order: [
               [
                 '[last_name]'
-                  .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
-                  .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                  .replaceAll('[', sequelize.dialect.TICK_CHAR_LEFT)
+                  .replaceAll(']', sequelize.dialect.TICK_CHAR_RIGHT),
                 'ASC',
               ],
             ],
@@ -661,16 +664,16 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('supports nested includes', () => {
-        const { Post, User } = vars;
+        const { User } = vars;
         const nestedInclude = _validateIncludedElements({
           include: [
             {
               attributes: ['title'],
-              association: User.Posts,
+              association: vars.userPosts,
               include: [
                 {
                   attributes: ['title'],
-                  association: Post.Comments,
+                  association: vars.postComments,
                 },
               ],
             },
@@ -680,7 +683,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         expectSelect(
           {
-            table: User.table,
             model: User,
             include: nestedInclude,
             attributes: [
@@ -727,7 +729,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include (left outer join)', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           name: DataTypes.STRING,
@@ -737,7 +739,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         },
       );
-      const Post = Support.sequelize.define(
+      const Post = sequelize.define(
         'Post',
         {
           title: DataTypes.STRING,
@@ -747,7 +749,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       );
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+      const userPosts = User.hasMany(Post, { foreignKey: 'user_id' });
 
       expectsql(
         queryGenerator.selectQuery(
@@ -758,7 +760,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               include: [
                 {
                   attributes: ['title'],
-                  association: User.Posts,
+                  association: userPosts,
                 },
               ],
               model: User,
@@ -777,7 +779,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include (right outer join)', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           name: DataTypes.STRING,
@@ -787,7 +789,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         },
       );
-      const Post = Support.sequelize.define(
+      const Post = sequelize.define(
         'Post',
         {
           title: DataTypes.STRING,
@@ -797,7 +799,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         },
       );
 
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id' });
+      const userPosts = User.hasMany(Post, { foreignKey: 'user_id' });
 
       expectsql(
         queryGenerator.selectQuery(
@@ -808,7 +810,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               include: [
                 {
                   attributes: ['title'],
-                  association: User.Posts,
+                  association: userPosts,
                   right: true,
                 },
               ],
@@ -826,7 +828,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include through (right outer join)', () => {
-      const User = Support.sequelize.define('user', {
+      const User = sequelize.define('user', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -834,11 +836,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           field: 'id_user',
         },
       });
-      const Project = Support.sequelize.define('project', {
+      const Project = sequelize.define('project', {
         title: DataTypes.STRING,
       });
 
-      const ProjectUser = Support.sequelize.define(
+      const ProjectUser = sequelize.define(
         'project_user',
         {
           userId: {
@@ -918,7 +920,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
     describe('include (subQuery alias)', () => {
       const vars = beforeAll2(() => {
-        const User = Support.sequelize.define(
+        const User = sequelize.define(
           'User',
           {
             name: DataTypes.STRING,
@@ -929,7 +931,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         );
 
-        const Post = Support.sequelize.define(
+        const Post = sequelize.define(
           'Post',
           {
             title: DataTypes.STRING,
@@ -939,9 +941,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           },
         );
 
-        User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'postaliasname' });
+        const userPosts = User.hasMany(Post, { foreignKey: 'user_id', as: 'postaliasname' });
 
-        return { User };
+        return { User, userPosts };
       });
 
       it('w/o filters', () => {
@@ -951,7 +953,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           queryGenerator.selectQuery(
             'User',
             {
-              table: User.table,
               model: User,
               attributes: ['name', 'age'],
               include: _validateIncludedElements({
@@ -959,7 +960,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 include: [
                   {
                     attributes: ['title'],
-                    association: User.Posts,
+                    association: vars.userPosts,
                     subQuery: true,
                     required: true,
                   },
@@ -993,7 +994,6 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             queryGenerator.selectQuery(
               'User',
               {
-                table: User.table,
                 model: User,
                 attributes: ['name', 'age'],
                 where: { '$postaliasname.title$': 'test' },
@@ -1002,7 +1002,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                   include: [
                     {
                       attributes: ['title'],
-                      association: User.Posts,
+                      association: vars.userPosts,
                       subQuery: true,
                       required: true,
                     },
@@ -1030,42 +1030,41 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include w/ subQuery + nested filter + paging', () => {
-      const User = Support.sequelize.define('User', {
+      const User = sequelize.define('User', {
         scopeId: DataTypes.INTEGER,
       });
 
-      const Company = Support.sequelize.define('Company', {
+      const Company = sequelize.define('Company', {
         name: DataTypes.STRING,
         public: DataTypes.BOOLEAN,
         scopeId: DataTypes.INTEGER,
       });
 
-      const Profession = Support.sequelize.define('Profession', {
+      const Profession = sequelize.define('Profession', {
         name: DataTypes.STRING,
         scopeId: DataTypes.INTEGER,
       });
 
-      User.Company = User.belongsTo(Company, { foreignKey: 'companyId' });
-      User.Profession = User.belongsTo(Profession, { foreignKey: 'professionId' });
-      Company.Users = Company.hasMany(User, { as: 'Users', foreignKey: 'companyId' });
-      Profession.Users = Profession.hasMany(User, { as: 'Users', foreignKey: 'professionId' });
+      User.belongsTo(Company, { foreignKey: 'companyId' });
+      const userProfession = User.belongsTo(Profession, { foreignKey: 'professionId' });
+      const companyUsers = Company.hasMany(User, { as: 'Users', foreignKey: 'companyId' });
+      Profession.hasMany(User, { as: 'Users', foreignKey: 'professionId' });
 
       expectsql(
         queryGenerator.selectQuery(
           'Company',
           {
-            table: Company.table,
             model: Company,
             attributes: ['name', 'public'],
             where: { '$Users.profession.name$': 'test', [Op.and]: { scopeId: [42] } },
             include: _validateIncludedElements({
               include: [
                 {
-                  association: Company.Users,
+                  association: companyUsers,
                   attributes: [],
                   include: [
                     {
-                      association: User.Profession,
+                      association: userProfession,
                       attributes: [],
                       required: true,
                     },
@@ -1127,7 +1126,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('properly stringify IN values as per field definition', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           name: DataTypes.STRING,
@@ -1170,8 +1169,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           queryGenerator.selectQuery('User', {
             attributes: [
               '* FROM [User];'
-                .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
-                .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                .replaceAll('[', sequelize.dialect.TICK_CHAR_LEFT)
+                .replaceAll(']', sequelize.dialect.TICK_CHAR_RIGHT),
             ],
           }),
           {
@@ -1225,8 +1224,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               // [ & ] will be escaped as [[ & ]]
               [
                 '* FROM [User]; DELETE FROM [User];SELECT [id]'
-                  .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
-                  .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                  .replaceAll('[', sequelize.dialect.TICK_CHAR_LEFT)
+                  .replaceAll(']', sequelize.dialect.TICK_CHAR_RIGHT),
                 'myCol',
               ],
             ],
@@ -1263,7 +1262,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       });
 
       it('attributes from includes', () => {
-        const User = Support.sequelize.define(
+        const User = sequelize.define(
           'User',
           {
             name: DataTypes.STRING,
@@ -1273,7 +1272,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             freezeTableName: true,
           },
         );
-        const Post = Support.sequelize.define(
+        const Post = sequelize.define(
           'Post',
           {
             title: DataTypes.STRING,
@@ -1284,7 +1283,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         );
 
         // association name is Pascal case to test quoteIdentifier: false
-        User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
+        const userPosts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
         expectsql(
           queryGenerator.selectQuery(
@@ -1301,7 +1300,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                         .replaceAll('[', TICK_LEFT)
                         .replaceAll(']', TICK_RIGHT),
                     ],
-                    association: User.Posts,
+                    association: userPosts,
                   },
                 ],
                 model: User,
@@ -1331,12 +1330,12 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                       // [ & ] will be escaped as [[ & ]]
                       [
                         '* FROM [User]; DELETE FROM [User];SELECT [id]'
-                          .replaceAll('[', Support.sequelize.dialect.TICK_CHAR_LEFT)
-                          .replaceAll(']', Support.sequelize.dialect.TICK_CHAR_RIGHT),
+                          .replaceAll('[', sequelize.dialect.TICK_CHAR_LEFT)
+                          .replaceAll(']', sequelize.dialect.TICK_CHAR_RIGHT),
                         'data',
                       ],
                     ],
-                    association: User.Posts,
+                    association: userPosts,
                   },
                 ],
                 model: User,
@@ -1362,7 +1361,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 include: [
                   {
                     attributes: [['* FROM User; DELETE FROM User;SELECT id', 'data']],
-                    association: User.Posts,
+                    association: userPosts,
                   },
                 ],
                 model: User,
@@ -1383,7 +1382,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   });
 
   describe('quoteIdentifiers: false', () => {
-    let sql;
+    allowDeprecationsInSuite(['SEQUELIZE0023']);
+
+    let sql: typeof queryGenerator;
 
     beforeEach(() => {
       sql = createSequelizeInstance({
@@ -1415,7 +1416,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('include (left outer join)', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           name: DataTypes.STRING,
@@ -1425,7 +1426,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         },
       );
-      const Post = Support.sequelize.define(
+      const Post = sequelize.define(
         'Post',
         {
           title: DataTypes.STRING,
@@ -1436,7 +1437,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       // association name is Pascal case to test quoteIdentifier: false
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
+      const userPosts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
       expectsql(
         sql.selectQuery(
@@ -1447,7 +1448,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               include: [
                 {
                   attributes: ['title'],
-                  association: User.Posts,
+                  association: userPosts,
                 },
               ],
               model: User,
@@ -1470,7 +1471,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('nested include (left outer join)', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           name: DataTypes.STRING,
@@ -1480,7 +1481,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         },
       );
-      const Post = Support.sequelize.define(
+      const Post = sequelize.define(
         'Post',
         {
           title: DataTypes.STRING,
@@ -1489,7 +1490,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         },
       );
-      const Comment = Support.sequelize.define(
+      const Comment = sequelize.define(
         'Comment',
         {
           title: DataTypes.STRING,
@@ -1500,8 +1501,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       // association names are Pascal case to test quoteIdentifier: false
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
-      Post.Comments = Post.hasMany(Comment, { foreignKey: 'post_id', as: 'Comments' });
+      const userPosts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
+      Post.hasMany(Comment, { foreignKey: 'post_id', as: 'Comments' });
 
       expectsql(
         sql.selectQuery(
@@ -1512,7 +1513,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               include: [
                 {
                   attributes: ['title'],
-                  association: User.Posts,
+                  association: userPosts,
                   include: [
                     {
                       model: Comment,
@@ -1540,7 +1541,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('attributes with dot notation', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           name: DataTypes.STRING,
@@ -1554,7 +1555,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           freezeTableName: true,
         },
       );
-      const Post = Support.sequelize.define(
+      const Post = sequelize.define(
         'Post',
         {
           title: DataTypes.STRING,
@@ -1569,7 +1570,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
       );
 
       // association name is Pascal case to test quoteIdentifier: false
-      User.Posts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
+      const userPosts = User.hasMany(Post, { foreignKey: 'user_id', as: 'Posts' });
 
       expectsql(
         sql.selectQuery(
@@ -1580,7 +1581,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               include: [
                 {
                   attributes: ['title', ['status.label', 'statuslabel']],
-                  association: User.Posts,
+                  association: userPosts,
                 },
               ],
               model: User,

@@ -1,18 +1,15 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
+const current = sequelize;
 const queryGenerator = current.dialect.queryGenerator;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   describe('update', () => {
     it('supports returning false', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'user',
         {
           username: {
@@ -50,7 +47,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('with temp table for trigger', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'user',
         {
           username: {
@@ -98,7 +95,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     it('works with limit', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'User',
         {
           username: {

@@ -1,20 +1,17 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { expect } from 'chai';
+import { createSequelizeInstance, expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-const { expect } = require('chai');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
+const current = sequelize;
 const queryGenerator = current.dialect.queryGenerator;
 const dialect = current.dialect;
 
 // Notice: [] will be replaced by dialect specific tick/quote character when there is not dialect specific expectation but only a default expectation
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   describe('insert', () => {
     it('with temp table for trigger', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'user',
         {
           username: {
@@ -53,13 +50,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             oracle: `INSERT INTO "users" ("user_name") VALUES ($sequelize_1) RETURNING "id", "user_name" INTO :2,:3;`,
             default: 'INSERT INTO `users` (`user_name`) VALUES ($sequelize_1);',
           },
-          bind: { sequelize_1: 'triggertest' },
+          bind: { default: { sequelize_1: 'triggertest' } },
         },
       );
     });
 
     it('allow insert primary key with 0', () => {
-      const M = Support.sequelize.define('m', {
+      const M = sequelize.define('m', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -78,7 +75,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           oracle: `INSERT INTO "ms" ("id") VALUES ($sequelize_1);`,
           default: 'INSERT INTO `ms` (`id`) VALUES ($sequelize_1);',
         },
-        bind: { sequelize_1: 0 },
+        bind: { default: { sequelize_1: 0 } },
       });
     });
 
@@ -87,7 +84,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
         ? 'adds conflictWhere clause to generated queries'
         : 'throws error if conflictWhere is provided',
       () => {
-        const User = Support.sequelize.define(
+        const User = sequelize.define(
           'user',
           {
             username: {
@@ -115,7 +112,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
         const upsertKeys = ['user_name'];
 
-        let result;
+        let result: string | Error;
 
         try {
           result = queryGenerator.insertQuery(
@@ -129,9 +126,9 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
               },
               upsertKeys,
             },
-          );
+          ).query;
         } catch (error) {
-          result = error;
+          result = error as Error;
         }
 
         expectsql(result, {
@@ -145,13 +142,13 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
   describe('dates', () => {
     if (!dialect.supports.globalTimeZoneConfig) {
       it('rejects specifying the global timezone option', () => {
-        expect(() => Support.createSequelizeInstance({ timezone: 'CET' })).to.throw(
+        expect(() => createSequelizeInstance({ timezone: 'CET' })).to.throw(
           'Setting a custom timezone is not supported',
         );
       });
     } else {
       it('supports the global timezone option', () => {
-        const timezoneSequelize = Support.createSequelizeInstance({
+        const timezoneSequelize = createSequelizeInstance({
           timezone: 'CET',
         });
 
@@ -287,7 +284,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
   describe('strings', () => {
     it('formats null characters correctly when inserting', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'user',
         {
           username: {
@@ -323,7 +320,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
 
   describe('bulkCreate', () => {
     it('bulk create with onDuplicateKeyUpdate', () => {
-      const User = Support.sequelize.define(
+      const User = sequelize.define(
         'user',
         {
           username: {
@@ -335,9 +332,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             type: DataTypes.STRING,
             field: 'pass_word',
           },
+          // @ts-expect-error -- timestamp attributes don't need a type, but the typings require one
           createdAt: {
             field: 'created_at',
           },
+          // @ts-expect-error -- timestamp attributes don't need a type, but the typings require one
           updatedAt: {
             field: 'updated_at',
           },
@@ -380,7 +379,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     });
 
     (dialect.name !== 'oracle' ? it : it.skip)('allow bulk insert primary key with 0', () => {
-      const M = Support.sequelize.define('m', {
+      const M = sequelize.define('m', {
         id: {
           type: DataTypes.INTEGER,
           primaryKey: true,
@@ -396,22 +395,20 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           M.fieldRawAttributesMap,
         ),
         {
-          query: {
-            mssql:
-              'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
-            postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
-            db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
-            ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
-            snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
-            default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
-          },
+          mssql:
+            'SET IDENTITY_INSERT [ms] ON; INSERT INTO [ms] DEFAULT VALUES;INSERT INTO [ms] ([id]) VALUES (0),(NULL); SET IDENTITY_INSERT [ms] OFF;',
+          postgres: 'INSERT INTO "ms" ("id") VALUES (0),(DEFAULT);',
+          db2: 'INSERT INTO "ms" VALUES (1);INSERT INTO "ms" ("id") VALUES (0),(NULL);',
+          ibmi: 'SELECT * FROM FINAL TABLE (INSERT INTO "ms" ("id") VALUES (0),(DEFAULT))',
+          snowflake: 'INSERT INTO "ms" ("id") VALUES (0),(NULL);',
+          default: 'INSERT INTO `ms` (`id`) VALUES (0),(NULL);',
         },
       );
     });
 
     if (current.dialect.supports.inserts.updateOnDuplicate) {
       it('correctly generates SQL for conflictWhere', () => {
-        const User = Support.sequelize.define(
+        const User = sequelize.define(
           'user',
           {
             username: {
@@ -446,7 +443,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
           attr => User.getAttributes()[attr].field || attr,
         );
 
-        let result;
+        let result: string | Error;
 
         try {
           result = queryGenerator.bulkInsertQuery(
@@ -460,7 +457,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             User.fieldRawAttributesMap,
           );
         } catch (error) {
-          result = error;
+          result = error as Error;
         }
 
         expectsql(result, {

@@ -1,13 +1,10 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
+const current = sequelize;
 const queryGenerator = current.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   describe('createTable', () => {
     describe('with enums', () => {
       it('references enum in the right schema #3171', () => {

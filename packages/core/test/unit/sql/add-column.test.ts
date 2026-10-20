@@ -1,18 +1,15 @@
-'use strict';
+import { DataTypes } from '@sequelize/core';
+import { createSequelizeInstance, expectsql, getTestDialectTeaser, sequelize } from '../../support';
 
-const Support = require('../../support');
-const { DataTypes } = require('@sequelize/core');
-
-const expectsql = Support.expectsql;
-const current = Support.sequelize;
+const current = sequelize;
 const queryGenerator = current.dialect.queryGenerator;
 
-const customSequelize = Support.createSequelizeInstance({
+const customSequelize = createSequelizeInstance({
   schema: 'custom',
 });
 const customSql = customSequelize.dialect.queryGenerator;
 
-describe(Support.getTestDialectTeaser('SQL'), () => {
+describe(getTestDialectTeaser('SQL'), () => {
   describe('addColumn', () => {
     const User = current.define('User', {}, { timestamps: false });
 
@@ -45,8 +42,8 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
                 table: 'level',
                 key: 'id',
               },
-              onUpdate: 'cascade',
-              onDelete: 'cascade',
+              onUpdate: 'CASCADE',
+              onDelete: 'CASCADE',
             }),
           ),
           {
@@ -65,6 +62,7 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
             'test_added_col_first',
             current.normalizeAttribute({
               type: DataTypes.STRING,
+              // @ts-expect-error -- "first" is supported by MySQL and MariaDB, but missing from the typings
               first: true,
             }),
           ),
@@ -96,11 +94,11 @@ describe(Support.getTestDialectTeaser('SQL'), () => {
     }
 
     it('defaults the schema to the one set in the Sequelize options', () => {
-      const User = customSequelize.define('User', {}, { timestamps: false });
+      const CustomUser = customSequelize.define('User', {}, { timestamps: false });
 
       return expectsql(
         customSql.addColumnQuery(
-          User.table,
+          CustomUser.table,
           'level_id',
           customSequelize.normalizeAttribute({
             type: DataTypes.FLOAT,
