@@ -1,10 +1,13 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { sequelize } from '../../support';
 
 describe('Model#decrement', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('is not allowed if the instance does not have a primary key defined', async () => {
     const User = sequelize.define('User', {});
     const instance = User.build({});
@@ -15,27 +18,18 @@ describe('Model#decrement', () => {
     );
   });
 
-  describe('options tests', () => {
-    let stub: SinonStub;
-    before(() => {
-      stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+  it('should allow decrements even if options are not given', async () => {
+    sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    const User = sequelize.define('User', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
     });
 
-    after(() => {
-      stub.restore();
-    });
-
-    it('should allow decrements even if options are not given', async () => {
-      const User = sequelize.define('User', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-      });
-
-      const instance = User.build({ id: 3 }, { isNewRecord: false });
-      await expect(instance.decrement(['id'])).to.be.fulfilled;
-    });
+    const instance = User.build({ id: 3 }, { isNewRecord: false });
+    await expect(instance.decrement(['id'])).to.be.fulfilled;
   });
 });

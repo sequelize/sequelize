@@ -1,10 +1,13 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { sequelize } from '../../support';
 
 describe('Model#destroy', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('is not allowed if the instance does not have a primary key defined', async () => {
     const User = sequelize.define('User', {});
     const instance = User.build({});
@@ -14,28 +17,18 @@ describe('Model#destroy', () => {
     );
   });
 
-  describe('options tests', () => {
-    let stub: SinonStub;
+  it('should allow destroys even if options are not given', async () => {
+    sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
-    before(() => {
-      stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    const User = sequelize.define('User', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
     });
 
-    after(() => {
-      stub.restore();
-    });
-
-    it('should allow destroys even if options are not given', async () => {
-      const User = sequelize.define('User', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-      });
-
-      const instance = User.build({ id: 1 }, { isNewRecord: false });
-      await expect(instance.destroy()).to.be.fulfilled;
-    });
+    const instance = User.build({ id: 1 }, { isNewRecord: false });
+    await expect(instance.destroy()).to.be.fulfilled;
   });
 });

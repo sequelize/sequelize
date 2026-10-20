@@ -1,10 +1,13 @@
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
-import type { SinonStub } from 'sinon';
 import sinon from 'sinon';
 import { sequelize } from '../../support';
 
 describe('Model#save', () => {
+  afterEach(() => {
+    sinon.restore();
+  });
+
   it('is not allowed if the instance does not have a primary key defined', async () => {
     const User = sequelize.define('User', {});
     const instance = User.build({}, { isNewRecord: false });
@@ -14,35 +17,25 @@ describe('Model#save', () => {
     );
   });
 
-  describe('options tests', () => {
-    let stub: SinonStub;
+  it('should allow saves even if options are not given', async () => {
+    // The typings of queryRaw don't cover the instance being returned when "instance" is set
+    sinon.stub(sequelize, 'queryRaw').resolves([
+      {
+        _previousDataValues: {},
+        dataValues: { id: 1 },
+      },
+      1,
+    ] as any);
 
-    before(() => {
-      // The typings of queryRaw don't cover the instance being returned when "instance" is set
-      stub = sinon.stub(sequelize, 'queryRaw').resolves([
-        {
-          _previousDataValues: {},
-          dataValues: { id: 1 },
-        },
-        1,
-      ] as any);
+    const User = sequelize.define('User', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true,
+        autoIncrement: true,
+      },
     });
 
-    after(() => {
-      stub.restore();
-    });
-
-    it('should allow saves even if options are not given', async () => {
-      const User = sequelize.define('User', {
-        id: {
-          type: DataTypes.INTEGER,
-          primaryKey: true,
-          autoIncrement: true,
-        },
-      });
-
-      const instance = User.build({});
-      await expect(instance.save()).to.be.fulfilled;
-    });
+    const instance = User.build({});
+    await expect(instance.save()).to.be.fulfilled;
   });
 });
