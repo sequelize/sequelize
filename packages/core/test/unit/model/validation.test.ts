@@ -1,290 +1,261 @@
-'use strict';
-
-const { expect } = require('chai');
-const sinon = require('sinon');
-const { DataTypes, Op, Sequelize } = require('@sequelize/core');
-const { rand, sequelize } = require('../../support');
+import type { ModelStatic } from '@sequelize/core';
+import { DataTypes, Op, ValidationError, ValidationErrorItem } from '@sequelize/core';
+import { expect } from 'chai';
+import { inspect } from 'node:util';
+import type { SinonSpy, SinonStub } from 'sinon';
+import sinon from 'sinon';
+import { rand, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
+interface ValidatorCheck {
+  /** The arguments of the validator, if it accepts any */
+  args?: unknown;
+  /** Whether the validator can also be enabled with `true` even though it accepts arguments */
+  allowTrue?: boolean;
+  fail: string[];
+  pass: Array<string | null>;
+}
+
 describe('InstanceValidator', () => {
   describe('validations', () => {
-    const checks = {
+    const checks: Record<string, ValidatorCheck> = {
       is: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: '0',
-        pass: 'a',
+        args: ['[a-z]', 'i'],
+        fail: ['0'],
+        pass: ['a'],
       },
       not: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: 'a',
-        pass: '0',
+        args: ['[a-z]', 'i'],
+        fail: ['a'],
+        pass: ['0'],
       },
       isEmail: {
-        fail: 'a',
-        pass: 'abc@abc.com',
+        fail: ['a'],
+        pass: ['abc@abc.com'],
       },
       isUrl: {
-        fail: 'abc',
-        pass: 'http://abc.com',
+        fail: ['abc'],
+        pass: ['http://abc.com'],
       },
       isIP: {
-        fail: 'abc',
-        pass: '129.89.23.1',
+        fail: ['abc'],
+        pass: ['129.89.23.1'],
       },
       isIPv4: {
-        fail: 'abc',
-        pass: '129.89.23.1',
+        fail: ['abc'],
+        pass: ['129.89.23.1'],
       },
       isIPv6: {
-        fail: '1111:2222:3333::5555:',
-        pass: 'fe80:0000:0000:0000:0204:61ff:fe9d:f156',
+        fail: ['1111:2222:3333::5555:'],
+        pass: ['fe80:0000:0000:0000:0204:61ff:fe9d:f156'],
       },
       isAlpha: {
-        stringOrBoolean: true,
-        spec: { args: 'en-GB' },
-        fail: '012',
-        pass: 'abc',
+        allowTrue: true,
+        args: 'en-GB',
+        fail: ['012'],
+        pass: ['abc'],
       },
       isAlphanumeric: {
-        stringOrBoolean: true,
-        spec: { args: 'en-GB' },
-        fail: '_abc019',
-        pass: 'abc019',
+        allowTrue: true,
+        args: 'en-GB',
+        fail: ['_abc019'],
+        pass: ['abc019'],
       },
       isNumeric: {
-        fail: 'abc',
-        pass: '019',
+        fail: ['abc'],
+        pass: ['019'],
       },
       isInt: {
-        fail: '9.2',
-        pass: '-9',
+        fail: ['9.2'],
+        pass: ['-9'],
       },
       isLowercase: {
-        fail: 'AB',
-        pass: 'ab',
+        fail: ['AB'],
+        pass: ['ab'],
       },
       isUppercase: {
-        fail: 'ab',
-        pass: 'AB',
+        fail: ['ab'],
+        pass: ['AB'],
       },
       isDecimal: {
-        fail: 'a',
-        pass: '0.2',
+        fail: ['a'],
+        pass: ['0.2'],
       },
       isFloat: {
-        fail: 'a',
-        pass: '9.2',
+        fail: ['a'],
+        pass: ['9.2'],
       },
       isNull: {
-        fail: '0',
-        pass: null,
+        fail: ['0'],
+        pass: [null],
       },
       notEmpty: {
-        fail: '       ',
-        pass: 'a',
+        fail: ['       '],
+        pass: ['a'],
       },
       equals: {
-        spec: { args: 'bla bla bla' },
-        fail: 'bla',
-        pass: 'bla bla bla',
+        args: 'bla bla bla',
+        fail: ['bla'],
+        pass: ['bla bla bla'],
       },
       contains: {
-        spec: { args: 'bla' },
-        fail: 'la',
-        pass: '0bla23',
+        args: 'bla',
+        fail: ['la'],
+        pass: ['0bla23'],
       },
       notContains: {
-        spec: { args: 'bla' },
-        fail: '0bla23',
-        pass: 'la',
+        args: 'bla',
+        fail: ['0bla23'],
+        pass: ['la'],
       },
       regex: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: '0',
-        pass: 'a',
+        args: ['[a-z]', 'i'],
+        fail: ['0'],
+        pass: ['a'],
       },
       notRegex: {
-        spec: { args: ['[a-z]', 'i'] },
-        fail: 'a',
-        pass: '0',
+        args: ['[a-z]', 'i'],
+        fail: ['a'],
+        pass: ['0'],
       },
       len: {
-        spec: { args: [2, 4] },
+        args: [2, 4],
         fail: ['1', '12345'],
         pass: ['12', '123', '1234'],
-        raw: true,
-      },
-      len$: {
-        spec: [2, 4],
-        fail: ['1', '12345'],
-        pass: ['12', '123', '1234'],
-        raw: true,
       },
       isUUID: {
-        spec: { args: 4 },
-        fail: 'f47ac10b-58cc-3372-a567-0e02b2c3d479',
-        pass: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+        args: 4,
+        fail: ['f47ac10b-58cc-3372-a567-0e02b2c3d479'],
+        pass: ['f47ac10b-58cc-4372-a567-0e02b2c3d479'],
       },
       isDate: {
-        fail: 'not a date',
-        pass: '2011-02-04',
+        fail: ['not a date'],
+        pass: ['2011-02-04'],
       },
       isAfter: {
-        spec: { args: '2011-11-05' },
-        fail: '2011-11-04',
-        pass: '2011-11-06',
+        args: '2011-11-05',
+        fail: ['2011-11-04'],
+        pass: ['2011-11-06'],
       },
       isBefore: {
-        spec: { args: '2011-11-05' },
-        fail: '2011-11-06',
-        pass: '2011-11-04',
+        args: '2011-11-05',
+        fail: ['2011-11-06'],
+        pass: ['2011-11-04'],
       },
       isIn: {
-        spec: { args: 'abcdefghijk' },
-        fail: 'ghik',
-        pass: 'ghij',
+        args: 'abcdefghijk',
+        fail: ['ghik'],
+        pass: ['ghij'],
       },
       notIn: {
-        spec: { args: 'abcdefghijk' },
-        fail: 'ghij',
-        pass: 'ghik',
+        args: 'abcdefghijk',
+        fail: ['ghij'],
+        pass: ['ghik'],
       },
       max: {
-        spec: { args: 23 },
-        fail: '24',
-        pass: '23',
-      },
-      max$: {
-        spec: 23,
-        fail: '24',
-        pass: '23',
+        args: 23,
+        fail: ['24'],
+        pass: ['23'],
       },
       min: {
-        spec: { args: 23 },
-        fail: '22',
-        pass: '23',
-      },
-      min$: {
-        spec: 23,
-        fail: '22',
-        pass: '23',
+        args: 23,
+        fail: ['22'],
+        pass: ['23'],
       },
       isCreditCard: {
-        fail: '401288888888188f',
-        pass: '4012888888881881',
+        fail: ['401288888888188f'],
+        pass: ['4012888888881881'],
       },
     };
 
-    const applyFailTest = function applyFailTest(validatorDetails, i, validator) {
-      const failingValue = validatorDetails.fail[i];
-      it(`correctly specifies an instance as invalid using a value of "${failingValue}" for the validation "${validator}"`, async function () {
-        const validations = {};
-        const message = `${validator}(${failingValue})`;
-
-        validations[validator] = validatorDetails.spec || {};
-        validations[validator].msg = message;
-
-        const UserFail = this.sequelize.define(`User${rand()}`, {
-          name: {
-            type: DataTypes.STRING,
-            validate: validations,
-          },
-        });
-
-        const failingUser = UserFail.build({ name: failingValue });
-
-        const _errors = await expect(failingUser.validate()).to.be.rejected;
-        expect(_errors.get('name')[0].message).to.equal(message);
-        expect(_errors.get('name')[0].value).to.equal(failingValue);
+    async function validateWith(validator: string, spec: unknown, value: string | null) {
+      const User = sequelize.define(`User${rand()}`, {
+        name: {
+          type: DataTypes.STRING,
+          validate: { [validator]: spec },
+        },
       });
-    };
 
-    const applyPassTest = function applyPassTest(validatorDetails, j, validator, type) {
-      const succeedingValue = validatorDetails.pass[j];
-      it(`correctly specifies an instance as valid using a value of "${succeedingValue}" for the validation "${validator}"`, async function () {
-        const validations = {};
-        const message = `${validator}(${succeedingValue})`;
+      return User.build({ name: value }).validate();
+    }
 
-        validations[validator] = validatorDetails.spec || {};
+    for (const [validator, check] of Object.entries(checks)) {
+      describe(validator, () => {
+        // An options object is created for each test, as the validator could mutate it
+        const getOptions = () => (check.args === undefined ? {} : { args: check.args });
 
-        switch (type) {
-          case 'msg': {
-            validations[validator].msg = message;
-
-            break;
-          }
-
-          case 'args': {
-            validations[validator].args = validations[validator].args || true;
-            validations[validator].msg = message;
-
-            break;
-          }
-
-          case 'true': {
-            validations[validator] = true;
-
-            break;
-          }
-          // No default
+        // Validators can also be enabled without an options object, by passing their arguments directly, or true
+        const shorthands: Array<{ title: string; spec: unknown }> = [];
+        if (check.args !== undefined) {
+          shorthands.push({ title: `${validator}: ${inspect(check.args)}`, spec: check.args });
         }
 
-        const UserSuccess = this.sequelize.define(`User${rand()}`, {
-          name: {
-            type: DataTypes.STRING,
-            validate: validations,
-          },
-        });
-        const successfulUser = UserSuccess.build({ name: succeedingValue });
-        await expect(successfulUser.validate()).not.to.be.rejected;
+        if (check.args === undefined || check.allowTrue) {
+          shorthands.push({ title: `${validator}: true`, spec: true });
+        }
+
+        for (const value of check.fail) {
+          it(`rejects ${inspect(value)} with a custom message`, async () => {
+            const message = `${validator}(${value})`;
+
+            const error = await expect(
+              validateWith(validator, { ...getOptions(), msg: message }, value),
+            ).to.be.rejectedWith(ValidationError);
+            expect(error.get('name')[0].message).to.equal(message);
+            expect(error.get('name')[0].value).to.equal(value);
+          });
+
+          for (const { title, spec } of shorthands) {
+            it(`rejects ${inspect(value)} using ${title}`, async () => {
+              const error = await expect(validateWith(validator, spec, value)).to.be.rejectedWith(
+                ValidationError,
+              );
+              expect(error.get('name')[0].message).to.equal(
+                `Validation ${validator} on name failed`,
+              );
+              expect(error.get('name')[0].value).to.equal(value);
+            });
+          }
+        }
+
+        for (const value of check.pass) {
+          it(`accepts ${inspect(value)}`, async () => {
+            await expect(validateWith(validator, getOptions(), value)).to.be.fulfilled;
+          });
+
+          it(`accepts ${inspect(value)} with a custom message`, async () => {
+            await expect(
+              validateWith(validator, { ...getOptions(), msg: `${validator}(${value})` }, value),
+            ).to.be.fulfilled;
+          });
+
+          for (const { title, spec } of shorthands) {
+            it(`accepts ${inspect(value)} using ${title}`, async () => {
+              await expect(validateWith(validator, spec, value)).to.be.fulfilled;
+            });
+          }
+        }
       });
-    };
-
-    for (let validator in checks) {
-      if (checks.hasOwnProperty(validator)) {
-        validator = validator.replace(/\$$/, '');
-        const validatorDetails = checks[validator];
-
-        if (!validatorDetails.raw) {
-          validatorDetails.fail = Array.isArray(validatorDetails.fail)
-            ? validatorDetails.fail
-            : [validatorDetails.fail];
-          validatorDetails.pass = Array.isArray(validatorDetails.pass)
-            ? validatorDetails.pass
-            : [validatorDetails.pass];
-        }
-
-        for (let i = 0; i < validatorDetails.fail.length; i++) {
-          applyFailTest(validatorDetails, i, validator);
-        }
-
-        for (let i = 0; i < validatorDetails.pass.length; i++) {
-          applyPassTest(validatorDetails, i, validator);
-          applyPassTest(validatorDetails, i, validator, 'msg');
-          applyPassTest(validatorDetails, i, validator, 'args');
-          if (validatorDetails.stringOrBoolean || validatorDetails.spec === undefined) {
-            applyPassTest(validatorDetails, i, validator, 'true');
-          }
-        }
-      }
     }
   });
 
   if (dialect.supports.dataTypes.DECIMAL) {
     describe('DECIMAL validator', () => {
-      let User;
+      let User: ModelStatic;
+      let stub: SinonStub;
 
-      before(function () {
+      before(() => {
         User = sequelize.define('user', {
           decimal: DataTypes.DECIMAL(10, 2),
         });
 
-        this.stub = sinon.stub(sequelize, 'queryRaw').callsFake(async () => [User.build({}), 1]);
+        // The typings of queryRaw don't cover the instance being returned when "instance" is set
+        stub = sinon.stub(sequelize, 'queryRaw').callsFake(async () => [User.build({}), 1] as any);
       });
 
-      after(function () {
-        this.stub.restore();
+      after(() => {
+        stub.restore();
       });
 
       it('should allow decimal as a string', async () => {
@@ -321,9 +292,10 @@ describe('InstanceValidator', () => {
   }
 
   describe('datatype validations', () => {
-    let User;
+    let User: ModelStatic;
+    let stub: SinonStub;
 
-    before(function () {
+    before(() => {
       User = sequelize.define('user', {
         integer: DataTypes.INTEGER,
         name: DataTypes.STRING,
@@ -332,11 +304,12 @@ describe('InstanceValidator', () => {
         date: DataTypes.DATE,
       });
 
-      this.stub = sinon.stub(sequelize, 'queryRaw').callsFake(async () => [User.build({}), 1]);
+      // The typings of queryRaw don't cover the instance being returned when "instance" is set
+      stub = sinon.stub(sequelize, 'queryRaw').callsFake(async () => [User.build({}), 1] as any);
     });
 
-    after(function () {
-      this.stub.restore();
+    after(() => {
+      stub.restore();
     });
 
     describe('should not throw', () => {
@@ -361,23 +334,21 @@ describe('InstanceValidator', () => {
       });
 
       describe('findAll', () => {
-        it('should allow $in', async () => {
-          if (!dialect.supports.dataTypes.ARRAY) {
-            return;
-          }
-
-          await expect(
-            User.findAll({
-              where: {
-                name: {
-                  [Op.like]: {
-                    [Op.any]: ['foo%', 'bar%'],
+        if (dialect.supports.dataTypes.ARRAY) {
+          it('should allow $in', async () => {
+            await expect(
+              User.findAll({
+                where: {
+                  name: {
+                    [Op.like]: {
+                      [Op.any]: ['foo%', 'bar%'],
+                    },
                   },
                 },
-              },
-            }),
-          ).not.to.be.rejected;
-        });
+              }),
+            ).not.to.be.rejected;
+          });
+        }
 
         it('should allow $like for uuid if cast', async () => {
           await expect(
@@ -400,14 +371,14 @@ describe('InstanceValidator', () => {
             User.create({
               integer: 'jan',
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError, `'jan' is not a valid integer`);
+          ).to.be.rejectedWith(ValidationError, `'jan' is not a valid integer`);
 
           expect(error)
             .to.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
-            .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .and.with.property('0')
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -422,12 +393,12 @@ describe('InstanceValidator', () => {
               integer: 4.5,
             }),
           )
-            .to.be.rejectedWith(Sequelize.ValidationError)
+            .to.be.rejectedWith(ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
-            .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .and.with.property('0')
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -440,12 +411,12 @@ describe('InstanceValidator', () => {
       describe('update', () => {
         it('should throw when passing string', async () => {
           await expect(User.update({ integer: 'jan' }, { where: {} }))
-            .to.be.rejectedWith(Sequelize.ValidationError)
+            .to.be.rejectedWith(ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
-            .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .and.with.property('0')
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -463,12 +434,12 @@ describe('InstanceValidator', () => {
               { where: {} },
             ),
           )
-            .to.be.rejectedWith(Sequelize.ValidationError)
+            .to.be.rejectedWith(ValidationError)
             .which.eventually.have.property('errors')
             .that.is.an('array')
             .with.lengthOf(1)
-            .and.with.property(0)
-            .that.is.an.instanceOf(Sequelize.ValidationErrorItem)
+            .and.with.property('0')
+            .that.is.an.instanceOf(ValidationErrorItem)
             .and.include({
               type: 'Validation error',
               path: 'integer',
@@ -481,16 +452,17 @@ describe('InstanceValidator', () => {
   });
 
   describe('custom validation functions', () => {
-    let User;
+    let User: ModelStatic;
+    let stub: SinonStub;
 
-    before(function () {
+    before(() => {
       User = sequelize.define(
         'user',
         {
           integer: {
             type: DataTypes.INTEGER,
             validate: {
-              customFn(val, next) {
+              customFn(val: number, next: (err?: string) => void) {
                 if (val < 0) {
                   next('integer must be greater or equal zero');
                 } else {
@@ -512,11 +484,12 @@ describe('InstanceValidator', () => {
         },
       );
 
-      this.stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1]);
+      // The typings of queryRaw don't cover the instance being returned when "instance" is set
+      stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1] as any);
     });
 
-    after(function () {
-      this.stub.restore();
+    after(() => {
+      stub.restore();
     });
 
     describe('should not throw', () => {
@@ -553,7 +526,7 @@ describe('InstanceValidator', () => {
             User.create({
               integer: -1,
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
 
         it('custom model validation function fails', async () => {
@@ -561,7 +534,7 @@ describe('InstanceValidator', () => {
             User.create({
               name: 'error',
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
 
@@ -574,7 +547,7 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
 
         it('when custom model validation function fails', async () => {
@@ -585,16 +558,17 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
     });
   });
 
   describe('custom validation functions returning promises', () => {
-    let User;
+    let User: ModelStatic;
+    let stub: SinonStub;
 
-    before(function () {
+    before(() => {
       User = sequelize.define(
         'user',
         {
@@ -611,11 +585,12 @@ describe('InstanceValidator', () => {
         },
       );
 
-      this.stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1]);
+      // The typings of queryRaw don't cover the instance being returned when "instance" is set
+      stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1] as any);
     });
 
-    after(function () {
-      this.stub.restore();
+    after(() => {
+      stub.restore();
     });
 
     describe('should not throw', () => {
@@ -650,7 +625,7 @@ describe('InstanceValidator', () => {
             User.create({
               name: 'error',
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
 
@@ -663,15 +638,17 @@ describe('InstanceValidator', () => {
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
         });
       });
     });
   });
 
   describe('custom validation functions and null values', () => {
-    before(function () {
-      this.customValidator = sinon.fake(function (value) {
+    let customValidator: SinonSpy;
+
+    before(() => {
+      customValidator = sinon.fake(function (this: { integer: unknown }, value: unknown) {
         if (value === null && this.integer !== 10) {
           throw new Error("name can't be null unless integer is 10");
         }
@@ -679,44 +656,48 @@ describe('InstanceValidator', () => {
     });
 
     describe('with allowNull set to true', () => {
-      before(function () {
-        this.User = sequelize.define('user', {
+      let User: ModelStatic;
+      let stub: SinonStub;
+
+      before(() => {
+        User = sequelize.define('user', {
           integer: DataTypes.INTEGER,
           name: {
             type: DataTypes.STRING,
             allowNull: true,
             validate: {
-              customValidator: this.customValidator,
+              customValidator,
             },
           },
         });
 
-        this.stub = sinon.stub(sequelize, 'queryRaw').resolves([this.User.build(), 1]);
+        // The typings of queryRaw don't cover the instance being returned when "instance" is set
+        stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1] as any);
       });
 
-      after(function () {
-        this.stub.restore();
+      after(() => {
+        stub.restore();
       });
 
       describe('should call validator and not throw', () => {
-        beforeEach(function () {
-          this.customValidator.resetHistory();
+        beforeEach(() => {
+          customValidator.resetHistory();
         });
 
-        it('on create', async function () {
+        it('on create', async () => {
           await expect(
-            this.User.create({
+            User.create({
               integer: 10,
               name: null,
             }),
           ).not.to.be.rejected;
 
-          await expect(this.customValidator).to.have.been.calledOnce;
+          expect(customValidator).to.have.been.calledOnce;
         });
 
-        it('on update', async function () {
+        it('on update', async () => {
           await expect(
-            this.User.update(
+            User.update(
               {
                 integer: 10,
                 name: null,
@@ -725,112 +706,116 @@ describe('InstanceValidator', () => {
             ),
           ).not.to.be.rejected;
 
-          await expect(this.customValidator).to.have.been.calledOnce;
+          expect(customValidator).to.have.been.calledOnce;
         });
       });
 
       describe('should call validator and throw ValidationError', () => {
-        beforeEach(function () {
-          this.customValidator.resetHistory();
+        beforeEach(() => {
+          customValidator.resetHistory();
         });
 
-        it('on create', async function () {
+        it('on create', async () => {
           await expect(
-            this.User.create({
+            User.create({
               integer: 11,
               name: null,
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
-          await expect(this.customValidator).to.have.been.calledOnce;
+          expect(customValidator).to.have.been.calledOnce;
         });
 
-        it('on update', async function () {
+        it('on update', async () => {
           await expect(
-            this.User.update(
+            User.update(
               {
                 integer: 11,
                 name: null,
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
-          await expect(this.customValidator).to.have.been.calledOnce;
+          expect(customValidator).to.have.been.calledOnce;
         });
       });
     });
 
     describe('with allowNull set to false', () => {
-      before(function () {
-        this.User = sequelize.define('user', {
+      let User: ModelStatic;
+      let stub: SinonStub;
+
+      before(() => {
+        User = sequelize.define('user', {
           integer: DataTypes.INTEGER,
           name: {
             type: DataTypes.STRING,
             allowNull: false,
             validate: {
-              customValidator: this.customValidator,
+              customValidator,
             },
           },
         });
 
-        this.stub = sinon.stub(sequelize, 'queryRaw').resolves([this.User.build(), 1]);
+        // The typings of queryRaw don't cover the instance being returned when "instance" is set
+        stub = sinon.stub(sequelize, 'queryRaw').resolves([User.build(), 1] as any);
       });
 
-      after(function () {
-        this.stub.restore();
+      after(() => {
+        stub.restore();
       });
 
       describe('should not call validator and throw ValidationError', () => {
-        beforeEach(function () {
-          this.customValidator.resetHistory();
+        beforeEach(() => {
+          customValidator.resetHistory();
         });
 
-        it('on create', async function () {
+        it('on create', async () => {
           await expect(
-            this.User.create({
+            User.create({
               integer: 99,
               name: null,
             }),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
-          await expect(this.customValidator).to.have.not.been.called;
+          expect(customValidator).to.have.not.been.called;
         });
 
-        it('on update', async function () {
+        it('on update', async () => {
           await expect(
-            this.User.update(
+            User.update(
               {
                 integer: 99,
                 name: null,
               },
               { where: {} },
             ),
-          ).to.be.rejectedWith(Sequelize.ValidationError);
+          ).to.be.rejectedWith(ValidationError);
 
-          await expect(this.customValidator).to.have.not.been.called;
+          expect(customValidator).to.have.not.been.called;
         });
       });
 
       describe('should call validator and not throw', () => {
-        beforeEach(function () {
-          this.customValidator.resetHistory();
+        beforeEach(() => {
+          customValidator.resetHistory();
         });
 
-        it('on create', async function () {
+        it('on create', async () => {
           await expect(
-            this.User.create({
+            User.create({
               integer: 99,
               name: 'foo',
             }),
           ).not.to.be.rejected;
 
-          await expect(this.customValidator).to.have.been.calledOnce;
+          expect(customValidator).to.have.been.calledOnce;
         });
 
-        it('on update', async function () {
+        it('on update', async () => {
           await expect(
-            this.User.update(
+            User.update(
               {
                 integer: 99,
                 name: 'foo',
@@ -839,7 +824,7 @@ describe('InstanceValidator', () => {
             ),
           ).not.to.be.rejected;
 
-          await expect(this.customValidator).to.have.been.calledOnce;
+          expect(customValidator).to.have.been.calledOnce;
         });
       });
     });
