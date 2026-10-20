@@ -563,14 +563,11 @@ export function initModel<M extends Model>(
 function addAttributeGetterAndSetters(model: ModelStatic) {
   const modelDefinition = model.modelDefinition;
 
-  // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
-  const { Model: TmpModel } = require('./model.js');
-
   // add attributes to the DAO prototype
   for (const attribute of modelDefinition.attributes.values()) {
     const attributeName = attribute.attributeName;
 
-    if (attributeName in TmpModel.prototype) {
+    if (attributeName in Model.prototype) {
       model.sequelize.log(
         `Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`,
       );
