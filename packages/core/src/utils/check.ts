@@ -24,13 +24,12 @@ export function isDevEnv(): boolean {
  * but that the dialect they use does not support.
  *
  * Only the options listed in {@link allSupportableOptions} are checked, any other property of {@link receivedOptions} is ignored.
- * Options whose value is undefined or false are considered as not received.
  *
  * @param methodName The name of the method that received the options
  * @param dialect The dialect to which the implementation belongs
  * @param allSupportableOptions All options that this method *can* support. The ones that are declared in TypeScript typings.
  * @param supportedOptions The subset of options that this dialect *actually does* support.
- * @param receivedOptions The user provided options passed to the method. Can be undefined if the user did not provide any.
+ * @param receivedOptions The user provided options passed to the method. Can be undefined.
  */
 export function rejectInvalidOptions<T extends string>(
   methodName: string,
@@ -70,15 +69,19 @@ export function rejectInvalidOptions<T extends string>(
   }
 }
 
+const { propertyIsEnumerable } = Object.prototype;
+
 /**
- * Returns the value of a property if it is enumerable, either as an own property or one inherited from the prototype chain.
- * Non-enumerable properties (such as getters declared on a class) are not considered to be options,
- * and their getters are not called.
+ * Like `obj[propertyName]`, but returns undefined for non-enumerable properties without calling their getter.
  *
  * @param obj The object to read the property from
  * @param propertyName The name of the property
  */
 function getEnumerablePropertyValue(obj: object, propertyName: string): unknown {
+  if (propertyIsEnumerable.call(obj, propertyName)) {
+    return (obj as Record<string, unknown>)[propertyName];
+  }
+
   if (!(propertyName in obj)) {
     return undefined;
   }
@@ -94,7 +97,7 @@ function getEnumerablePropertyValue(obj: object, propertyName: string): unknown 
         return undefined;
       }
 
-      // Getters are called on obj, not on the prototype that declares them
+      // read via obj so getters get the right `this`
       return 'value' in descriptor
         ? descriptor.value
         : (obj as Record<string, unknown>)[propertyName];

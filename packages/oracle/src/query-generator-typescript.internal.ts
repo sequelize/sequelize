@@ -69,7 +69,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   removeIndexQuery(
     tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
-    options: RemoveIndexQueryOptions,
+    options?: RemoveIndexQueryOptions,
   ) {
     rejectInvalidOptions(
       'removeIndexQuery',
@@ -207,7 +207,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  createSchemaQuery(schema: string, options: CreateSchemaQueryOptions): string {
+  createSchemaQuery(schema: string, options?: CreateSchemaQueryOptions): string {
     rejectInvalidOptions(
       'createSchemaQuery',
       this.dialect,
@@ -263,7 +263,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  truncateTableQuery(tableName: TableOrModel, options: TruncateTableQueryOptions): string {
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions): string {
     rejectInvalidOptions(
       'truncateTableQuery',
       this.dialect,

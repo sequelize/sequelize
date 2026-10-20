@@ -40,12 +40,11 @@ import { joinWithLogicalOperator } from './where-sql-builder';
 const { propertyIsEnumerable } = Object.prototype;
 
 /**
- * quoteTable is called for every table of a SELECT query, so we only pass it the options it uses
- * instead of spreading the entire query options into a new object for each table.
+ * Avoids spreading the whole query options for every table of a SELECT.
  *
  * @param {string | boolean} alias The alias of the table
  * @param {object} options The options of the query
- * @param {object} [include] The include the table belongs to. Its options take precedence over the ones of the query.
+ * @param {object} [include] The include the table belongs to
  * @returns {object}
  */
 function getQuoteTableOptions(alias, options, include) {

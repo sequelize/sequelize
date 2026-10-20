@@ -624,9 +624,10 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       'quoteTable',
       this.dialect,
       QUOTE_TABLE_SUPPORTABLE_OPTIONS,
-      // The support flags of indexHints & tableHints have the same name as the options.
-      // Passing them directly avoids allocating a new object on every call.
-      this.dialect.supports,
+      {
+        indexHints: this.dialect.supports.indexHints,
+        tableHints: this.dialect.supports.tableHints,
+      },
       options,
     );
 
