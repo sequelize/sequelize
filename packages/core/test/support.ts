@@ -208,7 +208,22 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
-export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
+/**
+ * Runs `method` and checks its result, or the error it throws, against the expectation for the current dialect.
+ * If `method` returns a promise, the check happens once it settles, and the returned promise must be awaited.
+ *
+ * @param method The function to test.
+ * @param assertions The expected result or error, per dialect. Keys are `default` or a space-separated list of dialect names.
+ */
+export function expectPerDialect<Out>(
+  method: () => Promise<Out>,
+  assertions: ExpectationRecord<Out>,
+): Promise<void>;
+export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>): void;
+export function expectPerDialect<Out>(
+  method: () => Out | Promise<Out>,
+  assertions: ExpectationRecord<Out>,
+): void | Promise<void> {
   const expectations =
     pojo<PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>>>();
 
@@ -228,7 +243,16 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
     }
   }
 
-  let result: Out | Error;
+  const expectation = expectations[sequelize.dialect.name as DialectName] ?? expectations.default;
+  if (expectation === undefined) {
+    throw new Error(
+      `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
+    );
+  }
+
+  const isDefault = expectations[sequelize.dialect.name as DialectName] === undefined;
+
+  let result: Out | Promise<Out> | Error;
 
   try {
     result = method();
@@ -238,13 +262,27 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
     result = error;
   }
 
-  const expectation = expectations[sequelize.dialect.name as DialectName] ?? expectations.default;
-  if (expectation === undefined) {
-    throw new Error(
-      `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
+  if (result instanceof Promise) {
+    return result.then(
+      value => {
+        assertMatchesDialectExpectation(value, expectation, isDefault);
+      },
+      (error: unknown) => {
+        assert(error instanceof Error, 'method rejected with a non-error');
+
+        assertMatchesDialectExpectation(error, expectation, isDefault);
+      },
     );
   }
 
+  assertMatchesDialectExpectation(result, expectation, isDefault);
+}
+
+function assertMatchesDialectExpectation<Out>(
+  result: Out | Error,
+  expectation: Out | Error | Expectation<Out>,
+  isDefault: boolean,
+): void {
   if (expectation instanceof Error) {
     assert(
       result instanceof Error,
@@ -258,7 +296,6 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
       `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
     );
 
-    const isDefault = expectations[sequelize.dialect.name as DialectName] === undefined;
     assertMatchesExpectation(result, expectation, isDefault);
   }
 }
