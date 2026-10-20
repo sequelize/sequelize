@@ -42,8 +42,10 @@ describe(getTestDialectTeaser('SQL'), () => {
                 table: 'level',
                 key: 'id',
               },
-              onUpdate: 'CASCADE',
-              onDelete: 'CASCADE',
+              // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
+              onUpdate: 'cascade',
+              // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
+              onDelete: 'cascade',
             }),
           ),
           {
@@ -62,7 +64,7 @@ describe(getTestDialectTeaser('SQL'), () => {
             'test_added_col_first',
             current.normalizeAttribute({
               type: DataTypes.STRING,
-              // @ts-expect-error -- "first" is supported by MySQL and MariaDB, but missing from the typings
+              // @ts-expect-error -- "first" is supported by MySQL and MariaDB, but missing from the typings. See https://github.com/sequelize/sequelize/issues/18567
               first: true,
             }),
           ),

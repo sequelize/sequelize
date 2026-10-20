@@ -332,11 +332,11 @@ describe(getTestDialectTeaser('SQL'), () => {
             type: DataTypes.STRING,
             field: 'pass_word',
           },
-          // @ts-expect-error -- timestamp attributes don't need a type, but the typings require one
+          // @ts-expect-error -- timestamp attributes don't need a type, but the typings require one. See https://github.com/sequelize/sequelize/issues/18567
           createdAt: {
             field: 'created_at',
           },
-          // @ts-expect-error -- timestamp attributes don't need a type, but the typings require one
+          // @ts-expect-error -- timestamp attributes don't need a type, but the typings require one. See https://github.com/sequelize/sequelize/issues/18567
           updatedAt: {
             field: 'updated_at',
           },

@@ -95,7 +95,7 @@ describe(getTestDialectTeaser('SQL'), () => {
           'User',
           [
             'fieldB',
-            // @ts-expect-error -- "attribute" is a legacy alias of "name" that is missing from the typings
+            // @ts-expect-error -- "attribute" is a legacy alias of "name" that is missing from the typings. See https://github.com/sequelize/sequelize/issues/18567
             { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 },
           ],
           {

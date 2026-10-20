@@ -117,8 +117,10 @@ describe('QueryInterface#changeColumn', () => {
         table: 'level',
         key: 'id',
       },
-      onUpdate: 'CASCADE',
-      onDelete: 'CASCADE',
+      // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
+      onUpdate: 'cascade',
+      // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
+      onDelete: 'cascade',
     });
 
     expectsql(vars.stub.lastCall.args[0], {
