@@ -175,7 +175,7 @@ export function initDecoratedModel(model: ModelStatic, sequelize: Sequelize): bo
 const NON_INHERITABLE_MODEL_OPTIONS = ['modelName', 'name', 'tableName'] as const;
 
 function getRegisteredModelOptions(model: ModelStatic): ModelOptions {
-  const modelOptions = registeredOptions.get(model)?.model ?? (EMPTY_OBJECT as ModelOptions);
+  const modelOptions = registeredOptions.get(model)?.model ?? EMPTY_OBJECT;
 
   const parentModel = Object.getPrototypeOf(model);
   if (isModelStatic(parentModel)) {

@@ -118,6 +118,7 @@ export class IBMiConnectionManager extends AbstractConnectionManager<IBMiDialect
   }
 
   validate(connection: IBMiConnection): boolean {
-    return connection.connected();
+    // odbc's typings declare `connected()` as a method, but it is a getter
+    return (connection as unknown as { connected: boolean }).connected;
   }
 }

@@ -25,9 +25,7 @@ describe('associations', () => {
     function expectForeignKeyTypeOfC() {
       const { A, C } = vars;
 
-      expect(A.getAttributes().cId.type).to.be.instanceOf(
-        C.getAttributes().id.type.constructor as new () => unknown,
-      );
+      expect(A.getAttributes().cId.type).to.be.instanceOf(C.getAttributes().id.type.constructor);
     }
 
     it('should not be overwritten for belongsTo', () => {

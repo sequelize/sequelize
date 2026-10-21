@@ -1245,7 +1245,6 @@ ${associationOwner._getAssociationDebugList()}`);
   static _withScopeAndSchema(schemaOptions, mergedScope, scopeNames) {
     if (!this._modelVariantRefs) {
       // technically this weakref is unnecessary because we're referencing ourselves but it simplifies the code
-      // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
       this._modelVariantRefs = new Set([new WeakRef(this)]);
     }
 
@@ -1289,7 +1288,6 @@ ${associationOwner._getAssociationDebugList()}`);
       schema: schemaOptions.schema,
       schemaDelimiter: schemaOptions.schemaDelimiter,
     });
-    // eslint-disable-next-line no-undef -- eslint doesn't know about WeakRef, this will be resolved once we migrate to TS.
     this._modelVariantRefs.add(new WeakRef(clone));
 
     clone._scope = mergedScope;
@@ -2150,6 +2148,7 @@ ${associationOwner._getAssociationDebugList()}`);
       hooks: true,
       returning: true,
       validate: true,
+      omitNull: this.modelDefinition.options.omitNull,
       ...cloneDeep(options),
     };
 
@@ -2928,6 +2927,7 @@ ${associationOwner._getAssociationDebugList()}`);
         returning: false,
         force: false,
         sideEffects: true,
+        omitNull: modelDefinition.options.omitNull,
       }),
     );
 
@@ -3876,6 +3876,7 @@ Instead of specifying a Model, either:
     options = defaultsLodash(options, {
       hooks: true,
       validate: true,
+      omitNull: this.modelDefinition.options.omitNull,
     });
 
     setTransactionFromCls(options, this.sequelize);
