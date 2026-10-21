@@ -366,6 +366,56 @@ describe(Support.getTestDialectTeaser('belongsToMany'), () => {
       expect(Object.keys(ProductTag.rawAttributes)).to.deep.equal(['id', 'priority', 'productId', 'tagId']);
     });
 
+    it('should use custom sourceKey/targetKey in belongsTo/hasMany relations to source and target from join model', function() {
+      const Product = this.sequelize.define('Product', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          code: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        }),
+        Tag = this.sequelize.define('Tag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          },
+          tagCode: {
+            type: DataTypes.STRING,
+            unique: true
+          }
+        }),
+        ProductTag = this.sequelize.define('ProductTag', {
+          id: {
+            primaryKey: true,
+            type: DataTypes.INTEGER,
+            autoIncrement: true
+          }
+        }, {
+          timestamps: false
+        });
+
+      Product.Tags = Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'productCode', otherKey: 'tagCode', sourceKey: 'code', targetKey: 'tagCode' });
+      Tag.Products = Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tagCode', otherKey: 'productCode', sourceKey: 'tagCode', targetKey: 'code' });
+
+      expect(Product.Tags.sourceKey).to.equal('code');
+      expect(Product.Tags.targetKey).to.equal('tagCode');
+
+      expect(Product.Tags.toSource.targetKey).to.equal('code');
+      expect(Product.Tags.toTarget.targetKey).to.equal('tagCode');
+      expect(Product.Tags.manyFromSource.sourceKey).to.equal('code');
+      expect(Product.Tags.manyFromTarget.sourceKey).to.equal('tagCode');
+
+      expect(Tag.Products.toSource.targetKey).to.equal('tagCode');
+      expect(Tag.Products.toTarget.targetKey).to.equal('code');
+      expect(Tag.Products.manyFromSource.sourceKey).to.equal('tagCode');
+      expect(Tag.Products.manyFromTarget.sourceKey).to.equal('code');
+    });
+
     it('should setup hasOne relations to source and target from join model with defined foreign/other keys', function() {
       const Product = this.sequelize.define('Product', {
           title: DataTypes.STRING
