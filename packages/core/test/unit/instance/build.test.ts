@@ -104,4 +104,25 @@ describe('Model.build', () => {
       expect(Model.build().get('data')).to.eql({ foo: 'bar' });
     });
   }
+
+  it('should only apply comesFromDatabase during construction', () => {
+    const Model = sequelize.define('Model', { number: DataTypes.INTEGER });
+    const options: Record<string, unknown> = {
+      comesFromDatabase: true,
+      isNewRecord: false,
+      raw: true,
+    };
+    const instance = Model.build({ number: '42' }, options);
+    const instanceOptions = (instance as unknown as { _options: Record<string, unknown> })._options;
+
+    expect(instanceOptions).not.to.equal(options);
+    expect(instanceOptions.comesFromDatabase).not.to.be.ok;
+    expect(instanceOptions).to.include({ isNewRecord: false, raw: true, model: Model });
+    expect(options).to.have.property('comesFromDatabase', true);
+
+    // values from the database are not sanitized, values set later are
+    expect(instance.get('number')).to.equal('42');
+    instance.set('number', '43');
+    expect(instance.get('number')).to.equal(43);
+  });
 });
