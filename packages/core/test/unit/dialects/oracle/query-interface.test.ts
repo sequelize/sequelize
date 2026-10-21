@@ -15,7 +15,7 @@ describe('[Oracle Specific] QueryInterface', () => {
 
   describe('showIndex', () => {
     it('passes the table and schema names as bind parameters', async () => {
-      const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
       await sequelize.queryInterface.showIndex({ tableName: 'myTable', schema: 'mySchema' });
 
@@ -27,7 +27,7 @@ describe('[Oracle Specific] QueryInterface', () => {
     });
 
     it('binds the default schema when no schema is specified', async () => {
-      const stub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+      const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
       await sequelize.queryInterface.showIndex('myTable');
 
@@ -42,7 +42,7 @@ describe('[Oracle Specific] QueryInterface', () => {
 
       it('binds the names as they are stored in the catalog', async () => {
         const unquotedSequelize = createSequelizeInstance({ quoteIdentifiers: false });
-        const stub = sinon.stub(unquotedSequelize, 'queryRaw').resolves([]);
+        const stub = sinon.stub(unquotedSequelize, 'queryRaw').resolves([[], 0]);
 
         await unquotedSequelize.queryInterface.showIndex({
           tableName: 'myTable',
