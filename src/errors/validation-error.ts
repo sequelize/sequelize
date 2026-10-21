@@ -8,10 +8,10 @@ import BaseError from './base-error';
  * our new `origin` values.
  */
 export enum ValidationErrorItemType {
-  'notnull violation' = 'CORE',
+  'notNull Violation' = 'CORE',
   'string violation' = 'CORE',
   'unique violation' = 'DB',
-  'validation error' = 'FUNCTION',
+  'Validation error' = 'FUNCTION',
 }
 
 /**
@@ -136,12 +136,18 @@ export class ValidationErrorItem {
         this.origin = type;
       } else {
         const lowercaseType = this.normalizeString(type);
-        const realType = ValidationErrorItemType[lowercaseType];
+        const keys = Object.keys(ValidationErrorItemType) as Array<keyof typeof ValidationErrorItemType>;
+        const match = keys.find(k => this.normalizeString(k) === lowercaseType);
+        if (match) {
 
-        if (realType && ValidationErrorItemOrigin[realType]) {
-          this.origin = realType;
-          this.type = type;
+          const realType = ValidationErrorItemType[match];
+
+          if (realType && ValidationErrorItemOrigin[realType]) {
+            this.origin = realType;
+            this.type = type;
+          }
         }
+
       }
     }
 
@@ -155,7 +161,7 @@ export class ValidationErrorItem {
   ): origin is keyof typeof ValidationErrorItemOrigin {
     return (
       ValidationErrorItemOrigin[
-        origin as keyof typeof ValidationErrorItemOrigin
+      origin as keyof typeof ValidationErrorItemOrigin
       ] !== undefined
     );
   }
