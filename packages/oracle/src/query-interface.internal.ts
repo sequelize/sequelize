@@ -1,5 +1,3 @@
-// Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
-
 import type {
   ColumnsDescription,
   QueryRawOptions,
@@ -17,10 +15,6 @@ import {
 } from './_internal/catalog-queries.js';
 import type { OracleDialect } from './dialect.js';
 
-/**
- * Runs the dictionary queries with bind parameters instead of literals,
- * so Oracle does not hard parse them again for every table.
- */
 export class OracleQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   constructor(readonly dialect: OracleDialect) {
     super(dialect);
