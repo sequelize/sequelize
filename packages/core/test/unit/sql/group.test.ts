@@ -1,16 +1,20 @@
-'use strict';
-
-const { DataTypes } = require('@sequelize/core');
-const { beforeAll2, expectsql, sequelize } = require('../../support');
+import type { TableName } from '@sequelize/core';
+import { DataTypes } from '@sequelize/core';
+import type { SqlExpectations } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
 const queryGenerator = sequelize.dialect.queryGenerator;
 
+type SelectQueryOptions = NonNullable<Parameters<typeof queryGenerator.selectQuery>[1]> & {
+  table?: TableName;
+};
+
 describe('QueryGenerator#selectQuery with "group"', () => {
-  function expectSelect(options, expectation) {
+  function expectSelect(options: SelectQueryOptions, expectation: SqlExpectations) {
     const model = options.model;
 
     return expectsql(
-      queryGenerator.selectQuery(options.table || (model && model.table), options, options.model),
+      queryGenerator.selectQuery((options.table || model?.table)!, options, options.model),
       expectation,
     );
   }

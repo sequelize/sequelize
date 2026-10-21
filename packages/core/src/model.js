@@ -2152,6 +2152,7 @@ ${associationOwner._getAssociationDebugList()}`);
       hooks: true,
       returning: true,
       validate: true,
+      omitNull: this.modelDefinition.options.omitNull,
       ...cloneDeep(options),
     };
 
@@ -2930,6 +2931,7 @@ ${associationOwner._getAssociationDebugList()}`);
         returning: false,
         force: false,
         sideEffects: true,
+        omitNull: modelDefinition.options.omitNull,
       }),
     );
 
@@ -3878,6 +3880,7 @@ Instead of specifying a Model, either:
     options = defaultsLodash(options, {
       hooks: true,
       validate: true,
+      omitNull: this.modelDefinition.options.omitNull,
     });
 
     setTransactionFromCls(options, this.sequelize);

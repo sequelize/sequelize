@@ -1,19 +1,33 @@
-'use strict';
+import type { FindOptions, ModelStatic } from '@sequelize/core';
+import { DataTypes, Model, Op } from '@sequelize/core';
+import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
+import at from 'lodash/at';
+import type { SqlExpectations } from '../../support';
+import { beforeAll2, expectsql, sequelize } from '../../support';
 
-const at = require('lodash/at');
+// _conformIncludes and generateJoin are internal methods that are not part of the typings
+interface ModelInternals {
+  _conformIncludes(options: object, associationOwner: ModelStatic): void;
+}
 
-const { beforeAll2, expectsql, sequelize } = require('../../support');
-const { DataTypes, Model, Op } = require('@sequelize/core');
-const {
-  _validateIncludedElements,
-} = require('@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js');
+interface QueryGeneratorInternals {
+  generateJoin(
+    include: unknown,
+    topLevelInfo: { options: object; subQuery: unknown },
+  ): { join: string; body: string; condition: string };
+}
 
-const queryGenerator = sequelize.queryGenerator;
+const queryGenerator = sequelize.queryGenerator as typeof sequelize.queryGenerator &
+  QueryGeneratorInternals;
 
 describe('QueryGenerator#generateJoin', () => {
-  const expectJoin = function (path, options, expectation) {
-    Model._conformIncludes(options, options.model);
-    options = _validateIncludedElements(options);
+  const expectJoin = function (
+    path: string,
+    findOptions: FindOptions & { model: ModelStatic },
+    expectation: SqlExpectations,
+  ) {
+    (Model as typeof Model & ModelInternals)._conformIncludes(findOptions, findOptions.model);
+    const options = _validateIncludedElements(findOptions);
 
     const include = at(options, path)[0];
 
@@ -89,22 +103,35 @@ describe('QueryGenerator#generateJoin', () => {
       },
     );
 
-    User.Tasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
-    User.Company = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
-    User.Profession = User.belongsTo(Profession, { as: 'Profession', foreignKey: 'professionId' });
-    Profession.Professionals = Profession.hasMany(User, {
+    const userTasks = User.hasMany(Task, { as: 'Tasks', foreignKey: 'userId', inverse: 'User' });
+    const userCompany = User.belongsTo(Company, { as: 'Company', foreignKey: 'companyId' });
+    const userProfession = User.belongsTo(Profession, {
+      as: 'Profession',
+      foreignKey: 'professionId',
+    });
+    const professionProfessionals = Profession.hasMany(User, {
       as: 'Professionals',
       foreignKey: 'professionId',
       inverse: 'Profession',
     });
-    Company.Employees = Company.hasMany(User, {
+    Company.hasMany(User, {
       as: 'Employees',
       foreignKey: 'companyId',
       inverse: 'Company',
     });
-    Company.Owner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
+    const companyOwner = Company.belongsTo(User, { as: 'Owner', foreignKey: 'ownerId' });
 
-    return { User, Task, Company, Profession };
+    return {
+      User,
+      Task,
+      Company,
+      Profession,
+      userCompany,
+      companyOwner,
+      userProfession,
+      userTasks,
+      professionProfessionals,
+    };
   });
 
   /*
@@ -118,7 +145,7 @@ describe('QueryGenerator#generateJoin', () => {
       'include[0]',
       {
         model: User,
-        include: [User.Company],
+        include: [vars.userCompany],
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[company_id] = [Company].[id]',
@@ -136,7 +163,7 @@ describe('QueryGenerator#generateJoin', () => {
         model: User,
         include: [
           {
-            association: User.Company,
+            association: vars.userCompany,
             where: { public: true },
             or: true,
           },
@@ -156,7 +183,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('Generates a nested belongsTo join query', () => {
-    const { Profession, User } = vars;
+    const { Profession } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -164,9 +191,9 @@ describe('QueryGenerator#generateJoin', () => {
         model: Profession,
         include: [
           {
-            association: Profession.Professionals,
+            association: vars.professionProfessionals,
             limit: 3,
-            include: [User.Company],
+            include: [vars.userCompany],
           },
         ],
       },
@@ -186,7 +213,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         model: User,
         subQuery: true,
-        include: [User.Company],
+        include: [vars.userCompany],
       },
       {
         default: 'LEFT OUTER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
@@ -205,7 +232,7 @@ describe('QueryGenerator#generateJoin', () => {
         subQuery: true,
         include: [
           {
-            association: User.Company,
+            association: vars.userCompany,
             required: false,
             where: { name: 'ABC' },
           },
@@ -231,7 +258,7 @@ describe('QueryGenerator#generateJoin', () => {
         subQuery: true,
         include: [
           {
-            association: User.Company,
+            association: vars.userCompany,
             right: true,
           },
         ],
@@ -244,7 +271,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested includes with subQuery = true', () => {
-    const { Company, User } = vars;
+    const { User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -253,8 +280,8 @@ describe('QueryGenerator#generateJoin', () => {
         model: User,
         include: [
           {
-            association: User.Company,
-            include: [Company.Owner],
+            association: vars.userCompany,
+            include: [vars.companyOwner],
           },
         ],
       },
@@ -267,7 +294,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports double nested includes', () => {
-    const { Company, User } = vars;
+    const { User } = vars;
 
     expectJoin(
       'include[0].include[0].include[0]',
@@ -276,11 +303,11 @@ describe('QueryGenerator#generateJoin', () => {
         subQuery: true,
         include: [
           {
-            association: User.Company,
+            association: vars.userCompany,
             include: [
               {
-                association: Company.Owner,
-                include: [User.Profession],
+                association: vars.companyOwner,
+                include: [vars.userProfession],
               },
             ],
           },
@@ -295,7 +322,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested includes with required = true', () => {
-    const { Company, User } = vars;
+    const { User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -304,9 +331,9 @@ describe('QueryGenerator#generateJoin', () => {
         subQuery: true,
         include: [
           {
-            association: User.Company,
+            association: vars.userCompany,
             required: true,
-            include: [Company.Owner],
+            include: [vars.companyOwner],
           },
         ],
       },
@@ -326,7 +353,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         model: User,
         subQuery: true,
-        include: [{ association: User.Company, required: true }],
+        include: [{ association: vars.userCompany, required: true }],
       },
       {
         default: 'INNER JOIN [company] AS [Company] ON [User].[companyId] = [Company].[id]',
@@ -346,7 +373,7 @@ describe('QueryGenerator#generateJoin', () => {
       'include[0]',
       {
         model: User,
-        include: [User.Tasks],
+        include: [vars.userTasks],
       },
       {
         default: 'LEFT OUTER JOIN [task] AS [Tasks] ON [User].[id_user] = [Tasks].[user_id]',
@@ -363,7 +390,7 @@ describe('QueryGenerator#generateJoin', () => {
       {
         model: User,
         subQuery: true,
-        include: [User.Tasks],
+        include: [vars.userTasks],
       },
       {
         // The primary key of the main model will be aliased because it's coming from a subquery that the :M join is not a part of
@@ -382,7 +409,7 @@ describe('QueryGenerator#generateJoin', () => {
         model: User,
         include: [
           {
-            association: User.Tasks,
+            association: vars.userTasks,
             on: {
               [Op.or]: [
                 { '$User.id_user$': { [Op.col]: 'Tasks.user_id' } },
@@ -409,7 +436,7 @@ describe('QueryGenerator#generateJoin', () => {
         model: User,
         include: [
           {
-            association: User.Tasks,
+            association: vars.userTasks,
             on: { user_id: { [Op.col]: 'User.alternative_id' } },
           },
         ],
@@ -422,7 +449,7 @@ describe('QueryGenerator#generateJoin', () => {
   });
 
   it('supports nested hasMany', () => {
-    const { Company, User } = vars;
+    const { User } = vars;
 
     expectJoin(
       'include[0].include[0]',
@@ -431,10 +458,10 @@ describe('QueryGenerator#generateJoin', () => {
         model: User,
         include: [
           {
-            association: User.Company,
+            association: vars.userCompany,
             include: [
               {
-                association: Company.Owner,
+                association: vars.companyOwner,
                 on: {
                   [Op.or]: [
                     { '$Company.owner_id$': { [Op.col]: 'Company.Owner.id_user' } },
