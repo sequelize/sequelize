@@ -2830,7 +2830,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     chai: "npm:6.3.0"
     dayjs: "npm:^1.11.23"
-    ibm_db: "npm:^4.0.1"
+    ibm_db: "npm:^4.1.0"
     lodash: "npm:^4.18.1"
     mocha: "npm:12.0.3"
   languageName: unknown
@@ -4151,10 +4151,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"adm-zip@npm:^0.5.16":
-  version: 0.5.18
-  resolution: "adm-zip@npm:0.5.18"
-  checksum: 10c0/9b734aa7126a01913baec02bf495d086b5d7e63315522b7087620e3fc8279c8ebd65109da4d99f16fcf873d87522ae6ffd913aef65449fd22c68777b772685e9
+"adm-zip@npm:^0.6.0":
+  version: 0.6.1
+  resolution: "adm-zip@npm:0.6.1"
+  checksum: 10c0/78233c6fbfd418dd605ef3c4c6a656406a49f81f716f2850d565f5e55915f18b99f4fdaf15436d77c73536da0915eeca33adab8055872a983b0ac7d07664cd25
   languageName: node
   linkType: hard
 
@@ -7833,11 +7833,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ibm_db@npm:^4.0.1":
-  version: 4.0.1
-  resolution: "ibm_db@npm:4.0.1"
+"ibm_db@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "ibm_db@npm:4.1.0"
   dependencies:
-    adm-zip: "npm:^0.5.16"
+    adm-zip: "npm:^0.6.0"
     axios: "npm:^1.16.1"
     big-integer: "npm:^1.6.51"
     bindings: "npm:^1.5.0"
@@ -7845,7 +7845,7 @@ __metadata:
     lodash: "npm:^4.18.1"
     node-addon-api: "npm:^7.1.1"
     targz: "npm:^1.0.1"
-  checksum: 10c0/7c5f244e328f558fd464bb179d7fd6a78394f3b74b242491eb6e8dfda3a97425ed7998b2241e4926bb620191ed4c20ad98ca293312c26bb0583eeba0e6f583aa
+  checksum: 10c0/77134c309f32a682498f8ef007668c62f699c720d38a26342137730ddee7ce4e371ef171805b6dd84034eb8140217297fe3a32fa2cc63f96e37d28d8cdf4b6f0
   languageName: node
   linkType: hard
 
