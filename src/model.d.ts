@@ -2394,7 +2394,7 @@ export abstract class Model<TModelAttributes extends {} = any, TCreationAttribut
   ): Promise<[M, boolean]>;
 
   /**
-   * A more performant findOrCreate that will not work under a transaction (at least not in postgres)
+   * A more performant findOrCreate that will not work under a transaction (working in postgres)
    * Will execute a find call, if empty then attempt to create, if unique constraint then attempt to find again
    */
   public static findCreateFind<M extends Model>(
