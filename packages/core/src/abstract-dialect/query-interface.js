@@ -326,6 +326,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     options = cloneDeep(options) ?? {};
     options.fields = attributes;
+    // TODO: rawTablename is ignored. Because options is not an array, addIndexQuery treats it as its options,
+    //  and discards its own third parameter, which is where rawTablename ends up.
+    //  It should be passed as the fourth argument. See test/unit/query-interface/add-index.test.ts
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
     return await this.sequelize.queryRaw(sql, { ...options, supportsSearchPath: false });

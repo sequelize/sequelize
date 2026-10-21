@@ -12,7 +12,7 @@ export async function readFileIfExists(
   options?: ReadFileOptions,
 ): Promise<string | Buffer | null> {
   try {
-    return await fs.readFile(filePath, options);
+    return await fs.readFile(filePath, options ?? null);
   } catch (error) {
     if (isNodeError(error) && error.code === 'ENOENT') {
       // file not found

@@ -5,7 +5,6 @@ const invokeMap = require('lodash/invokeMap');
 const property = require('lodash/property');
 
 const chai = require('chai');
-const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -19,7 +18,7 @@ if (current.dialect.supports['UNION ALL']) {
     describe('findAll', () => {
       describe('groupedLimit', () => {
         before(function () {
-          this.clock = sinon.useFakeTimers();
+          this.clock = Support.useFakeTimers();
         });
 
         afterEach(function () {
