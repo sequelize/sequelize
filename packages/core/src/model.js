@@ -197,7 +197,7 @@ export class Model extends ModelTypeScript {
     this._previousDataValues = {};
     this.uniqno = 1;
     this._changed = new Set();
-    this._options = omit(options, ['comesFromDatabase']);
+    this._options = options;
 
     /**
      * Returns true if this instance has not yet been persisted to the database
@@ -208,6 +208,10 @@ export class Model extends ModelTypeScript {
     this.isNewRecord = options.isNewRecord;
 
     this._initValues(values, options);
+
+    if (options.comesFromDatabase) {
+      options.comesFromDatabase = false;
+    }
   }
 
   _initValues(values, options) {
@@ -2148,6 +2152,7 @@ ${associationOwner._getAssociationDebugList()}`);
       hooks: true,
       returning: true,
       validate: true,
+      omitNull: this.modelDefinition.options.omitNull,
       ...cloneDeep(options),
     };
 
@@ -2966,6 +2971,7 @@ ${associationOwner._getAssociationDebugList()}`);
         returning: false,
         force: false,
         sideEffects: true,
+        omitNull: modelDefinition.options.omitNull,
       }),
     );
 
@@ -3914,6 +3920,7 @@ Instead of specifying a Model, either:
     options = defaultsLodash(options, {
       hooks: true,
       validate: true,
+      omitNull: this.modelDefinition.options.omitNull,
     });
 
     setTransactionFromCls(options, this.sequelize);

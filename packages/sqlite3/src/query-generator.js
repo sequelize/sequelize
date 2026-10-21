@@ -19,15 +19,13 @@ import { SqliteQueryGeneratorTypeScript } from './query-generator-typescript.int
 export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   createTableQuery(tableName, attributes, options) {
     // TODO: add support for 'uniqueKeys' by improving the createTableQuery implementation so it also generates a CREATE UNIQUE INDEX query
-    if (options) {
-      rejectInvalidOptions(
-        'createTableQuery',
-        this.dialect,
-        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createTableQuery',
+      this.dialect,
+      CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     options ||= {};
 
@@ -103,15 +101,13 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
   }
 
   addColumnQuery(table, key, dataType, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'addColumnQuery',
+      this.dialect,
+      ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const column = isPlainObject(dataType) ? dataType : { type: dataType };
 
