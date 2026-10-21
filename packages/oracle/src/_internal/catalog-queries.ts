@@ -1,4 +1,3 @@
-
 import type { ShowConstraintsQueryOptions, TableOrModel } from '@sequelize/core';
 import type { TableNameWithSchema } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';

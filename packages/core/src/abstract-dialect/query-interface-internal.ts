@@ -71,13 +71,6 @@ export class AbstractQueryInterfaceInternal {
     };
   }
 
-  /**
-   * Runs the query used by {@link AbstractQueryInterface#describeTable}, and returns its unprocessed result.
-   * Dialects can override this, e.g. to pass the table name as a bind parameter.
-   *
-   * @param table
-   * @param options
-   */
   async describeTableRaw(
     table: TableNameWithSchema,
     options?: QueryRawOptions,
@@ -88,13 +81,6 @@ export class AbstractQueryInterfaceInternal {
     });
   }
 
-  /**
-   * Runs the query used by {@link AbstractQueryInterface#showConstraints}, and returns its unprocessed rows.
-   * Dialects can override this, e.g. to pass the table name as a bind parameter.
-   *
-   * @param tableName
-   * @param options
-   */
   async showConstraintsRaw(
     tableName: TableOrModel,
     options?: ShowConstraintsOptions,
