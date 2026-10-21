@@ -247,15 +247,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.createSchema,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createSchemaQuery',
+      this.dialect,
+      CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.createSchema,
+      options,
+    );
 
     return joinSQLFragments([
       'CREATE',
@@ -277,15 +275,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'dropSchemaQuery',
-        this.dialect,
-        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.dropSchema,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'dropSchemaQuery',
+      this.dialect,
+      DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.dropSchema,
+      options,
+    );
 
     return joinSQLFragments([
       'DROP SCHEMA',
@@ -310,15 +306,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   }
 
   dropTableQuery(tableName: TableOrModel, options?: DropTableQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.dropTable,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'dropTableQuery',
+      this.dialect,
+      DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.dropTable,
+      options,
+    );
 
     return joinSQLFragments([
       'DROP TABLE IF EXISTS',
@@ -360,15 +354,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     columnName: string,
     options?: RemoveColumnQueryOptions,
   ): string {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.removeColumn,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeColumnQuery',
+      this.dialect,
+      REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.removeColumn,
+      options,
+    );
 
     return joinSQLFragments([
       'ALTER TABLE',
@@ -404,15 +396,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       );
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'removeConstraintQuery',
-        this.dialect,
-        REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.constraints.removeOptions,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeConstraintQuery',
+      this.dialect,
+      REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.constraints.removeOptions,
+      options,
+    );
 
     return joinSQLFragments([
       'ALTER TABLE',
@@ -577,15 +567,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       );
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'startTransactionQuery',
-        this.dialect,
-        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.startTransaction,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'startTransactionQuery',
+      this.dialect,
+      START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.startTransaction,
+      options,
+    );
 
     return joinSQLFragments([
       this.dialect.supports.startTransaction.useBegin ? 'BEGIN' : 'START',
@@ -632,18 +620,16 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    * @param options options
    */
   quoteTable(param: TableOrModel, options?: QuoteTableOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'quoteTable',
-        this.dialect,
-        QUOTE_TABLE_SUPPORTABLE_OPTIONS,
-        {
-          indexHints: this.dialect.supports.indexHints,
-          tableHints: this.dialect.supports.tableHints,
-        },
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'quoteTable',
+      this.dialect,
+      QUOTE_TABLE_SUPPORTABLE_OPTIONS,
+      {
+        indexHints: this.dialect.supports.indexHints,
+        tableHints: this.dialect.supports.tableHints,
+      },
+      options,
+    );
 
     if (isModelStatic(param)) {
       param = param.table;
