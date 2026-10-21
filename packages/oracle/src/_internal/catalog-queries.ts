@@ -1,12 +1,8 @@
-// Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import type { TableNameWithSchema } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface.js';
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { OracleQueryGeneratorTypeScript } from '../query-generator-typescript.internal.js';
 
-/**
- * Turns a value into SQL: either an escaped literal, or a bind parameter.
- */
 export type ValueToSql = (value: unknown) => string;
 
 export interface QueryWithBind {
@@ -14,13 +10,8 @@ export interface QueryWithBind {
   bind: Record<string, unknown>;
 }
 
-/**
- * Builds a dictionary query with its values as bind parameters instead of literals.
- * Oracle hard parses every distinct SQL text, which is slow for queries on the dictionary views,
- * so binding the table and schema names lets it reuse the parsed statement across tables.
- *
- * @param buildQuery
- */
+// Oracle hard parses every distinct SQL text, which is slow on the dictionary views.
+// Binding the names lets it reuse the parsed statement across tables.
 export function withBindParams(buildQuery: (valueToSql: ValueToSql) => string): QueryWithBind {
   const bind: Record<string, unknown> = {};
   const query = buildQuery(createBindParamGenerator(bind));
