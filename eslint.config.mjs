@@ -60,9 +60,14 @@ const removedLegacyJsTests = legacyJsTests.filter(
   file => !fs.existsSync(path.join(import.meta.dirname, file)),
 );
 if (removedLegacyJsTests.length > 0) {
-  throw new Error(
-    `These files no longer exist. Remove them from ${legacyJsTestsFile}:\n${removedLegacyJsTests.join('\n')}`,
-  );
+  const message = `These files no longer exist. Remove them from ${legacyJsTestsFile}:\n${removedLegacyJsTests.join('\n')}`;
+
+  // Only fail in CI, so that a file being converted does not stop linting in editors and pre-commit hooks.
+  if (process.env.CI) {
+    throw new Error(message);
+  }
+
+  console.warn(message);
 }
 
 export default [
@@ -119,6 +124,12 @@ export default [
       ],
 
       // TODO: enable in follow-up PR. Requires the utils package.
+      // TODO: once every legacy JavaScript test has been converted to TypeScript, also report
+      //  sequelize.define() calls in test setup hooks, as models shared by a test suite should be classes.
+      //  Conversions are allowed to keep using sequelize.define(), so the converted files will need updating first.
+      //  For test files (packages/*/test/**/*.test.ts and packages/*/src/**/*.test.ts), add this selector
+      //  to the ones the preset configures, rather than replacing them:
+      //  'CallExpression[callee.name=/^(before|beforeEach|beforeAll2|beforeEach2)$/] CallExpression[callee.property.name="define"]'
       'no-restricted-syntax': 'off',
       'no-restricted-imports': 'off',
       '@typescript-eslint/no-restricted-types': 'off',
@@ -318,30 +329,16 @@ export default [
   {
     files: ['packages/**/*.test.js'],
     ignores: legacyJsTests,
+    // prevents disabling the rule below with an eslint-disable comment
+    linterOptions: {
+      noInlineConfig: true,
+    },
     rules: {
       'no-restricted-syntax': [
         'error',
         {
           selector: 'Program',
           message: `Write new tests in TypeScript. Only the legacy files listed in ${legacyJsTestsFile} may remain in JavaScript.`,
-        },
-      ],
-    },
-  },
-  {
-    files: ['packages/*/test/**/*.test.ts'],
-    rules: {
-      // TODO: enable once all legacy JavaScript tests have been converted to TypeScript.
-      //  Models shared by a test suite should be classes, not sequelize.define() calls,
-      //  but conversions are allowed to keep using sequelize.define().
-      //  Some existing TypeScript tests also need to be updated before this can be enabled.
-      'no-restricted-syntax': [
-        'off',
-        {
-          selector:
-            'CallExpression[callee.name=/^(before|beforeEach|beforeAll2|beforeEach2)$/] CallExpression[callee.property.name="define"]',
-          message:
-            'Declare models shared by a test suite as classes and register them with sequelize.addModels(). sequelize.define() is fine for a model used by a single test.',
         },
       ],
     },
