@@ -8,7 +8,7 @@
     "@inquirer/confirm": "^6.3.3",
     "@inquirer/input": "^5.1.7",
     "@inquirer/select": "^5.2.6",
-    "@oclif/core": "^5.1.8",
+    "@oclif/core": "^5.1.9",
     "@oclif/plugin-help": "^7.0.5",
     "@sequelize/core": "workspace:*",
     "@sequelize/utils": "workspace:*",
