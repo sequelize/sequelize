@@ -169,13 +169,24 @@ async function syncLineItem({
       },
       { tableName: 'line_items', underscored: true, timestamps: false },
     );
+    // Db2 puts the tables that reference the altered table in set integrity pending state
+    const Note = sequelize.define(
+      'LineItemNote',
+      { lineItemId: { type: DataTypes.INTEGER, references: { table: 'line_items', key: 'id' } } },
+      { timestamps: false },
+    );
     await OldLineItem.sync({ force: true });
-    await OldLineItem.create({ unitPrice: 3, quantity: 2 });
+    await Note.sync({ force: true });
+    const oldItem = await OldLineItem.create({ unitPrice: 3, quantity: 2 });
+    await Note.create({ lineItemId: oldItem.get('id') });
 
     const LineItem = await syncLineItem({ alter: true });
 
     const [item] = await LineItem.findAll();
     expect(item.total).to.equal(6);
+
+    await Note.create({ lineItemId: item.id });
+    expect(await Note.count()).to.equal(2);
   });
 
   it('supports generated foreign keys, and foreign keys to generated columns', async () => {
@@ -229,10 +240,8 @@ async function syncLineItem({
     await Tenant.create({ id: 1, name: 'Acme' });
     await Document.create({ externalTenantId: 1001, tenantSlug: 'acme' });
 
-    const document = await Document.findOne({
-      include: ['tenant', 'tenantBySlug'],
-      rejectOnEmpty: true,
-    });
+    // not findOne: Oracle 18 crashes (ORA-07445) when a row limit meets a join on a foreign key to a virtual column
+    const [document] = await Document.findAll({ include: ['tenant', 'tenantBySlug'] });
     expect(document.tenant?.id).to.equal(1);
     expect(document.tenantBySlug?.id).to.equal(1);
 
