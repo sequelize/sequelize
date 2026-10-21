@@ -9,6 +9,12 @@ const { DataTypes } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
+async function getEnumNames(sequelize, table) {
+  const enums = await sequelize.queryInterface.pgListEnums(table);
+
+  return enums.map(enumType => enumType.enum_name).sort();
+}
+
 if (dialect.startsWith('postgres')) {
   describe('[POSTGRES Specific] Regressions', () => {
     it('properly fetch OIDs after sync, #8749', async function () {
@@ -77,10 +83,13 @@ if (dialect.startsWith('postgres')) {
       );
 
       await Media.sync({ force: true });
-      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(2);
+      expect(await getEnumNames(this.sequelize, Media.table)).to.deep.equal([
+        'enum_regression_drop_enum_media_tags',
+        'enum_regression_drop_enum_media_type',
+      ]);
 
       await Media.drop();
-      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(0);
+      expect(await getEnumNames(this.sequelize, Media.table)).to.deep.equal([]);
     });
 
     it('drops the enum types of a model in a schema with renamed columns', async function () {
@@ -100,10 +109,13 @@ if (dialect.startsWith('postgres')) {
       );
 
       await Media.sync({ force: true });
-      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(2);
+      expect(await getEnumNames(this.sequelize, Media.table)).to.deep.equal([
+        'enum_regression_drop_enum_media_media_tags',
+        'enum_regression_drop_enum_media_media_type',
+      ]);
 
       await Media.drop();
-      expect(await this.sequelize.queryInterface.pgListEnums(Media.table)).to.have.lengthOf(0);
+      expect(await getEnumNames(this.sequelize, Media.table)).to.deep.equal([]);
     });
 
     it('recreates the enum types of a model on a forced sync', async function () {
@@ -125,6 +137,24 @@ if (dialect.startsWith('postgres')) {
       const enums = await this.sequelize.queryInterface.pgListEnums(MediaV2.table);
       expect(enums).to.have.lengthOf(1);
       expect(enums[0].enum_value).to.deep.equal(['audio']);
+    });
+
+    it('drops the enum types of the dropped model when another model uses the same table', async function () {
+      const tableName = 'regression_shared_enum_media';
+      this.sequelize.define('MediaV1', { type: DataTypes.ENUM(['image', 'video']) }, { tableName });
+      const MediaV2 = this.sequelize.define(
+        'MediaV2',
+        { kind: DataTypes.ENUM(['audio']) },
+        { tableName },
+      );
+
+      await MediaV2.sync({ force: true });
+      expect(await getEnumNames(this.sequelize, MediaV2.table)).to.deep.equal([
+        'enum_regression_shared_enum_media_kind',
+      ]);
+
+      await MediaV2.drop();
+      expect(await getEnumNames(this.sequelize, MediaV2.table)).to.deep.equal([]);
     });
   });
 }
