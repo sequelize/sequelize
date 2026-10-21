@@ -143,4 +143,61 @@ describe(Support.getTestDialectTeaser('Self'), () => {
     expect(count).to.be.equal(3);
     expect(children.map(v => v.id)).to.have.members([this.mary.id]);
   });
+
+  it('should be able to handle a where in include of self association with through table', async function() {
+    const Node = this.sequelize.define('Node', {
+      id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+      }
+    }, {
+      tableName: 'node',
+      timestamps: false
+    });
+
+    const Edge = this.sequelize.define('Edge', {
+      child_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+      },
+      parent_id: {
+        type: DataTypes.INTEGER,
+        primaryKey: true
+      }
+    }, {
+      tableName: 'edge',
+      timestamps: false
+    });
+    Edge.belongsTo(Node, { foreignKey: 'parent_id' });
+    Edge.belongsTo(Node, { as: 'children', foreignKey: 'child_id' });
+    Node.belongsToMany(Node, { through: Edge, as: 'children', foreignKey: 'parent_id', otherKey: 'child_id' });
+
+    await this.sequelize.sync({ force: true });
+
+    const [parentNode, childNode] = await Promise.all([
+      Node.create({ id: 1 }),
+      Node.create({ id: 2 })
+    ]);
+
+    await parentNode.setChildren([childNode]);
+
+    const result = await Node.findAll({
+      attributes: ['id'],
+      include: [
+        {
+          model: Node,
+          as: 'children',
+          attributes: ['id'],
+          where: {
+            id: childNode.id
+          },
+          jointype: 'inner'
+        }
+      ],
+      limit: 20,
+      raw: true,
+      nest: true
+    });
+    expect(result).to.deep.equal([{ id: 1, children: { id: 2, Edge: { child_id: 2, parent_id: 1 } } }]);
+  });
 });
