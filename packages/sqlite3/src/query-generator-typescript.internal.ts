@@ -62,29 +62,25 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   listTablesQuery(options?: ListTablesQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'listTablesQuery',
-        this.dialect,
-        LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'listTablesQuery',
+      this.dialect,
+      LIST_TABLES_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return "SELECT name AS `tableName` FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence'";
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      TRUNCATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const sql = [`DELETE FROM ${this.quoteTable(tableName)}`];
     if (options?.restartIdentity) {
@@ -133,15 +129,13 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
@@ -278,15 +272,13 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   startTransactionQuery(options?: StartTransactionQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'startTransactionQuery',
-        this.dialect,
-        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.startTransaction,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'startTransactionQuery',
+      this.dialect,
+      START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.startTransaction,
+      options,
+    );
 
     return joinSQLFragments([
       'BEGIN',

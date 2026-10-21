@@ -58,15 +58,13 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createDatabaseQuery',
+      this.dialect,
+      CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return joinSQLFragments([`CREATE DATABASE IF NOT EXISTS ${this.quoteIdentifier(database)}`]);
   }
@@ -113,29 +111,25 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'showConstraintsQuery',
-        this.dialect,
-        SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
-        SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'showConstraintsQuery',
+      this.dialect,
+      SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+      SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const table = this.extractTableDetails(tableName);
 
@@ -178,15 +172,13 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   startTransactionQuery(options?: StartTransactionQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'startTransactionQuery',
-        this.dialect,
-        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.startTransaction,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'startTransactionQuery',
+      this.dialect,
+      START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.startTransaction,
+      options,
+    );
 
     return options?.transactionName
       ? `START TRANSACTION NAME ${this.quoteIdentifier(options.transactionName)}`

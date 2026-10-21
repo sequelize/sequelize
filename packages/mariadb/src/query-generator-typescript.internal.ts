@@ -83,15 +83,13 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
@@ -141,15 +139,13 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     let indexName;
     if (Array.isArray(indexNameOrAttributes)) {

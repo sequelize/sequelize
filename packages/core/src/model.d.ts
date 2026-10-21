@@ -1045,6 +1045,13 @@ export interface Silent {
 export interface CreateOptions<TAttributes = any>
   extends BuildOptions, Logging, Silent, Transactionable, Hookable, SearchPathable {
   /**
+   * A flag that defines if null values should be passed as values or not.
+   *
+   * Defaults to the `omitNull` option of the model, or of the Sequelize instance if the model doesn't set it.
+   */
+  omitNull?: boolean;
+
+  /**
    * If set, only columns matching those in fields will be saved
    */
   fields?: Array<keyof TAttributes>;
@@ -1104,6 +1111,13 @@ export interface FindOrBuildOptions<TAttributes = any, TCreationAttributes = TAt
  */
 export interface UpsertOptions<TAttributes = any>
   extends Logging, Transactionable, SearchPathable, Hookable {
+  /**
+   * A flag that defines if null values should be passed as values or not.
+   *
+   * Defaults to the `omitNull` option of the model, or of the Sequelize instance if the model doesn't set it.
+   */
+  omitNull?: boolean;
+
   /**
    * The fields to insert / update. Defaults to all fields.
    *
@@ -1266,6 +1280,13 @@ export interface RestoreOptions<TAttributes = any>
  */
 export interface UpdateOptions<TAttributes = any>
   extends Logging, Transactionable, Paranoid, Hookable {
+  /**
+   * A flag that defines if null values should be passed as values or not.
+   *
+   * Defaults to the `omitNull` option of the model, or of the Sequelize instance if the model doesn't set it.
+   */
+  omitNull?: boolean;
+
   /**
    * Options to describe the scope of the search.
    */
@@ -1430,7 +1451,7 @@ export interface SaveOptions<TAttributes = any>
   /**
    * A flag that defines if null values should be passed as values or not.
    *
-   * @default false
+   * Defaults to the `omitNull` option of the model, or of the Sequelize instance if the model doesn't set it.
    */
   omitNull?: boolean;
 
@@ -1954,8 +1975,9 @@ export interface ModelOptions<M extends Model = Model> {
 
   /**
    * Don't persist null values. This means that all columns with null values will not be saved.
+   * Can be overridden by the `omitNull` option of {@link Model#save}, {@link Model.create}, {@link Model.update} and {@link Model.upsert}.
    *
-   * @default false
+   * Defaults to the `omitNull` option of the Sequelize instance.
    */
   omitNull?: boolean | undefined;
 

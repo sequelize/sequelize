@@ -361,10 +361,9 @@ type MaybeLazy<T> = T | (() => T);
  * @param query The SQL that was generated
  * @param assertions The SQL to compare against
  */
-export function expectsql(
-  query: MaybeLazy<string | Error>,
-  assertions: PartialRecord<ExpectationKey, string | Error>,
-): void;
+export type SqlExpectations = PartialRecord<ExpectationKey, string | Error>;
+
+export function expectsql(query: MaybeLazy<string | Error>, assertions: SqlExpectations): void;
 export function expectsql(
   query: MaybeLazy<BoundQuery | Error>,
   assertions: {

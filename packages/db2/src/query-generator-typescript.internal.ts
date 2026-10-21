@@ -52,15 +52,13 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   dropSchemaQuery(schemaName: string, options?: DropSchemaQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'dropSchemaQuery',
-        this.dialect,
-        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'dropSchemaQuery',
+      this.dialect,
+      DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `DROP SCHEMA ${this.quoteIdentifier(schemaName)} RESTRICT`;
   }
@@ -119,15 +117,13 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
-    if (options) {
-      rejectInvalidOptions(
-        'renameTableQuery',
-        this.dialect,
-        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'renameTableQuery',
+      this.dialect,
+      RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const beforeTable = this.extractTableDetails(beforeTableName);
     const afterTable = this.extractTableDetails(afterTableName);
@@ -142,15 +138,13 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
@@ -226,15 +220,13 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {

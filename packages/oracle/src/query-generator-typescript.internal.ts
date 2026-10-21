@@ -69,17 +69,15 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   removeIndexQuery(
     tableName: TableOrModel,
     indexNameOrAttributes: string | string[],
-    options: RemoveIndexQueryOptions,
+    options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
@@ -167,15 +165,13 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
-    if (options) {
-      rejectInvalidOptions(
-        'renameTableQuery',
-        this.dialect,
-        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'renameTableQuery',
+      this.dialect,
+      RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const beforeTable = this.extractTableDetails(beforeTableName);
     const afterTable = this.extractTableDetails(afterTableName);
@@ -193,7 +189,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   removeColumnQuery(
     tableName: TableOrModel,
     attributeName: string,
-    options: RemoveColumnQueryOptions,
+    options?: RemoveColumnQueryOptions,
   ): string {
     rejectInvalidOptions(
       'removeColumnQuery',
@@ -211,16 +207,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ]);
   }
 
-  createSchemaQuery(schema: string, options: CreateSchemaQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+  createSchemaQuery(schema: string, options?: CreateSchemaQueryOptions): string {
+    rejectInvalidOptions(
+      'createSchemaQuery',
+      this.dialect,
+      CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const quotedSchema = this.quoteIdentifier(schema);
 
@@ -269,16 +263,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     ].join(' ');
   }
 
-  truncateTableQuery(tableName: TableOrModel, options: TruncateTableQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+  truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions): string {
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
