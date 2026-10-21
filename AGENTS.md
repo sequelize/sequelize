@@ -61,7 +61,7 @@ Read [TESTING.md](TESTING.md) before writing or changing a test. The points that
 
 - Every bug fix and new feature needs an automated regression test that fails without the change.
 - Write new tests in TypeScript, using the helpers in `packages/core/test/support.ts` and `packages/core/test/integration/support.ts` (`sequelize`, `beforeAll2`, `setResetMode`, `expectsql`) instead of Mocha's `this` context. Many legacy `.js` tests do not follow the conventions; do not copy their style.
-- **The default integration reset mode, `drop`, unregisters every model after each test**, so a suite that defines its models once in `beforeAll2` must call `setResetMode('destroy')` or `'truncate'`, or every test after the first fails.
+- **The default integration reset mode, `drop`, unregisters every model after each test**, so a suite that defines its models once in `beforeAll2` must call `setResetMode('destroy')`, or every test after the first fails. Rows are still deleted after each test, so create them in the test or in `beforeEach`.
 - Name each suite after what it tests (`Model.findAll`, `Model#restore`) and keep suites flat, without `getTestDialectTeaser()` wrappers or describes around a single test.
 - Skip unsupported dialects where the test is registered, based on `sequelize.dialect.supports` flags. Never `return` early inside a test: it then passes without asserting anything.
 
