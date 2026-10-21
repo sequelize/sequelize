@@ -211,6 +211,8 @@ type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 /**
  * Runs `method` and checks its result, or the error it throws, against the expectation for the current dialect.
  * If `method` returns a promise, the check happens once it settles, and the returned promise must be awaited.
+ * `method` must be typed precisely: if its return type is not a promise type (for example `any`),
+ * the synchronous overload is used and a missing `await` is not reported by the linter.
  *
  * @param method The function to test.
  * @param assertions The expected result or error, per dialect. Keys are `default` or a space-separated list of dialect names.
@@ -252,51 +254,61 @@ export function expectPerDialect<Out>(
 
   const isDefault = expectations[sequelize.dialect.name as DialectName] === undefined;
 
-  let result: Out | Promise<Out> | Error;
+  let value: Out | Promise<Out>;
 
   try {
-    result = method();
+    value = method();
   } catch (error: unknown) {
     assert(error instanceof Error, 'method threw a non-error');
 
-    result = error;
+    assertOutcomeMatchesExpectation({ threw: true, error }, expectation, isDefault);
+
+    return;
   }
 
-  if (result instanceof Promise) {
-    return result.then(
-      value => {
-        assertMatchesDialectExpectation(value, expectation, isDefault);
+  if (value instanceof Promise) {
+    return value.then(
+      resolvedValue => {
+        assertOutcomeMatchesExpectation(
+          { threw: false, value: resolvedValue },
+          expectation,
+          isDefault,
+        );
       },
       (error: unknown) => {
         assert(error instanceof Error, 'method rejected with a non-error');
 
-        assertMatchesDialectExpectation(error, expectation, isDefault);
+        assertOutcomeMatchesExpectation({ threw: true, error }, expectation, isDefault);
       },
     );
   }
 
-  assertMatchesDialectExpectation(result, expectation, isDefault);
+  assertOutcomeMatchesExpectation({ threw: false, value }, expectation, isDefault);
 }
 
-function assertMatchesDialectExpectation<Out>(
-  result: Out | Error,
+type Outcome<Out> = { threw: false; value: Out } | { threw: true; error: Error };
+
+function assertOutcomeMatchesExpectation<Out>(
+  outcome: Outcome<Out>,
   expectation: Out | Error | Expectation<Out>,
   isDefault: boolean,
 ): void {
   if (expectation instanceof Error) {
-    assert(
-      result instanceof Error,
-      `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`,
-    );
+    if (!outcome.threw) {
+      assert.fail(
+        `Expected method to error with "${expectation.message}", but it returned ${inspect(outcome.value)}.`,
+      );
+    }
 
-    expect(inlineErrorCause(result)).to.include(expectation.message);
+    expect(inlineErrorCause(outcome.error)).to.include(expectation.message);
   } else {
-    assert(
-      !(result instanceof Error),
-      `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
-    );
+    if (outcome.threw) {
+      assert.fail(
+        `Did not expect method to error, but it errored with ${inlineErrorCause(outcome.error)}`,
+      );
+    }
 
-    assertMatchesExpectation(result, expectation, isDefault);
+    assertMatchesExpectation(outcome.value, expectation, isDefault);
   }
 }
 
