@@ -426,11 +426,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       attribute.onDelete = '';
     }
 
+    const generated = this.getGeneratedColumn(attribute);
+    const generatedSql = generated ? ` GENERATED ALWAYS AS (${generated.expression}) VIRTUAL` : '';
+
     let template: string;
 
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
-      template = attribute.type.toSql();
+      template = attribute.type.toSql() + generatedSql;
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IN(${attribute.type.options.values
         .map(value => {
           return this.escape(value);
@@ -441,14 +444,14 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.type instanceof DataTypes.JSON) {
-      template = attribute.type.toSql();
+      template = attribute.type.toSql() + generatedSql;
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IS JSON)`;
 
       return template;
     }
 
     if (attribute.type instanceof DataTypes.BOOLEAN) {
-      template = attribute.type.toSql();
+      template = attribute.type.toSql() + generatedSql;
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IN('1', '0'))`;
 
       return template;
@@ -464,7 +467,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         unsignedTemplate += ` CHECK(${this.quoteIdentifier(attribute.field!)} >= 0)`;
       }
 
-      template = attribute.type.toString();
+      template = attribute.type.toString() + generatedSql;
 
       if (attribute.type && defaultValueSchemable(attribute.defaultValue, this.dialect)) {
         template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;

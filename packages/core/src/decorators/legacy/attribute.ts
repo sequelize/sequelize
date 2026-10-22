@@ -240,6 +240,28 @@ export const ColumnName = createRequiredAttributeOptionsDecorator<string>(
   (columnName: string) => ({ columnName }),
 );
 
+/**
+ * Makes the attribute a generated column, computed by the database from an SQL expression.
+ * Sequelize never writes to it. See {@link AttributeOptions.generatedAs}.
+ *
+ * @example
+ * ```ts
+ * class LineItem extends Model<InferAttributes<LineItem>, InferCreationAttributes<LineItem>> {
+ *   @Attribute(DataTypes.INTEGER)
+ *   @GeneratedAs(sql`${sql.attribute('price')} * ${sql.attribute('quantity')}`)
+ *   declare total: CreationOptional<number>;
+ *
+ *   // computed when read instead of stored
+ *   @Attribute(DataTypes.STRING)
+ *   @GeneratedAs({ expression: sql`lower(${sql.attribute('sku')})`, stored: false })
+ *   declare normalizedSku: CreationOptional<string>;
+ * }
+ * ```
+ */
+export const GeneratedAs = createRequiredAttributeOptionsDecorator<
+  NonUndefined<AttributeOptions['generatedAs']>
+>('GeneratedAs', generatedAs => ({ generatedAs }));
+
 type IndexAttributeOption = NonUndefined<AttributeIndexOptions['attribute']>;
 
 export function createIndexDecorator(

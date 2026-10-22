@@ -118,6 +118,14 @@ export class ModelDefinition<M extends Model = Model> {
    */
   readonly virtualAttributeNames = new SetView(this.#virtualAttributeNames);
 
+  readonly #generatedAttributeNames = new Set<string>();
+
+  /**
+   * The list of attributes the database computes (see {@link AttributeOptions.generatedAs}).
+   * Sequelize never writes to them.
+   */
+  readonly generatedAttributeNames = new SetView(this.#generatedAttributeNames);
+
   readonly #attributesWithGetters = new Set<string>();
   readonly attributesWithGetters = new SetView(this.#attributesWithGetters);
 
@@ -457,6 +465,7 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
     this.#dateAttributeNames.clear();
     this.#jsonAttributeNames.clear();
     this.#virtualAttributeNames.clear();
+    this.#generatedAttributeNames.clear();
     this.#physicalAttributes.clear();
     this.#defaultValues.clear();
     this.#columns.clear();
@@ -664,6 +673,10 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
 
         this.#attributes.set(attributeName, builtAttribute);
         this.#columns.set(builtAttribute.columnName, builtAttribute);
+
+        if (builtAttribute.generatedAs != null) {
+          this.#generatedAttributeNames.add(attributeName);
+        }
 
         if (builtAttribute.type instanceof DataTypes.VIRTUAL) {
           this.#virtualAttributeNames.add(attributeName);
