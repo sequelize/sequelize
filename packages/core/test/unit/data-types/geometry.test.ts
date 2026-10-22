@@ -1,5 +1,7 @@
+import type { DataTypeInstance, GeoJsonPoint } from '@sequelize/core';
 import { DataTypes, GeoJsonType } from '@sequelize/core';
-import { sequelize } from '../../support';
+import { expect } from 'chai';
+import { expectsql, sequelize } from '../../support';
 import { testDataTypeSql } from './_utils';
 
 const dialect = sequelize.dialect;
@@ -37,4 +39,96 @@ describe('GEOMETRY', () => {
     mysql: 'POINT /*!80003 SRID 4326 */',
     mariadb: 'POINT REF_SYSTEM_ID=4326',
   });
+});
+
+describe('GEOMETRY values', () => {
+  if (!['mysql', 'mariadb'].includes(dialect.name)) {
+    return;
+  }
+
+  const point: GeoJsonPoint = { type: 'Point', coordinates: [100, 39.5] };
+  const pointWithCrs: GeoJsonPoint = {
+    ...point,
+    crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+  };
+
+  function getBindParamSql(type: DataTypeInstance, value: GeoJsonPoint) {
+    const bind: unknown[] = [];
+    const sql = type.getBindParamSql(value, {
+      bindParam(param) {
+        bind.push(param);
+
+        return `$${bind.length}`;
+      },
+    });
+
+    return { sql, bind };
+  }
+
+  const geometry = sequelize.normalizeDataType(DataTypes.GEOMETRY);
+  const geometryWithSrid = sequelize.normalizeDataType(DataTypes.GEOMETRY(GeoJsonType.Point, 3857));
+
+  it('does not specify an SRID if neither the value nor the column has one', () => {
+    expectsql(geometry.escape(point), {
+      default: `ST_GeomFromText('POINT(100 39.5)')`,
+    });
+
+    expect(getBindParamSql(geometry, point)).to.deep.eq({
+      sql: 'ST_GeomFromText($1)',
+      bind: ['POINT(100 39.5)'],
+    });
+  });
+
+  it('uses the SRID of the crs field, in longitude-latitude order', () => {
+    expectsql(geometry.escape(pointWithCrs), {
+      mysql: `ST_GeomFromText('POINT(100 39.5)', 4326, 'axis-order=long-lat')`,
+      mariadb: `ST_GeomFromText('POINT(100 39.5)', 4326)`,
+    });
+
+    expect(getBindParamSql(geometry, pointWithCrs)).to.deep.eq({
+      sql:
+        dialect.name === 'mysql'
+          ? `ST_GeomFromText($1, $2, 'axis-order=long-lat')`
+          : 'ST_GeomFromText($1, $2)',
+      bind: ['POINT(100 39.5)', 4326],
+    });
+  });
+
+  it('uses the SRID of the column if the value does not have a crs field', () => {
+    expectsql(geometryWithSrid.escape(point), {
+      mysql: `ST_GeomFromText('POINT(100 39.5)', 3857, 'axis-order=long-lat')`,
+      mariadb: `ST_GeomFromText('POINT(100 39.5)', 3857)`,
+    });
+  });
+
+  it('prioritizes the SRID of the crs field over the SRID of the column', () => {
+    expectsql(geometryWithSrid.escape(pointWithCrs), {
+      mysql: `ST_GeomFromText('POINT(100 39.5)', 4326, 'axis-order=long-lat')`,
+      mariadb: `ST_GeomFromText('POINT(100 39.5)', 4326)`,
+    });
+  });
+
+  it('accepts crs fields that use the URN notation', () => {
+    expectsql(
+      geometry.escape({
+        ...point,
+        crs: { type: 'name', properties: { name: 'urn:ogc:def:crs:EPSG::4326' } },
+      }),
+      {
+        mysql: `ST_GeomFromText('POINT(100 39.5)', 4326, 'axis-order=long-lat')`,
+        mariadb: `ST_GeomFromText('POINT(100 39.5)', 4326)`,
+      },
+    );
+  });
+
+  for (const name of ['EPSG:invalid', 'EPSG:4326invalid', 'urn:ogc:def:crs:EPSG::4326.5']) {
+    it(`rejects crs fields with an invalid SRID (${name})`, () => {
+      expect(() =>
+        geometry.escape({
+          ...point,
+          crs: { type: 'name', properties: { name } },
+        }),
+      ).to.throw(`Invalid SRID in GeoJSON crs: ${name}`);
+    });
+  }
 });

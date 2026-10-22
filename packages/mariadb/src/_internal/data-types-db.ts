@@ -1,6 +1,7 @@
 import { isValidTimeZone } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dayjs.js';
 import dayjs from 'dayjs';
 import type { FieldInfo } from 'mariadb';
+import wkx from 'wkx';
 import type { MariaDbDialect } from '../dialect.js';
 
 /**
@@ -47,7 +48,20 @@ export function registerMariaDbDbDataTypeParsers(dialect: MariaDbDialect) {
   });
 
   dialect.registerDataTypeParser(['GEOMETRY'], (value: FieldInfo) => {
-    return value.geometry();
+    // We do not use value.geometry() because it discards the SRID
+    const buffer = value.buffer();
+    if (!buffer || buffer.length === 0) {
+      return null;
+    }
+
+    // MariaDB's internal geometry format is the SRID (4-byte little-endian integer) followed by the WKB representation.
+    const srid = buffer.readUInt32LE(0);
+    const geometry = wkx.Geometry.parse(buffer.subarray(4));
+    if (srid !== 0) {
+      geometry.srid = srid;
+    }
+
+    return geometry.toGeoJSON({ shortCrs: true });
   });
 
   // For backwards compatibility, we currently return BIGINTs as strings. We will implement bigint support for all
