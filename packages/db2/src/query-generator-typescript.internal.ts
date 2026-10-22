@@ -337,7 +337,14 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       }
     }
 
-    if (attribute.comment && typeof attribute.comment === 'string') {
+    if (
+      attribute.comment &&
+      typeof attribute.comment === 'string' &&
+      options?.context !== 'createTable'
+    ) {
+      // DB2 has no inline column COMMENT in CREATE TABLE; comments for new
+      // tables are applied by Db2QueryInterface#createTable through
+      // #commentOnColumnQuery (https://github.com/sequelize/sequelize/issues/18289)
       template += ` COMMENT ${attribute.comment}`;
     }
 

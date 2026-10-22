@@ -446,5 +446,21 @@ if (dialect === 'db2') {
         }
       });
     });
+
+    describe('commentOnColumnQuery', () => {
+      it('generates a standalone COMMENT ON COLUMN statement', () => {
+        const queryGenerator = createSequelizeInstance().dialect.queryGenerator;
+        expect(queryGenerator.commentOnColumnQuery('myTable', 'age', 'Test')).to.equal(
+          `COMMENT ON COLUMN "myTable"."age" IS 'Test';`,
+        );
+      });
+
+      it('escapes quotes in the comment', () => {
+        const queryGenerator = createSequelizeInstance().dialect.queryGenerator;
+        expect(
+          queryGenerator.commentOnColumnQuery('myTable', 'age', `Te'st'; DROP TABLE "Users"; --`),
+        ).to.equal(`COMMENT ON COLUMN "myTable"."age" IS 'Te''st''; DROP TABLE "Users"; --';`);
+      });
+    });
   });
 }
