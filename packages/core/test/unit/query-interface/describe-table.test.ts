@@ -2,11 +2,17 @@ import type { TableNameWithSchema } from '@sequelize/core';
 import { QueryTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { expectPerDialect, inlineBindParameters, sequelize } from '../../support';
+import {
+  allowDeprecationsInSuite,
+  createSequelizeInstance,
+  expectPerDialect,
+  inlineBindParameters,
+  sequelize,
+} from '../../support';
 
-function stubQueryRaw() {
+function stubQueryRaw(sequelizeInstance = sequelize) {
   // sqlite3 also queries the indexes and the CREATE TABLE statement
-  return sinon.stub(sequelize, 'queryRaw').callsFake(async (_sql, options) => {
+  return sinon.stub(sequelizeInstance, 'queryRaw').callsFake(async (_sql, options) => {
     switch (options?.type) {
       case QueryTypes.DESCRIBE:
         return { id: {} } as any;
@@ -27,9 +33,10 @@ describe('QueryInterface#describeTable', () => {
     const stub = stubQueryRaw();
     const table: TableNameWithSchema = { tableName: 'myTable', schema: 'mySchema' };
 
-    await sequelize.queryInterface.describeTable(table);
+    await sequelize.queryInterface.describeTable(table, { useMaster: true });
 
     const [sql, options] = stub.getCall(0).args;
+    expect(options?.useMaster).to.equal(true);
     expect(inlineBindParameters(sql, options?.bind)).to.equal(
       sequelize.queryGenerator.describeTableQuery(table),
     );
@@ -45,6 +52,22 @@ describe('QueryInterface#describeTable', () => {
     );
   });
 
+  it('works without a default schema', async () => {
+    sinon.stub(sequelize.dialect, 'getDefaultSchema').returns('');
+    const stub = stubQueryRaw();
+
+    await sequelize.queryInterface.describeTable('myTable');
+
+    const [sql, options] = stub.getCall(0).args;
+    expect(inlineBindParameters(sql, options?.bind)).to.equal(
+      sequelize.queryGenerator.describeTableQuery('myTable'),
+    );
+    expectPerDialect(() => options?.bind, {
+      default: undefined,
+      oracle: { sequelize_1: 'myTable' },
+    });
+  });
+
   it('does not let the bind option override its bind parameters', async () => {
     const stub = stubQueryRaw();
 
@@ -56,6 +79,36 @@ describe('QueryInterface#describeTable', () => {
     expectPerDialect(() => stub.getCall(0).args[1]?.bind, {
       default: { sequelize_2: 'otherTable' },
       oracle: { sequelize_1: 'mySchema', sequelize_2: 'myTable' },
+    });
+  });
+
+  describe('with quoteIdentifiers: false', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0023']);
+
+    let unquotedSequelize: ReturnType<typeof createSequelizeInstance>;
+
+    before(() => {
+      unquotedSequelize = createSequelizeInstance({ quoteIdentifiers: false });
+    });
+
+    after(async () => {
+      await unquotedSequelize.close();
+    });
+
+    it('uses the names as they are stored in the catalog', async () => {
+      const stub = stubQueryRaw(unquotedSequelize);
+      const table: TableNameWithSchema = { tableName: 'myTable', schema: 'mySchema' };
+
+      await unquotedSequelize.queryInterface.describeTable(table);
+
+      const [sql, options] = stub.getCall(0).args;
+      expect(inlineBindParameters(sql, options?.bind, unquotedSequelize)).to.equal(
+        unquotedSequelize.queryGenerator.describeTableQuery(table),
+      );
+      expectPerDialect(() => options?.bind, {
+        default: undefined,
+        oracle: { sequelize_1: 'MYSCHEMA', sequelize_2: 'MYTABLE' },
+      });
     });
   });
 });
