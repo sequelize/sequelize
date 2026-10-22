@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, UniqueConstraintError } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -85,6 +85,33 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(indexes[1].fields[0].attribute).to.equal('name');
       });
     }
+
+    it('adds a unique constraint to columns with the unique option', async function () {
+      // TODO: mssql ignores "unique" on ENUM columns
+      const types = {
+        string: DataTypes.STRING,
+        boolean: DataTypes.BOOLEAN,
+        ...(dialect !== 'mssql' && { enum: DataTypes.ENUM('a', 'b') }),
+      };
+
+      for (const [name, type] of Object.entries(types)) {
+        const tableName = `unique_${name}`;
+
+        await this.queryInterface.createTable(tableName, {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          // Db2 does not accept unique constraints on nullable columns
+          value: { type, allowNull: false, unique: true },
+        });
+
+        const value = name === 'boolean' ? true : 'a';
+
+        await this.queryInterface.bulkInsert(tableName, [{ id: 1, value }]);
+
+        await expect(
+          this.queryInterface.bulkInsert(tableName, [{ id: 2, value }]),
+        ).to.be.rejectedWith(UniqueConstraintError, undefined, name);
+      }
+    });
 
     if (Support.sequelize.dialect.supports.schemas) {
       it('should work with schemas', async function () {

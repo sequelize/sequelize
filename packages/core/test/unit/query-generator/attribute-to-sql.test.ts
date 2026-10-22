@@ -394,6 +394,35 @@ describe('QueryGenerator#attributeToSql', () => {
   );
 
   testSql(
+    {
+      type: sequelize.normalizeDataType(DataTypes.ENUM('value1', 'value2')),
+      field: 'foo',
+      unique: true,
+    },
+    {
+      default: "ENUM('value1', 'value2') UNIQUE",
+      'db2 ibmi': `VARCHAR(255) CHECK ("foo" IN('value1', 'value2')) UNIQUE`,
+      // TODO: mssql ignores "unique" on ENUM columns
+      mssql: "NVARCHAR(255) CHECK ([foo] IN(N'value1', N'value2'))",
+      sqlite3: 'TEXT UNIQUE',
+      snowflake: 'VARCHAR(255) UNIQUE',
+      oracle: `VARCHAR2(512) CHECK ("foo" IN('value1', 'value2')) UNIQUE`,
+    },
+  );
+
+  testSql(
+    { type: sequelize.normalizeDataType(DataTypes.BOOLEAN), field: 'foo', unique: true },
+    {
+      default: 'BOOLEAN UNIQUE',
+      'mariadb mysql': 'TINYINT(1) UNIQUE',
+      mssql: 'BIT NULL UNIQUE',
+      sqlite3: 'INTEGER UNIQUE',
+      ibmi: 'SMALLINT UNIQUE',
+      oracle: `CHAR(1) CHECK ("foo" IN('1', '0')) UNIQUE`,
+    },
+  );
+
+  testSql(
     { type: 'INTEGER', primaryKey: true, unique: true },
     {
       default: 'INTEGER UNIQUE PRIMARY KEY',
