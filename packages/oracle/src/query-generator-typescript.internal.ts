@@ -69,7 +69,10 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     tableName: TableOrModel,
     options?: CatalogQueryOptions,
   ): string | BoundCatalogQuery;
-  describeTableQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundCatalogQuery {
+  describeTableQuery(
+    tableName: TableOrModel,
+    options?: CatalogQueryOptions,
+  ): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
       const table = this.extractTableDetails(tableName);
       const owner = this.#ownerToSql(table.schema, valueToSql);
@@ -137,7 +140,10 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     tableName: TableOrModel,
     options?: CatalogQueryOptions,
   ): string | BoundCatalogQuery;
-  showIndexesQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundCatalogQuery {
+  showIndexesQuery(
+    tableName: TableOrModel,
+    options?: CatalogQueryOptions,
+  ): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
       const table = this.extractTableDetails(tableName);
 
@@ -354,7 +360,10 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     tableName: TableOrModel,
     options?: CatalogQueryOptions,
   ): string | BoundCatalogQuery;
-  getForeignKeysQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundCatalogQuery {
+  getForeignKeysQuery(
+    tableName: TableOrModel,
+    options?: CatalogQueryOptions,
+  ): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
       // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
       const table = this.extractTableDetails(tableName);
