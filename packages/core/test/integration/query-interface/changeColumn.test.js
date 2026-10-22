@@ -258,6 +258,24 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         ).to.be.rejectedWith(UniqueConstraintError);
       });
 
+      // Db2 can leave the table "reorg pending" after making a column nullable
+      it('adds a unique key to the column while making it nullable', async function () {
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          allowNull: false,
+        });
+
+        await this.queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          allowNull: true,
+          unique: true,
+        });
+
+        const table = await this.queryInterface.describeTable('users');
+        expect(table.email.allowNull).to.equal(true);
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
+      });
+
       // https://github.com/sequelize/sequelize/issues/17978
       it('does not add a second unique key if the column is already unique', async function () {
         const attribute = { type: DataTypes.STRING, unique: true };

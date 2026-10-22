@@ -78,8 +78,22 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
   }
 
   async addConstraint(tableName, options) {
-    try {
+    await this.#retryAfterReorg(tableName, options, async () => {
       await super.addConstraint(tableName, options);
+    });
+  }
+
+  async addIndex(tableName, attributes, options, rawTablename) {
+    const queryOptions = Array.isArray(attributes) ? options : attributes;
+
+    return this.#retryAfterReorg(tableName, queryOptions, async () => {
+      return super.addIndex(tableName, attributes, options, rawTablename);
+    });
+  }
+
+  async #retryAfterReorg(tableName, options, callback) {
+    try {
+      return await callback();
     } catch (error) {
       if (!error.cause) {
         throw error;
@@ -93,8 +107,9 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
       }
 
       // https://www.ibm.com/support/pages/how-verify-and-resolve-sql0668n-reason-code-7-when-accessing-table
-      await this.executeTableReorg(tableName);
-      await super.addConstraint(tableName, options);
+      await this.executeTableReorg(tableName, options);
+
+      return callback();
     }
   }
 
@@ -105,11 +120,13 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
    * This method forces a reorg to happen now.
    *
    * @param {TableName} tableName - The name of the table to reorg
+   * @param {object} [options] - Query options
    */
-  async executeTableReorg(tableName) {
+  async executeTableReorg(tableName, options) {
     // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
     return await this.sequelize.query(
       `CALL SYSPROC.ADMIN_CMD('REORG TABLE ${this.queryGenerator.quoteTable(tableName)}')`,
+      { transaction: options?.transaction, logging: options?.logging },
     );
   }
 }
