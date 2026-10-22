@@ -22,6 +22,53 @@ describe('QueryInterface#renameTable', () => {
       expect(tableNames).to.contain('my_test_table_new');
       expect(tableNames).to.not.contain('my_test_table');
     });
+
+    // SQLite rewrites references to a renamed table as double-quoted identifiers
+    if (dialect.name === 'sqlite3') {
+      it('should keep foreign keys that reference the renamed table', async () => {
+        await queryInterface.createTable('users', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+        });
+        await queryInterface.createTable('tasks', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          name: DataTypes.STRING,
+          userId: {
+            type: DataTypes.INTEGER,
+            references: { table: 'users', key: 'id' },
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE',
+          },
+          ownerId: DataTypes.INTEGER,
+        });
+        await queryInterface.addConstraint('tasks', {
+          name: 'tasks_owner_fk',
+          type: 'FOREIGN KEY',
+          fields: ['ownerId'],
+          references: { table: 'users', field: 'id' },
+        });
+
+        await queryInterface.renameTable('users', 'people');
+
+        const expectForeignKeysToReferencePeople = async () => {
+          const foreignKeys = await queryInterface.showConstraints('tasks', {
+            constraintType: 'FOREIGN KEY',
+          });
+          expect(foreignKeys).to.have.length(2);
+          for (const columnName of ['userId', 'ownerId']) {
+            expect(foreignKeys.find(fk => fk.columnNames?.[0] === columnName)).to.deep.include({
+              referencedTableName: 'people',
+              referencedColumnNames: ['id'],
+            });
+          }
+        };
+
+        await expectForeignKeysToReferencePeople();
+
+        // rebuilding the table must not drop the reference
+        await queryInterface.renameColumn('tasks', 'name', 'title');
+        await expectForeignKeysToReferencePeople();
+      });
+    }
   });
 
   if (sequelize.dialect.supports.schemas) {
