@@ -159,6 +159,12 @@ export interface DropOptions extends Logging {
    * Also drop all objects depending on this table, such as views. Only works in postgres
    */
   cascade?: boolean;
+
+  /**
+   * The schema that the tables should be dropped from. Lets {@link Model.drop} and {@link Sequelize#drop}
+   * target a non-default schema.
+   */
+  schema?: string;
 }
 
 /**
