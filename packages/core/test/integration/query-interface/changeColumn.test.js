@@ -313,47 +313,67 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
       });
 
-      it('names the unique key using the unique option', async function () {
-        await this.queryInterface.changeColumn('users', 'email', {
-          type: DataTypes.STRING,
-          unique: 'users_email_custom_unique',
-        });
-
-        await this.queryInterface.changeColumn('users', 'firstName', {
-          type: DataTypes.STRING,
-          unique: { name: 'users_first_name_custom_unique' },
-        });
-
-        const emailIndexes = await getUniqueIndexes(this.queryInterface, 'users', 'email');
-        expect(emailIndexes).to.have.length(1);
-        const firstNameIndexes = await getUniqueIndexes(this.queryInterface, 'users', 'firstName');
-        expect(firstNameIndexes).to.have.length(1);
-
-        const constraints = await getUniqueConstraints(this.queryInterface, 'users');
-        const names = [
-          ...emailIndexes.map(index => index.name),
-          ...firstNameIndexes.map(index => index.name),
-          ...constraints.map(constraint => constraint.constraintName),
-        ];
-
-        expect(names).to.include('users_email_custom_unique');
-        expect(names).to.include('users_first_name_custom_unique');
-      });
-
-      it('does not add a unique key if a unique key with the requested name already exists', async function () {
-        await this.queryInterface.addIndex('users', {
-          fields: ['firstName', 'lastName'],
-          unique: true,
-          name: 'users_full_name_unique',
-        });
-
-        await this.queryInterface.changeColumn('users', 'firstName', {
-          type: DataTypes.STRING,
-          unique: 'users_full_name_unique',
-        });
+      it('rejects named and composite unique keys', async function () {
+        for (const unique of ['users_full_name_unique', { name: 'users_full_name_unique' }]) {
+          await expect(
+            this.queryInterface.changeColumn('users', 'firstName', {
+              type: DataTypes.STRING,
+              unique,
+            }),
+          ).to.be.rejectedWith(
+            TypeError,
+            'queryInterface.changeColumn only accepts "unique: true"',
+          );
+        }
 
         expect(await getUniqueIndexes(this.queryInterface, 'users', 'firstName')).to.have.length(0);
       });
+
+      if (['postgres', 'mysql', 'mariadb', 'sqlite3'].includes(dialect)) {
+        it('does not change the column if the unique key cannot be added', async function () {
+          await this.queryInterface.bulkInsert('users', [
+            { email: 'a@example.com' },
+            { email: 'a@example.com' },
+          ]);
+
+          await expect(
+            this.queryInterface.changeColumn('users', 'email', {
+              type: DataTypes.STRING,
+              allowNull: false,
+              unique: true,
+            }),
+          ).to.be.rejectedWith(UniqueConstraintError);
+
+          const table = await this.queryInterface.describeTable('users');
+          expect(table.email.allowNull).to.equal(true);
+          expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(0);
+        });
+      }
+
+      if (dialect === 'postgres') {
+        it('does not count partial unique indexes and unique indexes with expressions', async function () {
+          await this.sequelize.query(
+            'CREATE UNIQUE INDEX "users_email_partial" ON "users" ("email") WHERE "firstName" IS NULL',
+          );
+          await this.sequelize.query(
+            'CREATE UNIQUE INDEX "users_email_lower_name" ON "users" ("email", lower("lastName"))',
+          );
+
+          await this.queryInterface.changeColumn('users', 'email', {
+            type: DataTypes.STRING,
+            unique: true,
+          });
+
+          await this.queryInterface.bulkInsert('users', [
+            { email: 'a@example.com', firstName: 'a', lastName: 'a' },
+          ]);
+          await expect(
+            this.queryInterface.bulkInsert('users', [
+              { email: 'a@example.com', firstName: 'b', lastName: 'b' },
+            ]),
+          ).to.be.rejectedWith(UniqueConstraintError);
+        });
+      }
 
       it('does not remove the unique key when unique is not set', async function () {
         await this.queryInterface.changeColumn('users', 'email', {
@@ -792,18 +812,16 @@ async function getUniqueIndexes(queryInterface, tableName, columnName) {
 }
 
 /**
- * Returns the unique constraints of the table, optionally only those that cover exactly the given column.
+ * Returns the unique constraints that cover exactly the given column.
  *
  * @param {object} queryInterface
  * @param {string} tableName
- * @param {string} [columnName]
+ * @param {string} columnName
  */
 async function getUniqueConstraints(queryInterface, tableName, columnName) {
   const constraints = await queryInterface.showConstraints(tableName, {
     constraintType: 'UNIQUE',
   });
 
-  return constraints.filter(
-    constraint => columnName == null || isEqual(constraint.columnNames, [columnName]),
-  );
+  return constraints.filter(constraint => isEqual(constraint.columnNames, [columnName]));
 }

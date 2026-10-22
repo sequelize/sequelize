@@ -262,11 +262,10 @@ export class AbstractQueryInterface<
   /**
    * Changes a column
    *
-   * If the new definition sets the "unique" option, a unique constraint is added to the column,
-   * unless the table already has a unique constraint or unique index on exactly that column
-   * (or one with the requested name), so calling this method again does not add another one.
-   * Only single-column unique keys are supported: if "unique" is a string or an object with a name,
-   * that name is used for the unique constraint of this column.
+   * If the new definition sets "unique: true", a unique key is added to the column,
+   * unless the table already has a unique constraint, unique index or primary key on exactly that column,
+   * so calling this method again does not add another one.
+   * Named and composite unique keys must be added with {@link AbstractQueryInterface#addConstraint}.
    * Setting "unique" to false does not remove existing unique keys.
    *
    * In SQLite (which cannot add constraints to existing tables), and in Db2 for nullable columns
