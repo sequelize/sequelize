@@ -68,6 +68,9 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
       defaultValue: false,
       update: false,
     },
+    alterColumn: {
+      unique: false,
+    },
     constraints: {
       restrict: false,
       default: true,

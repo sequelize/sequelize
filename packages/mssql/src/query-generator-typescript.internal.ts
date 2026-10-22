@@ -403,8 +403,10 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
       template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
     }
 
-    // QueryInterface#changeColumn adds the unique key separately, only if it does not exist yet
-    if (attribute.unique === true && options?.context !== 'changeColumn') {
+    if (
+      attribute.unique === true &&
+      (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
+    ) {
       template += ' UNIQUE';
     }
 

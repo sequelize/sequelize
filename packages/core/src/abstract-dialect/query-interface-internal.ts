@@ -14,32 +14,6 @@ import type {
 } from './query-interface.types.js';
 
 /**
- * Returns the name requested by the "unique" option of an attribute, if any.
- * If an array is provided, the name of the first unique key that specifies one is used.
- *
- * @param unique The "unique" option of an attribute.
- */
-function getUniqueKeyName(unique: AttributeOptions['unique']): string | undefined {
-  const uniqueKeys = Array.isArray(unique) ? unique : [unique];
-
-  for (const uniqueKey of uniqueKeys) {
-    if (typeof uniqueKey === 'string') {
-      return uniqueKey;
-    }
-
-    if (uniqueKey && typeof uniqueKey === 'object' && uniqueKey.name) {
-      return uniqueKey.name;
-    }
-  }
-
-  return undefined;
-}
-
-function isSameColumnList(columnNames: readonly string[] | undefined, columnName: string): boolean {
-  return columnNames?.length === 1 && columnNames[0] === columnName;
-}
-
-/**
  * The methods in this class are not part of the public API.
  */
 export class AbstractQueryInterfaceInternal {
@@ -126,70 +100,65 @@ export class AbstractQueryInterfaceInternal {
   }
 
   /**
-   * Makes sure that the column is unique, as requested by the "unique" option of {@link AbstractQueryInterface#changeColumn}.
-   *
-   * Nothing is added if the table already has a unique key (a unique constraint, a unique index, or the primary key)
-   * on exactly that column, or a unique key with the requested name.
-   * Otherwise, a unique constraint is added (see {@link addUniqueKey}).
-   *
-   * This makes changeColumn idempotent, instead of adding a duplicate unique key each time it is called.
+   * Returns whether {@link AbstractQueryInterface#changeColumn} needs to add a unique key to the column, as requested by its "unique" option.
+   * This is only the case if the table does not have a unique key on exactly that column yet,
+   * so calling changeColumn again does not add another one.
    *
    * @param tableName The table that contains the column
    * @param columnName The name of the column, as it is in the database
-   * @param unique The value of the "unique" attribute option.
-   * Only single-column unique keys are supported: if a name is specified, it is used to name the unique key,
-   * but it is not combined with other columns.
+   * @param unique The value of the "unique" attribute option
    * @param options Query options
    */
-  async ensureUniqueKey(
+  async needsUniqueKey(
     tableName: TableOrModel,
     columnName: string,
     unique: AttributeOptions['unique'],
     options?: QueryRawOptions,
-  ): Promise<void> {
+  ): Promise<boolean> {
     if (!unique) {
-      return;
+      return false;
     }
 
-    const name = getUniqueKeyName(unique);
-    if (await this.hasUniqueKey(tableName, columnName, name, options)) {
-      return;
+    if (unique !== true) {
+      throw new TypeError(
+        `queryInterface.changeColumn only accepts "unique: true", which adds a unique key on the column if it does not have one yet. Use queryInterface.addConstraint to add a named or composite unique key. Received: ${JSON.stringify(unique)}`,
+      );
     }
 
-    await this.addUniqueKey(tableName, columnName, name, options);
+    return !(await this.hasUniqueKey(tableName, columnName, options));
   }
 
   /**
-   * Returns whether the table has a unique key on exactly the given column, or a unique key named `name`.
+   * Returns whether the table has a unique key (a unique constraint, a unique index, or the primary key) on exactly the given column.
    *
    * Both the unique constraints and the indexes of the table are checked, because depending on the dialect,
-   * a unique key can be a unique constraint without a unique index (snowflake), or a unique index without a unique constraint.
+   * a unique key can be a unique index without a unique constraint.
+   * Snowflake does not report which columns its unique constraints are on, so they are never found there.
    *
-   * @param tableName
-   * @param columnName
-   * @param name
-   * @param options
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param options Query options
    */
   async hasUniqueKey(
     tableName: TableOrModel,
     columnName: string,
-    name: string | undefined,
     options?: QueryRawOptions,
   ): Promise<boolean> {
     const queryInterface = this.#sequelize.queryInterface;
+
+    // unquoted identifiers are case-insensitive
+    const normalize = this.#sequelize.options.quoteIdentifiers
+      ? (name: string) => name
+      : (name: string) => name.toLowerCase();
+    const isOnColumn = (columnNames: readonly string[] | undefined) =>
+      columnNames?.length === 1 && normalize(columnNames[0]) === normalize(columnName);
 
     const constraints = await queryInterface.showConstraints(tableName, {
       ...options,
       constraintType: 'UNIQUE',
     });
 
-    if (
-      constraints.some(
-        constraint =>
-          (name != null && constraint.constraintName === name) ||
-          isSameColumnList(constraint.columnNames, columnName),
-      )
-    ) {
+    if (constraints.some(constraint => isOnColumn(constraint.columnNames))) {
       return true;
     }
 
@@ -197,34 +166,26 @@ export class AbstractQueryInterfaceInternal {
 
     return indexes.some(
       index =>
-        (index.unique || index.primary) &&
-        ((name != null && index.name === name) ||
-          isSameColumnList(
-            index.fields.map(field => field.attribute),
-            columnName,
-          )),
+        (index.unique || index.primary) && isOnColumn(index.fields.map(field => field.attribute)),
     );
   }
 
   /**
-   * Adds a unique key on a single column.
-   * This adds a unique constraint, or a unique index if the dialect cannot add constraints to existing tables.
+   * Adds a unique constraint on the column, or a unique index if the dialect cannot add constraints to existing tables.
+   * {@link AbstractQueryInterface#changeColumn} uses this in dialects where the ALTER COLUMN query cannot add the unique key
+   * (`dialect.supports.alterColumn.unique` is false).
    *
-   * Dialects can override this method if they cannot add a unique constraint to some columns.
-   *
-   * @param tableName
-   * @param columnName
-   * @param name The name of the unique key. If not specified, the default name of {@link AbstractQueryInterface#addConstraint} or {@link AbstractQueryInterface#addIndex} is used.
-   * @param options
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param options Query options
    */
   async addUniqueKey(
     tableName: TableOrModel,
     columnName: string,
-    name: string | undefined,
     options?: QueryRawOptions,
   ): Promise<void> {
     if (!this.#dialect.supports.constraints.add) {
-      await this.addUniqueIndex(tableName, columnName, name, options);
+      await this.addUniqueIndex(tableName, columnName, options);
 
       return;
     }
@@ -233,22 +194,19 @@ export class AbstractQueryInterfaceInternal {
       ...options,
       type: 'UNIQUE',
       fields: [columnName],
-      ...(name != null && { name }),
     });
   }
 
   /**
-   * Adds a unique index on a single column.
+   * Adds a unique index on the column.
    *
-   * @param tableName
-   * @param columnName
-   * @param name The name of the index. If not specified, the default name of {@link AbstractQueryInterface#addIndex} is used.
-   * @param options
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param options Query options
    */
   async addUniqueIndex(
     tableName: TableOrModel,
     columnName: string,
-    name: string | undefined,
     options?: QueryRawOptions,
   ): Promise<void> {
     await this.#sequelize.queryInterface.addIndex(tableName, {
@@ -257,7 +215,6 @@ export class AbstractQueryInterfaceInternal {
       type: undefined,
       fields: [columnName],
       unique: true,
-      ...(name != null && { name }),
     });
   }
 

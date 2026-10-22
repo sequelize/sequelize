@@ -49,6 +49,9 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
       collate: false,
       include: false,
     },
+    alterColumn: {
+      unique: false,
+    },
     constraints: {
       onUpdate: false,
     },

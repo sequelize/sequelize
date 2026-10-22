@@ -218,8 +218,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template += ` DEFAULT ${needsParentheses ? `(${escaped})` : escaped}`;
     }
 
-    // QueryInterface#changeColumn adds the unique key separately, only if it does not exist yet
-    if (attribute.unique === true && options?.context !== 'changeColumn') {
+    if (attribute.unique === true) {
       template += ' UNIQUE';
     }
 

@@ -1,10 +1,21 @@
-import type { ColumnsDescription, ConstraintDescription, IndexDescription } from '@sequelize/core';
+import type {
+  AttributeOptions,
+  ColumnsDescription,
+  ConstraintDescription,
+  IndexDescription,
+} from '@sequelize/core';
 import { DataTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
-import { getTestDialect, sequelize } from '../../support';
+import {
+  allowDeprecationsInSuite,
+  createSequelizeInstance,
+  getTestDialect,
+  sequelize,
+} from '../../support';
 
 const dialectName = getTestDialect();
+const supportsUniqueInAlterQuery = sequelize.dialect.supports.alterColumn.unique;
 
 function uniqueConstraint(constraintName: string, columnNames: string[]): ConstraintDescription {
   return {
@@ -33,12 +44,8 @@ function index(
   };
 }
 
-describe('QueryInterface#changeColumn', () => {
-  // sqlite3 recreates the table to change a column, see the integration tests
-  if (dialectName === 'sqlite3') {
-    return;
-  }
-
+// sqlite3 recreates the table to change a column, see the integration tests
+(dialectName === 'sqlite3' ? describe.skip : describe)('QueryInterface#changeColumn', () => {
   const queryInterface = sequelize.queryInterface;
 
   let queryRawStub: sinon.SinonStub;
@@ -46,9 +53,16 @@ describe('QueryInterface#changeColumn', () => {
   let showIndexStub: sinon.SinonStub;
   let addConstraintStub: sinon.SinonStub;
   let addIndexStub: sinon.SinonStub;
+  // postgres looks for unique keys in pg_index
+  let postgresHasUniqueKey: boolean;
 
   beforeEach(() => {
-    queryRawStub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    postgresHasUniqueKey = false;
+    queryRawStub = sinon
+      .stub(sequelize, 'queryRaw')
+      .callsFake(async (sql: string): Promise<any> => {
+        return sql.startsWith('SELECT EXISTS') ? [{ exists: postgresHasUniqueKey }] : [[], 0];
+      });
     showConstraintsStub = sinon.stub(queryInterface, 'showConstraints').resolves([]);
     showIndexStub = sinon.stub(queryInterface, 'showIndex').resolves([]);
     addConstraintStub = sinon.stub(queryInterface, 'addConstraint').resolves();
@@ -64,135 +78,181 @@ describe('QueryInterface#changeColumn', () => {
     sinon.restore();
   });
 
-  it('does not put UNIQUE in the ALTER COLUMN query', async () => {
-    await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
+  function getAlterQuery(): string {
+    const alterCalls = queryRawStub.getCalls().filter(call => !call.args[0].startsWith('SELECT'));
+    expect(alterCalls).to.have.length(1);
 
-    expect(queryRawStub.callCount).to.equal(1);
-    expect(queryRawStub.firstCall.args[0]).not.to.match(/UNIQUE/);
-  });
+    return alterCalls[0].args[0];
+  }
+
+  function expectUniqueKeyAdded(added: boolean) {
+    const alterQuery = getAlterQuery();
+    if (supportsUniqueInAlterQuery) {
+      expect(alterQuery.includes('UNIQUE')).to.equal(added);
+      expect(addConstraintStub.called).to.equal(false);
+    } else {
+      expect(alterQuery).not.to.include('UNIQUE');
+      expect(addConstraintStub.called).to.equal(added);
+    }
+
+    expect(addIndexStub.called).to.equal(false);
+  }
 
   it('does not look for unique keys if unique is not set', async () => {
     await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING });
     await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: false });
 
+    expect(queryRawStub.callCount).to.equal(2);
     expect(showConstraintsStub.called).to.equal(false);
     expect(showIndexStub.called).to.equal(false);
     expect(addConstraintStub.called).to.equal(false);
     expect(addIndexStub.called).to.equal(false);
   });
 
-  it('adds a unique constraint if the column has no unique key', async () => {
-    const logging = () => {};
+  it('adds a unique key if the column has none', async () => {
+    await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
 
-    showIndexStub.resolves([
-      index('users_pkey', ['id'], { primary: true }),
-      index('users_email', ['email'], { unique: false }),
-      index('users_email_name', ['email', 'name']),
-    ]);
-    showConstraintsStub.resolves([uniqueConstraint('users_email_name', ['email', 'name'])]);
-
-    await queryInterface.changeColumn(
-      'users',
-      'email',
-      { type: DataTypes.STRING, unique: true },
-      { logging },
-    );
-
-    expect(showConstraintsStub.firstCall.args[1]).to.include({
-      constraintType: 'UNIQUE',
-      logging,
-    });
-    expect(showIndexStub.firstCall.args[1]).to.include({ logging });
-    expect(addIndexStub.called).to.equal(false);
-    expect(addConstraintStub.callCount).to.equal(1);
-    expect(addConstraintStub.firstCall.args[0]).to.equal('users');
-    expect(addConstraintStub.firstCall.args[1]).to.deep.include({
-      type: 'UNIQUE',
-      fields: ['email'],
-      logging,
-    });
-    expect(addConstraintStub.firstCall.args[1]).not.to.have.property('name');
+    expectUniqueKeyAdded(true);
   });
 
-  it('uses the column name of the attribute', async () => {
-    await queryInterface.changeColumn('users', 'email', {
-      type: DataTypes.STRING,
-      unique: true,
-      field: 'email_address',
-    });
+  it('does not add a unique key if the column already has one', async () => {
+    postgresHasUniqueKey = true;
+    showIndexStub.resolves([index('users_email', ['email'])]);
 
-    expect(addConstraintStub.firstCall.args[1]).to.deep.include({ fields: ['email_address'] });
+    await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
+
+    expectUniqueKeyAdded(false);
   });
 
-  it('names the unique constraint using the unique option', async () => {
-    await queryInterface.changeColumn('users', 'email', {
-      type: DataTypes.STRING,
-      unique: 'users_email_uk',
-    });
-    await queryInterface.changeColumn('users', 'email', {
-      type: DataTypes.STRING,
-      unique: { name: 'users_email_uk' },
-    });
-    await queryInterface.changeColumn('users', 'email', {
-      type: DataTypes.STRING,
-      unique: [true, { name: 'users_email_uk' }],
-    });
+  it('throws if unique is not true', async () => {
+    const uniqueValues: Array<AttributeOptions['unique']> = [
+      'users_email_uk',
+      { name: 'users_email_uk' },
+      [true],
+    ];
 
-    expect(addConstraintStub.callCount).to.equal(3);
-    for (const call of addConstraintStub.getCalls()) {
-      expect(call.args[1]).to.deep.include({
-        type: 'UNIQUE',
-        fields: ['email'],
-        name: 'users_email_uk',
-      });
+    for (const unique of uniqueValues) {
+      // eslint-disable-next-line no-await-in-loop
+      await expect(
+        queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique }),
+      ).to.be.rejectedWith(TypeError, 'queryInterface.changeColumn only accepts "unique: true"');
     }
+
+    expect(queryRawStub.called).to.equal(false);
   });
 
-  it('does not add a unique key if the column has a unique constraint', async () => {
-    showConstraintsStub.resolves([uniqueConstraint('some_name', ['email'])]);
+  if (!supportsUniqueInAlterQuery) {
+    it('passes the query options to the queries that add the unique key', async () => {
+      const logging = () => {};
 
-    await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
+      await queryInterface.changeColumn(
+        'users',
+        'email',
+        { type: DataTypes.STRING, unique: true, field: 'email_address' },
+        { logging },
+      );
 
-    expect(addConstraintStub.called).to.equal(false);
-    expect(addIndexStub.called).to.equal(false);
-  });
+      expect(showConstraintsStub.firstCall.args[1]).to.include({ logging });
+      expect(showIndexStub.firstCall.args[1]).to.include({ logging });
+      expect(addConstraintStub.firstCall.args[0]).to.equal('users');
+      expect(addConstraintStub.firstCall.args[1]).to.deep.include({
+        type: 'UNIQUE',
+        fields: ['email_address'],
+        logging,
+      });
+      expect(addConstraintStub.firstCall.args[1]).not.to.have.property('name');
+    });
+  }
 
-  it('does not add a unique key if the column has a unique index', async () => {
-    showIndexStub.resolves([index('some_name', ['email'])]);
+  if (dialectName === 'postgres') {
+    it('looks for unique keys in pg_index, ignoring partial unique indexes and unique indexes with expressions', async () => {
+      await queryInterface.changeColumn('users', 'email', {
+        type: DataTypes.STRING,
+        unique: true,
+        field: 'email_address',
+      });
 
-    await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
+      const lookup = queryRawStub.firstCall.args[0];
+      expect(lookup).to.include(`a.attname = 'email_address'`);
+      expect(lookup).to.include('ix.indisunique AND ix.indnkeyatts = 1');
+      expect(lookup).to.include('ix.indpred IS NULL AND ix.indexprs IS NULL');
+      expect(showConstraintsStub.called).to.equal(false);
+      expect(showIndexStub.called).to.equal(false);
+    });
+  } else {
+    it('does not count non-unique indexes and unique keys on more than that column', async () => {
+      showIndexStub.resolves([
+        index('users_email', ['email'], { unique: false }),
+        index('users_email_name', ['email', 'name']),
+      ]);
+      showConstraintsStub.resolves([uniqueConstraint('users_email_name', ['email', 'name'])]);
 
-    expect(addConstraintStub.called).to.equal(false);
-    expect(addIndexStub.called).to.equal(false);
-  });
+      await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
 
-  it('does not add a unique key if the column is the primary key', async () => {
-    showIndexStub.resolves([index('users_pkey', ['email'], { unique: false, primary: true })]);
-
-    await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
-
-    expect(addConstraintStub.called).to.equal(false);
-  });
-
-  it('does not add a unique key if a unique key with the requested name exists', async () => {
-    showIndexStub.resolves([index('users_email_name', ['email', 'name'])]);
-
-    await queryInterface.changeColumn('users', 'email', {
-      type: DataTypes.STRING,
-      unique: 'users_email_name',
+      expectUniqueKeyAdded(true);
     });
 
-    expect(addConstraintStub.called).to.equal(false);
+    it('counts unique constraints, unique indexes and the primary key', async () => {
+      const existingKeys: Array<[ConstraintDescription[], IndexDescription[]]> = [
+        [[uniqueConstraint('users_email', ['email'])], []],
+        [[], [index('users_email', ['email'])]],
+        [[], [index('users_pkey', ['email'], { unique: false, primary: true })]],
+      ];
 
-    showIndexStub.resolves([]);
-    showConstraintsStub.resolves([uniqueConstraint('users_email_name', ['email', 'name'])]);
+      for (const [constraints, indexes] of existingKeys) {
+        queryRawStub.resetHistory();
+        showConstraintsStub.resolves(constraints);
+        showIndexStub.resolves(indexes);
 
-    await queryInterface.changeColumn('users', 'email', {
-      type: DataTypes.STRING,
-      unique: 'users_email_name',
+        // eslint-disable-next-line no-await-in-loop
+        await queryInterface.changeColumn('users', 'email', {
+          type: DataTypes.STRING,
+          unique: true,
+        });
+
+        expectUniqueKeyAdded(false);
+      }
+    });
+  }
+
+  describe('with quoteIdentifiers: false', () => {
+    allowDeprecationsInSuite(['SEQUELIZE0023']);
+
+    let unquotedSequelize: ReturnType<typeof createSequelizeInstance>;
+
+    before(() => {
+      unquotedSequelize = createSequelizeInstance({ quoteIdentifiers: false });
     });
 
-    expect(addConstraintStub.called).to.equal(false);
+    after(async () => {
+      await unquotedSequelize.close();
+    });
+
+    it('compares column names case-insensitively', async () => {
+      const unquotedQueryInterface = unquotedSequelize.queryInterface;
+      const unquotedQueryRawStub = sinon
+        .stub(unquotedSequelize, 'queryRaw')
+        .callsFake(async (sql: string): Promise<any> => {
+          return sql.startsWith('SELECT EXISTS') ? [{ exists: true }] : [[], 0];
+        });
+      sinon.stub(unquotedQueryInterface, 'showConstraints').resolves([]);
+      sinon.stub(unquotedQueryInterface, 'showIndex').resolves([index('USERS_EMAIL', ['EMAIL'])]);
+      const unquotedAddConstraintStub = sinon.stub(unquotedQueryInterface, 'addConstraint');
+
+      await unquotedQueryInterface.changeColumn('users', 'Email', {
+        type: DataTypes.STRING,
+        unique: true,
+      });
+
+      const queries = unquotedQueryRawStub.getCalls().map(call => call.args[0]);
+      if (dialectName === 'postgres') {
+        // postgres folds unquoted identifiers to lower case
+        expect(queries[0]).to.include(`a.attname = 'email'`);
+      }
+
+      expect(queries.at(-1)).not.to.include('UNIQUE');
+      expect(unquotedAddConstraintStub.called).to.equal(false);
+    });
   });
 
   if (dialectName === 'db2') {
@@ -201,17 +261,13 @@ describe('QueryInterface#changeColumn', () => {
         email: { allowNull: true },
       });
 
-      await queryInterface.changeColumn('users', 'email', {
-        type: DataTypes.STRING,
-        unique: 'users_email_uk',
-      });
+      await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
 
       expect(addConstraintStub.called).to.equal(false);
       expect(addIndexStub.callCount).to.equal(1);
       expect(addIndexStub.firstCall.args[1]).to.deep.include({
         fields: ['email'],
         unique: true,
-        name: 'users_email_uk',
         type: undefined,
       });
     });

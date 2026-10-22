@@ -25,27 +25,25 @@ export class Db2QueryInterfaceInternal extends AbstractQueryInterfaceInternal {
    * Nullable columns get a unique index instead, which, like a unique constraint, rejects duplicate values.
    * Note that a Db2 unique index treats NULL values as equal, so only one row can have a NULL value in that column.
    *
-   * @param tableName
-   * @param columnName
-   * @param name
-   * @param options
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param options Query options
    */
   async addUniqueKey(
     tableName: TableOrModel,
     columnName: string,
-    name: string | undefined,
     options?: QueryRawOptions,
   ): Promise<void> {
     const queryInterface = this.dialect.sequelize.queryInterface;
     const columns = await queryInterface.describeTable(tableName, options);
 
     if (columns[columnName]?.allowNull) {
-      await this.addUniqueIndex(tableName, columnName, name, options);
+      await this.addUniqueIndex(tableName, columnName, options);
 
       return;
     }
 
-    await super.addUniqueKey(tableName, columnName, name, options);
+    await super.addUniqueKey(tableName, columnName, options);
   }
 
   /**
