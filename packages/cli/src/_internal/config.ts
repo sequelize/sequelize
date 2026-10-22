@@ -3,6 +3,7 @@ import { AbstractDialect } from '@sequelize/core';
 import { cosmiconfig } from 'cosmiconfig';
 import * as path from 'node:path';
 import { z } from 'zod/v3';
+import { resolveProjectFolder } from './utils.js';
 
 const explorer = cosmiconfig('sequelize');
 const result = await explorer.search();
@@ -60,15 +61,36 @@ const dialectInputSchema = z.union([
   z.string().min(1),
 ]);
 
+/**
+ * Builds the transform used by folder options: it resolves the folder against the project root and
+ * rejects any value that would escape it, so a config file cannot make the CLI create, read or
+ * execute files outside of the project.
+ *
+ * @param optionName The name of the config option, used in the error message.
+ */
+function projectFolderTransform(optionName: string) {
+  return (val: string, ctx: z.RefinementCtx): string => {
+    const resolved = resolveProjectFolder(projectRoot, val);
+
+    if (resolved == null) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${optionName}" must stay inside the project directory (${projectRoot}), but ${JSON.stringify(val)} resolves outside of it.`,
+      });
+
+      return z.NEVER;
+    }
+
+    return resolved;
+  };
+}
+
 const configSchema = z.strictObject({
   migrationFolder: z
     .string()
     .default('/migrations')
-    .transform(val => path.join(projectRoot, val)),
-  seedFolder: z
-    .string()
-    .default('/seeds')
-    .transform(val => path.join(projectRoot, val)),
+    .transform(projectFolderTransform('migrationFolder')),
+  seedFolder: z.string().default('/seeds').transform(projectFolderTransform('seedFolder')),
   // Optional at the schema level so commands that do not need a database (e.g. migration generate)
   // can run without one. createUmzug() enforces its presence with a clear error at runtime.
   database: z.object({ dialect: dialectInputSchema }).passthrough().optional(),
