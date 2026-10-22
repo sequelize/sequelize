@@ -256,7 +256,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
             this.Projects.beforeCreate(beforeProject);
             this.Projects.afterCreate(afterProject);
-            // addTask uses a static Task.update() without individualHooks, so only the bulk hooks run
             this.Tasks.beforeBulkUpdate(() => {
               beforeTask();
               throw new Error('Whoops!');
@@ -408,7 +407,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
               afterProject = true;
             });
 
-            // addTask uses a static Task.update() without individualHooks, so only the bulk hooks run
             this.Tasks.beforeBulkUpdate(async () => {
               beforeTask = true;
               throw new Error('Whoops!');
