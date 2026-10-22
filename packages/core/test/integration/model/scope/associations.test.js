@@ -197,6 +197,33 @@ describe('Model scope with associations', () => {
       expect(company.users).to.have.length(1);
       expect(company.users[0].get('username')).to.equal('tony');
     });
+
+    describe('with separate: true', () => {
+      it('should apply default scope when including a model', async function () {
+        const [company] = await this.Company.findAll({
+          include: [{ model: this.ScopeMe, as: 'users', separate: true }],
+        });
+
+        expect(company.users).to.have.length(2);
+      });
+
+      it('should be able to include an unscoped model', async function () {
+        const [company] = await this.Company.findAll({
+          include: [{ model: this.ScopeMe.withoutScope(), as: 'users', separate: true }],
+        });
+
+        expect(company.users).to.have.length(4);
+      });
+
+      it('should be able to include a scoped model', async function () {
+        const [company] = await this.Company.findAll({
+          include: [{ model: this.ScopeMe.withScope('isTony'), as: 'users', separate: true }],
+        });
+
+        expect(company.users).to.have.length(1);
+        expect(company.users[0].get('username')).to.equal('tony');
+      });
+    });
   });
 
   describe('get', () => {
