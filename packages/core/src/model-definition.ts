@@ -24,6 +24,10 @@ import type {
   NormalizedAttributeReferencesOptions,
 } from './model.js';
 import type { Sequelize } from './sequelize.js';
+import {
+  describeReservedAttributeNameCharacter,
+  findReservedAttributeNameCharacter,
+} from './utils/attribute-syntax.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
 import { isModelStatic } from './utils/model-utils.js';
@@ -475,28 +479,16 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
         );
       }
 
-      // Checks whether the name is ambiguous with isColString
-      // we check whether the attribute starts *or* ends because the following query:
-      // { '$json.key$' }
-      // could be interpreted as both
-      // "json"."key" (accessible attribute 'key' on model 'json')
-      // or
-      // "$json" #>> {key$} (accessing key 'key$' on attribute '$json')
-      if (attributeName.startsWith('$') || attributeName.endsWith('$')) {
+      // Attribute names are used as keys in WHERE POJOs (and in sql.attribute()), where some characters have
+      // a special meaning: "$" delimits associations ($association.attribute$), "." accesses nested JSON keys,
+      // ":" introduces casts & modifiers (::int, :unquote), "[" & "]" access array indexes.
+      // A name containing any of them could not be referenced unambiguously in a query, so they are rejected.
+      // Anything else (including dashes, spaces, quotes & non-ASCII characters) is accepted: the attribute name
+      // is always quoted in the generated SQL.
+      const reservedCharacter = findReservedAttributeNameCharacter(attributeName);
+      if (reservedCharacter !== null) {
         throw new Error(
-          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.`,
-        );
-      }
-
-      if (attributeName.includes('.')) {
-        throw new Error(
-          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.`,
-        );
-      }
-
-      if (attributeName.includes('::')) {
-        throw new Error(
-          `Name of attribute "${attributeName}" in model "${this.modelName}" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.`,
+          `Name of attribute ${JSON.stringify(attributeName)} in model "${this.modelName}" cannot include the character ${describeReservedAttributeNameCharacter(reservedCharacter)}. The characters "$", ".", ":", "[", "]" and control characters are reserved syntax used to reference attributes in queries (e.g. "$association.attribute$", "json.key", "attribute::cast", "json[0]"). Column names are not affected by this restriction.`,
         );
       }
 
