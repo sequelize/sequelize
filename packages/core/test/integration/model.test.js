@@ -1352,80 +1352,89 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
-    it('throws an error if the referenced table name is invalid', async function () {
-      const Post = this.sequelize.define('post', {
+    function definePostReferencingMissingTable(context) {
+      const Post = context.sequelize.define('post', {
         title: DataTypes.STRING,
         authorId: DataTypes.INTEGER,
       });
 
-      this.Author.hasMany(Post);
-      Post.belongsTo(this.Author);
+      context.Author.hasMany(Post);
+      Post.belongsTo(context.Author);
 
       // force Post.authorId to reference a table that does not exist
       Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
       Post.modelDefinition.refreshAttributes();
 
-      // The posts table gets dropped in the before filter.
-      if (dialectName === 'sqlite3') {
-        // SQLite does not check that the referenced table exists when creating the table
+      return Post;
+    }
+
+    // The posts table gets dropped in the before filter.
+    if (dialectName === 'sqlite3') {
+      it('does not check that the referenced table exists', async function () {
+        const Post = definePostReferencingMissingTable(this);
+
         await Post.sync();
 
-        return;
-      }
+        expect(await this.sequelize.queryInterface.tableExists('posts')).to.equal(true);
+      });
+    } else {
+      it('throws an error if the referenced table name is invalid', async function () {
+        const Post = definePostReferencingMissingTable(this);
 
-      const error = await expect(Post.sync()).to.be.rejected;
+        const error = await expect(Post.sync()).to.be.rejected;
 
-      switch (dialectName) {
-        case 'mysql': {
-          expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
+        switch (dialectName) {
+          case 'mysql': {
+            expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
 
-          break;
+            break;
+          }
+
+          case 'mariadb': {
+            expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
+
+            break;
+          }
+
+          case 'postgres': {
+            expect(error.message).to.match(/relation "4uth0r5" does not exist/);
+
+            break;
+          }
+
+          case 'mssql': {
+            expect(error).to.be.instanceOf(AggregateError);
+            expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
+
+            break;
+          }
+
+          case 'db2': {
+            expect(error.message).to.match(/ is an undefined name/);
+
+            break;
+          }
+
+          case 'oracle': {
+            expect(error.message).to.match(/^ORA-00942:/);
+
+            break;
+          }
+
+          case 'ibmi': {
+            expect(error.message).to.match(
+              /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
+            );
+
+            break;
+          }
+
+          default: {
+            throw new Error('Undefined dialect!');
+          }
         }
-
-        case 'mariadb': {
-          expect(error.message).to.match(/Foreign key constraint is incorrectly formed/);
-
-          break;
-        }
-
-        case 'postgres': {
-          expect(error.message).to.match(/relation "4uth0r5" does not exist/);
-
-          break;
-        }
-
-        case 'mssql': {
-          expect(error).to.be.instanceOf(AggregateError);
-          expect(error.errors.at(-2).message).to.match(/Could not create constraint/);
-
-          break;
-        }
-
-        case 'db2': {
-          expect(error.message).to.match(/ is an undefined name/);
-
-          break;
-        }
-
-        case 'oracle': {
-          expect(error.message).to.match(/^ORA-00942:/);
-
-          break;
-        }
-
-        case 'ibmi': {
-          expect(error.message).to.match(
-            /[a-zA-Z0-9[\] /-]+?"4uth0r5" in SEQUELIZE type \*FILE not found\./,
-          );
-
-          break;
-        }
-
-        default: {
-          throw new Error('Undefined dialect!');
-        }
-      }
-    });
+      });
+    }
 
     it('works with comments', async function () {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521

@@ -281,8 +281,8 @@ export default [
       // it's fine if we're not very efficient in tests.
       'no-inner-declarations': 'off',
 
-      // Chai assertions such as `expect(x).to.be.true` are expressions, which these rules allow.
-      // They still report anything else, such as an `expect(x)` that never reaches a matcher.
+      // Chai assertions such as `expect(x).to.be.true` are expressions, which chai-friendly allows.
+      // chai-expect reports assertions that check nothing, such as an `expect(x)` that never reaches a matcher.
       'no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
       'chai-friendly/no-unused-expressions': 'error',
@@ -295,6 +295,13 @@ export default [
       // Allow regular functions (needed for this.timeout() in Mocha describe blocks)
       'func-names': 'off',
       '@typescript-eslint/no-invalid-this': 'off',
+    },
+  },
+  {
+    files: ['packages/*/test/**/*.ts', '**/*.test.ts'],
+    rules: {
+      // chai-as-promised assertions are thenables, and must be awaited to be able to fail
+      '@typescript-eslint/no-floating-promises': ['error', { checkThenables: true }],
     },
   },
   {

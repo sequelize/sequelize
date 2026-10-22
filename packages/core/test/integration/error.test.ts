@@ -394,7 +394,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       const error = await expect(queryInterface.bulkDelete('Users')).to.be.rejectedWith(
         ForeignKeyConstraintError,
       );
-      expect(error).to.be.instanceOf(ForeignKeyConstraintError);
       assert(error instanceof ForeignKeyConstraintError);
       if (dialect === 'sqlite3') {
         expect(error.index).to.be.undefined;
@@ -478,7 +477,6 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       const error = await expect(
         queryInterface.bulkInsert('Tasks', [{ title: 'task', userId: 1 }]),
       ).to.be.rejectedWith(ForeignKeyConstraintError);
-      expect(error).to.be.instanceOf(ForeignKeyConstraintError);
       assert(error instanceof ForeignKeyConstraintError);
       if (dialect === 'sqlite3') {
         expect(error.index).to.be.undefined;
@@ -538,62 +536,83 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
       }
     });
 
-    it('should throw an unknown constranit error for duplicate constraint names', async () => {
-      await queryInterface.createTable('Users', {
-        id: { type: DataTypes.INTEGER, allowNull: false },
-        username: DataTypes.STRING,
+    if (dialect === 'sqlite3') {
+      it('accepts duplicate constraint names', async () => {
+        await queryInterface.createTable('Users', {
+          id: { type: DataTypes.INTEGER, allowNull: false },
+          username: DataTypes.STRING,
+        });
+
+        await queryInterface.addConstraint('Users', {
+          type: 'PRIMARY KEY',
+          fields: ['id'],
+          name: 'unique_constraint',
+        });
+        await queryInterface.addConstraint('Users', {
+          type: 'UNIQUE',
+          fields: ['username'],
+          name: 'unique_constraint',
+        });
+
+        const constraints = await queryInterface.showConstraints('Users', {
+          constraintName: 'unique_constraint',
+        });
+        expect(constraints.map(constraint => constraint.constraintType)).to.have.members([
+          'PRIMARY KEY',
+          'UNIQUE',
+        ]);
       });
+    } else {
+      it('should throw an unknown constraint error for duplicate constraint names', async () => {
+        await queryInterface.createTable('Users', {
+          id: { type: DataTypes.INTEGER, allowNull: false },
+          username: DataTypes.STRING,
+        });
 
-      await queryInterface.addConstraint('Users', {
-        type: 'PRIMARY KEY',
-        fields: ['id'],
-        name: 'unique_constraint',
-      });
+        await queryInterface.addConstraint('Users', {
+          // MySQL & MariaDB ignore the name of PRIMARY KEY constraints (it is always "PRIMARY")
+          type: ['mariadb', 'mysql'].includes(dialect) ? 'UNIQUE' : 'PRIMARY KEY',
+          fields: ['id'],
+          name: 'unique_constraint',
+        });
 
-      const promise = queryInterface.addConstraint('Users', {
-        type: 'UNIQUE',
-        fields: ['username'],
-        name: 'unique_constraint',
-      });
+        const promise = queryInterface.addConstraint('Users', {
+          type: 'UNIQUE',
+          fields: ['username'],
+          name: 'unique_constraint',
+        });
 
-      switch (dialect) {
-        // MySQL & MariaDB ignore the name of PRIMARY KEY constraints (it is always "PRIMARY"),
-        // and SQLite does not require constraint names to be unique, so there is no conflict.
-        case 'mariadb':
-        case 'mysql':
-        case 'sqlite3':
-          await promise;
-          break;
+        switch (dialect) {
+          case 'mssql': {
+            const error = await expect(promise).to.be.rejectedWith(AggregateError);
+            assert(error instanceof AggregateError);
+            expect(error.errors).to.have.length(3);
+            expect(error.errors[0].message).to.equal(
+              "There is already an object named 'unique_constraint' in the database.",
+            );
+            expect(error.errors[1].message).to.equal(
+              'Could not create constraint or index. See previous errors.',
+            );
+            assert(error.errors[2] instanceof UnknownConstraintError);
+            expect(error.errors[2].constraint).to.equal('unique_constraint');
+            expect(error.errors[2].table).to.equal('Users');
+            break;
+          }
 
-        case 'mssql': {
-          const error = await expect(promise).to.be.rejectedWith(AggregateError);
-          assert(error instanceof AggregateError);
-          expect(error.errors).to.have.length(3);
-          expect(error.errors[0].message).to.equal(
-            "There is already an object named 'unique_constraint' in the database.",
-          );
-          expect(error.errors[1].message).to.equal(
-            'Could not create constraint or index. See previous errors.',
-          );
-          assert(error.errors[2] instanceof UnknownConstraintError);
-          expect(error.errors[2].constraint).to.equal('unique_constraint');
-          expect(error.errors[2].table).to.equal('Users');
-          break;
+          case 'oracle':
+            await expect(promise).to.be.rejectedWith(
+              DatabaseError,
+              /^ORA-02264: name already used by an existing constraint/,
+            );
+            break;
+
+          default: {
+            const error = await expect(promise).to.be.rejectedWith(DatabaseError);
+            assert(error instanceof DatabaseError);
+            expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
+          }
         }
-
-        case 'oracle':
-          await expect(promise).to.be.rejectedWith(
-            DatabaseError,
-            /^ORA-02264: name already used by an existing constraint/,
-          );
-          break;
-
-        default: {
-          const error = await expect(promise).to.be.rejectedWith(DatabaseError);
-          assert(error instanceof DatabaseError);
-          expect(error.sql).to.match(/.+(?:Users).+(?:unique_constraint)/);
-        }
-      }
-    });
+      });
+    }
   });
 });

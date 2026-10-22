@@ -649,10 +649,13 @@ describe(getTestDialectTeaser('Sequelize#transaction'), () => {
 
       await Promise.all([
         (async () => {
-          await expect(User.create({ name: 'omnom' }, { transaction: t2 })).to.be.rejectedWith(
-            UniqueConstraintError,
-          );
-          await t2.rollback();
+          try {
+            await expect(User.create({ name: 'omnom' }, { transaction: t2 })).to.be.rejectedWith(
+              UniqueConstraintError,
+            );
+          } finally {
+            await t2.rollback();
+          }
         })(),
 
         delay(100).then(async () => {
