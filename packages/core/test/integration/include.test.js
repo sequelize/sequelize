@@ -107,6 +107,125 @@ Instead of specifying a Model, either:
       expect(user).to.be.ok;
     });
 
+    it('resolves VIRTUAL attributes on an included model (#18059)', async function () {
+      const File = this.sequelize.define('File', {
+        name: { type: DataTypes.STRING, allowNull: false },
+        path: { type: DataTypes.STRING, allowNull: false },
+        url: {
+          type: DataTypes.VIRTUAL(DataTypes.STRING, ['name', 'path']),
+          get() {
+            return `${this.path}/${this.name}`;
+          },
+        },
+      });
+      const User = this.sequelize.define('User', {});
+      User.belongsTo(File, { as: 'avatar', foreignKey: 'avatarFileId' });
+
+      await this.sequelize.sync({ force: true });
+
+      const file = await File.create({ name: 'a.png', path: '/img' });
+      await User.create({ avatarFileId: file.id });
+
+      const user = await User.findOne({ include: ['avatar'] });
+
+      expect(user.avatar.get('url')).to.equal('/img/a.png');
+      expect(user.toJSON().avatar.url).to.equal('/img/a.png');
+    });
+
+    it('does not run a scope-excluded VIRTUAL getter on an included model (#18059)', async function () {
+      const File = this.sequelize.define(
+        'File',
+        {
+          name: { type: DataTypes.STRING, allowNull: false },
+          path: { type: DataTypes.STRING, allowNull: false },
+          url: {
+            type: DataTypes.VIRTUAL(DataTypes.STRING, ['name', 'path']),
+            get() {
+              return `${this.path}/${this.name}`;
+            },
+          },
+        },
+        {
+          defaultScope: { attributes: ['id', 'name'] },
+        },
+      );
+      const User = this.sequelize.define('User', {});
+      User.belongsTo(File, { as: 'avatar', foreignKey: 'avatarFileId' });
+
+      await this.sequelize.sync({ force: true });
+
+      const file = await File.withoutScope().create({ name: 'a.png', path: '/img' });
+      await User.create({ avatarFileId: file.id });
+
+      const user = await User.findOne({ include: ['avatar'] });
+
+      expect(user.avatar.get('path')).to.be.undefined;
+      expect(user.toJSON().avatar).to.not.have.property('url');
+    });
+
+    it('hydrates an included model whose scope excludes attributes with an object (#18059)', async function () {
+      const File = this.sequelize.define(
+        'File',
+        {
+          name: { type: DataTypes.STRING, allowNull: false },
+          path: { type: DataTypes.STRING, allowNull: false },
+          secret: DataTypes.STRING,
+          url: {
+            type: DataTypes.VIRTUAL(DataTypes.STRING, ['name', 'path']),
+            get() {
+              return `${this.path}/${this.name}`;
+            },
+          },
+        },
+        {
+          defaultScope: { attributes: { exclude: ['secret'] } },
+        },
+      );
+      const User = this.sequelize.define('User', {});
+      User.belongsTo(File, { as: 'avatar', foreignKey: 'avatarFileId' });
+
+      await this.sequelize.sync({ force: true });
+
+      const file = await File.withoutScope().create({ name: 'a.png', path: '/img', secret: 's' });
+      await User.create({ avatarFileId: file.id });
+
+      const user = await User.findOne({ include: ['avatar'] });
+
+      expect(user.avatar).to.be.ok;
+      expect(user.avatar.get('secret')).to.be.undefined;
+      expect(user.avatar.get('url')).to.equal('/img/a.png');
+      expect(user.toJSON().avatar.url).to.equal('/img/a.png');
+    });
+
+    it('resolves VIRTUAL attributes on an included through model (#18059)', async function () {
+      const User = this.sequelize.define('User', {});
+      const Group = this.sequelize.define('Group', {});
+      const Membership = this.sequelize.define('Membership', {
+        role: { type: DataTypes.STRING, allowNull: false },
+        since: { type: DataTypes.INTEGER, allowNull: false },
+        label: {
+          type: DataTypes.VIRTUAL(DataTypes.STRING, ['role', 'since']),
+          get() {
+            return `${this.role}@${this.since}`;
+          },
+        },
+      });
+      User.belongsToMany(Group, { through: Membership, as: 'groups' });
+      Group.belongsToMany(User, { through: Membership, as: 'users' });
+
+      await this.sequelize.sync({ force: true });
+
+      const user = await User.create();
+      const group = await Group.create();
+      await user.addGroup(group, { through: { role: 'admin', since: 2020 } });
+
+      const found = await User.findOne({ include: ['groups'] });
+      const membership = found.groups[0].Membership;
+
+      expect(membership.get('label')).to.equal('admin@2020');
+      expect(found.toJSON().groups[0].Membership.label).to.equal('admin@2020');
+    });
+
     it('should support to use associations with Sequelize.col', async function () {
       const Table1 = this.sequelize.define('Table1');
       const Table2 = this.sequelize.define('Table2');
