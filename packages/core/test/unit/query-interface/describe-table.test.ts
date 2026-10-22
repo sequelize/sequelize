@@ -33,10 +33,16 @@ describe('QueryInterface#describeTable', () => {
     expect(inlineBindParameters(sql, options?.bind)).to.equal(
       sequelize.queryGenerator.describeTableQuery(table),
     );
-    expectPerDialect(() => options?.bind, {
-      default: undefined,
-      oracle: { sequelize_1: 'mySchema', sequelize_2: 'myTable' },
-    });
+    expectPerDialect(
+      () => ({ bind: options?.bind, logQueryParameters: options?.logQueryParameters }),
+      {
+        default: { bind: undefined, logQueryParameters: undefined },
+        oracle: {
+          bind: { sequelize_1: 'mySchema', sequelize_2: 'myTable' },
+          logQueryParameters: true,
+        },
+      },
+    );
   });
 
   it('does not let the bind option override its bind parameters', async () => {

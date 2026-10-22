@@ -35,15 +35,21 @@ describe('QueryInterface#showConstraints', () => {
       default: sequelize.queryGenerator.showConstraintsQuery(table, options),
       sqlite3: "SELECT sql FROM sqlite_master WHERE tbl_name = 'mySchema.myTable';",
     });
-    expectPerDialect(() => queryOptions?.bind, {
-      default: undefined,
-      oracle: {
-        sequelize_1: 'myTable',
-        sequelize_2: 'mySchema',
-        sequelize_3: 'myConstraint',
-        sequelize_4: 'U',
+    expectPerDialect(
+      () => ({ bind: queryOptions?.bind, logQueryParameters: queryOptions?.logQueryParameters }),
+      {
+        default: { bind: undefined, logQueryParameters: undefined },
+        oracle: {
+          bind: {
+            sequelize_1: 'myTable',
+            sequelize_2: 'mySchema',
+            sequelize_3: 'myConstraint',
+            sequelize_4: 'U',
+          },
+          logQueryParameters: true,
+        },
       },
-    });
+    );
   });
 
   it('runs the foreign key query, with the names as bind parameters in Oracle', async () => {

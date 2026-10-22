@@ -71,6 +71,13 @@ export class AbstractQueryInterfaceInternal {
     };
   }
 
+  async showIndexRaw(tableName: TableOrModel, options?: QueryRawOptions): Promise<unknown> {
+    return this.#sequelize.queryRaw(this.#queryGenerator.showIndexesQuery(tableName), {
+      ...options,
+      type: QueryTypes.SHOWINDEXES,
+    });
+  }
+
   async describeTableRaw(
     table: TableNameWithSchema,
     options?: QueryRawOptions,

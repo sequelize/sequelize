@@ -344,9 +344,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @private
    */
   async showIndex(tableName, options) {
-    const sql = this.queryGenerator.showIndexesQuery(tableName, options);
-
-    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
+    return await this.#internals.showIndexRaw(tableName, options);
   }
 
   /**

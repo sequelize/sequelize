@@ -25,10 +25,16 @@ describe('QueryInterface#showIndex', () => {
     expect(inlineBindParameters(sql, options?.bind)).to.equal(
       sequelize.queryGenerator.showIndexesQuery(table),
     );
-    expectPerDialect(() => options?.bind, {
-      default: undefined,
-      oracle: { sequelize_1: 'myTable', sequelize_2: 'mySchema' },
-    });
+    expectPerDialect(
+      () => ({ bind: options?.bind, logQueryParameters: options?.logQueryParameters }),
+      {
+        default: { bind: undefined, logQueryParameters: undefined },
+        oracle: {
+          bind: { sequelize_1: 'myTable', sequelize_2: 'mySchema' },
+          logQueryParameters: true,
+        },
+      },
+    );
   });
 
   it('uses the default schema', async () => {
