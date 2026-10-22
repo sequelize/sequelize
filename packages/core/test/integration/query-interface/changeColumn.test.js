@@ -209,6 +209,106 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           );
         });
       }
+
+      if (dialect === 'postgres') {
+        it('should preserve enum array casts and comments together', async function () {
+          await this.queryInterface.createTable('users', {
+            tags: DataTypes.ARRAY(DataTypes.STRING),
+          });
+          await this.sequelize.query(`INSERT INTO "users" ("tags") VALUES (ARRAY['pending'])`);
+
+          await this.queryInterface.changeColumn('users', 'tags', {
+            type: DataTypes.ARRAY(DataTypes.ENUM(['pending', 'complete'])),
+            comment: 'REFERENCES old tags (v2)',
+          });
+
+          const table = await this.queryInterface.describeTable('users');
+          const [rows] = await this.sequelize.query('SELECT "tags"[1] AS "tag" FROM "users"');
+
+          expect(table.tags.type).to.equal('ARRAY');
+          expect(table.tags.comment).to.equal('REFERENCES old tags (v2)');
+          expect(rows).to.deep.equal([{ tag: 'pending' }]);
+          await expect(
+            this.sequelize.query(
+              `INSERT INTO "users" ("tags") VALUES (ARRAY['invalid']::"enum_users_tags"[])`,
+            ),
+          ).to.be.rejected;
+        });
+
+        it('should restore enum defaults before applying comments', async function () {
+          await this.queryInterface.createTable('users', {
+            status: { type: DataTypes.STRING, defaultValue: 'pending' },
+          });
+
+          await this.queryInterface.changeColumn('users', 'status', {
+            type: DataTypes.ENUM(['pending', 'complete']),
+            defaultValue: 'complete',
+            comment: 'DEFAULT status (v2)',
+          });
+          await this.sequelize.query('INSERT INTO "users" DEFAULT VALUES');
+
+          const table = await this.queryInterface.describeTable('users');
+          const [rows] = await this.sequelize.query('SELECT "status" FROM "users"');
+
+          expect(table.status.comment).to.equal('DEFAULT status (v2)');
+          expect(rows).to.deep.equal([{ status: 'complete' }]);
+        });
+
+        it('should work with enums with comments containing parentheses', async function () {
+          await this.queryInterface.createTable('users', {
+            status: DataTypes.STRING,
+          });
+
+          await this.queryInterface.changeColumn('users', 'status', {
+            type: DataTypes.ENUM(['pending', 'complete']),
+            allowNull: false,
+            comment: 'Amount (in cents)',
+          });
+
+          const table = await this.queryInterface.describeTable('users');
+
+          expect(table.status.type).to.equal('USER-DEFINED');
+          expect(table.status.special).to.deep.equal(['pending', 'complete']);
+          expect(table.status.allowNull).to.be.false;
+          expect(table.status.comment).to.equal('Amount (in cents)');
+        });
+
+        const keywordComments = [
+          { keyword: 'NOT NULL', type: DataTypes.STRING, comment: 'do NOT NULL this' },
+          { keyword: 'PRIMARY KEY', type: DataTypes.STRING, comment: 'was PRIMARY KEY once' },
+          { keyword: 'DEFAULT', type: DataTypes.STRING, comment: 'the DEFAULT value' },
+          { keyword: 'REFERENCES', type: DataTypes.STRING, comment: 'REFERENCES other table' },
+          { keyword: 'UNIQUE', type: DataTypes.STRING, comment: 'must be UNIQUE' },
+          { keyword: 'SERIAL', type: DataTypes.INTEGER, comment: 'legacy SERIAL id' },
+        ];
+
+        for (const { comment, keyword, type } of keywordComments) {
+          it(`should not let a comment containing ${keyword} change the column definition`, async function () {
+            await this.queryInterface.createTable('users', { value: type });
+
+            await this.queryInterface.changeColumn('users', 'value', { type, comment });
+
+            const table = await this.queryInterface.describeTable('users');
+
+            expect(table.value.comment).to.equal(comment);
+            expect(table.value.allowNull).to.be.true;
+          });
+        }
+
+        it('should keep a comment containing REFERENCES intact on an enum column', async function () {
+          await this.queryInterface.createTable('users', { status: DataTypes.STRING });
+
+          await this.queryInterface.changeColumn('users', 'status', {
+            type: DataTypes.ENUM(['pending', 'complete']),
+            comment: 'REFERENCES the old (legacy) table',
+          });
+
+          const table = await this.queryInterface.describeTable('users');
+
+          expect(table.status.special).to.deep.equal(['pending', 'complete']);
+          expect(table.status.comment).to.equal('REFERENCES the old (legacy) table');
+        });
+      }
     }
 
     describe('should support foreign keys', () => {
