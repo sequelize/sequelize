@@ -29,6 +29,63 @@ import type { SqliteDialect } from './dialect.js';
 import { SqliteQueryInterfaceInternal } from './query-interface.internal.js';
 import type { SqliteColumnsDescription } from './query-interface.types.js';
 
+function escapeRegExp(value: string): string {
+  return value.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Removes SQL comments, string literals, and unrelated quoted identifiers from a `CREATE TABLE`
+ * statement, so their contents can't be mistaken for the `AUTOINCREMENT` keyword itself.
+ *
+ * These tokens must be scanned together: a quoted identifier or literal containing `--` or `/*`
+ * must not be mistaken for a comment that swallows a later column's real constraint.
+ *
+ * @param sql The raw `CREATE TABLE` statement, as read from `sqlite_master`.
+ * @param columnName The column whose quoted identifier must remain available for matching.
+ */
+function sanitizeCreateTableSql(sql: string, columnName: string): string {
+  return sql.replaceAll(
+    /"(?:[^"]|"")*"|`(?:[^`]|``)*`|\[[^\]]*\]|'(?:[^']|'')*'|\/\*[\s\S]*?\*\/|--[^\n]*/g,
+    match => {
+      if (match.startsWith(`'`)) {
+        return `''`;
+      }
+
+      if (match.startsWith('"')) {
+        return match.slice(1, -1).replaceAll('""', '"') === columnName ? match : '""';
+      }
+
+      if (match.startsWith('`')) {
+        return match.slice(1, -1).replaceAll('``', '`') === columnName ? match : '``';
+      }
+
+      if (match.startsWith('[')) {
+        return match.slice(1, -1) === columnName ? match : '[]';
+      }
+
+      return ' ';
+    },
+  );
+}
+
+function columnDefinitionHasAutoIncrement(createTableSql: string, columnName: string): boolean {
+  const sanitizedCreateTableSql = sanitizeCreateTableSql(createTableSql, columnName);
+  const escapedColumnName = escapeRegExp(columnName);
+  const escapedDoubleQuotedColumnName = escapeRegExp(columnName.replaceAll('"', '""'));
+  const escapedBacktickQuotedColumnName = escapeRegExp(columnName.replaceAll('`', '``'));
+  const escapedBracketQuotedColumnName = escapeRegExp(columnName.replaceAll(']', ']]'));
+  const columnIdentifier = [
+    `"${escapedDoubleQuotedColumnName}"`,
+    `\`${escapedBacktickQuotedColumnName}\``,
+    `\\[${escapedBracketQuotedColumnName}\\]`,
+    escapedColumnName,
+  ].join('|');
+
+  return new RegExp(`(?:^|[(,])\\s*(?:${columnIdentifier})\\s+[^,]*\\bAUTOINCREMENT\\b`, 'i').test(
+    sanitizedCreateTableSql,
+  );
+}
+
 export class SqliteQueryInterface<
   Dialect extends SqliteDialect = SqliteDialect,
 > extends AbstractQueryInterface<Dialect> {
@@ -99,6 +156,21 @@ export class SqliteQueryInterface<
       // we can't control
       for (const column of Object.values(data)) {
         column.unique = false;
+      }
+
+      const describeCreateTableSql = this.queryGenerator.describeCreateTableQuery(table);
+      const describeCreateTable = await this.sequelize.queryRaw(describeCreateTableSql, {
+        ...options,
+        raw: true,
+        type: QueryTypes.SELECT,
+      });
+      const createTableSql =
+        describeCreateTable.length > 0 && 'sql' in describeCreateTable[0]
+          ? (describeCreateTable[0].sql as string)
+          : '';
+
+      for (const [columnName, column] of Object.entries(data)) {
+        column.autoIncrement = columnDefinitionHasAutoIncrement(createTableSql, columnName);
       }
 
       const indexes = await this.showIndex(tableName, options);
