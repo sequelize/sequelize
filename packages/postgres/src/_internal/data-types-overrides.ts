@@ -1,4 +1,4 @@
-import type { AbstractDialect, Rangable } from '@sequelize/core';
+import type { AbstractDialect, GeoJson, Rangable } from '@sequelize/core';
 import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import type {
   AbstractDataType,
@@ -258,12 +258,16 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
     return wkx.Geometry.parse(b).toGeoJSON({ shortCrs: true });
   }
 
+  escape(value: AcceptableTypeOf<BaseTypes.GEOMETRY>): string {
+    return escapeGeoJson(this._getDialect(), value);
+  }
+
   toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOMETRY>): string {
-    return `ST_GeomFromGeoJSON(${this._getDialect().escapeString(JSON.stringify(value))})`;
+    return this.escape(value);
   }
 
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOMETRY>, options: BindParamOptions) {
-    return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
+    return geoJsonToBindParamSql(value, options);
   }
 }
 
@@ -282,13 +286,29 @@ export class GEOGRAPHY extends BaseTypes.GEOGRAPHY {
     return result;
   }
 
-  toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>) {
-    return `ST_GeomFromGeoJSON(${this._getDialect().escapeString(JSON.stringify(value))})`;
+  escape(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>): string {
+    return escapeGeoJson(this._getDialect(), value);
+  }
+
+  toBindableValue(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>): string {
+    return this.escape(value);
   }
 
   getBindParamSql(value: AcceptableTypeOf<BaseTypes.GEOGRAPHY>, options: BindParamOptions) {
-    return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
+    return geoJsonToBindParamSql(value, options);
   }
+}
+
+// ST_GeomFromGeoJSON reads the SRID from the crs field of the GeoJSON (defaulting to 4326),
+// and its result is implicitly cast to geography when used with GEOGRAPHY values.
+// escape (used when the value is inlined in the query, e.g. by bulkCreate and where)
+// and getBindParamSql must produce the same function call.
+function escapeGeoJson(dialect: AbstractDialect, value: GeoJson): string {
+  return `ST_GeomFromGeoJSON(${dialect.escapeString(JSON.stringify(value))})`;
+}
+
+function geoJsonToBindParamSql(value: GeoJson, options: BindParamOptions): string {
+  return `ST_GeomFromGeoJSON(${options.bindParam(value)})`;
 }
 
 export class HSTORE extends BaseTypes.HSTORE {

@@ -125,46 +125,38 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       expect(saved.geometry).to.deep.eq(point2);
     });
 
-    // TODO: on postgres, inlined (non-bind) geometry values are escaped as a string literal instead of a function call
-    (dialect.name === 'postgres' ? it.skip : it)(
-      'persists the crs field with bulkCreate',
-      async () => {
-        const User = vars.User;
-        const point: GeoJsonPoint = {
-          type: 'Point',
-          coordinates: [39.807_222, -76.984_722],
-          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
-        };
+    it('persists the crs field with bulkCreate', async () => {
+      const User = vars.User;
+      const point: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
 
-        await User.bulkCreate([{ geometry: point }]);
-        const user = await User.findOne({ rejectOnEmpty: true });
-        expect(user.geometry).to.deep.eq(point);
-      },
-    );
+      await User.bulkCreate([{ geometry: point }]);
+      const user = await User.findOne({ rejectOnEmpty: true });
+      expect(user.geometry).to.deep.eq(point);
+    });
 
-    // TODO: on postgres, inlined (non-bind) geometry values are escaped as a string literal instead of a function call
-    (dialect.name === 'postgres' ? it.skip : it)(
-      'can compare geometries that have a crs field',
-      async () => {
-        const User = vars.User;
-        const point1: GeoJsonPoint = {
-          type: 'Point',
-          coordinates: [39.807_222, -76.984_722],
-          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
-        };
-        const point2: GeoJsonPoint = {
-          type: 'Point',
-          coordinates: [-76.984_722, 39.807_222],
-          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
-        };
+    it('can compare geometries that have a crs field', async () => {
+      const User = vars.User;
+      const point1: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+      const point2: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [-76.984_722, 39.807_222],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
 
-        await User.create({ geometry: point1 });
-        await User.create({ geometry: point2 });
+      await User.create({ geometry: point1 });
+      await User.create({ geometry: point2 });
 
-        const users = await User.findAll({ where: { geometry: point1 } });
-        expect(users.map(user => user.geometry)).to.deep.eq([point1]);
-      },
-    );
+      const users = await User.findAll({ where: { geometry: point1 } });
+      expect(users.map(user => user.geometry)).to.deep.eq([point1]);
+    });
 
     it('handles SRIDs that are unknown to the database', async () => {
       const User = vars.User;
