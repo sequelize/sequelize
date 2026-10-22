@@ -3,6 +3,8 @@ import { fixupPluginRules } from '@eslint/compat';
 import jsdoc from 'eslint-plugin-jsdoc';
 import mocha from 'eslint-plugin-mocha';
 import globals from 'globals';
+import fs from 'node:fs';
+import path from 'node:path';
 
 // These plugins (pulled in by @ephys/eslint-config) still use rule context APIs
 // that were removed in ESLint 10, so their rules are wrapped with @eslint/compat.
@@ -47,6 +49,26 @@ const ephysPreset = basePreset(import.meta.dirname).map(config => {
 
   return result;
 });
+
+// Test files that were written in JavaScript before new tests had to be written in TypeScript.
+// Remove a file from this list when converting it. Do not add files to it.
+const legacyJsTestsFile = 'packages/core/test/legacy-js-tests.json';
+const legacyJsTests = JSON.parse(
+  fs.readFileSync(path.join(import.meta.dirname, legacyJsTestsFile)),
+);
+const removedLegacyJsTests = legacyJsTests.filter(
+  file => !fs.existsSync(path.join(import.meta.dirname, file)),
+);
+if (removedLegacyJsTests.length > 0) {
+  const message = `These files no longer exist. Remove them from ${legacyJsTestsFile}:\n${removedLegacyJsTests.join('\n')}`;
+
+  // Only fail in CI, so that a file being converted does not stop linting in editors and pre-commit hooks.
+  if (process.env.CI) {
+    throw new Error(message);
+  }
+
+  console.warn(message);
+}
 
 export default [
   {
@@ -102,6 +124,12 @@ export default [
       ],
 
       // TODO: enable in follow-up PR. Requires the utils package.
+      // TODO: once every legacy JavaScript test has been converted to TypeScript, also report
+      //  sequelize.define() calls in test setup hooks, as models shared by a test suite should be classes.
+      //  Conversions are allowed to keep using sequelize.define(), so the converted files will need updating first.
+      //  For test files (packages/*/test/**/*.test.ts and packages/*/src/**/*.test.ts), add this selector
+      //  to the ones the preset configures, rather than replacing them:
+      //  'CallExpression[callee.name=/^(before|beforeEach|beforeAll2|beforeEach2)$/] CallExpression[callee.property.name="define"]'
       'no-restricted-syntax': 'off',
       'no-restricted-imports': 'off',
       '@typescript-eslint/no-restricted-types': 'off',
@@ -296,6 +324,23 @@ export default [
     files: ['**/tsconfig.json'],
     rules: {
       'json/*': ['error', { allowComments: true }],
+    },
+  },
+  {
+    files: ['packages/**/*.test.js'],
+    ignores: legacyJsTests,
+    // prevents disabling the rule below with an eslint-disable comment
+    linterOptions: {
+      noInlineConfig: true,
+    },
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'Program',
+          message: `Write new tests in TypeScript. Only the legacy files listed in ${legacyJsTestsFile} may remain in JavaScript.`,
+        },
+      ],
     },
   },
   {
