@@ -572,6 +572,11 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       template = '';
     }
 
+    // A primary key is already unique, and Oracle rejects both on the same column (ORA-02261)
+    if (attribute.unique === true && !attribute.primaryKey && options?.context !== 'changeColumn') {
+      template += ' UNIQUE';
+    }
+
     if (attribute.primaryKey) {
       template += ' PRIMARY KEY';
     }

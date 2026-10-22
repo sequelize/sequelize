@@ -389,8 +389,16 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'INTEGER', unique: true },
     {
       default: 'INTEGER UNIQUE',
-      mssql: 'INTEGER NULL UNIQUE',
-      oracle: 'INTEGER NULL',
+      'mssql oracle': 'INTEGER NULL UNIQUE',
+    },
+  );
+
+  testSql(
+    { type: 'INTEGER', primaryKey: true, unique: true },
+    {
+      default: 'INTEGER UNIQUE PRIMARY KEY',
+      db2: 'INTEGER NOT NULL UNIQUE PRIMARY KEY',
+      'ibmi oracle': 'INTEGER PRIMARY KEY',
     },
   );
 
