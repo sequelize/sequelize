@@ -1,4 +1,5 @@
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import sinon from 'sinon';
 import { createSequelizeInstance, expectsql } from '../../support';
 
 const sequelize = createSequelizeInstance();
@@ -6,6 +7,10 @@ const dialect = sequelize.dialect;
 
 describe('QueryGenerator#showConstraintsQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   it('produces a show constraints query for a table', () => {
     expectsql(() => queryGenerator.showConstraintsQuery('myTable'), {
@@ -165,4 +170,14 @@ describe('QueryGenerator#showConstraintsQuery', () => {
       },
     );
   });
+
+  if (dialect.name === 'oracle') {
+    it('uses the current user as owner when there is no default schema', () => {
+      sinon.stub(dialect, 'getDefaultSchema').returns('');
+
+      expectsql(() => queryGenerator.showConstraintsQuery('myTable'), {
+        oracle: `SELECT C.CONSTRAINT_NAME "constraintName", CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType", C.TABLE_NAME "tableName", A.OWNER "tableSchema", C.OWNER "constraintSchema", C.COLUMN_NAME "columnNames", A.SEARCH_CONDITION "definition" FROM ALL_CONS_COLUMNS C INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME AND C.OWNER = A.OWNER WHERE C.TABLE_NAME ='myTable' AND C.OWNER =USER ORDER BY C.CONSTRAINT_NAME, C.POSITION`,
+      });
+    });
+  }
 });

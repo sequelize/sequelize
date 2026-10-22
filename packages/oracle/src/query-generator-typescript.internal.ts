@@ -379,7 +379,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME',
         'AND C.OWNER = A.OWNER',
         `WHERE C.TABLE_NAME =${valueToSql(this.getCatalogName(table.tableName))}`,
-        `AND C.OWNER =${valueToSql(this.getCatalogName(table.schema))}`,
+        `AND C.OWNER =${this.#ownerToSql(table.schema, valueToSql)}`,
         options?.constraintName
           ? `AND C.CONSTRAINT_NAME =${valueToSql(options.constraintName)}`
           : '',
