@@ -37,12 +37,16 @@ import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-o
 import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { pojo } from '@sequelize/utils';
+import { inspect } from 'node:util';
 import type { OracleDialect } from './dialect.js';
 import { OracleQueryGeneratorInternal } from './query-generator.internal.js';
 
 type CatalogQueryOptions = Pick<ParameterOptions, 'parameterStyle'>;
 type BindCatalogQueryOptions = {
   parameterStyle: ParameterStyle.BIND | `${ParameterStyle.BIND}`;
+};
+type ReplacementCatalogQueryOptions = {
+  parameterStyle?: ParameterStyle.REPLACEMENT | `${ParameterStyle.REPLACEMENT}` | undefined;
 };
 type ValueToSql = (value: unknown) => string;
 type BoundCatalogQuery = BoundQuery & { bind: Record<string, unknown> };
@@ -60,10 +64,15 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel, options: BindCatalogQueryOptions): BoundCatalogQuery;
-  describeTableQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string;
-  describeTableQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundQuery {
+  describeTableQuery(tableName: TableOrModel, options?: ReplacementCatalogQueryOptions): string;
+  describeTableQuery(
+    tableName: TableOrModel,
+    options?: CatalogQueryOptions,
+  ): string | BoundCatalogQuery;
+  describeTableQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
       const table = this.extractTableDetails(tableName);
+      const owner = this.#ownerToSql(table.schema, valueToSql);
 
       return [
         'SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type ',
@@ -71,7 +80,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
         'LEFT OUTER JOIN ',
         '(SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ',
         'ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME) ',
-        `WHERE (atc.OWNER = ${this.#ownerToSql(table.schema, valueToSql)}) `,
+        owner === 'USER' ? 'WHERE atc.OWNER = USER ' : `WHERE (atc.OWNER = ${owner}) `,
         `AND (atc.TABLE_NAME = ${valueToSql(this.getCatalogName(table.tableName))})`,
         'ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC',
       ].join('');
@@ -123,8 +132,12 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   showIndexesQuery(tableName: TableOrModel, options: BindCatalogQueryOptions): BoundCatalogQuery;
-  showIndexesQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string;
-  showIndexesQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundQuery {
+  showIndexesQuery(tableName: TableOrModel, options?: ReplacementCatalogQueryOptions): string;
+  showIndexesQuery(
+    tableName: TableOrModel,
+    options?: CatalogQueryOptions,
+  ): string | BoundCatalogQuery;
+  showIndexesQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
       const table = this.extractTableDetails(tableName);
 
@@ -151,8 +164,20 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     const bind = pojo<Record<string, unknown>>();
+    const bindParam = createBindParamGenerator(bind);
 
-    return { query: buildQuery(createBindParamGenerator(bind)), bind };
+    return {
+      query: buildQuery(value => {
+        if (typeof value !== 'string') {
+          throw new TypeError(
+            `Catalog queries only accept strings as bind parameters, but received ${inspect(value)}.`,
+          );
+        }
+
+        return bindParam(value);
+      }),
+      bind,
+    };
   }
 
   #ownerToSql(schema: string | undefined, valueToSql: ValueToSql): string {
@@ -324,8 +349,12 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   getForeignKeysQuery(tableName: TableOrModel, options: BindCatalogQueryOptions): BoundCatalogQuery;
-  getForeignKeysQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string;
-  getForeignKeysQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundQuery {
+  getForeignKeysQuery(tableName: TableOrModel, options?: ReplacementCatalogQueryOptions): string;
+  getForeignKeysQuery(
+    tableName: TableOrModel,
+    options?: CatalogQueryOptions,
+  ): string | BoundCatalogQuery;
+  getForeignKeysQuery(tableName: TableOrModel, options?: CatalogQueryOptions): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
       // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
       const table = this.extractTableDetails(tableName);
@@ -354,12 +383,16 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
   ): BoundCatalogQuery;
   showConstraintsQuery(
     tableName: TableOrModel,
-    options?: ShowConstraintsQueryOptions & CatalogQueryOptions,
+    options?: ShowConstraintsQueryOptions & ReplacementCatalogQueryOptions,
   ): string;
   showConstraintsQuery(
     tableName: TableOrModel,
     options?: ShowConstraintsQueryOptions & CatalogQueryOptions,
-  ): string | BoundQuery {
+  ): string | BoundCatalogQuery;
+  showConstraintsQuery(
+    tableName: TableOrModel,
+    options?: ShowConstraintsQueryOptions & CatalogQueryOptions,
+  ): string | BoundCatalogQuery {
     if (options?.constraintType === 'FOREIGN KEY') {
       return this.getForeignKeysQuery(tableName, options);
     }
