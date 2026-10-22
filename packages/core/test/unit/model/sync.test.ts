@@ -1,4 +1,4 @@
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, QueryTypes } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import { sequelize } from '../../support';
@@ -15,7 +15,12 @@ describe('Model#sync', () => {
       id: { type: DataTypes.INTEGER, primaryKey: true },
     });
 
-    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+    // a SELECT resolves to its rows, such as the lookup of the trigger functions of generated columns on postgres
+    const stub = sinon
+      .stub(sequelize, 'queryRaw')
+      .callsFake(
+        async (_sql, options) => (options?.type === QueryTypes.SELECT ? [] : [[], 0]) as any,
+      );
     try {
       await User.sync({ force: true, schema: 'tenant' });
     } finally {

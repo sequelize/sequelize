@@ -54,7 +54,7 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   describeTableQuery(tableName: TableOrModel) {
-    return `PRAGMA TABLE_INFO(${this.quoteTable(tableName)})`;
+    return `PRAGMA TABLE_XINFO(${this.quoteTable(tableName)})`;
   }
 
   describeCreateTableQuery(tableName: TableOrModel) {
@@ -168,16 +168,18 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTable);
 
     const tableAttributes = this.attributesToSql(attributes);
-    const attributeNamesImport = Object.keys(tableAttributes)
+    // generated columns cannot be inserted into, the database recomputes them
+    const insertableNames = Object.keys(tableAttributes).filter(
+      attr => attributes[attr]?.generatedAs == null,
+    );
+    const attributeNamesImport = insertableNames
       .map(attr => {
         return attrNameAfter === attr
           ? `${this.quoteIdentifier(attrNameBefore)} AS ${this.quoteIdentifier(attr)}`
           : this.quoteIdentifier(attr);
       })
       .join(', ');
-    const attributeNamesExport = Object.keys(tableAttributes)
-      .map(attr => this.quoteIdentifier(attr))
-      .join(', ');
+    const attributeNamesExport = insertableNames.map(attr => this.quoteIdentifier(attr)).join(', ');
 
     return [
       this.createTableQuery(backupTable, tableAttributes),
@@ -205,7 +207,9 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const quotedBackupTableName = this.quoteTable(backupTable);
 
     const tableAttributes = this.attributesToSql(attributes);
+    // generated columns cannot be inserted into, the database recomputes them
     const attributeNames = Object.keys(tableAttributes)
+      .filter(attr => attributes[attr]?.generatedAs == null)
       .map(attr => this.quoteIdentifier(attr))
       .join(', ');
 
@@ -327,6 +331,11 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const attribute = normalizeAttributeToSqlColumn(column);
 
     let sql = attributeTypeToSql(attribute.type);
+
+    const generated = this.getGeneratedColumn(attribute);
+    if (generated) {
+      sql += ` GENERATED ALWAYS AS (${generated.expression}) ${generated.stored ? 'STORED' : 'VIRTUAL'}`;
+    }
 
     if (attribute.allowNull === false) {
       sql += ' NOT NULL';

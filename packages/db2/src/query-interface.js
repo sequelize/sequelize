@@ -1,6 +1,6 @@
 'use strict';
 
-import { Op, QueryTypes } from '@sequelize/core';
+import { Op, QueryTypes, TransactionNestMode } from '@sequelize/core';
 import { isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import clone from 'lodash/clone';
@@ -75,6 +75,51 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
     delete options.replacements;
 
     return this.sequelize.queryRaw(sql, options);
+  }
+
+  async addColumn(table, key, attribute, options) {
+    if (attribute?.generatedAs == null) {
+      return super.addColumn(table, key, attribute, options);
+    }
+
+    // Db2 only adds a generated column to a table in set integrity pending state.
+    // Checking the table again computes the column, but puts the tables that reference it in that state,
+    // so they are checked too. If anything fails, the rollback takes every table out of that state.
+    return this.sequelize.transaction(
+      { nestMode: TransactionNestMode.savepoint, transaction: options?.transaction },
+      async transaction => {
+        const queryOptions = { ...options, transaction };
+        const listPendingTables = async () => {
+          const rows = await this.sequelize.queryRaw(
+            `SELECT TABNAME AS "tableName", TRIM(TABSCHEMA) AS "schema" FROM SYSCAT.TABLES WHERE STATUS = 'C'`,
+            { ...queryOptions, type: QueryTypes.SELECT },
+          );
+
+          return rows.map(row => this.queryGenerator.quoteTable(row));
+        };
+
+        const quotedTable = this.queryGenerator.quoteTable(table);
+        // tables that were already pending are left alone
+        const alreadyPending = new Set(await listPendingTables());
+        await this.sequelize.queryRaw(
+          `SET INTEGRITY FOR ${quotedTable} OFF CASCADE DEFERRED`,
+          queryOptions,
+        );
+        await super.addColumn(table, key, attribute, queryOptions);
+        await this.sequelize.queryRaw(
+          `SET INTEGRITY FOR ${quotedTable} IMMEDIATE CHECKED FORCE GENERATED`,
+          queryOptions,
+        );
+
+        const descendants = (await listPendingTables()).filter(name => !alreadyPending.has(name));
+        if (descendants.length > 0) {
+          await this.sequelize.queryRaw(
+            `SET INTEGRITY FOR ${descendants.join(', ')} IMMEDIATE CHECKED`,
+            queryOptions,
+          );
+        }
+      },
+    );
   }
 
   async addConstraint(tableName, options) {

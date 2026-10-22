@@ -6,6 +6,7 @@ import cloneDeepLodash from 'lodash/cloneDeep';
 import defaultsLodash from 'lodash/defaults';
 import difference from 'lodash/difference';
 import each from 'lodash/each';
+import escapeRegExp from 'lodash/escapeRegExp';
 import flattenDepth from 'lodash/flattenDepth';
 import forEach from 'lodash/forEach';
 import forIn from 'lodash/forIn';
@@ -60,6 +61,7 @@ import {
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
+import { getGeneratedColumnDependencies } from './utils/generated-columns.js';
 import { logger } from './utils/logger';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import {
@@ -918,6 +920,12 @@ ${associationOwner._getAssociationDebugList()}`);
         options.alter === true ||
         (typeof options.alter === 'object' && options.alter.drop !== false)
       ) {
+        // Most databases refuse to alter a column that a generated column reads, even to the same type,
+        // so neither generated columns nor the columns their expression mentions are altered.
+        const generatedExpressions = [...modelDefinition.physicalAttributes.values()]
+          .map(attribute => this.queryGenerator.getGeneratedColumn(attribute)?.expression)
+          .filter(expression => expression != null);
+
         for (const columnName in columns) {
           if (!Object.hasOwn(columns, columnName)) {
             continue;
@@ -929,7 +937,13 @@ ${associationOwner._getAssociationDebugList()}`);
             continue;
           }
 
-          if (currentAttribute.primaryKey) {
+          if (
+            currentAttribute.primaryKey ||
+            currentAttribute.generatedAs != null ||
+            generatedExpressions.some(expression =>
+              new RegExp(`(?<![\\w$])${escapeRegExp(columnName)}(?![\\w$])`).test(expression),
+            )
+          ) {
             continue;
           }
 
@@ -991,6 +1005,22 @@ ${associationOwner._getAssociationDebugList()}`);
     for (const index of missingIndexes) {
       // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.
       await this.queryInterface.addIndex(tableName, index, options);
+    }
+
+    if (this.sequelize.dialect.supports.generatedColumns.dependsOn) {
+      // the triggers of a generated column can only be created once all the tables it reads exist,
+      // so syncing a table also syncs the triggers of the models that read it
+      const quotedTable = this.queryGenerator.quoteTable(this);
+      for (const model of this.sequelize.models) {
+        if (
+          model === this ||
+          getGeneratedColumnDependencies(model).some(
+            dependency => this.queryGenerator.quoteTable(dependency.table) === quotedTable,
+          )
+        ) {
+          await this.queryInterface.syncGeneratedColumnTriggers(model, options);
+        }
+      }
     }
 
     if (options.hooks) {
@@ -2337,7 +2367,11 @@ ${associationOwner._getAssociationDebugList()}`);
       if (options.updateOnDuplicate !== undefined) {
         if (Array.isArray(options.updateOnDuplicate) && options.updateOnDuplicate.length > 0) {
           options.updateOnDuplicate = intersection(
-            without(Object.keys(model.tableAttributes), createdAtAttr),
+            without(
+              Object.keys(model.tableAttributes),
+              createdAtAttr,
+              ...modelDefinition.generatedAttributeNames,
+            ),
             options.updateOnDuplicate,
           );
         } else {
@@ -3699,6 +3733,11 @@ Instead of specifying a Model, either:
         if (!this.isNewRecord && readOnlyAttributeNames.has(key)) {
           return this;
         }
+
+        // The database computes generated attributes
+        if (modelDefinition.generatedAttributeNames.has(key)) {
+          return this;
+        }
       }
 
       // If there's a data type sanitizer
@@ -3900,11 +3939,23 @@ Instead of specifying a Model, either:
       options.defaultFields = options.fields;
     }
 
+    const hasGeneratedAttributes = modelDefinition.generatedAttributeNames.size > 0;
+    const { returnValues } = this.sequelize.dialect.supports;
     if (options.returning === undefined) {
       if (options.association) {
         options.returning = false;
       } else if (this.isNewRecord) {
         options.returning = true;
+      } else if (hasGeneratedAttributes && returnValues) {
+        // the database recomputes generated attributes on every write. Only those are returned,
+        // so unsaved changes and attributes the instance was loaded without are left alone.
+        // ponytail: mssql tables with triggers return every column, because the table that captures
+        // the output needs their types, which a list of names does not carry.
+        options.returning = this.constructor.options.hasTrigger
+          ? true
+          : [...modelDefinition.generatedAttributeNames].map(attributeName =>
+              modelDefinition.getColumnName(attributeName),
+            );
       }
     }
 
@@ -4061,6 +4112,10 @@ Instead of specifying a Model, either:
       );
     }
 
+    // the database computes generated attributes, so they are never written
+    options.fields = options.fields.filter(
+      attributeName => !modelDefinition.generatedAttributeNames.has(attributeName),
+    );
     const realFields = options.fields.filter(
       attributeName => !modelDefinition.virtualAttributeNames.has(attributeName),
     );
@@ -4124,6 +4179,28 @@ Instead of specifying a Model, either:
     Object.assign(values, result.dataValues);
 
     Object.assign(result.dataValues, values);
+
+    // read back the generated attributes the write could not return
+    if (
+      hasGeneratedAttributes &&
+      !(returnValues && options.returning) &&
+      this.constructor.primaryKeyAttributes.length > 0
+    ) {
+      // built rather than raw, so the values go through the same parsing as any other read
+      const generatedValues = await this.constructor.withoutScope().findOne({
+        where: this.where(),
+        attributes: [...modelDefinition.generatedAttributeNames],
+        connection: options.connection,
+        transaction: options.transaction,
+        logging: options.logging,
+        hooks: false,
+        paranoid: false,
+        rejectOnEmpty: false,
+      });
+
+      Object.assign(result.dataValues, generatedValues?.dataValues);
+    }
+
     if (wasNewRecord && this._options.include && this._options.include.length > 0) {
       await Promise.all(
         this._options.include

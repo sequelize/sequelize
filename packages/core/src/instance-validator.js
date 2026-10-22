@@ -152,7 +152,10 @@ export class InstanceValidator {
     for (const attribute of attributes.values()) {
       const attrName = attribute.attributeName;
 
-      if (this.options.skip.includes(attrName)) {
+      if (
+        this.options.skip.includes(attrName) ||
+        this.modelInstance.modelDefinition.generatedAttributeNames.has(attrName)
+      ) {
         continue;
       }
 
