@@ -71,6 +71,13 @@ export interface TableNameWithSchema {
   tableName: string;
   schema?: string;
   delimiter?: string;
+  /**
+   * Whether {@link TableNameWithSchema.schema} was specified explicitly rather than filled in with the default schema.
+   * Only set by Sequelize when the `keepExplicitDefaultSchema` option is enabled.
+   *
+   * @private
+   */
+  isSchemaExplicit?: boolean;
 }
 
 export type TableName = string | TableNameWithSchema;

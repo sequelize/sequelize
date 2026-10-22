@@ -1046,8 +1046,11 @@ ${associationOwner._getAssociationDebugList()}`);
 
     const schemaOptions = typeof schema === 'string' || schema === null ? { schema } : schema;
 
-    schemaOptions.schema ||=
-      this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
+    // With keepExplicitDefaultSchema, filling in the default would make it look explicitly specified.
+    if (!this.sequelize.options.keepExplicitDefaultSchema) {
+      schemaOptions.schema ||=
+        this.sequelize.options.schema || this.sequelize.dialect.getDefaultSchema();
+    }
 
     return this.getInitialModel()._withScopeAndSchema(schemaOptions, this._scope, this._scopeNames);
   }
@@ -1195,7 +1198,11 @@ ${associationOwner._getAssociationDebugList()}`);
 
     return initialModel._withScopeAndSchema(
       {
-        schema: modelDefinition.table.schema || '',
+        // With keepExplicitDefaultSchema, passing on a filled-in default schema would make it explicit.
+        schema:
+          modelDefinition.table.isSchemaExplicit === false
+            ? ''
+            : modelDefinition.table.schema || '',
         schemaDelimiter: modelDefinition.table.delimiter || '',
       },
       mergedScope,
@@ -1235,10 +1242,12 @@ ${associationOwner._getAssociationDebugList()}`);
 
     if (
       modelDefinition.table.schema !== initialModelDefinition.table.schema ||
-      modelDefinition.table.delimiter !== initialModelDefinition.table.delimiter
+      modelDefinition.table.delimiter !== initialModelDefinition.table.delimiter ||
+      modelDefinition.table.isSchemaExplicit !== initialModelDefinition.table.isSchemaExplicit
     ) {
       return initialModel.withSchema({
-        schema: modelDefinition.table.schema,
+        schema:
+          modelDefinition.table.isSchemaExplicit === false ? null : modelDefinition.table.schema,
         schemaDelimiter: modelDefinition.table.delimiter,
       });
     }
@@ -1273,6 +1282,10 @@ ${associationOwner._getAssociationDebugList()}`);
       }
 
       if (variantTable.delimiter !== newTable.delimiter) {
+        continue;
+      }
+
+      if (variantTable.isSchemaExplicit !== newTable.isSchemaExplicit) {
         continue;
       }
 
