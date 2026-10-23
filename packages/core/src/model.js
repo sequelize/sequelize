@@ -1545,6 +1545,9 @@ ${associationOwner._getAssociationDebugList()}`);
         const map = await include.association.get(results, {
           ...omit(options, nonCascadingOptions),
           ...omit(include, ['parent', 'association', 'as', 'originalAttributes']),
+          // The scope of the included model has already been merged into the include options,
+          // so the association must not apply the default scope of its target on top of it.
+          scope: false,
         });
 
         for (const result of results) {
