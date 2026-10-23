@@ -483,6 +483,35 @@ describe('QueryGenerator#attributeToSql', () => {
     },
   );
 
+  testSql(
+    { type: 'XML', field: 'foo', unique: true },
+    {
+      default: 'XML UNIQUE',
+      oracle: 'XML NULL UNIQUE',
+      postgres: new Error(
+        'Column "foo" cannot be unique: postgres does not support unique constraints on XML columns.',
+      ),
+      mssql: new Error(
+        'Column "foo" cannot be unique: mssql does not support unique constraints on XML columns.',
+      ),
+    },
+  );
+
+  if (sequelize.dialect.supports.dataTypes.ARRAY && sequelize.dialect.supports.dataTypes.JSON) {
+    testSql(
+      {
+        type: sequelize.normalizeDataType(DataTypes.ARRAY(DataTypes.JSON)),
+        field: 'foo',
+        unique: true,
+      },
+      {
+        postgres: new Error(
+          'Column "foo" cannot be unique: postgres does not support unique constraints on JSON[] columns.',
+        ),
+      },
+    );
+  }
+
   if (sequelize.dialect.supports.dataTypes.JSON) {
     testSql(
       { type: sequelize.normalizeDataType(DataTypes.JSON), field: 'foo', unique: true },
