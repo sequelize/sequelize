@@ -340,13 +340,7 @@ export abstract class AbstractDataType<
   }
 
   withUsageContext(usageContext: DataTypeUseContext): this {
-    const out = this.clone().attachUsageContext(usageContext);
-
-    if (this.#dialect) {
-      out.#dialect = this.#dialect;
-    }
-
-    return out;
+    return this.clone().attachUsageContext(usageContext);
   }
 
   /**

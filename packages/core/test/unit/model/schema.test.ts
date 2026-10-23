@@ -119,6 +119,18 @@ describe(`${getTestDialectTeaser('Model')}Schemas`, () => {
         assert(clonedType instanceof ABSTRACT);
         expect(() => clonedType.validate([Number.NaN])).not.to.throw();
       });
+
+      it('should be able to call withScope and withSchema on a model with an ARRAY-typed attribute', () => {
+        const Team = sequelize.define(
+          'team',
+          { regions: DataTypes.ARRAY(DataTypes.STRING) },
+          { scopes: { scope1: {} } },
+        );
+
+        expect(() => Team.withScope('scope1')).not.to.throw();
+        expect(() => Team.withScope('scope1').withSchema('newSchema')).not.to.throw();
+        expect(() => Team.withSchema('newSchema').withScope('scope1')).not.to.throw();
+      });
     }
   });
   describe('schema delimiter', () => {
