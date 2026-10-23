@@ -303,6 +303,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       attribute.unique === true &&
       (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
     ) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, attributeTypeToSql(attribute.type));
       template += ' UNIQUE';
     }
 

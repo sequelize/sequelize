@@ -51,6 +51,33 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
     return EMPTY_ARRAY;
   }
 
+  /**
+   * Returns whether columns of this SQL type can be unique in this dialect.
+   *
+   * @param _sqlType The SQL type of the column, as returned by the data type
+   */
+  canTypeBeUnique(_sqlType: string): boolean {
+    return true;
+  }
+
+  /**
+   * Throws if columns of this SQL type cannot be unique in this dialect.
+   * Used by attributeToSql before adding UNIQUE to a column definition,
+   * to throw a clear error instead of the one of the database.
+   *
+   * @param columnName The name of the column
+   * @param sqlType The SQL type of the column, as returned by the data type
+   */
+  assertTypeCanBeUnique(columnName: string | undefined, sqlType: string): void {
+    if (this.canTypeBeUnique(sqlType)) {
+      return;
+    }
+
+    throw new Error(
+      `Column ${JSON.stringify(columnName)} cannot be unique: ${this.dialect.name} does not support unique constraints on ${sqlType} columns.`,
+    );
+  }
+
   getConstraintSnippet(tableName: TableOrModel, options: GetConstraintSnippetQueryOptions) {
     const quotedFields = options.fields.map(field => {
       if (typeof field === 'string') {

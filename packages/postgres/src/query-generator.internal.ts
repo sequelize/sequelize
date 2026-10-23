@@ -33,4 +33,9 @@ export class PostgresQueryGeneratorInternal<
 
     return fragment;
   }
+
+  // json and xml (and their arrays) have no equality operator (jsonb does)
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^(?:JSON|XML)(?:\[\])*$/i.test(sqlType);
+  }
 }
