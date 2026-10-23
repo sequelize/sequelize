@@ -97,6 +97,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<SnowflakeConnectionOptio
   workloadIdentityAwsUseOutboundToken: undefined,
   workloadIdentityAzureClientId: undefined,
   workloadIdentityAzureEntraIdResource: undefined,
+  workloadIdentityHost: undefined,
   workloadIdentityImpersonationPath: undefined,
   workloadIdentityProvider: undefined,
 });

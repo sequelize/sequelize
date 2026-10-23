@@ -171,15 +171,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createTableQuery',
-        this.dialect,
-        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createTableQuery',
+      this.dialect,
+      CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const primaryKeys = [];
     const foreignKeys = pojo();
@@ -419,15 +417,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   // }
 
   addColumnQuery(table, key, dataType, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'addColumnQuery',
+      this.dialect,
+      ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const column = isPlainObject(dataType) ? dataType : { type: dataType };
 

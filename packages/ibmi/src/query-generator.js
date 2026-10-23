@@ -24,15 +24,13 @@ const CREATE_TABLE_QUERY_SUPPORTED_OPTIONS = new Set(['uniqueKeys']);
 export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   // Table queries
   createTableQuery(tableName, attributes, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createTableQuery',
-        this.dialect,
-        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createTableQuery',
+      this.dialect,
+      CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const primaryKeys = [];
     const foreignKeys = pojo();
@@ -104,15 +102,13 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
   }
 
   addColumnQuery(table, key, dataType, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'addColumnQuery',
+      this.dialect,
+      ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const column = isPlainObject(dataType) ? dataType : { type: dataType };
 

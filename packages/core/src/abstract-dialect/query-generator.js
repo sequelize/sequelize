@@ -35,6 +35,44 @@ import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
 
+const { propertyIsEnumerable } = Object.prototype;
+
+/**
+ * Avoids spreading the whole query options for every table of a SELECT.
+ *
+ * @param {string | boolean} alias The alias of the table
+ * @param {object} options The options of the query
+ * @param {object} [include] The include the table belongs to
+ * @returns {object}
+ */
+function getQuoteTableOptions(alias, options, include) {
+  return {
+    alias,
+    indexHints: getSpreadValue('indexHints', options, include),
+    tableHints: getSpreadValue('tableHints', options, include),
+  };
+}
+
+/**
+ * Returns the value that the property would have in `{ ...options, ...include }`
+ *
+ * @param {string} propertyName
+ * @param {object} options
+ * @param {object} [include]
+ * @returns {unknown}
+ */
+function getSpreadValue(propertyName, options, include) {
+  if (include != null && propertyIsEnumerable.call(include, propertyName)) {
+    return include[propertyName];
+  }
+
+  if (options != null && propertyIsEnumerable.call(options, propertyName)) {
+    return options[propertyName];
+  }
+
+  return undefined;
+}
+
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
   'charset',
@@ -159,7 +197,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       outputFragment = returnValues.outputFragment || '';
     }
 
-    valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
+    valueHash = removeNullishValuesFromHash(valueHash, options.omitNull);
     for (const key in valueHash) {
       if (Object.hasOwn(valueHash, key)) {
         // if value is undefined, we replace it with null
@@ -1123,12 +1161,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       mainTable.as && this.quoteIdentifier(mainTable.as, mainTable.as.startsWith('%'));
 
     mainTable.quotedName = !Array.isArray(mainTable.name)
-      ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false })
+      ? this.quoteTable(mainTable.name, getQuoteTableOptions(mainTable.as ?? false, options))
       : tableName
           .map(t => {
             return Array.isArray(t)
-              ? this.quoteTable(t[0], { ...options, alias: t[1] })
-              : this.quoteTable(t, { ...options, alias: true });
+              ? this.quoteTable(t[0], getQuoteTableOptions(t[1], options))
+              : this.quoteTable(t, getQuoteTableOptions(true, options));
           })
           .join(', ');
 
@@ -2208,11 +2246,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         : include.right && this.dialect.supports['RIGHT JOIN']
           ? 'RIGHT OUTER JOIN'
           : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, {
-        ...topLevelInfo.options,
-        ...include,
-        alias: minifiedAsRight,
-      }),
+      body: this.quoteTable(
+        tableRight,
+        getQuoteTableOptions(minifiedAsRight, topLevelInfo.options, include),
+      ),
       condition: joinOn,
       attributes: {
         main: [],
@@ -2487,7 +2524,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: minifiedThroughAs })} INNER JOIN ${this.quoteTable(include.model.table, { ...topLevelInfo.options, ...include, alias: minifiedIncludeAs })} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, getQuoteTableOptions(minifiedThroughAs, topLevelInfo.options, include))} INNER JOIN ${this.quoteTable(include.model.table, getQuoteTableOptions(minifiedIncludeAs, topLevelInfo.options, include))} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
