@@ -34,6 +34,9 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
       type: false,
       using: false,
     },
+    alterColumn: {
+      unique: false,
+    },
     constraints: {
       restrict: false,
       onUpdate: false,

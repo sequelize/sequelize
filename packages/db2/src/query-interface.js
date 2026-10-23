@@ -1,6 +1,6 @@
 'use strict';
 
-import { Op, QueryTypes } from '@sequelize/core';
+import { BaseError, Op, QueryTypes } from '@sequelize/core';
 import { isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import clone from 'lodash/clone';
@@ -78,21 +78,55 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
   }
 
   async addConstraint(tableName, options) {
-    try {
+    await this.#retryAfterReorg(tableName, options, async () => {
       await super.addConstraint(tableName, options);
+    });
+  }
+
+  async addIndex(tableName, attributes, options, rawTablename) {
+    const queryOptions = Array.isArray(attributes) ? options : attributes;
+
+    return this.#retryAfterReorg(tableName, queryOptions, async () => {
+      return super.addIndex(tableName, attributes, options, rawTablename);
+    });
+  }
+
+  async #retryAfterReorg(tableName, options, callback) {
+    try {
+      return await callback();
     } catch (error) {
       if (!error.cause) {
         throw error;
       }
 
       // Operation not allowed for reason code "7" on table "DB2INST1.users".  SQLSTATE=57007
-      if (error.cause.sqlcode !== -668 || error.cause.state !== '57007') {
+      // ibm_db reports the SQLSTATE as "sqlstate" ("state" is kept for older versions).
+      // Only reason code 7 means that the table needs a reorg.
+      const sqlState = error.cause.sqlstate ?? error.cause.state;
+      if (
+        error.cause.sqlcode !== -668 ||
+        sqlState !== '57007' ||
+        !`${error.message} ${error.cause.message}`.includes('reason code "7"')
+      ) {
         throw error;
       }
 
+      // REORG TABLE commits the current transaction, so it is only done automatically outside of one
+      const transaction =
+        options?.transaction === undefined
+          ? this.sequelize.getCurrentClsTransaction()
+          : options.transaction;
+      if (transaction) {
+        throw new BaseError(
+          `Table ${this.queryGenerator.quoteTable(tableName)} needs to be reorganized (REORG TABLE) before this change, which would commit the current transaction. Run this change outside of a transaction, or reorganize the table first with queryInterface.executeTableReorg().`,
+          { cause: error },
+        );
+      }
+
       // https://www.ibm.com/support/pages/how-verify-and-resolve-sql0668n-reason-code-7-when-accessing-table
-      await this.executeTableReorg(tableName);
-      await super.addConstraint(tableName, options);
+      await this.executeTableReorg(tableName, options);
+
+      return callback();
     }
   }
 
@@ -101,13 +135,16 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
    * Other changes cannot be done to these tables until the reorg has been completed.
    *
    * This method forces a reorg to happen now.
+   * Note that it commits the current transaction.
    *
    * @param {TableName} tableName - The name of the table to reorg
+   * @param {object} [options] - Query options
    */
-  async executeTableReorg(tableName) {
+  async executeTableReorg(tableName, options) {
     // https://www.ibm.com/support/pages/sql0668n-operating-not-allowed-reason-code-7-seen-when-querying-or-viewing-table-db2-warehouse-cloud-and-db2-cloud
     return await this.sequelize.query(
       `CALL SYSPROC.ADMIN_CMD('REORG TABLE ${this.queryGenerator.quoteTable(tableName)}')`,
+      { transaction: options?.transaction, logging: options?.logging },
     );
   }
 }
