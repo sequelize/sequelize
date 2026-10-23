@@ -15,4 +15,9 @@ export class Db2QueryGeneratorInternal<
   addLimitAndOffset(options: AddLimitOffsetOptions) {
     return formatDb2StyleLimitOffset(options, this.queryGenerator);
   }
+
+  // LOB columns cannot be part of a unique constraint (SQL0350N)
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^(?:CLOB|BLOB|DBCLOB)\b/i.test(sqlType);
+  }
 }

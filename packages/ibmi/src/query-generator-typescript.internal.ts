@@ -274,6 +274,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, attributeTypeToSql(attribute.type));
       template += ' UNIQUE';
     }
 

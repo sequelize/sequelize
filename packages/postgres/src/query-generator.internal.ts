@@ -33,4 +33,9 @@ export class PostgresQueryGeneratorInternal<
 
     return fragment;
   }
+
+  // json has no equality operator (jsonb does)
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^JSON$/i.test(sqlType);
+  }
 }
