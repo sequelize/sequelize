@@ -41,15 +41,13 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createTableQuery',
-        this.dialect,
-        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createTableQuery',
+      this.dialect,
+      CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     options = { ...options };
 

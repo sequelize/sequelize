@@ -87,15 +87,13 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
@@ -149,15 +147,13 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {

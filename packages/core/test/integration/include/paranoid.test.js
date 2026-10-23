@@ -3,7 +3,6 @@
 const chai = require('chai');
 
 const expect = chai.expect;
-const sinon = require('sinon');
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
@@ -33,7 +32,7 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
   });
 
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   after(function () {

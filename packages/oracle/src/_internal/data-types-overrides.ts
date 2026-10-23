@@ -272,7 +272,10 @@ export class REAL extends BaseTypes.REAL {
   }
 
   // https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0BA2E065-8006-426C-A3CB-1F6B0C8F283C
-  toBindableValue(value: any) {
+  toBindableValue(value: AcceptedNumber): string | number {
+    // Like the parent implementation, always validate the value, as escape() inserts it in the query as-is
+    this.validate(value);
+
     if (value === Number.POSITIVE_INFINITY) {
       return 'inf';
     }
@@ -281,7 +284,7 @@ export class REAL extends BaseTypes.REAL {
       return '-inf';
     }
 
-    return value;
+    return value as string | number;
   }
 
   _getBindDef(oracledb: Lib) {

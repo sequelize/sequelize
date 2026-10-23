@@ -31,15 +31,13 @@ export class IBMiQueryInterface<
       throw new Error('Unable to start a transaction without the transaction object.');
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'startTransactionQuery',
-        this.sequelize.dialect,
-        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-        this.sequelize.dialect.supports.startTransaction,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'startTransactionQuery',
+      this.sequelize.dialect,
+      START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+      this.sequelize.dialect.supports.startTransaction,
+      options,
+    );
 
     const connection = transaction.getConnection() as IBMiConnection;
     await connection.beginTransaction();

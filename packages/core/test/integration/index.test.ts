@@ -2,7 +2,7 @@
 
 import { DataTypes, DatabaseError } from '@sequelize/core';
 import { expect } from 'chai';
-import { getTestDialect, getTestDialectTeaser, sequelize } from './support';
+import { expectPerDialect, getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialect = getTestDialect();
 
@@ -81,27 +81,22 @@ describe(getTestDialectTeaser('Indexes'), () => {
           },
         );
 
-        if (dialect === 'db2') {
-          try {
+        await expectPerDialect(
+          async () => {
             await sequelize.sync({ force: true });
-            expect.fail('This should have failed');
-          } catch (error: any) {
-            expect(error.message).to.equal(
-              'DB2 does not support non-unique indexes with INCLUDE syntax.',
-            );
-          }
-        } else {
-          await sequelize.sync({ force: true });
-          const indexes = await sequelize.queryInterface.showIndex(User.table);
-          const indexCheck = indexes.find(index => index.name === 'user_username');
+            const indexes = await sequelize.queryInterface.showIndex(User.table);
+            const index = indexes.find(i => i.name === 'user_username');
 
-          expect(indexCheck?.name).to.equal('user_username');
-          expect(indexCheck?.fields).to.have.length(1);
-          expect(indexCheck?.fields[0].attribute).to.equal('username');
-          expect(indexCheck?.includes).to.have.length(2);
-          expect(indexCheck?.includes).to.include('first_name');
-          expect(indexCheck?.includes).to.include('last_name');
-        }
+            return {
+              fields: index?.fields.map(field => field.attribute),
+              includes: index?.includes?.toSorted(),
+            };
+          },
+          {
+            default: { fields: ['username'], includes: ['first_name', 'last_name'] },
+            db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+          },
+        );
       });
 
       it('creates unique index with include columns', async () => {

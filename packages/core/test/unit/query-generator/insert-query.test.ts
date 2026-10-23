@@ -1,6 +1,6 @@
 import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
-import { beforeAll2, expectsql, sequelize } from '../../support';
+import { beforeAll2, createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -83,6 +83,58 @@ describe('QueryGenerator#insertQuery', () => {
     expect(bind).to.deep.eq({
       sequelize_1: 'John',
       sequelize_2: 'jd',
+    });
+  });
+
+  it('omits nullish values if omitNull is true', () => {
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.insertQuery(
+      User.table,
+      { firstName: 'John', lastName: null },
+      {},
+      { omitNull: true },
+    );
+
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+    });
+    expect(bind).to.deep.eq({ sequelize_1: 'John' });
+  });
+
+  it('uses the omitNull option of the Sequelize instance by default', () => {
+    const { User } = vars;
+    const omitNullSequelize = createSequelizeInstance({ omitNull: true });
+
+    const { query } = omitNullSequelize.queryGenerator.insertQuery(User.table, {
+      firstName: 'John',
+      lastName: null,
+    });
+
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+    });
+  });
+
+  it('keeps nullish values if omitNull is false, even if the Sequelize instance sets it', () => {
+    const { User } = vars;
+    const omitNullSequelize = createSequelizeInstance({ omitNull: true });
+
+    const { query } = omitNullSequelize.queryGenerator.insertQuery(
+      User.table,
+      { firstName: 'John', lastName: null },
+      {},
+      { omitNull: false },
+    );
+
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName],[lastName]) VALUES ($sequelize_1,$sequelize_2);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($sequelize_1,$sequelize_2));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($sequelize_1,$sequelize_2))`,
     });
   });
 
