@@ -423,6 +423,27 @@ describe('QueryGenerator#attributeToSql', () => {
   );
 
   testSql(
+    { type: sequelize.normalizeDataType(DataTypes.TEXT), unique: true },
+    {
+      default: 'TEXT UNIQUE',
+      mssql: 'NVARCHAR(MAX) NULL UNIQUE',
+      'db2 ibmi': 'CLOB(2147483647) UNIQUE',
+      oracle: 'CLOB NULL',
+    },
+  );
+
+  testSql(
+    { type: sequelize.normalizeDataType(DataTypes.BLOB), unique: true },
+    {
+      default: 'BLOB UNIQUE',
+      postgres: 'BYTEA UNIQUE',
+      mssql: 'VARBINARY(MAX) NULL UNIQUE',
+      'db2 ibmi': 'BLOB(1M) UNIQUE',
+      oracle: 'BLOB NULL',
+    },
+  );
+
+  testSql(
     { type: 'INTEGER', primaryKey: true, unique: true },
     {
       default: 'INTEGER UNIQUE PRIMARY KEY',
