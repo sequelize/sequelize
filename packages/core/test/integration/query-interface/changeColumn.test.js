@@ -276,6 +276,32 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
       });
 
+      if (dialect === 'db2') {
+        // REORG TABLE commits the current transaction
+        it('does not reorganize the table inside of a transaction', async function () {
+          const transaction = await this.sequelize.startUnmanagedTransaction();
+          try {
+            await this.queryInterface.bulkInsert('users', [{ email: 'a@example.com' }], {
+              transaction,
+            });
+
+            await expect(
+              this.queryInterface.changeColumn(
+                'users',
+                'email',
+                { type: DataTypes.STRING, allowNull: false, unique: true },
+                { transaction },
+              ),
+            ).to.be.rejectedWith('needs to be reorganized (REORG TABLE)');
+          } finally {
+            await transaction.rollback();
+          }
+
+          const [rows] = await this.sequelize.query('SELECT COUNT(*) AS "count" FROM "users"');
+          expect(Number(rows[0].count)).to.equal(0);
+        });
+      }
+
       // https://github.com/sequelize/sequelize/issues/17978
       it('does not add a second unique key if the column is already unique', async function () {
         const attribute = { type: DataTypes.STRING, unique: true };

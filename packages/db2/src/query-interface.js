@@ -1,6 +1,6 @@
 'use strict';
 
-import { Op, QueryTypes } from '@sequelize/core';
+import { BaseError, Op, QueryTypes } from '@sequelize/core';
 import { isWhereEmpty } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import clone from 'lodash/clone';
@@ -111,6 +111,18 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
         throw error;
       }
 
+      // REORG TABLE commits the current transaction, so it is only done automatically outside of one
+      const transaction =
+        options?.transaction === undefined
+          ? this.sequelize.getCurrentClsTransaction()
+          : options.transaction;
+      if (transaction) {
+        throw new BaseError(
+          `Table ${this.queryGenerator.quoteTable(tableName)} needs to be reorganized (REORG TABLE) before this change, which would commit the current transaction. Run this change outside of a transaction, or reorganize the table first with queryInterface.executeTableReorg().`,
+          { cause: error },
+        );
+      }
+
       // https://www.ibm.com/support/pages/how-verify-and-resolve-sql0668n-reason-code-7-when-accessing-table
       await this.executeTableReorg(tableName, options);
 
@@ -123,6 +135,7 @@ export class Db2QueryInterface extends Db2QueryInterfaceTypeScript {
    * Other changes cannot be done to these tables until the reorg has been completed.
    *
    * This method forces a reorg to happen now.
+   * Note that it commits the current transaction.
    *
    * @param {TableName} tableName - The name of the table to reorg
    * @param {object} [options] - Query options
