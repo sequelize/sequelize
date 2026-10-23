@@ -29,6 +29,8 @@ describe('Model.findAndCountAll', () => {
 
   it('handles promise rejections when both count and findAll fail', async () => {
     await expect(vars.User.findAndCountAll({})).to.be.rejectedWith('count failed');
+    // give Node a chance to report the other rejection as unhandled
+    await new Promise(setImmediate);
     expect(vars.stub.callCount).to.eql(0);
   });
 });
