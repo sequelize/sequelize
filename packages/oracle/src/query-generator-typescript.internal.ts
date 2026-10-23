@@ -513,9 +513,13 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let template: string;
 
-    // A primary key is already unique, and Oracle rejects both on the same column (ORA-02261)
     const uniqueTemplate =
-      attribute.unique === true && !attribute.primaryKey && options?.context !== 'changeColumn'
+      attribute.unique === true &&
+      // A primary key is already unique, and Oracle rejects both on the same column (ORA-02261)
+      !attribute.primaryKey &&
+      // LOB columns (CLOB, BLOB) cannot be unique (ORA-02329)
+      !(attribute.type instanceof DataTypes.TEXT || attribute.type instanceof DataTypes.BLOB) &&
+      options?.context !== 'changeColumn'
         ? ' UNIQUE'
         : '';
 
@@ -532,7 +536,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
       return template;
     }
 
-    // JSON is stored as a BLOB, which cannot be unique
+    // JSON is stored as a BLOB, which cannot be unique either
     if (attribute.type instanceof DataTypes.JSON) {
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IS JSON)`;
