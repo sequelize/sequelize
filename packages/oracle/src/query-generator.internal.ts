@@ -51,4 +51,9 @@ export class OracleQueryGeneratorInternal<
   getAliasToken(): string {
     return '';
   }
+
+  // LOB columns cannot be unique (ORA-02329). JSON is stored as a BLOB.
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^(?:N?CLOB|BLOB)\b/i.test(sqlType);
+  }
 }

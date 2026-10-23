@@ -350,6 +350,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, type.toString());
       sql += ' UNIQUE';
     }
 

@@ -219,6 +219,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, attributeTypeToSql(attribute.type));
       template += ' UNIQUE';
     }
 

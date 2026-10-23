@@ -113,6 +113,36 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       }
     });
 
+    it('throws a clear error if the type of a unique column cannot be unique', async function () {
+      const types = {
+        text: { type: DataTypes.TEXT, supported: ['postgres', 'mariadb', 'sqlite3', 'snowflake'] },
+        blob: { type: DataTypes.BLOB, supported: ['postgres', 'mariadb', 'sqlite3', 'snowflake'] },
+        ...(Support.sequelize.dialect.supports.dataTypes.JSON && {
+          json: { type: DataTypes.JSON, supported: ['mariadb', 'sqlite3'] },
+        }),
+      };
+
+      for (const [name, { supported, type }] of Object.entries(types)) {
+        const tableName = `unique_${name}`;
+        const promise = this.queryInterface.createTable(tableName, {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          value: { type, allowNull: false, unique: true },
+        });
+
+        if (supported.includes(dialect)) {
+          await promise;
+          expect(await this.queryInterface.tableExists(tableName)).to.equal(true, name);
+        } else {
+          await expect(promise).to.be.rejectedWith(
+            Error,
+            `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+            name,
+          );
+          expect(await this.queryInterface.tableExists(tableName)).to.equal(false, name);
+        }
+      }
+    });
+
     if (Support.sequelize.dialect.supports.schemas) {
       it('should work with schemas', async function () {
         await this.sequelize.createSchema('hero');

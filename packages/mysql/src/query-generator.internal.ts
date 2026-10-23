@@ -24,4 +24,9 @@ export class MySqlQueryGeneratorInternal<
   addLimitAndOffset(options: AddLimitOffsetOptions) {
     return formatMySqlStyleLimitOffset(options, this.queryGenerator);
   }
+
+  // BLOB, TEXT and JSON columns can only be indexed through a prefix or a generated column
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^(?:(?:TINY|MEDIUM|LONG)?(?:BLOB|TEXT)|JSON)\b/i.test(sqlType);
+  }
 }

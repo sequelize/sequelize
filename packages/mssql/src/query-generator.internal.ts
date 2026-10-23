@@ -45,4 +45,9 @@ export class MsSqlQueryGeneratorInternal<
 
     return fragment;
   }
+
+  // (MAX) columns cannot be part of an index key
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/\(MAX\)$/i.test(sqlType);
+  }
 }
