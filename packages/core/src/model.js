@@ -2194,15 +2194,20 @@ ${associationOwner._getAssociationDebugList()}`);
     const updateValues = mapValueFieldNames(updatedDataValues, options.fields, this);
     const now = new Date();
 
+    // insertValues & updateValues are keyed by column name, not by attribute name
     // Attach createdAt
-    if (createdAtAttr && !insertValues[createdAtAttr]) {
+    if (createdAtAttr) {
       const field = modelDefinition.attributes.get(createdAtAttr).columnName || createdAtAttr;
-      insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
+      if (!insertValues[field]) {
+        insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
+      }
     }
 
-    if (updatedAtAttr && !updateValues[updatedAtAttr]) {
+    if (updatedAtAttr) {
       const field = modelDefinition.attributes.get(updatedAtAttr).columnName || updatedAtAttr;
-      insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
+      if (!updateValues[field]) {
+        insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
+      }
     }
 
     // Db2 does not allow NULL values for unique columns.

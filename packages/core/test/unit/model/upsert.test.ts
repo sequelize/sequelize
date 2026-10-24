@@ -42,7 +42,17 @@ describe('Model.upsert', () => {
       },
     );
 
-    return { User, UserNoTime };
+    const UserUnderscored = sequelize.define(
+      'UserUnderscored',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        underscored: true,
+      },
+    );
+
+    return { User, UserNoTime, UserUnderscored };
   });
 
   let query: SinonStub;
@@ -94,5 +104,23 @@ describe('Model.upsert', () => {
     });
 
     expect(Object.keys(stub.getCall(0).args[2])).to.deep.equal(['name', 'value', 'updatedAt']);
+  });
+
+  it('keeps the timestamps passed to it when their column names differ from their attribute names', async () => {
+    const createdAt = new Date('2020-01-01T00:00:00.000Z');
+    const updatedAt = new Date('2020-01-02T00:00:00.000Z');
+
+    await vars.UserUnderscored.upsert({
+      name: 'Old Cat',
+      createdAt,
+      updatedAt,
+    });
+
+    const insertValues = stub.getCall(0).args[1];
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(insertValues.created_at).to.equal(createdAt);
+    expect(insertValues.updated_at).to.equal(updatedAt);
+    expect(updateValues.updated_at).to.equal(updatedAt);
   });
 });
