@@ -29,10 +29,29 @@ export interface MsSqlDialectOptions {
    * as the Sequelize team cannot guarantee its compatibility.
    */
   tediousModule?: TediousModule;
+
+  /**
+   * Whether string values are escaped & bound as Unicode (NVARCHAR) or
+   * as non-Unicode (VARCHAR) values.
+   *
+   * When enabled (the default), string literals are prefixed with `N` and bound
+   * parameters use the `NVarChar` type, which matches the `NVARCHAR` columns
+   * Sequelize creates by default.
+   *
+   * When disabled, string literals are emitted without the `N` prefix and bound
+   * parameters use the `VarChar` type. This is useful for schemas that use
+   * non-Unicode `VARCHAR` columns: comparing a `VARCHAR` column to a Unicode
+   * value forces SQL Server to implicitly convert the column for every row,
+   * which prevents the query optimizer from using an index seek on that column.
+   *
+   * @default true
+   */
+  useUnicodeStrings?: boolean;
 }
 
 const DIALECT_OPTION_NAMES = getSynchronizedTypeKeys<MsSqlDialectOptions>({
   tediousModule: undefined,
+  useUnicodeStrings: undefined,
 });
 
 export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConnectionOptions> {
@@ -138,6 +157,15 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     return createNamedParamBindCollector('@');
   }
 
+  /**
+   * Whether string values are escaped & bound as Unicode (NVARCHAR) values.
+   *
+   * Defaults to {@link MsSqlDialectOptions.useUnicodeStrings} if set, and to `true` otherwise.
+   */
+  get useUnicodeStrings(): boolean {
+    return this.options.useUnicodeStrings ?? true;
+  }
+
   escapeBuffer(buffer: Buffer): string {
     const hex = buffer.toString('hex');
 
@@ -148,6 +176,12 @@ export class MsSqlDialect extends AbstractDialect<MsSqlDialectOptions, MsSqlConn
     // http://www.postgresql.org/docs/8.2/static/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS
     // http://stackoverflow.com/q/603572/130598
     value = value.replaceAll("'", "''");
+
+    // The "N" prefix marks the literal as a Unicode (NVARCHAR) value.
+    // When it is omitted, the literal is a non-Unicode (VARCHAR) value.
+    if (!this.useUnicodeStrings) {
+      return `'${value}'`;
+    }
 
     return `N'${value}'`;
   }

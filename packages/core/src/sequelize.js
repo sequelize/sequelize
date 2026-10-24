@@ -560,6 +560,8 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const model of this.models) {
         await model.drop(options);
       }
+
+      return;
     }
 
     const sortedModels = this.models.getModelsTopoSortedByForeignKey();
@@ -569,6 +571,8 @@ Use Sequelize#query if you wish to use replacements.`);
       for (const model of sortedModels) {
         await model.drop(options);
       }
+
+      return;
     }
 
     if (this.dialect.name === 'sqlite3') {

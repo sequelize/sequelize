@@ -41,7 +41,7 @@
     "@types/oracledb": "^7.0.3",
     "dayjs": "^1.11.23",
     "lodash": "^4.18.1",
-    "oracledb": "^7.0.1",
+    "oracledb": "^26.0.0",
     "semver": "^7.8.5"
   }
 }
