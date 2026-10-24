@@ -4,7 +4,14 @@ import type { NormalizedAttributeOptions } from '../model.js';
 import type { QueryRawOptions, Sequelize } from '../sequelize.js';
 import type { AbstractDialect } from './dialect.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
-import type { FetchDatabaseVersionOptions } from './query-interface.types.js';
+import type { TableOrModel } from './query-generator.types.js';
+import type { TableNameWithSchema } from './query-interface.js';
+import type {
+  ColumnsDescription,
+  FetchDatabaseVersionOptions,
+  RawConstraintDescription,
+  ShowConstraintsOptions,
+} from './query-interface.types.js';
 
 /**
  * The methods in this class are not part of the public API.
@@ -62,6 +69,34 @@ export class AbstractQueryInterfaceInternal {
       ...attribute,
       references: { ...attribute.references, table: { ...referencedTable, schema } },
     };
+  }
+
+  async showIndexRaw(tableName: TableOrModel, options?: QueryRawOptions): Promise<unknown> {
+    return this.#sequelize.queryRaw(this.#queryGenerator.showIndexesQuery(tableName), {
+      ...options,
+      type: QueryTypes.SHOWINDEXES,
+    });
+  }
+
+  async describeTableRaw(
+    table: TableNameWithSchema,
+    options?: QueryRawOptions,
+  ): Promise<ColumnsDescription> {
+    return this.#sequelize.queryRaw(this.#queryGenerator.describeTableQuery(table), {
+      ...options,
+      type: QueryTypes.DESCRIBE,
+    });
+  }
+
+  async showConstraintsRaw(
+    tableName: TableOrModel,
+    options?: ShowConstraintsOptions,
+  ): Promise<RawConstraintDescription[]> {
+    return this.#sequelize.queryRaw(this.#queryGenerator.showConstraintsQuery(tableName, options), {
+      ...options,
+      raw: true,
+      type: QueryTypes.SHOWCONSTRAINTS,
+    });
   }
 
   async executeQueriesSequentially(queries: string[], options?: QueryRawOptions): Promise<unknown> {
