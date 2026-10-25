@@ -1,6 +1,11 @@
 name: 'Stale issue handler'
 on:
   workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Only log which PRs would be converted to draft'
+        type: boolean
+        default: false
   schedule:
     - cron: '0 0 * * *'
 
@@ -21,13 +26,14 @@ jobs:
           client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
           permission-pull-requests: write
-          permission-contents: read
-          permission-checks: read
+          permission-contents: write
       - name: Draft unfinished PRs
         uses: sequelize/draft-unfinished-prs@dcded35052048b01a1c925cfd8fb7cda473f9b96
         continue-on-error: true
         with:
           github-token: '${{ steps.generate-token.outputs.token }}'
+          draft-on-failing-required-checks: false
+          dry-run: '${{ inputs.dry-run == true }}'
       - name: Mark stale bugs
         uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
         id: stale-bug
