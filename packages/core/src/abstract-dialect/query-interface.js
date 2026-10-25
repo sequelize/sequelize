@@ -99,10 +99,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       for (const field of uniqueKey.fields) {
         const columnName = typeof field === 'string' ? field : field.name;
         const attribute =
-          attributes[columnName] ??
           Object.values(attributes).find(
             attr => attr.columnName === columnName || attr.field === columnName,
-          );
+          ) ?? attributes[columnName];
 
         if (attribute?.type) {
           this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type);
