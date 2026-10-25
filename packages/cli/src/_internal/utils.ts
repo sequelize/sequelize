@@ -27,19 +27,26 @@ export function slugify(text: string): string {
     .replace(/-+$/, ''); // Trim - from end of text
 }
 
-// Matches the compact (`20240101000000`) and separated (`2024-01-01t00-00-00`) timestamp
-// formats, as well as date-only prefixes (`20240101`, `2024-01-01`).
-const TIMESTAMP_PREFIX = /^(\d{4})-?(\d{2})-?(\d{2})(?:t?-?(\d{2})-?(\d{2})-?(\d{2}))?/i;
+// Checked in order: the compact (`20240101000000`) and separated (`2024-01-01t00-00-00`)
+// timestamp formats, then date-only prefixes (`20240101`, `2024-01-01`).
+const TIMESTAMP_PREFIXES = [
+  /^(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})(?<hours>\d{2})(?<minutes>\d{2})(?<seconds>\d{2})/,
+  /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})t(?<hours>\d{2})-(?<minutes>\d{2})-(?<seconds>\d{2})/i,
+  /^(?<year>\d{4})(?<month>\d{2})(?<day>\d{2})/,
+  /^(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})/,
+];
 
 function getTimestampSortKey(name: string): string | undefined {
-  const match = TIMESTAMP_PREFIX.exec(name);
-  if (!match) {
-    return undefined;
+  for (const pattern of TIMESTAMP_PREFIXES) {
+    const groups = pattern.exec(name)?.groups;
+    if (groups) {
+      const { year, month, day, hours = '00', minutes = '00', seconds = '00' } = groups;
+
+      return `${year}${month}${day}${hours}${minutes}${seconds}`;
+    }
   }
 
-  const [, year, month, day, hours = '00', minutes = '00', seconds = '00'] = match;
-
-  return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  return undefined;
 }
 
 const compareStrings = basicComparator<string>();

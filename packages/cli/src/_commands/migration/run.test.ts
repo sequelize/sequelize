@@ -84,7 +84,9 @@ describe('migration:run (special cases)', function () {
   it('runs migrations chronologically regardless of their timestamp format', async () => {
     const chronologicalNames = [
       '20231231235959-compact',
+      '2024-01-01-123456-numeric-suffix',
       '2024-01-01-date-only',
+      '2024-01-01t06-00-00-separated',
       '20240301000000-compact',
       '2024-06-01t12-00-00-separated',
       '20240601120000-compact-same-time',
