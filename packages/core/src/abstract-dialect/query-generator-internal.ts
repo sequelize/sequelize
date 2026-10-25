@@ -73,8 +73,9 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
       return;
     }
 
+    const column = columnName == null ? 'The column' : `Column ${JSON.stringify(columnName)}`;
     throw new Error(
-      `Column ${JSON.stringify(columnName)} cannot be unique: ${this.dialect.name} does not support unique constraints on ${sqlType} columns.`,
+      `${column} cannot be unique: ${this.dialect.name} does not support unique constraints on ${sqlType} columns.`,
     );
   }
 

@@ -36,8 +36,9 @@ import {
   extractTableIdentifier,
   isModelStatic,
 } from '../utils/model-utils.js';
+import { attributeTypeToSql } from './data-types-utils.js';
 import type { BindParamOptions, DataType, NormalizedDataType } from './data-types.js';
-import { AbstractDataType } from './data-types.js';
+import { ARRAY, AbstractDataType, ENUM } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
@@ -299,6 +300,25 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Throws if columns of this type cannot be unique in this dialect,
+   * to throw a clear error instead of the one of the database.
+   *
+   * @param columnName The name of the column
+   * @param type The type of the column
+   */
+  assertTypeCanBeUnique(
+    columnName: string | undefined,
+    type: AbstractDataType<any> | string,
+  ): void {
+    // enums can always be unique, and their SQL type can depend on the table they are attached to (postgres)
+    if (type instanceof ENUM || (type instanceof ARRAY && type.options.type instanceof ENUM)) {
+      return;
+    }
+
+    this.#internals.assertTypeCanBeUnique(columnName, attributeTypeToSql(type));
   }
 
   describeTableQuery(tableName: TableOrModel) {

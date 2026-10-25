@@ -136,6 +136,19 @@ function index(
     expectUniqueKeyAdded(false);
   });
 
+  if (['mysql', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialectName)) {
+    it('throws before changing the column if its type cannot be unique', async () => {
+      await expect(
+        queryInterface.changeColumn('users', 'email', { type: DataTypes.TEXT, unique: true }),
+      ).to.be.rejectedWith(Error, 'Column "email" cannot be unique');
+
+      expect(queryRawStub.getCalls().some(call => !call.args[0].startsWith('SELECT'))).to.equal(
+        false,
+      );
+      expect(addConstraintStub.called).to.equal(false);
+    });
+  }
+
   it('throws if unique is not true', async () => {
     const uniqueValues: Array<AttributeOptions['unique']> = [
       'users_email_uk',

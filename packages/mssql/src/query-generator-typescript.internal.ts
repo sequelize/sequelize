@@ -384,7 +384,8 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
       return template;
     }
 
-    template = attributeTypeToSql(attribute.type);
+    const sqlType = attributeTypeToSql(attribute.type);
+    template = sqlType;
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
@@ -407,7 +408,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
       attribute.unique === true &&
       (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
     ) {
-      this.#internals.assertTypeCanBeUnique(attribute.field, attributeTypeToSql(attribute.type));
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

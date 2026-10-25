@@ -25,8 +25,11 @@ export class MySqlQueryGeneratorInternal<
     return formatMySqlStyleLimitOffset(options, this.queryGenerator);
   }
 
-  // BLOB, TEXT and JSON columns can only be indexed through a prefix or a generated column
+  // BLOB, TEXT and JSON columns can only be indexed through a prefix or a generated column,
+  // and spatial columns can only have spatial indexes, which cannot be unique
   canTypeBeUnique(sqlType: string): boolean {
-    return !/^(?:(?:TINY|MEDIUM|LONG)?(?:BLOB|TEXT)|JSON)\b/i.test(sqlType);
+    return !/^(?:(?:TINY|MEDIUM|LONG)?(?:BLOB|TEXT)|JSON|GEOMETRY(?:COLLECTION)?|(?:MULTI)?(?:POINT|LINESTRING|POLYGON))\b/i.test(
+      sqlType,
+    );
   }
 }

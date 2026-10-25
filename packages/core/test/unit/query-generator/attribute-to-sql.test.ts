@@ -494,6 +494,68 @@ describe('QueryGenerator#attributeToSql', () => {
       mssql: new Error(
         'Column "foo" cannot be unique: mssql does not support unique constraints on XML columns.',
       ),
+      db2: new Error(
+        'Column "foo" cannot be unique: db2 does not support unique constraints on XML columns.',
+      ),
+    },
+  );
+
+  testSql(
+    { type: 'LONG VARCHAR', field: 'foo', unique: true },
+    {
+      default: 'LONG VARCHAR UNIQUE',
+      'mssql oracle': 'LONG VARCHAR NULL UNIQUE',
+      db2: new Error(
+        'Column "foo" cannot be unique: db2 does not support unique constraints on LONG VARCHAR columns.',
+      ),
+    },
+  );
+
+  testSql(
+    { type: 'POINT', field: 'foo', unique: true },
+    {
+      default: 'POINT UNIQUE',
+      'mssql oracle': 'POINT NULL UNIQUE',
+      postgres: new Error(
+        'Column "foo" cannot be unique: postgres does not support unique constraints on POINT columns.',
+      ),
+      mysql: new Error(
+        'Column "foo" cannot be unique: mysql does not support unique constraints on POINT columns.',
+      ),
+    },
+  );
+
+  if (sequelize.dialect.supports.dataTypes.GEOMETRY) {
+    testSql(
+      { type: sequelize.normalizeDataType(DataTypes.GEOMETRY), field: 'foo', unique: true },
+      {
+        'mariadb postgres': 'GEOMETRY UNIQUE',
+        mysql: new Error(
+          'Column "foo" cannot be unique: mysql does not support unique constraints on GEOMETRY columns.',
+        ),
+      },
+    );
+  }
+
+  testSql(
+    { type: sequelize.normalizeDataType(DataTypes.TEXT), unique: true },
+    {
+      default: 'TEXT UNIQUE',
+      mysql: new Error(
+        'The column cannot be unique: mysql does not support unique constraints on TEXT columns.',
+      ),
+      mssql: new Error(
+        'The column cannot be unique: mssql does not support unique constraints on NVARCHAR(MAX) columns.',
+      ),
+      db2: new Error(
+        'The column cannot be unique: db2 does not support unique constraints on CLOB(2147483647) columns.',
+      ),
+      ibmi: new Error(
+        'The column cannot be unique: ibmi does not support unique constraints on CLOB(2147483647) columns.',
+      ),
+      oracle: new Error(
+        'The column cannot be unique: oracle does not support unique constraints on CLOB columns.',
+      ),
     },
   );
 

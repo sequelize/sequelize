@@ -34,8 +34,8 @@ export class PostgresQueryGeneratorInternal<
     return fragment;
   }
 
-  // json and xml (and their arrays) have no equality operator (jsonb does)
+  // json, xml and the geometric types (and their arrays) have no equality operator (jsonb does)
   canTypeBeUnique(sqlType: string): boolean {
-    return !/^(?:JSON|XML)(?:\[\])*$/i.test(sqlType);
+    return !/^(?:JSON|XML|POINT|LINE|LSEG|BOX|PATH|POLYGON|CIRCLE)(?:\[\])*$/i.test(sqlType);
   }
 }
