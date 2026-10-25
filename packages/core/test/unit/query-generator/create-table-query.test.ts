@@ -727,6 +727,31 @@ describe('QueryGenerator#createTableQuery', () => {
       );
     });
 
+    it('with a single field that is also unique', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { myColumn: 'DATE UNIQUE' },
+            { uniqueKeys: { myIndex: { fields: ['myColumn'] } } },
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
+          'mariadb mysql':
+            'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE UNIQUE, UNIQUE `myIndex` (`myColumn`)) ENGINE=InnoDB;',
+          postgres:
+            'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE UNIQUE, CONSTRAINT "myIndex" UNIQUE ("myColumn"));',
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE UNIQUE, CONSTRAINT [myIndex] UNIQUE ([myColumn]));`,
+          snowflake:
+            'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE UNIQUE, UNIQUE "myIndex" ("myColumn"));',
+          db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE UNIQUE NOT NULL, CONSTRAINT "myIndex" UNIQUE ("myColumn"));',
+          ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE UNIQUE, CONSTRAINT "myIndex" UNIQUE ("myColumn")); END`,
+          // Oracle rejects two unique constraints on the same column (ORA-02261)
+          oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE, CONSTRAINT "myIndex" UNIQUE ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+        },
+      );
+    });
+
     it('with primary key fields', () => {
       expectsql(
         () =>

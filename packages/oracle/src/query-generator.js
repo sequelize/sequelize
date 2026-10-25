@@ -188,13 +188,25 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       table: this.quoteTable(tableName),
     };
 
+    // Oracle rejects two unique constraints on the same columns (ORA-02261),
+    // so columns that have a single-column unique key don't get UNIQUE in their definition
+    const uniqueKeyColumns = new Set(
+      Object.values(options?.uniqueKeys ?? {})
+        .filter(uniqueKey => uniqueKey.fields.length === 1)
+        .map(uniqueKey => uniqueKey.fields[0]),
+    );
+
     // Starting by dealing with all attributes
     for (let attr in attributes) {
       if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
-      const dataType = attributes[attr];
+      let dataType = attributes[attr];
+      if (uniqueKeyColumns.has(attr)) {
+        dataType = dataType.replace(/ UNIQUE(?= REFERENCES| PRIMARY KEY|$)/, '');
+      }
+
       attr = this.quoteIdentifier(attr);
 
       // ORACLE doesn't support inline REFERENCES declarations: move to the end
