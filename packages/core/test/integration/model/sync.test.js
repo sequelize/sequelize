@@ -8,6 +8,62 @@ const { getTestDialect, getTestDialectTeaser, sequelize } = require('../support'
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
+  if (['mysql', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+    it('throws a clear error for unique attributes whose type cannot be unique', async () => {
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: { type: DataTypes.TEXT, unique: true } },
+        { tableName: 'unique_texts', timestamps: false },
+      );
+
+      await expect(Item.sync({ force: true })).to.be.rejectedWith(
+        Error,
+        `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+      );
+      expect(await sequelize.queryInterface.tableExists('unique_texts')).to.equal(false);
+    });
+
+    it('throws a clear error before adding unique indexes whose columns cannot be unique', async () => {
+      await sequelize.queryInterface.createTable('unique_texts', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        value: DataTypes.TEXT,
+      });
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: DataTypes.TEXT },
+        {
+          tableName: 'unique_texts',
+          timestamps: false,
+          indexes: [{ unique: true, fields: ['value'] }],
+        },
+      );
+
+      await expect(Item.sync()).to.be.rejectedWith(
+        Error,
+        `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+      );
+    });
+  }
+
+  if (['mysql', 'mariadb'].includes(dialect)) {
+    it('adds unique prefix indexes on TEXT columns', async () => {
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: DataTypes.TEXT },
+        {
+          tableName: 'unique_texts',
+          timestamps: false,
+          indexes: [{ unique: true, fields: [{ name: 'value', length: 10 }] }],
+        },
+      );
+
+      await Item.sync({ force: true });
+
+      const indexes = await sequelize.queryInterface.showIndex('unique_texts');
+      expect(indexes.filter(index => index.unique && !index.primary)).to.have.length(1);
+    });
+  }
+
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,

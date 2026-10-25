@@ -95,6 +95,20 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
 
+    for (const uniqueKey of Object.values(options.uniqueKeys ?? {})) {
+      for (const field of uniqueKey.fields) {
+        const columnName = typeof field === 'string' ? field : field.name;
+        const attribute =
+          Object.values(attributes).find(
+            attr => attr.columnName === columnName || attr.field === columnName,
+          ) ?? attributes[columnName];
+
+        if (attribute?.type) {
+          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type);
+        }
+      }
+    }
+
     const modelTable = model?.table;
 
     if (!tableName.schema && modelTable?.schema) {
@@ -240,6 +254,10 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
       unique,
       options,
     );
+    if (addUniqueKey) {
+      this.queryGenerator.assertTypeCanBeUnique(columnName, column.type);
+    }
+
     // Adding it in the same query as the column change applies both, or neither
     const addUniqueKeyInQuery = addUniqueKey && this.sequelize.dialect.supports.alterColumn.unique;
 

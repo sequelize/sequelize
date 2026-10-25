@@ -15,4 +15,9 @@ export class Db2QueryGeneratorInternal<
   addLimitAndOffset(options: AddLimitOffsetOptions) {
     return formatDb2StyleLimitOffset(options, this.queryGenerator);
   }
+
+  // LOB and XML columns cannot be part of a unique constraint (SQL0350N), nor LONG VARCHAR & LONG VARGRAPHIC ones (SQL0613N)
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^(?:CLOB|BLOB|DBCLOB|XML|LONG VAR(?:CHAR|GRAPHIC))\b/i.test(sqlType);
+  }
 }

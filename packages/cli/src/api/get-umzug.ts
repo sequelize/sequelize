@@ -8,6 +8,7 @@ import { inspect } from 'node:util';
 import { SequelizeStorage, Umzug } from 'umzug';
 import type { RunnableMigration, UmzugOptions } from 'umzug/lib/types.js';
 import { config } from '../_internal/config.js';
+import { compareMigrationNames } from '../_internal/utils.js';
 
 const SUPPORTED_JS_FILE_EXTENSIONS = Object.freeze(['.js', '.ts', '.cjs', '.mjs', '.cts', '.mts']);
 const SUPPORTED_SQL_FILE_EXTENSIONS = Object.freeze(['.sql']);
@@ -54,7 +55,7 @@ async function getUniversalUmzugMigrations(): Promise<Array<RunnableMigration<Um
 
   const migrations = await Promise.all(
     migrationNames
-      .sort((a, b) => a.name.localeCompare(b.name))
+      .sort((a, b) => compareMigrationNames(a.name, b.name))
       .map(async migrationDirent => {
         const filename = path.join(migrationFolder, migrationDirent.name);
 

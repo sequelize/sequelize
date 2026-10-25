@@ -13,6 +13,7 @@ import type {
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, DataTypes, IsolationLevel, ParameterStyle } from '@sequelize/core';
+import { attributeTypeToSql } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import type { ParameterOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
 import {
   CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
@@ -513,6 +514,15 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let template: string;
 
+    // A primary key is already unique, and Oracle rejects both on the same column (ORA-02261)
+    const isUnique =
+      attribute.unique === true && !attribute.primaryKey && options?.context !== 'changeColumn';
+    if (isUnique && attribute.type) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, attributeTypeToSql(attribute.type));
+    }
+
+    const uniqueTemplate = isUnique ? ' UNIQUE' : '';
+
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql();
@@ -521,6 +531,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
           return this.escape(value);
         })
         .join(', ')}))`;
+      template += uniqueTemplate;
 
       return template;
     }
@@ -535,6 +546,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IN('1', '0'))`;
+      template += uniqueTemplate;
 
       return template;
     }
@@ -571,6 +583,8 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     } else {
       template = '';
     }
+
+    template += uniqueTemplate;
 
     if (attribute.primaryKey) {
       template += ' PRIMARY KEY';
