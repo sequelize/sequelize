@@ -86,32 +86,31 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
-    it('adds a unique constraint to columns with the unique option', async function () {
+    const uniqueColumnTypes = {
+      STRING: { type: DataTypes.STRING, value: 'a' },
+      BOOLEAN: { type: DataTypes.BOOLEAN, value: true },
+      ENUM: { type: DataTypes.ENUM('a', 'b'), value: 'a' },
+    };
+
+    for (const [typeName, { type, value }] of Object.entries(uniqueColumnTypes)) {
       // TODO: mssql ignores "unique" on ENUM columns
-      const types = {
-        string: DataTypes.STRING,
-        boolean: DataTypes.BOOLEAN,
-        ...(dialect !== 'mssql' && { enum: DataTypes.ENUM('a', 'b') }),
-      };
+      if (typeName === 'ENUM' && dialect === 'mssql') {
+        continue;
+      }
 
-      for (const [name, type] of Object.entries(types)) {
-        const tableName = `unique_${name}`;
-
-        await this.queryInterface.createTable(tableName, {
+      it(`adds a unique constraint to ${typeName} columns with the unique option`, async function () {
+        await this.queryInterface.createTable('unique_values', {
           id: { type: DataTypes.INTEGER, primaryKey: true },
           // Db2 does not accept unique constraints on nullable columns
           value: { type, allowNull: false, unique: true },
         });
 
-        const value = name === 'boolean' ? true : 'a';
-
-        await this.queryInterface.bulkInsert(tableName, [{ id: 1, value }]);
-
+        await this.queryInterface.bulkInsert('unique_values', [{ id: 1, value }]);
         await expect(
-          this.queryInterface.bulkInsert(tableName, [{ id: 2, value }]),
-        ).to.be.rejectedWith(UniqueConstraintError, undefined, name);
-      }
-    });
+          this.queryInterface.bulkInsert('unique_values', [{ id: 2, value }]),
+        ).to.be.rejectedWith(UniqueConstraintError);
+      });
+    }
 
     if (Support.sequelize.dialect.supports.schemas) {
       it('should work with schemas', async function () {
