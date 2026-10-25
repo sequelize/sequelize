@@ -217,6 +217,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Change a column definition
    *
+   * If the new definition sets "unique: true", a unique key is added to the column,
+   * unless the table already has a unique constraint, unique index or primary key on exactly that column.
+   * Named and composite unique keys must be added with {@link AbstractQueryInterface#addConstraint}.
+   * Setting "unique" to false does not remove existing unique keys.
+   *
    * @param {string} tableName          Table name to change from
    * @param {string} attributeName      Column name
    * @param {object} dataTypeOrOptions  Attribute definition for new column
@@ -225,13 +230,29 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
-    const column = this.normalizeAttribute(dataTypeOrOptions);
-    const columns = { [column.field || column.columnName || attributeName]: column };
+    const { unique, ...column } = this.normalizeAttribute(dataTypeOrOptions);
+    const columnName = column.field || column.columnName || attributeName;
+
+    // Adding "unique" every time would add a new unique key each time changeColumn is called
+    const addUniqueKey = await this.#internals.needsUniqueKey(
+      tableName,
+      columnName,
+      unique,
+      options,
+    );
+    // Adding it in the same query as the column change applies both, or neither
+    const addUniqueKeyInQuery = addUniqueKey && this.sequelize.dialect.supports.alterColumn.unique;
+
+    const columns = { [columnName]: addUniqueKeyInQuery ? { ...column, unique: true } : column };
     const query = this.queryGenerator.attributesToSql(columns, {
       context: 'changeColumn',
       tableOrModel: tableName,
     });
     const sql = this.queryGenerator.changeColumnQuery(tableName, query, columns);
+
+    if (addUniqueKey && !addUniqueKeyInQuery) {
+      return this.#internals.changeColumnAndAddUniqueKey(tableName, columnName, sql, options);
+    }
 
     return this.sequelize.queryRaw(sql, options);
   }
