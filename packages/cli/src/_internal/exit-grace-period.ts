@@ -9,7 +9,7 @@ interface ExitGracePeriodOptions {
 }
 
 function warnOnStderr(message: string, flushed: () => void): void {
-  // stdout & stderr are asynchronous when piped on some platforms (e.g. macOS),
+  // stdout & stderr are asynchronous when piped on POSIX systems (see "A note on process I/O"),
   // so exiting right away could drop the warning or other pending output.
   let pendingWrites = 2;
   const onWritten = () => {
