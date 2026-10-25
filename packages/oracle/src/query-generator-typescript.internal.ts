@@ -513,6 +513,16 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let template: string;
 
+    const uniqueTemplate =
+      attribute.unique === true &&
+      // A primary key is already unique, and Oracle rejects both on the same column (ORA-02261)
+      !attribute.primaryKey &&
+      // LOB columns (CLOB, BLOB) cannot be unique (ORA-02329)
+      !(attribute.type instanceof DataTypes.TEXT || attribute.type instanceof DataTypes.BLOB) &&
+      options?.context !== 'changeColumn'
+        ? ' UNIQUE'
+        : '';
+
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql();
@@ -521,10 +531,12 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
           return this.escape(value);
         })
         .join(', ')}))`;
+      template += uniqueTemplate;
 
       return template;
     }
 
+    // JSON is stored as a BLOB, which cannot be unique either
     if (attribute.type instanceof DataTypes.JSON) {
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IS JSON)`;
@@ -535,6 +547,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     if (attribute.type instanceof DataTypes.BOOLEAN) {
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IN('1', '0'))`;
+      template += uniqueTemplate;
 
       return template;
     }
@@ -571,6 +584,8 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     } else {
       template = '';
     }
+
+    template += uniqueTemplate;
 
     if (attribute.primaryKey) {
       template += ' PRIMARY KEY';

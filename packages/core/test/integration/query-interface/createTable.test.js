@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, UniqueConstraintError } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -83,6 +83,33 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         // name
         expect(indexes[1].unique).to.be.true;
         expect(indexes[1].fields[0].attribute).to.equal('name');
+      });
+    }
+
+    const uniqueColumnTypes = {
+      STRING: { type: DataTypes.STRING, value: 'a' },
+      BOOLEAN: { type: DataTypes.BOOLEAN, value: true },
+      ENUM: { type: DataTypes.ENUM('a', 'b'), value: 'a' },
+    };
+
+    for (const [typeName, { type, value }] of Object.entries(uniqueColumnTypes)) {
+      // Snowflake does not enforce unique constraints.
+      // TODO: mssql ignores "unique" on ENUM columns
+      if (dialect === 'snowflake' || (typeName === 'ENUM' && dialect === 'mssql')) {
+        continue;
+      }
+
+      it(`adds a unique constraint to ${typeName} columns with the unique option`, async function () {
+        await this.queryInterface.createTable('unique_values', {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          // Db2 does not accept unique constraints on nullable columns
+          value: { type, allowNull: false, unique: true },
+        });
+
+        await this.queryInterface.bulkInsert('unique_values', [{ id: 1, value }]);
+        await expect(
+          this.queryInterface.bulkInsert('unique_values', [{ id: 2, value }]),
+        ).to.be.rejectedWith(UniqueConstraintError);
       });
     }
 
