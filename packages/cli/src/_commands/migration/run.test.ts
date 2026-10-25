@@ -1,7 +1,7 @@
 import { runCommand } from '@oclif/test';
 import { fileUrlToDirname } from '@sequelize/utils/node';
 import { expect } from 'chai';
-import { rm } from 'node:fs/promises';
+import { rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { resetMigrations } from '../../_internal/test-helpers.js';
 
@@ -79,6 +79,15 @@ describe('migration:run (special cases)', function () {
     const { stdout } = await runCommand(['migration:run', '--json'], { root: packageRoot });
     const result = JSON.parse(stdout);
     expect(result.migrated).to.deep.equal(['2024-01-01-create#users.mjs']);
+  });
+
+  it('ignores TypeScript declaration files', async () => {
+    await resetMigrations([{ name: '2024-01-01-create-users', up: 'SELECT 1;' }]);
+    await writeFile(join(packageRoot, 'migrations', '2024-01-02-types.d.ts'), 'export {};\n');
+
+    const { stdout } = await runCommand(['migration:run', '--json'], { root: packageRoot });
+    const result = JSON.parse(stdout);
+    expect(result.migrated).to.deep.equal(['2024-01-01-create-users']);
   });
 
   it('does not error on empty migration folder', async () => {
