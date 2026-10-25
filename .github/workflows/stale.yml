@@ -11,8 +11,7 @@ jobs:
   stale:
     permissions:
       issues: write # for actions/stale to close stale issues
-      pull-requests: write # for actions/stale to close stale PRs and draft-unfinished-prs to mark PRs as draft
-      checks: read # For draft-unfinished-prs to check if PRs are failing CI checks
+      pull-requests: write # for actions/stale to close stale PRs
     runs-on: ubuntu-latest
     steps:
       - name: Generate Sequelize Bot Token
@@ -22,10 +21,13 @@ jobs:
           client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
           permission-pull-requests: write
+          permission-contents: read
+          permission-checks: read
       - name: Draft unfinished PRs
         uses: sequelize/draft-unfinished-prs@dcded35052048b01a1c925cfd8fb7cda473f9b96
-        env:
-          GITHUB_TOKEN: '${{ steps.generate-token.outputs.token }}'
+        continue-on-error: true
+        with:
+          github-token: '${{ steps.generate-token.outputs.token }}'
       - name: Mark stale bugs
         uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
         id: stale-bug
