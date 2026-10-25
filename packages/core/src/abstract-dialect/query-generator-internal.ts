@@ -25,6 +25,10 @@ interface TableAliasOptions extends EscapeOptions {
   reservedTableAliases?: Set<string>;
 }
 
+export interface UniqueTypeOptions {
+  prefixLength?: number | undefined;
+}
+
 export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = AbstractDialect> {
   readonly dialect: Dialect;
   readonly whereSqlBuilder: WhereSqlBuilder;
@@ -55,8 +59,9 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
    * Returns whether columns of this SQL type can be unique in this dialect.
    *
    * @param _sqlType The SQL type of the column, as returned by the data type
+   * @param _options The length of the prefix of the column that is part of the unique index, if any (prefixLength)
    */
-  canTypeBeUnique(_sqlType: string): boolean {
+  canTypeBeUnique(_sqlType: string, _options?: UniqueTypeOptions): boolean {
     return true;
   }
 
@@ -67,9 +72,14 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
    *
    * @param columnName The name of the column
    * @param sqlType The SQL type of the column, as returned by the data type
+   * @param options The length of the prefix of the column that is part of the unique index, if any (prefixLength)
    */
-  assertTypeCanBeUnique(columnName: string | undefined, sqlType: string): void {
-    if (this.canTypeBeUnique(sqlType)) {
+  assertTypeCanBeUnique(
+    columnName: string | undefined,
+    sqlType: string,
+    options?: UniqueTypeOptions,
+  ): void {
+    if (this.canTypeBeUnique(sqlType, options)) {
       return;
     }
 

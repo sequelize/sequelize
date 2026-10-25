@@ -45,6 +45,25 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
     });
   }
 
+  if (['mysql', 'mariadb'].includes(dialect)) {
+    it('adds unique prefix indexes on TEXT columns', async () => {
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: DataTypes.TEXT },
+        {
+          tableName: 'unique_texts',
+          timestamps: false,
+          indexes: [{ unique: true, fields: [{ name: 'value', length: 10 }] }],
+        },
+      );
+
+      await Item.sync({ force: true });
+
+      const indexes = await sequelize.queryInterface.showIndex('unique_texts');
+      expect(indexes.filter(index => index.unique && !index.primary)).to.have.length(1);
+    });
+  }
+
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,

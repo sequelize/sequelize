@@ -38,8 +38,9 @@ import {
 } from '../utils/model-utils.js';
 import { attributeTypeToSql } from './data-types-utils.js';
 import type { BindParamOptions, DataType, NormalizedDataType } from './data-types.js';
-import { ARRAY, AbstractDataType, ENUM } from './data-types.js';
+import { AbstractDataType, ARRAY, ENUM } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
+import type { UniqueTypeOptions } from './query-generator-internal.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import type {
   AttributesToSqlColumns,
@@ -308,17 +309,19 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    *
    * @param columnName The name of the column
    * @param type The type of the column
+   * @param options The length of the prefix of the column that is part of the unique index, if any (prefixLength)
    */
   assertTypeCanBeUnique(
     columnName: string | undefined,
     type: AbstractDataType<any> | string,
+    options?: UniqueTypeOptions,
   ): void {
     // enums can always be unique, and their SQL type can depend on the table they are attached to (postgres)
     if (type instanceof ENUM || (type instanceof ARRAY && type.options.type instanceof ENUM)) {
       return;
     }
 
-    this.#internals.assertTypeCanBeUnique(columnName, attributeTypeToSql(type));
+    this.#internals.assertTypeCanBeUnique(columnName, attributeTypeToSql(type), options);
   }
 
   describeTableQuery(tableName: TableOrModel) {

@@ -997,7 +997,9 @@ ${associationOwner._getAssociationDebugList()}`);
         const columnName = typeof field === 'string' ? field : field.name;
         const attribute = modelDefinition.columns.get(columnName);
         if (attribute) {
-          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type);
+          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type, {
+            prefixLength: typeof field === 'string' ? undefined : field.length,
+          });
         }
       }
     }
