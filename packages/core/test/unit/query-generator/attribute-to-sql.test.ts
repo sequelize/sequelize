@@ -423,25 +423,178 @@ describe('QueryGenerator#attributeToSql', () => {
   );
 
   testSql(
-    { type: sequelize.normalizeDataType(DataTypes.TEXT), unique: true },
+    { type: sequelize.normalizeDataType(DataTypes.TEXT), field: 'foo', unique: true },
     {
       default: 'TEXT UNIQUE',
-      mssql: 'NVARCHAR(MAX) NULL UNIQUE',
-      'db2 ibmi': 'CLOB(2147483647) UNIQUE',
-      oracle: 'CLOB NULL',
+      mysql: new Error(
+        'Column "foo" cannot be unique: mysql does not support unique constraints on TEXT columns.',
+      ),
+      mssql: new Error(
+        'Column "foo" cannot be unique: mssql does not support unique constraints on NVARCHAR(MAX) columns.',
+      ),
+      db2: new Error(
+        'Column "foo" cannot be unique: db2 does not support unique constraints on CLOB(2147483647) columns.',
+      ),
+      ibmi: new Error(
+        'Column "foo" cannot be unique: ibmi does not support unique constraints on CLOB(2147483647) columns.',
+      ),
+      oracle: new Error(
+        'Column "foo" cannot be unique: oracle does not support unique constraints on CLOB columns.',
+      ),
     },
   );
 
   testSql(
-    { type: sequelize.normalizeDataType(DataTypes.BLOB), unique: true },
+    { type: sequelize.normalizeDataType(DataTypes.TEXT('tiny')), field: 'foo', unique: true },
+    {
+      default: 'TEXT UNIQUE',
+      mariadb: 'TINYTEXT UNIQUE',
+      mysql: new Error(
+        'Column "foo" cannot be unique: mysql does not support unique constraints on TINYTEXT columns.',
+      ),
+      mssql: 'NVARCHAR(256) NULL UNIQUE',
+      'db2 ibmi': 'VARCHAR(256) UNIQUE',
+      oracle: new Error(
+        'Column "foo" cannot be unique: oracle does not support unique constraints on CLOB columns.',
+      ),
+    },
+  );
+
+  testSql(
+    { type: sequelize.normalizeDataType(DataTypes.BLOB), field: 'foo', unique: true },
     {
       default: 'BLOB UNIQUE',
       postgres: 'BYTEA UNIQUE',
-      mssql: 'VARBINARY(MAX) NULL UNIQUE',
-      'db2 ibmi': 'BLOB(1M) UNIQUE',
-      oracle: 'BLOB NULL',
+      mysql: new Error(
+        'Column "foo" cannot be unique: mysql does not support unique constraints on BLOB columns.',
+      ),
+      mssql: new Error(
+        'Column "foo" cannot be unique: mssql does not support unique constraints on VARBINARY(MAX) columns.',
+      ),
+      db2: new Error(
+        'Column "foo" cannot be unique: db2 does not support unique constraints on BLOB(1M) columns.',
+      ),
+      ibmi: new Error(
+        'Column "foo" cannot be unique: ibmi does not support unique constraints on BLOB(1M) columns.',
+      ),
+      oracle: new Error(
+        'Column "foo" cannot be unique: oracle does not support unique constraints on BLOB columns.',
+      ),
     },
   );
+
+  testSql(
+    { type: 'XML', field: 'foo', unique: true },
+    {
+      default: 'XML UNIQUE',
+      oracle: 'XML NULL UNIQUE',
+      postgres: new Error(
+        'Column "foo" cannot be unique: postgres does not support unique constraints on XML columns.',
+      ),
+      mssql: new Error(
+        'Column "foo" cannot be unique: mssql does not support unique constraints on XML columns.',
+      ),
+      db2: new Error(
+        'Column "foo" cannot be unique: db2 does not support unique constraints on XML columns.',
+      ),
+    },
+  );
+
+  testSql(
+    { type: 'LONG VARCHAR', field: 'foo', unique: true },
+    {
+      default: 'LONG VARCHAR UNIQUE',
+      'mssql oracle': 'LONG VARCHAR NULL UNIQUE',
+      db2: new Error(
+        'Column "foo" cannot be unique: db2 does not support unique constraints on LONG VARCHAR columns.',
+      ),
+    },
+  );
+
+  testSql(
+    { type: 'POINT', field: 'foo', unique: true },
+    {
+      default: 'POINT UNIQUE',
+      'mssql oracle': 'POINT NULL UNIQUE',
+      postgres: new Error(
+        'Column "foo" cannot be unique: postgres does not support unique constraints on POINT columns.',
+      ),
+      mysql: new Error(
+        'Column "foo" cannot be unique: mysql does not support unique constraints on POINT columns.',
+      ),
+    },
+  );
+
+  if (sequelize.dialect.supports.dataTypes.GEOMETRY) {
+    testSql(
+      { type: sequelize.normalizeDataType(DataTypes.GEOMETRY), field: 'foo', unique: true },
+      {
+        'mariadb postgres': 'GEOMETRY UNIQUE',
+        mysql: new Error(
+          'Column "foo" cannot be unique: mysql does not support unique constraints on GEOMETRY columns.',
+        ),
+      },
+    );
+  }
+
+  testSql(
+    { type: sequelize.normalizeDataType(DataTypes.TEXT), unique: true },
+    {
+      default: 'TEXT UNIQUE',
+      mysql: new Error(
+        'The column cannot be unique: mysql does not support unique constraints on TEXT columns.',
+      ),
+      mssql: new Error(
+        'The column cannot be unique: mssql does not support unique constraints on NVARCHAR(MAX) columns.',
+      ),
+      db2: new Error(
+        'The column cannot be unique: db2 does not support unique constraints on CLOB(2147483647) columns.',
+      ),
+      ibmi: new Error(
+        'The column cannot be unique: ibmi does not support unique constraints on CLOB(2147483647) columns.',
+      ),
+      oracle: new Error(
+        'The column cannot be unique: oracle does not support unique constraints on CLOB columns.',
+      ),
+    },
+  );
+
+  if (sequelize.dialect.supports.dataTypes.ARRAY && sequelize.dialect.supports.dataTypes.JSON) {
+    testSql(
+      {
+        type: sequelize.normalizeDataType(DataTypes.ARRAY(DataTypes.JSON)),
+        field: 'foo',
+        unique: true,
+      },
+      {
+        postgres: new Error(
+          'Column "foo" cannot be unique: postgres does not support unique constraints on JSON[] columns.',
+        ),
+      },
+    );
+  }
+
+  if (sequelize.dialect.supports.dataTypes.JSON) {
+    testSql(
+      { type: sequelize.normalizeDataType(DataTypes.JSON), field: 'foo', unique: true },
+      {
+        mariadb: 'JSON UNIQUE',
+        sqlite3: 'TEXT UNIQUE',
+        postgres: new Error(
+          'Column "foo" cannot be unique: postgres does not support unique constraints on JSON columns.',
+        ),
+        mysql: new Error(
+          'Column "foo" cannot be unique: mysql does not support unique constraints on JSON columns.',
+        ),
+        mssql: new Error(
+          'Column "foo" cannot be unique: mssql does not support unique constraints on NVARCHAR(MAX) columns.',
+        ),
+        oracle: new Error(
+          'Column "foo" cannot be unique: oracle does not support unique constraints on BLOB columns.',
+        ),
+      },
+    );
+  }
 
   testSql(
     { type: 'INTEGER', primaryKey: true, unique: true },

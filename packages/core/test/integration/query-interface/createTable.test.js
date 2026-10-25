@@ -113,6 +113,61 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
+    const typesThatCannotBeUnique = {
+      TEXT: { type: DataTypes.TEXT, dialects: ['mysql', 'mssql', 'db2', 'ibmi', 'oracle'] },
+      BLOB: { type: DataTypes.BLOB, dialects: ['mysql', 'mssql', 'db2', 'ibmi', 'oracle'] },
+      JSON: { type: DataTypes.JSON, dialects: ['postgres', 'mysql', 'mssql', 'oracle'] },
+    };
+
+    for (const [typeName, { dialects, type }] of Object.entries(typesThatCannotBeUnique)) {
+      if (typeName === 'JSON' && !Support.sequelize.dialect.supports.dataTypes.JSON) {
+        continue;
+      }
+
+      if (!dialects.includes(dialect)) {
+        it(`creates unique ${typeName} columns`, async function () {
+          await this.queryInterface.createTable('unique_values', {
+            id: { type: DataTypes.INTEGER, primaryKey: true },
+            value: { type, allowNull: false, unique: true },
+          });
+
+          expect(await this.queryInterface.tableExists('unique_values')).to.equal(true);
+        });
+
+        continue;
+      }
+
+      it(`throws a clear error for unique ${typeName} columns`, async function () {
+        await expect(
+          this.queryInterface.createTable('unique_values', {
+            id: { type: DataTypes.INTEGER, primaryKey: true },
+            value: { type, allowNull: false, unique: true },
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+        );
+        expect(await this.queryInterface.tableExists('unique_values')).to.equal(false);
+      });
+
+      it(`throws a clear error for unique keys on ${typeName} columns`, async function () {
+        await expect(
+          this.queryInterface.createTable(
+            'unique_values',
+            {
+              id: { type: DataTypes.INTEGER, primaryKey: true },
+              value: { type, allowNull: false },
+            },
+            { uniqueKeys: { unique_values_value: { fields: ['value'] } } },
+          ),
+        ).to.be.rejectedWith(
+          Error,
+          `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+        );
+        expect(await this.queryInterface.tableExists('unique_values')).to.equal(false);
+      });
+    }
+
     if (Support.sequelize.dialect.supports.schemas) {
       it('should work with schemas', async function () {
         await this.sequelize.createSchema('hero');
