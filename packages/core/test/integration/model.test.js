@@ -1368,11 +1368,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       return Post;
     }
 
-    // The posts table gets dropped in the before filter.
     if (dialectName === 'sqlite3') {
       it('does not check that the referenced table exists', async function () {
         const Post = definePostReferencingMissingTable(this);
 
+        // The posts table gets dropped in the before filter.
         await Post.sync();
 
         expect(await this.sequelize.queryInterface.tableExists('posts')).to.equal(true);
@@ -1381,6 +1381,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       it('throws an error if the referenced table name is invalid', async function () {
         const Post = definePostReferencingMissingTable(this);
 
+        // The posts table gets dropped in the before filter.
         const error = await expect(Post.sync()).to.be.rejected;
 
         switch (dialectName) {

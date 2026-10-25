@@ -285,7 +285,10 @@ export default [
       // chai-expect reports assertions that check nothing, such as an `expect(x)` that never reaches a matcher.
       'no-unused-expressions': 'off',
       '@typescript-eslint/no-unused-expressions': 'off',
-      'chai-friendly/no-unused-expressions': 'error',
+      'chai-friendly/no-unused-expressions': [
+        'error',
+        { allowShortCircuit: true, allowTernary: true },
+      ],
       'chai-expect/missing-assertion': 'error',
       'chai-expect/no-inner-compare': 'error',
       'chai-expect/no-inner-literal': 'error',
@@ -301,7 +304,16 @@ export default [
     files: ['packages/*/test/**/*.ts', '**/*.test.ts'],
     rules: {
       // chai-as-promised assertions are thenables, and must be awaited to be able to fail
-      '@typescript-eslint/no-floating-promises': ['error', { checkThenables: true }],
+      '@typescript-eslint/no-floating-promises': [
+        'error',
+        {
+          ignoreIIFE: true,
+          allowForKnownSafeCalls: [
+            { from: 'package', name: ['describe', 'it', 'test'], package: 'node:test' },
+          ],
+          checkThenables: true,
+        },
+      ],
     },
   },
   {

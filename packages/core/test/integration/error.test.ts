@@ -563,7 +563,7 @@ describe(getTestDialectTeaser('Sequelize Errors'), () => {
         ]);
       });
     } else {
-      it('should throw an unknown constraint error for duplicate constraint names', async () => {
+      it('rejects duplicate constraint names', async () => {
         await queryInterface.createTable('Users', {
           id: { type: DataTypes.INTEGER, allowNull: false },
           username: DataTypes.STRING,

@@ -48,7 +48,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       const error = await expect(model.update({ name: '' })).to.be.rejectedWith(
         Sequelize.ValidationError,
       );
-      expect(error).to.be.an.instanceOf(Error);
       expect(error.get('name')[0].message).to.equal('Validation notEmpty on name failed');
     });
 
@@ -69,7 +68,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
       const error = await expect(
         Model.update({ name: '' }, { where: { id: 1 } }),
       ).to.be.rejectedWith(Sequelize.ValidationError);
-      expect(error).to.be.an.instanceOf(Error);
       expect(error.get('name')[0].message).to.equal('Validation notEmpty on name failed');
     });
 
@@ -216,7 +214,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const error = await expect(User.create({ id: 'helloworld' })).to.be.rejectedWith(
           Sequelize.ValidationError,
         );
-        expect(error).to.be.an.instanceOf(Error);
         expect(error.get('id')[0].message).to.equal('Validation isInt on id failed');
       });
 
@@ -237,7 +234,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const error = await expect(
           User.create({ username: 'helloworldhelloworld' }),
         ).to.be.rejectedWith(Sequelize.ValidationError);
-        expect(error).to.be.an.instanceOf(Error);
         expect(error.get('username')[0].message).to.equal('Username must be an integer!');
       });
 
@@ -261,7 +257,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           const error = await expect(this.User.create({ id: 'helloworld' })).to.be.rejectedWith(
             Sequelize.ValidationError,
           );
-          expect(error).to.be.an.instanceOf(Error);
           expect(error.get('id')[0].message).to.equal('ID must be an integer!');
         });
 
@@ -276,7 +271,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
           const user = this.User.build({ id: 'helloworld' });
 
           const error = await expect(user.save()).to.be.rejectedWith(Sequelize.ValidationError);
-          expect(error).to.be.an.instanceOf(Error);
           expect(error.get('id')[0].message).to.equal('ID must be an integer!');
         });
       });
@@ -319,7 +313,6 @@ describe(Support.getTestDialectTeaser('InstanceValidator'), () => {
         const error = await expect(this.Project.create({})).to.be.rejectedWith(
           Sequelize.ValidationError,
         );
-        expect(error).to.be.an.instanceOf(Error);
         delete error.stack; // longStackTraces
         expect(error.errors).to.have.length(3);
       });
