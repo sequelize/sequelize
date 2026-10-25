@@ -36,6 +36,9 @@ jobs:
         with:
           client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
           private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
+          permission-contents: write
+          permission-pull-requests: write
+          permission-workflows: write
       - uses: sequelize/pr-auto-update-and-handle-conflicts@fcc8633eb414be54676e16dc17f3340ec40dda27 # 2.1.0
         with:
           conflict-label: 'conflicted'
