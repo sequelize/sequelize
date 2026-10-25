@@ -348,10 +348,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           email: { type: DataTypes.STRING, allowNull: false, unique: true },
         });
 
-        // TODO: oracle ignores the "unique" attribute option in createTable
-        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(
-          dialect === 'oracle' ? 0 : 1,
-        );
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
 
         await this.queryInterface.changeColumn('users', 'email', {
           type: DataTypes.STRING,
