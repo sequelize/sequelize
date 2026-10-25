@@ -93,8 +93,9 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
     };
 
     for (const [typeName, { type, value }] of Object.entries(uniqueColumnTypes)) {
+      // Snowflake does not enforce unique constraints.
       // TODO: mssql ignores "unique" on ENUM columns
-      if (typeName === 'ENUM' && dialect === 'mssql') {
+      if (dialect === 'snowflake' || (typeName === 'ENUM' && dialect === 'mssql')) {
         continue;
       }
 

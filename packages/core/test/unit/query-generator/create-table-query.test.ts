@@ -752,6 +752,34 @@ describe('QueryGenerator#createTableQuery', () => {
       );
     });
 
+    it('with a unique index on a field that is also unique', () => {
+      expectsql(
+        () =>
+          queryGenerator.createTableQuery(
+            'myTable',
+            { myColumn: 'DATE UNIQUE', otherColumn: 'DATE' },
+            // oracle converts unique indexes to unique keys
+            {
+              uniqueKeys: { otherIndex: { fields: ['otherColumn'] } },
+              indexes: [{ unique: true, fields: ['myColumn'], name: 'myIndex' }],
+            } as Parameters<typeof queryGenerator.createTableQuery>[2],
+          ),
+        {
+          default: buildInvalidOptionReceivedError('createTableQuery', dialectName, ['uniqueKeys']),
+          'mariadb mysql':
+            'CREATE TABLE IF NOT EXISTS `myTable` (`myColumn` DATE UNIQUE, `otherColumn` DATE, UNIQUE `otherIndex` (`otherColumn`)) ENGINE=InnoDB;',
+          postgres:
+            'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE UNIQUE, "otherColumn" DATE, CONSTRAINT "otherIndex" UNIQUE ("otherColumn"));',
+          mssql: `IF OBJECT_ID(N'[myTable]', 'U') IS NULL CREATE TABLE [myTable] ([myColumn] DATE UNIQUE, [otherColumn] DATE, CONSTRAINT [otherIndex] UNIQUE ([otherColumn]));`,
+          snowflake:
+            'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE UNIQUE, "otherColumn" DATE, UNIQUE "otherIndex" ("otherColumn"));',
+          db2: 'CREATE TABLE IF NOT EXISTS "myTable" ("myColumn" DATE UNIQUE, "otherColumn" DATE NOT NULL, CONSTRAINT "otherIndex" UNIQUE ("otherColumn"));',
+          ibmi: `BEGIN DECLARE CONTINUE HANDLER FOR SQLSTATE VALUE '42710' BEGIN END; CREATE TABLE "myTable" ("myColumn" DATE UNIQUE, "otherColumn" DATE, CONSTRAINT "otherIndex" UNIQUE ("otherColumn")); END`,
+          oracle: `BEGIN EXECUTE IMMEDIATE 'CREATE TABLE "myTable" ("myColumn" DATE, "otherColumn" DATE, CONSTRAINT "otherIndex" UNIQUE ("otherColumn"), CONSTRAINT "myIndex" UNIQUE ("myColumn"))'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;`,
+        },
+      );
+    });
+
     it('with primary key fields', () => {
       expectsql(
         () =>
