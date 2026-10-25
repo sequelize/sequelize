@@ -250,13 +250,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     });
     const sql = this.queryGenerator.changeColumnQuery(tableName, query, columns);
 
-    const result = await this.sequelize.queryRaw(sql, options);
-
     if (addUniqueKey && !addUniqueKeyInQuery) {
-      await this.#internals.addUniqueKey(tableName, columnName, options);
+      return this.#internals.changeColumnAndAddUniqueKey(tableName, columnName, sql, options);
     }
 
-    return result;
+    return this.sequelize.queryRaw(sql, options);
   }
 
   /**

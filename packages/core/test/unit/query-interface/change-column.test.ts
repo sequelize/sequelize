@@ -3,8 +3,9 @@ import type {
   ColumnsDescription,
   ConstraintDescription,
   IndexDescription,
+  Transaction,
 } from '@sequelize/core';
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, TransactionNestMode } from '@sequelize/core';
 import { expect } from 'chai';
 import sinon from 'sinon';
 import {
@@ -53,6 +54,8 @@ function index(
   let showIndexStub: sinon.SinonStub;
   let addConstraintStub: sinon.SinonStub;
   let addIndexStub: sinon.SinonStub;
+  let transactionStub: sinon.SinonStub;
+  const transaction = {} as Transaction;
   // postgres looks for unique keys in pg_index
   let postgresHasUniqueKey: boolean;
 
@@ -67,6 +70,11 @@ function index(
     showIndexStub = sinon.stub(queryInterface, 'showIndex').resolves([]);
     addConstraintStub = sinon.stub(queryInterface, 'addConstraint').resolves();
     addIndexStub = sinon.stub(queryInterface, 'addIndex').resolves();
+    transactionStub = sinon
+      .stub(sequelize, 'transaction')
+      .callsFake(async (_options: unknown, callback: unknown) => {
+        return (callback as (transaction: Transaction) => Promise<unknown>)(transaction);
+      });
 
     // Db2 only adds unique constraints to NOT NULL columns
     sinon.stub(queryInterface, 'describeTable').resolves({
@@ -78,11 +86,15 @@ function index(
     sinon.restore();
   });
 
-  function getAlterQuery(): string {
+  function getAlterCall(): sinon.SinonSpyCall {
     const alterCalls = queryRawStub.getCalls().filter(call => !call.args[0].startsWith('SELECT'));
     expect(alterCalls).to.have.length(1);
 
-    return alterCalls[0].args[0];
+    return alterCalls[0];
+  }
+
+  function getAlterQuery(): string {
+    return getAlterCall().args[0];
   }
 
   function expectUniqueKeyAdded(added: boolean) {
@@ -161,6 +173,41 @@ function index(
         logging,
       });
       expect(addConstraintStub.firstCall.args[1]).not.to.have.property('name');
+    });
+  }
+
+  if (dialectName === 'mssql') {
+    it('changes the column and adds the unique key in one transaction', async () => {
+      await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
+
+      expect(transactionStub.callCount).to.equal(1);
+      expect(transactionStub.firstCall.args[0]).to.include({
+        nestMode: TransactionNestMode.savepoint,
+      });
+      expect(getAlterCall().args[1]).to.include({ transaction });
+      expect(addConstraintStub.firstCall.args[1]).to.include({ transaction });
+    });
+  }
+
+  if (dialectName === 'oracle') {
+    it('adds the unique key in the same statement as the column change', async () => {
+      await queryInterface.changeColumn('users', 'email', { type: DataTypes.STRING, unique: true });
+
+      expect(getAlterQuery()).to.include(
+        `'ALTER TABLE "users" MODIFY "email" NVARCHAR2(255) NULL ADD CONSTRAINT "users_email_uk" UNIQUE ("email")'`,
+      );
+    });
+
+    it('adds the unique key after the foreign key of the column', async () => {
+      await queryInterface.changeColumn('users', 'email', {
+        type: DataTypes.INTEGER,
+        references: { table: 'teams' },
+        unique: true,
+      });
+
+      expect(getAlterQuery()).to.include(
+        `EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD FOREIGN KEY ("email") REFERENCES "teams" ("id")'; EXECUTE IMMEDIATE 'ALTER TABLE "users" ADD CONSTRAINT "users_email_uk" UNIQUE ("email")';`,
+      );
     });
   }
 

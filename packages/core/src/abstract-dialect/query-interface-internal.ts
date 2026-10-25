@@ -171,9 +171,31 @@ export class AbstractQueryInterfaceInternal {
   }
 
   /**
-   * Adds a unique constraint on the column, or a unique index if the dialect cannot add constraints to existing tables.
+   * Runs the query that changes the column, then adds a unique key on the column.
    * {@link AbstractQueryInterface#changeColumn} uses this in dialects where the ALTER COLUMN query cannot add the unique key
    * (`dialect.supports.alterColumn.unique` is false).
+   *
+   * Dialects where schema changes are transactional can override this method to do both in one transaction.
+   *
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param changeColumnSql The query that changes the column
+   * @param options Query options
+   */
+  async changeColumnAndAddUniqueKey(
+    tableName: TableOrModel,
+    columnName: string,
+    changeColumnSql: string,
+    options?: QueryRawOptions,
+  ): Promise<unknown> {
+    const result = await this.#sequelize.queryRaw(changeColumnSql, options);
+    await this.addUniqueKey(tableName, columnName, options);
+
+    return result;
+  }
+
+  /**
+   * Adds a unique constraint on the column, or a unique index if the dialect cannot add constraints to existing tables.
    *
    * @param tableName The table that contains the column
    * @param columnName The name of the column, as it is in the database

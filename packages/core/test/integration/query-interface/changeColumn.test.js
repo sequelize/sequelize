@@ -4,7 +4,12 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes, UniqueConstraintError } = require('@sequelize/core');
+const {
+  AggregateError,
+  DatabaseError,
+  DataTypes,
+  UniqueConstraintError,
+} = require('@sequelize/core');
 const isEqual = require('lodash/isEqual');
 
 const dialect = Support.getTestDialect();
@@ -373,20 +378,26 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         expect(await getUniqueIndexes(this.queryInterface, 'users', 'firstName')).to.have.length(0);
       });
 
-      if (['postgres', 'mysql', 'mariadb', 'sqlite3'].includes(dialect)) {
+      if (['postgres', 'mysql', 'mariadb', 'sqlite3', 'mssql', 'oracle'].includes(dialect)) {
         it('does not change the column if the unique key cannot be added', async function () {
           await this.queryInterface.bulkInsert('users', [
             { email: 'a@example.com' },
             { email: 'a@example.com' },
           ]);
 
-          await expect(
-            this.queryInterface.changeColumn('users', 'email', {
-              type: DataTypes.STRING,
-              allowNull: false,
-              unique: true,
-            }),
-          ).to.be.rejectedWith(UniqueConstraintError);
+          const promise = this.queryInterface.changeColumn('users', 'email', {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+          });
+          if (dialect === 'oracle') {
+            await expect(promise).to.be.rejectedWith(DatabaseError, /^ORA-02299:/);
+          } else if (dialect === 'mssql') {
+            const error = await expect(promise).to.be.rejectedWith(AggregateError);
+            expect(error.errors[0].message).to.match(/duplicate key was found/);
+          } else {
+            await expect(promise).to.be.rejectedWith(UniqueConstraintError);
+          }
 
           const table = await this.queryInterface.describeTable('users');
           expect(table.email.allowNull).to.equal(true);
