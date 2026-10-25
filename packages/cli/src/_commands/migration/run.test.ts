@@ -90,6 +90,25 @@ describe('migration:run (special cases)', function () {
     expect(result.migrated).to.deep.equal(['2024-01-01-create-users']);
   });
 
+  it('runs migrations chronologically regardless of their timestamp format', async () => {
+    const chronologicalNames = [
+      '20231231235959-compact',
+      '2024-01-01-123456-numeric-suffix',
+      '2024-01-01-date-only',
+      '2024-01-01t06-00-00-separated',
+      '20240301000000-compact',
+      '2024-06-01t12-00-00-separated',
+      '20240601120000-compact-same-time',
+      'no-timestamp',
+    ];
+
+    await resetMigrations(chronologicalNames.toReversed().map(name => ({ name, up: 'SELECT 1;' })));
+
+    const { stdout } = await runCommand(['migration:run', '--json'], { root: packageRoot });
+    const result = JSON.parse(stdout);
+    expect(result.migrated).to.deep.equal(chronologicalNames);
+  });
+
   it('does not error on empty migration folder', async () => {
     await resetMigrations([]);
 

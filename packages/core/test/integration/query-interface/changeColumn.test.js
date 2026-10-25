@@ -307,6 +307,25 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         });
       }
 
+      if (['mysql', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+        it('throws a clear error before changing the column if its type cannot be unique', async function () {
+          const tableBefore = await this.queryInterface.describeTable('users');
+
+          await expect(
+            this.queryInterface.changeColumn('users', 'email', {
+              type: DataTypes.TEXT,
+              unique: true,
+            }),
+          ).to.be.rejectedWith(
+            Error,
+            `Column "email" cannot be unique: ${dialect} does not support unique constraints on`,
+          );
+
+          const tableAfter = await this.queryInterface.describeTable('users');
+          expect(tableAfter.email.type).to.equal(tableBefore.email.type);
+        });
+      }
+
       // https://github.com/sequelize/sequelize/issues/17978
       it('does not add a second unique key if the column is already unique', async function () {
         const attribute = { type: DataTypes.STRING, unique: true };
@@ -348,10 +367,7 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           email: { type: DataTypes.STRING, allowNull: false, unique: true },
         });
 
-        // TODO: oracle ignores the "unique" attribute option in createTable
-        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(
-          dialect === 'oracle' ? 0 : 1,
-        );
+        expect(await getUniqueIndexes(this.queryInterface, 'users', 'email')).to.have.length(1);
 
         await this.queryInterface.changeColumn('users', 'email', {
           type: DataTypes.STRING,
