@@ -1,12 +1,13 @@
 'use strict';
 
 const { expect } = require('chai');
+const sinon = require('sinon');
 const {
   beforeEach2,
   createMultiTransactionalTestSequelizeInstance,
   sequelize,
 } = require('../support');
-const { col, DataTypes, Op, ParameterStyle } = require('@sequelize/core');
+const { AggregateError, col, DataTypes, Op, ParameterStyle } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -109,6 +110,7 @@ describe('Model', () => {
         },
       });
 
+      expect(users).to.have.length(10);
       for (const user of users) {
         expect(createdAt.getTime()).to.equal(user.get('createdAt').getTime());
         expect(updatedAt.getTime()).to.equal(user.get('updatedAt').getTime());
@@ -163,6 +165,25 @@ describe('Model', () => {
       const quote = identifier => this.customSequelize.queryGenerator.quoteIdentifier(identifier);
       const columns = ['style', 'createdAt', 'updatedAt'].map(quote).join(',');
 
+      const logging = sinon.spy(sql => {
+        if (dialect.supports.autoIncrement.defaultValue) {
+          let idValue;
+          if (dialect.supports.bulkDefault) {
+            idValue = 'DEFAULT';
+          } else if (dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]) {
+            idValue = dialectName === 'sqlite3' ? '$sequelize_1' : '?';
+          } else {
+            idValue = 'NULL';
+          }
+
+          expect(sql).to.include(
+            `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
+          );
+        } else {
+          expect(sql).to.include(`INSERT INTO ${quote('Beers')} (${columns}) `);
+        }
+      });
+
       await Beer.bulkCreate(
         [
           {
@@ -173,26 +194,10 @@ describe('Model', () => {
           ...(dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]
             ? { parameterStyle: ParameterStyle.BIND }
             : {}),
-          logging(sql) {
-            if (dialect.supports.autoIncrement.defaultValue) {
-              let idValue;
-              if (dialect.supports.bulkDefault) {
-                idValue = 'DEFAULT';
-              } else if (dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]) {
-                idValue = dialectName === 'sqlite3' ? '$sequelize_1' : '?';
-              } else {
-                idValue = 'NULL';
-              }
-
-              expect(sql).to.include(
-                `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
-              );
-            } else {
-              expect(sql).to.include(`INSERT INTO ${quote('Beers')} (${columns}) `);
-            }
-          },
+          logging,
         },
       );
+      expect(logging).to.have.been.called;
     });
 
     it('properly handles disparate field lists', async function () {
@@ -359,30 +364,29 @@ describe('Model', () => {
 
       await Tasks.sync({ force: true });
 
-      try {
-        await Tasks.bulkCreate(
+      const error = await expect(
+        Tasks.bulkCreate(
           [{ name: 'foo', code: '123' }, { code: '1234' }, { name: 'bar', code: '1' }],
           { validate: true },
-        );
-      } catch (error) {
-        const expectedValidationError = 'Validation len on code failed';
-        const expectedNotNullError = 'notNull violation: Task.name cannot be null';
+        ),
+      ).to.be.rejectedWith(AggregateError);
+      const expectedValidationError = 'Validation len on code failed';
+      const expectedNotNullError = 'notNull violation: Task.name cannot be null';
 
-        expect(error.toString())
-          .to.include(expectedValidationError)
-          .and.to.include(expectedNotNullError);
-        const { errors } = error;
-        expect(errors).to.have.length(2);
+      expect(error.toString())
+        .to.include(expectedValidationError)
+        .and.to.include(expectedNotNullError);
+      const { errors } = error;
+      expect(errors).to.have.length(2);
 
-        const e0name0 = errors[0].errors.get('name')[0];
+      const e0name0 = errors[0].errors.get('name')[0];
 
-        expect(errors[0].record.code).to.equal('1234');
-        expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
+      expect(errors[0].record.code).to.equal('1234');
+      expect(e0name0.type || e0name0.origin).to.equal('notNull violation');
 
-        expect(errors[1].record.name).to.equal('bar');
-        expect(errors[1].record.code).to.equal('1');
-        expect(errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
-      }
+      expect(errors[1].record.name).to.equal('bar');
+      expect(errors[1].record.code).to.equal('1');
+      expect(errors[1].errors.get('code')[0].message).to.equal(expectedValidationError);
     });
 
     it("doesn't emit an error when validate is set to true but our selectedValues are fine", async function () {
@@ -421,7 +425,8 @@ describe('Model', () => {
       const Worker = this.customSequelize.define('Worker', {}, { timestamps: false });
       await Worker.sync();
       const workers = await Worker.bulkCreate([{}, {}]);
-      expect(workers).to.be.ok;
+      expect(workers).to.have.length(2);
+      expect(await Worker.count()).to.equal(2);
     });
 
     it('should allow autoincremented attributes to be set', async function () {
@@ -492,16 +497,12 @@ describe('Model', () => {
         await this.User.bulkCreate(data, { fields: ['uniqueName', 'secretValue'] });
         data.push({ uniqueName: 'Michael', secretValue: '26' });
 
-        try {
-          await this.User.bulkCreate(data, {
+        await expect(
+          this.User.bulkCreate(data, {
             fields: ['uniqueName', 'secretValue'],
             ignoreDuplicates: true,
-          });
-        } catch (error) {
-          expect(error.message).to.equal(
-            `${dialectName} does not support the ignoreDuplicates option.`,
-          );
-        }
+          }),
+        ).to.be.rejectedWith(Error, `${dialectName} does not support the ignoreDuplicates option.`);
       });
     }
 
@@ -972,7 +973,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
             });
@@ -992,7 +993,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.not.eq(null);
               }
 
@@ -1006,7 +1007,7 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
 
@@ -1030,16 +1031,12 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 if (i % 2) {
                   expect(results[i].time_deleted).to.not.eq(null);
                 } else {
                   expect(results[i].time_deleted).to.eq(null);
                 }
-              }
-
-              for (const membership of memberships) {
-                membership.time_deleted;
               }
 
               results = await Memberships.bulkCreate(
@@ -1052,13 +1049,12 @@ describe('Model', () => {
 
               for (let i = 0; i < 10; i++) {
                 expect(results[i].user_id).to.eq(memberships[i].user_id);
-                expect(results[i].team_id).to.eq(memberships[i].team_id);
+                expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                 expect(results[i].time_deleted).to.eq(null);
               }
 
-              const count = await Memberships.count({ paranoid: false });
-
-              expect(count).to.eq(15);
+              expect(await Memberships.count({ where: { time_deleted: null } })).to.eq(10);
+              expect(await Memberships.count({ paranoid: false })).to.eq(15);
             });
           });
 
@@ -1114,7 +1110,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
               });
@@ -1134,7 +1130,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.not.eq(null);
                 }
 
@@ -1148,7 +1144,7 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
 
@@ -1172,16 +1168,12 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   if (i % 2) {
                     expect(results[i].time_deleted).to.not.eq(null);
                   } else {
                     expect(results[i].time_deleted).to.eq(null);
                   }
-                }
-
-                for (const membership of memberships) {
-                  membership.time_deleted;
                 }
 
                 results = await Memberships.bulkCreate(
@@ -1194,13 +1186,12 @@ describe('Model', () => {
 
                 for (let i = 0; i < 10; i++) {
                   expect(results[i].user_id).to.eq(memberships[i].user_id);
-                  expect(results[i].team_id).to.eq(memberships[i].team_id);
+                  expect(results[i].foreign_id).to.eq(memberships[i].foreign_id);
                   expect(results[i].time_deleted).to.eq(null);
                 }
 
-                const count = await Memberships.count({ paranoid: false });
-
-                expect(count).to.eq(15);
+                expect(await Memberships.count({ where: { time_deleted: null } })).to.eq(10);
+                expect(await Memberships.count({ paranoid: false })).to.eq(15);
               });
             });
           }

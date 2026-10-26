@@ -30,6 +30,10 @@ interface TableAliasOptions extends EscapeOptions {
   reservedTableAliases?: Set<string>;
 }
 
+export interface UniqueTypeOptions {
+  prefixLength?: number | undefined;
+}
+
 export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = AbstractDialect> {
   readonly dialect: Dialect;
   readonly whereSqlBuilder: WhereSqlBuilder;
@@ -90,6 +94,40 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
 
   getTechnicalSchemaNames(): readonly string[] {
     return EMPTY_ARRAY;
+  }
+
+  /**
+   * Returns whether columns of this SQL type can be unique in this dialect.
+   *
+   * @param _sqlType The SQL type of the column, as returned by the data type
+   * @param _options The length of the prefix of the column that is part of the unique index, if any (prefixLength)
+   */
+  canTypeBeUnique(_sqlType: string, _options?: UniqueTypeOptions): boolean {
+    return true;
+  }
+
+  /**
+   * Throws if columns of this SQL type cannot be unique in this dialect.
+   * Used by attributeToSql before adding UNIQUE to a column definition,
+   * to throw a clear error instead of the one of the database.
+   *
+   * @param columnName The name of the column
+   * @param sqlType The SQL type of the column, as returned by the data type
+   * @param options The length of the prefix of the column that is part of the unique index, if any (prefixLength)
+   */
+  assertTypeCanBeUnique(
+    columnName: string | undefined,
+    sqlType: string,
+    options?: UniqueTypeOptions,
+  ): void {
+    if (this.canTypeBeUnique(sqlType, options)) {
+      return;
+    }
+
+    const column = columnName == null ? 'The column' : `Column ${JSON.stringify(columnName)}`;
+    throw new Error(
+      `${column} cannot be unique: ${this.dialect.name} does not support unique constraints on ${sqlType} columns.`,
+    );
   }
 
   getConstraintSnippet(tableName: TableOrModel, options: GetConstraintSnippetQueryOptions) {

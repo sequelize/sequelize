@@ -989,6 +989,22 @@ ${associationOwner._getAssociationDebugList()}`);
       });
 
     for (const index of missingIndexes) {
+      if (!index.unique) {
+        continue;
+      }
+
+      for (const field of index.fields) {
+        const columnName = typeof field === 'string' ? field : field.name;
+        const attribute = modelDefinition.columns.get(columnName);
+        if (attribute) {
+          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type, {
+            prefixLength: typeof field === 'string' ? undefined : field.length,
+          });
+        }
+      }
+    }
+
+    for (const index of missingIndexes) {
       // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.
       await this.queryInterface.addIndex(tableName, index, options);
     }
