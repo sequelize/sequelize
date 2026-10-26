@@ -21,6 +21,16 @@ describe('QueryInterface#bulkInsert', () => {
     sinon.restore();
   });
 
+  it('does not execute a query and returns an empty array when there are no rows', async () => {
+    const { User } = vars;
+    const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
+
+    const result = await sequelize.queryInterface.bulkInsert(User.table, []);
+
+    expect(result).to.deep.eq([]);
+    expect(stub.callCount).to.eq(0);
+  });
+
   it('uses minimal insert queries when rows <=1000', async () => {
     const { User } = vars;
     const stub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
