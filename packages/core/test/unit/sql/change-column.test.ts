@@ -102,6 +102,22 @@ describe('QueryInterface#changeColumn', () => {
     });
   });
 
+  it("does not treat an ENUM value that is exactly 'REFERENCES' as a foreign key", async () => {
+    if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+      return;
+    }
+
+    const { User } = vars;
+
+    await sequelize.queryInterface.changeColumn(User.table, 'level_id', {
+      type: DataTypes.ENUM('REFERENCES'),
+    });
+
+    expectsql(vars.stub.lastCall.args[0], {
+      'mysql mariadb': "ALTER TABLE `users` CHANGE `level_id` `level_id` ENUM('REFERENCES');",
+    });
+  });
+
   it('uses the column name when it differs from the attribute name', async () => {
     const { User } = vars;
 

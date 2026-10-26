@@ -9,6 +9,7 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
 import forOwn from 'lodash/forOwn';
@@ -55,7 +56,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         if (dataType.includes('PRIMARY KEY')) {
           primaryKeys.push(attr);
 
-          if (/\bREFERENCES\b/.test(dataType)) {
+          if (hasForeignKeyReference(dataType)) {
             // MSSQL doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
             attributesClauseParts.push(
@@ -67,7 +68,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
               `${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`,
             );
           }
-        } else if (/\bREFERENCES\b/.test(dataType)) {
+        } else if (hasForeignKeyReference(dataType)) {
           // MSSQL doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attributesClauseParts.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -180,7 +181,7 @@ export class MsSqlQueryGenerator extends MsSqlQueryGeneratorTypeScript {
         definition = commentMatch[1];
       }
 
-      if (/\bREFERENCES\b/.test(definition)) {
+      if (hasForeignKeyReference(definition)) {
         constraintString.push(
           `FOREIGN KEY (${quotedAttrName}) ${definition.replace(/.+?(?=REFERENCES)/, '')}`,
         );

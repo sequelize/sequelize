@@ -31,6 +31,32 @@ describe('QueryGenerator#createTableQuery', () => {
     );
   });
 
+  it("does not treat an ENUM value that is exactly 'REFERENCES' as a foreign key", () => {
+    if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+      return;
+    }
+
+    const RefUser = sequelize.define(
+      'user',
+      {
+        pref_type: DataTypes.ENUM('REFERENCES', 'SETTINGS'),
+      },
+      { timestamps: false },
+    );
+
+    expectsql(
+      queryGenerator.createTableQuery(
+        RefUser.table,
+        queryGenerator.attributesToSql(RefUser.getAttributes()),
+        {},
+      ),
+      {
+        'mysql mariadb':
+          "CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER NOT NULL auto_increment , `pref_type` ENUM('REFERENCES', 'SETTINGS'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+      },
+    );
+  });
+
   it('references enum in the right schema #3171', () => {
     const FooUser = sequelize.define(
       'user',

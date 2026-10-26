@@ -1,6 +1,7 @@
 import type { AbstractDialect } from '@sequelize/core';
 import { sql as sqlTag } from '@sequelize/core';
 import {
+  hasForeignKeyReference,
   injectReplacements,
   mapBindParameters,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
@@ -1096,6 +1097,31 @@ SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
           (N'john', N'john@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10'),
           (N'michael', N'michael@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10');`,
     });
+  });
+});
+
+describe('hasForeignKeyReference', () => {
+  it('detects a REFERENCES clause', () => {
+    expect(hasForeignKeyReference('INTEGER REFERENCES `levels` (`id`) ON DELETE CASCADE')).to.equal(
+      true,
+    );
+  });
+
+  it('detects a REFERENCES clause that follows a string literal', () => {
+    expect(hasForeignKeyReference("VARCHAR(10) DEFAULT 'it''s' REFERENCES levels (id)")).to.equal(
+      true,
+    );
+  });
+
+  it('ignores REFERENCES inside single-quoted string literals', () => {
+    expect(hasForeignKeyReference("ENUM('REFERENCES')")).to.equal(false);
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'REFERENCES'")).to.equal(false);
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'a REFERENCES b'")).to.equal(false);
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'it''s REFERENCES'")).to.equal(false);
+  });
+
+  it('ignores words that merely contain REFERENCES', () => {
+    expect(hasForeignKeyReference("ENUM('PREFERENCES')")).to.equal(false);
   });
 });
 

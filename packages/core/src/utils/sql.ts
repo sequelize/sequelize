@@ -565,3 +565,16 @@ export function createBindParamGenerator(
     return `$${bindName}`;
   };
 }
+
+const SINGLE_QUOTED_STRING_LITERAL = /'(?:[^']|'')*'/g;
+const REFERENCES_KEYWORD = /\bREFERENCES\b/;
+
+/**
+ * Checks whether a column definition contains a foreign key `REFERENCES` clause,
+ * ignoring `REFERENCES` that only appears inside single-quoted string literals (ENUM or DEFAULT values).
+ *
+ * @param definition The SQL column definition.
+ */
+export function hasForeignKeyReference(definition: string): boolean {
+  return REFERENCES_KEYWORD.test(definition.replaceAll(SINGLE_QUOTED_STRING_LITERAL, "''"));
+}

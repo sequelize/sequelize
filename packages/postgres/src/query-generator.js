@@ -4,6 +4,7 @@ import { DataTypes } from '@sequelize/core';
 import { CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import each from 'lodash/each';
 import isEmpty from 'lodash/isEmpty';
@@ -147,7 +148,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         attrSql += query(`${this.quoteIdentifier(attributeName)} SET NOT NULL`);
 
         definition = definition.replace('NOT NULL', '').trim();
-      } else if (!/\bREFERENCES\b/.test(definition)) {
+      } else if (!hasForeignKeyReference(definition)) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP NOT NULL`);
       }
 
@@ -160,7 +161,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
       }
 
-      if (!/\bREFERENCES\b/.test(definition)) {
+      if (!hasForeignKeyReference(definition)) {
         attrSql += query(`${this.quoteIdentifier(attributeName)} DROP DEFAULT`);
       }
 
@@ -188,7 +189,7 @@ export class PostgresQueryGenerator extends PostgresQueryGeneratorTypeScript {
 
       attrSql += uniqueSql;
 
-      if (/\bREFERENCES\b/.test(definition)) {
+      if (hasForeignKeyReference(definition)) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         attrSql += query(
           `ADD FOREIGN KEY (${this.quoteIdentifier(attributeName)}) ${definition}`,

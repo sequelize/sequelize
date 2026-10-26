@@ -9,6 +9,7 @@ import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-ow
 import { quoteIdentifier } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/dialect.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import { SnowflakeQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
@@ -64,14 +65,14 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         primaryKeys.push(attr);
 
-        if (/\bREFERENCES\b/.test(dataType)) {
+        if (hasForeignKeyReference(dataType)) {
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
           foreignKeys[attr] = match[2];
         } else {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
-      } else if (/\bREFERENCES\b/.test(dataType)) {
+      } else if (hasForeignKeyReference(dataType)) {
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
         foreignKeys[attr] = match[2];
@@ -163,7 +164,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'SET NOT NULL'));
 
         definition = definition.replace('NOT NULL', '').trim();
-      } else if (!/\bREFERENCES\b/.test(definition)) {
+      } else if (!hasForeignKeyReference(definition)) {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'DROP NOT NULL'));
       }
 
@@ -177,7 +178,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         );
 
         definition = definition.replace(/(DEFAULT[^;]+)/, '').trim();
-      } else if (!/\bREFERENCES\b/.test(definition)) {
+      } else if (!hasForeignKeyReference(definition)) {
         attrSql.push(query(this.quoteIdentifier(attributeName), 'DROP DEFAULT'));
       }
 
@@ -191,7 +192,7 @@ export class SnowflakeQueryGenerator extends SnowflakeQueryGeneratorTypeScript {
         );
       }
 
-      if (/\bREFERENCES\b/.test(definition)) {
+      if (hasForeignKeyReference(definition)) {
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         attrSql.push(
           query('ADD FOREIGN KEY (', this.quoteIdentifier(attributeName), ')', definition).replace(

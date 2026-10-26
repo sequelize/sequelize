@@ -352,6 +352,17 @@ if (dialect === 'mariadb') {
           expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('PREFERENCES');",
         },
         {
+          title: "should not treat an ENUM value that is exactly 'REFERENCES' as a foreign key",
+          arguments: ['users', { status: "ENUM('REFERENCES')" }],
+          expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('REFERENCES');",
+        },
+        {
+          title: "should not treat a DEFAULT value that is exactly 'REFERENCES' as a foreign key",
+          arguments: ['users', { status: "VARCHAR(255) DEFAULT 'REFERENCES'" }],
+          expectation:
+            "ALTER TABLE `users` CHANGE `status` `status` VARCHAR(255) DEFAULT 'REFERENCES';",
+        },
+        {
           title: 'should treat actual REFERENCES keyword as a foreign key',
           arguments: [
             'users',

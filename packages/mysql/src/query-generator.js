@@ -5,6 +5,7 @@ import { ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS } from '@sequelize/core/_non-semve
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { inspect } from '@sequelize/utils';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
@@ -34,7 +35,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         primaryKeys.push(attr);
 
-        if (/\bREFERENCES\b/.test(dataType)) {
+        if (hasForeignKeyReference(dataType)) {
           // MySQL doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
@@ -42,7 +43,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
         } else {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
-      } else if (/\bREFERENCES\b/.test(dataType)) {
+      } else if (hasForeignKeyReference(dataType)) {
         // MySQL doesn't support inline REFERENCES declarations: move to the end
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -130,7 +131,7 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (/\bREFERENCES\b/.test(definition)) {
+      if (hasForeignKeyReference(definition)) {
         const attrName = this.quoteIdentifier(attributeName);
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);

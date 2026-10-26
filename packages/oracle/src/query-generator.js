@@ -22,6 +22,7 @@ import {
   EMPTY_SET,
   getObjectFromMap,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { pojo } from '@sequelize/utils';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
 
@@ -219,7 +220,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         // Primary key
         primaryKeys.push(attr);
-        if (/\bREFERENCES\b/.test(dataType)) {
+        if (hasForeignKeyReference(dataType)) {
           const match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${attr} ${match[1].replace(/PRIMARY KEY/, '')}`);
 
@@ -228,7 +229,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
         } else {
           attrStr.push(`${attr} ${dataType.replace(/PRIMARY KEY/, '').trim()}`);
         }
-      } else if (/\bREFERENCES\b/.test(dataType)) {
+      } else if (hasForeignKeyReference(dataType)) {
         // Foreign key
         const match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${attr} ${match[1]}`);
@@ -573,7 +574,7 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
 
       const definition = attributes[attributeName];
       const addUniqueKey = columns?.[attributeName]?.unique === true;
-      if (/\bREFERENCES\b/.test(definition)) {
+      if (hasForeignKeyReference(definition)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
 
         if (addUniqueKey) {

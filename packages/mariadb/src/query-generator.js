@@ -2,6 +2,7 @@
 
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
@@ -30,7 +31,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
       if (dataType.includes('PRIMARY KEY')) {
         primaryKeys.push(attr);
 
-        if (/\bREFERENCES\b/.test(dataType)) {
+        if (hasForeignKeyReference(dataType)) {
           // MariaDB doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace('PRIMARY KEY', '')}`);
@@ -38,7 +39,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
         } else {
           attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace('PRIMARY KEY', '')}`);
         }
-      } else if (/\bREFERENCES\b/.test(dataType)) {
+      } else if (hasForeignKeyReference(dataType)) {
         // MariaDB doesn't support inline REFERENCES declarations: move to the end
         match = dataType.match(/^(.+) (REFERENCES.*)$/);
         attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -121,7 +122,7 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (/\bREFERENCES\b/.test(definition)) {
+      if (hasForeignKeyReference(definition)) {
         const attrName = this.quoteIdentifier(attributeName);
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
