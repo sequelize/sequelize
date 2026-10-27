@@ -357,6 +357,12 @@ if (dialect === 'mariadb') {
           expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('REFERENCES');",
         },
         {
+          title:
+            'should not treat an ENUM value with an escaped quote and REFERENCES as a foreign key',
+          arguments: ['users', { status: "ENUM('it\\'s REFERENCES')" }],
+          expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('it\\'s REFERENCES');",
+        },
+        {
           title: "should not treat a DEFAULT value that is exactly 'REFERENCES' as a foreign key",
           arguments: ['users', { status: "VARCHAR(255) DEFAULT 'REFERENCES'" }],
           expectation:

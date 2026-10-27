@@ -567,14 +567,28 @@ export function createBindParamGenerator(
 }
 
 const SINGLE_QUOTED_STRING_LITERAL = /'(?:[^']|'')*'/g;
+const BACKSLASH_ESCAPED_STRING_LITERAL = /'(?:[^'\\]|\\.|'')*'/g;
 const REFERENCES_KEYWORD = /\bREFERENCES\b/;
+
+interface HasForeignKeyReferenceOptions {
+  /** MySQL and MariaDB only: a backslash escapes the next character inside a literal. */
+  backslashEscapes?: boolean;
+}
 
 /**
  * Checks whether a column definition contains a foreign key `REFERENCES` clause,
  * ignoring `REFERENCES` that only appears inside single-quoted string literals (ENUM or DEFAULT values).
  *
  * @param definition The SQL column definition.
+ * @param options Literal rules for the dialect; defaults to standard SQL, where a backslash is ordinary.
  */
-export function hasForeignKeyReference(definition: string): boolean {
-  return REFERENCES_KEYWORD.test(definition.replaceAll(SINGLE_QUOTED_STRING_LITERAL, "''"));
+export function hasForeignKeyReference(
+  definition: string,
+  options: HasForeignKeyReferenceOptions = {},
+): boolean {
+  const literal = options.backslashEscapes
+    ? BACKSLASH_ESCAPED_STRING_LITERAL
+    : SINGLE_QUOTED_STRING_LITERAL;
+
+  return REFERENCES_KEYWORD.test(definition.replaceAll(literal, "''"));
 }

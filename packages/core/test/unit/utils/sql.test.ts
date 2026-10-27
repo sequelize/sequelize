@@ -1123,6 +1123,26 @@ describe('hasForeignKeyReference', () => {
   it('ignores words that merely contain REFERENCES', () => {
     expect(hasForeignKeyReference("ENUM('PREFERENCES')")).to.equal(false);
   });
+
+  it('ignores REFERENCES after a backslash-escaped quote when backslash escapes are enabled', () => {
+    expect(
+      hasForeignKeyReference("ENUM('it\\'s REFERENCES')", { backslashEscapes: true }),
+    ).to.equal(false);
+  });
+
+  it('treats a backslash before a closing quote as a complete literal by default', () => {
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'C:\\' REFERENCES users (id)")).to.equal(
+      true,
+    );
+  });
+
+  it('detects a REFERENCES clause after an escaped backslash when backslash escapes are enabled', () => {
+    expect(
+      hasForeignKeyReference("VARCHAR(255) DEFAULT 'a\\\\' REFERENCES users (id) COMMENT 'x'", {
+        backslashEscapes: true,
+      }),
+    ).to.equal(true);
+  });
 });
 
 function supportsNonStandardConformingStrings() {
