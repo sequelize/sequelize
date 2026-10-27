@@ -2812,7 +2812,7 @@ __metadata:
     "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.8.0"
     "@types/sinon": "npm:22.0.2"
-    "@types/sinon-chai": "npm:4.0.0"
+    "@types/sinon-chai": "npm:4.0.1"
     "@types/validator": "npm:^13.15.10"
     ansis: "npm:^4.4.0"
     bnf-parser: "npm:^3.1.6"
@@ -3670,13 +3670,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon-chai@npm:4.0.0":
-  version: 4.0.0
-  resolution: "@types/sinon-chai@npm:4.0.0"
+"@types/sinon-chai@npm:4.0.1":
+  version: 4.0.1
+  resolution: "@types/sinon-chai@npm:4.0.1"
   dependencies:
     "@types/chai": "npm:*"
     "@types/sinon": "npm:*"
-  checksum: 10c0/9cc2b98ebd9d81cbb6fa234d81cf6d9a0f02af8e777bd19b66baa793455056c105640abc81e5108581f92ebd5753023920e99ee992fbd240e9dd28882bcd1276
+  checksum: 10c0/8df4de76b5fc9e09bed03a407a45654b45536e203cf12752438fcee9b52747704fa5b83ca9f967cf2ea2b2d25be19f699b9b02eaa657f3e680957bfe3fe2da8e
   languageName: node
   linkType: hard
 
