@@ -179,6 +179,54 @@ describe(getTestDialectTeaser('belongsTo'), () => {
     expect(Log.getAttributes().singularId).to.exist;
   });
 
+  describe('foreign key auto-indexing', () => {
+    it('auto-creates an index on the foreign key column by default', () => {
+      const User = sequelize.define('User');
+      const Task = sequelize.define('Task');
+
+      Task.belongsTo(User);
+
+      const indexes = Task.modelDefinition.getIndexes();
+      const fkIndex = indexes.find(idx =>
+        idx.fields?.some(
+          f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId',
+        ),
+      );
+      expect(fkIndex).to.not.be.undefined;
+    });
+
+    it('does not override explicit foreignKey index: false', () => {
+      const User = sequelize.define('User');
+      const Task = sequelize.define('Task');
+
+      Task.belongsTo(User, { foreignKey: { name: 'userId', index: false } });
+
+      const indexes = Task.modelDefinition.getIndexes();
+      const fkIndex = indexes.find(idx =>
+        idx.fields?.some(
+          f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId',
+        ),
+      );
+      expect(fkIndex).to.be.undefined;
+    });
+
+    it('preserves custom index options on foreignKey', () => {
+      const User = sequelize.define('User');
+      const Task = sequelize.define('Task');
+
+      Task.belongsTo(User, { foreignKey: { name: 'userId', index: { unique: true } } });
+
+      const indexes = Task.modelDefinition.getIndexes();
+      const fkIndex = indexes.find(idx =>
+        idx.fields?.some(
+          f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId',
+        ),
+      );
+      expect(fkIndex).to.not.be.undefined;
+      expect(fkIndex?.unique).to.be.true;
+    });
+  });
+
   describe('association hooks', () => {
     let Projects: ModelStatic<any>;
     let Tasks: ModelStatic<any>;
