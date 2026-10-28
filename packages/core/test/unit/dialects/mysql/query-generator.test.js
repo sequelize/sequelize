@@ -364,6 +364,20 @@ if (dialect === 'mysql') {
             "ALTER TABLE `users` CHANGE `status` `status` VARCHAR(255) DEFAULT 'REFERENCES';",
         },
         {
+          title: 'should extract the REFERENCES clause after a DEFAULT value containing REFERENCES',
+          arguments: [
+            'users',
+            { status: "VARCHAR(255) DEFAULT 'REFERENCES' REFERENCES levels (id)" },
+          ],
+          expectation: 'ALTER TABLE `users` ADD FOREIGN KEY (`status`) REFERENCES levels (id);',
+        },
+        {
+          title:
+            'should extract the REFERENCES clause after an ENUM value with an escaped quote and REFERENCES',
+          arguments: ['users', { status: "ENUM('it\\'s REFERENCES') REFERENCES levels (id)" }],
+          expectation: 'ALTER TABLE `users` ADD FOREIGN KEY (`status`) REFERENCES levels (id);',
+        },
+        {
           title: 'should treat actual REFERENCES keyword as a foreign key',
           arguments: [
             'users',

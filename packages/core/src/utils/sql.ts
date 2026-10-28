@@ -586,9 +586,20 @@ export function hasForeignKeyReference(
   definition: string,
   options: HasForeignKeyReferenceOptions = {},
 ): boolean {
+  return findForeignKeyReference(definition, options) !== -1;
+}
+
+// Returns the index of the foreign key REFERENCES keyword in the original definition, or -1.
+export function findForeignKeyReference(
+  definition: string,
+  options: HasForeignKeyReferenceOptions = {},
+): number {
   const literal = options.backslashEscapes
     ? BACKSLASH_ESCAPED_STRING_LITERAL
     : SINGLE_QUOTED_STRING_LITERAL;
 
-  return REFERENCES_KEYWORD.test(definition.replaceAll(literal, "''"));
+  // Each literal is masked with a same-length placeholder so indexes match the original definition.
+  const masked = definition.replaceAll(literal, match => `'${' '.repeat(match.length - 2)}'`);
+
+  return masked.search(REFERENCES_KEYWORD);
 }

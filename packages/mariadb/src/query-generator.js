@@ -2,7 +2,10 @@
 
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
-import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import {
+  findForeignKeyReference,
+  hasForeignKeyReference,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import each from 'lodash/each';
 import isPlainObject from 'lodash/isPlainObject';
 import { MariaDbQueryGeneratorTypeScript } from './query-generator-typescript.internal.js';
@@ -122,9 +125,10 @@ export class MariaDbQueryGenerator extends MariaDbQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (hasForeignKeyReference(definition, { backslashEscapes: true })) {
+      const referencesIndex = findForeignKeyReference(definition, { backslashEscapes: true });
+      if (referencesIndex !== -1) {
         const attrName = this.quoteIdentifier(attributeName);
-        definition = definition.replace(/.+?(?=REFERENCES)/, '');
+        definition = definition.slice(referencesIndex);
         constraintString.push(`FOREIGN KEY (${attrName}) ${definition}`);
       } else {
         attrString.push(`\`${attributeName}\` \`${attributeName}\` ${definition}`);

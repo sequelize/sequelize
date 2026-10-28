@@ -1,6 +1,7 @@
 import type { AbstractDialect } from '@sequelize/core';
 import { sql as sqlTag } from '@sequelize/core';
 import {
+  findForeignKeyReference,
   hasForeignKeyReference,
   injectReplacements,
   mapBindParameters,
@@ -1142,6 +1143,36 @@ describe('hasForeignKeyReference', () => {
         backslashEscapes: true,
       }),
     ).to.equal(true);
+  });
+});
+
+describe('findForeignKeyReference', () => {
+  it('returns the index of REFERENCES when there is no literal', () => {
+    expect(findForeignKeyReference('INTEGER REFERENCES levels (id)')).to.equal(8);
+  });
+
+  it('returns the index of the REFERENCES clause that follows a literal containing REFERENCES', () => {
+    const definition = "VARCHAR(255) DEFAULT 'REFERENCES' REFERENCES levels (id)";
+
+    expect(findForeignKeyReference(definition)).to.equal(definition.lastIndexOf('REFERENCES'));
+  });
+
+  it('returns the index of the REFERENCES clause after a doubled-quote escape in a literal', () => {
+    const definition = "DEFAULT 'it''s REFERENCES' REFERENCES levels (id)";
+
+    expect(findForeignKeyReference(definition)).to.equal(definition.lastIndexOf('REFERENCES'));
+  });
+
+  it('returns -1 when REFERENCES only appears inside a literal', () => {
+    expect(findForeignKeyReference("ENUM('REFERENCES')")).to.equal(-1);
+  });
+
+  it('returns the index of the REFERENCES clause after a backslash-escaped quote when backslash escapes are enabled', () => {
+    const definition = "ENUM('it\\'s REFERENCES') REFERENCES levels (id)";
+
+    expect(findForeignKeyReference(definition, { backslashEscapes: true })).to.equal(
+      definition.lastIndexOf('REFERENCES'),
+    );
   });
 });
 
