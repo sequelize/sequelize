@@ -190,6 +190,171 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
       await Link.update({ locationId: locations[0].id }, { where: { customerId: second.id } });
       const moved = await Location.findAll({ order: ['id'] });
       expect(moved.map(row => row.fuelCustomerId)).to.deep.equal([second.id, null]);
+
+      // a row whose primary key changes has no old row to compare with
+      await sequelize.query(
+        'UPDATE dep_links SET id = id + 100, "locationId" = :locationId WHERE "customerId" = :customerId',
+        { replacements: { locationId: locations[1].id, customerId: second.id } },
+      );
+      const renumbered = await Location.findAll({ order: ['id'] });
+      expect(renumbered.map(row => row.fuelCustomerId)).to.deep.equal([first.id, second.id]);
+    });
+
+    it('leaves the rows alone when an update does not change the columns it reads', async () => {
+      const { Customer, Link, Location } = await defineModels();
+      await Customer.sync({ force: true });
+      await Location.sync({ force: true });
+      await Link.sync({ force: true });
+
+      const customer = await Customer.create({ name: 'owner' });
+      const location = await Location.create({ address: 'a' });
+      await Link.create({ customerId: customer.id, locationId: location.id, type: 'owner' });
+
+      // runs a statement in a transaction that stays open while another connection locks the location
+      async function lockAfter(statement: string) {
+        const transaction = await sequelize.startUnmanagedTransaction();
+        try {
+          await sequelize.query(statement, { transaction });
+          await sequelize.query('SELECT FROM dep_locations FOR UPDATE NOWAIT');
+        } finally {
+          await transaction.rollback();
+        }
+      }
+
+      // the expression reads the id and deletedAt of customers, not their name
+      await lockAfter(`UPDATE dep_customers SET name = 'renamed'`);
+      await lockAfter('UPDATE dep_links SET type = type');
+      await expect(lockAfter('UPDATE dep_customers SET "deletedAt" = now()')).to.be.rejectedWith(
+        'could not obtain lock',
+      );
+    });
+
+    it('computes each row once', async () => {
+      const { Customer } = await defineModels();
+      await Customer.sync({ force: true });
+      await sequelize.query(`CREATE SEQUENCE dep_runs;
+        CREATE FUNCTION dep_counted(value text) RETURNS text LANGUAGE sql AS $$ SELECT nextval('dep_runs'); SELECT value $$;`);
+
+      // the number of times the expression ran since the last call
+      async function runs(): Promise<number> {
+        const [{ count }] = await sequelize.query<{ count: string }>(
+          'SELECT CASE WHEN is_called THEN last_value ELSE 0 END AS count FROM dep_runs',
+          { type: QueryTypes.SELECT },
+        );
+        await sequelize.query(`SELECT setval('dep_runs', 1, false)`);
+
+        return Number(count);
+      }
+
+      @Table({
+        modelName: `DepInvoice${modelCount++}`,
+        tableName: 'dep_invoices',
+        timestamps: false,
+      })
+      class Invoice extends Model<InferAttributes<Invoice>, InferCreationAttributes<Invoice>> {
+        declare id: CreationOptional<number>;
+
+        @Attribute(DataTypes.INTEGER)
+        declare customerId: number;
+
+        @Attribute(DataTypes.STRING)
+        declare note: string | null;
+
+        @Attribute(DataTypes.STRING)
+        @GeneratedAs({
+          expression: sql`dep_counted((SELECT customer.name FROM dep_customers AS customer WHERE customer.id = ${sql.attribute('customerId')}))`,
+          dependsOn: ['customer'],
+        })
+        declare customerName: CreationOptional<string | null>;
+
+        @BelongsTo(() => Customer, { foreignKey: 'customerId', foreignKeyConstraints: false })
+        declare customer?: NonAttribute<InstanceType<typeof Customer>>;
+      }
+
+      sequelize.addModels([Invoice]);
+
+      try {
+        const [owner, tenant] = await Customer.bulkCreate([{ name: 'owner' }, { name: 'tenant' }]);
+        // a row that exists before the triggers
+        await sequelize.queryInterface.createTable('dep_invoices', {
+          id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+          customerId: DataTypes.INTEGER,
+          note: DataTypes.STRING,
+          customerName: DataTypes.STRING,
+        });
+        await sequelize.query('INSERT INTO dep_invoices ("customerId") VALUES (:id)', {
+          replacements: { id: owner.id },
+        });
+        await runs();
+
+        await sequelize.queryInterface.syncGeneratedColumnTriggers(Invoice);
+        expect(await runs()).to.equal(1);
+        const invoice = await Invoice.findOne({ rejectOnEmpty: true });
+        expect(invoice.customerName).to.equal('owner');
+
+        await Invoice.create({ customerId: tenant.id });
+        expect(await runs()).to.equal(1);
+
+        // the refresh does not run the trigger of the row again
+        await owner.update({ name: 'renamed' });
+        expect(await runs()).to.equal(1);
+        await invoice.reload();
+        expect(invoice.customerName).to.equal('renamed');
+
+        // columns it does not read
+        await sequelize.query('UPDATE dep_customers SET "updatedAt" = now()');
+        await invoice.update({ note: 'paid' });
+        expect(await runs()).to.equal(0);
+
+        await invoice.update({ customerId: tenant.id });
+        expect(await runs()).to.equal(1);
+        expect(invoice.customerName).to.equal('tenant');
+
+        // a direct write is computed again
+        await sequelize.query(`UPDATE dep_invoices SET "customerName" = 'forged'`);
+        expect(await runs()).to.equal(2);
+        await invoice.reload();
+        expect(invoice.customerName).to.equal('tenant');
+      } finally {
+        await Invoice.drop();
+        await sequelize.query('DROP FUNCTION dep_counted(text); DROP SEQUENCE dep_runs;');
+      }
+    });
+
+    it('refreshes on every update when Postgres cannot tell the columns it reads', async () => {
+      const { Customer } = await defineModels();
+      await Customer.sync({ force: true });
+
+      @Table({ modelName: `DepNote${modelCount++}`, tableName: 'dep_notes', timestamps: false })
+      class Note extends Model<InferAttributes<Note>, InferCreationAttributes<Note>> {
+        declare id: CreationOptional<number>;
+
+        @Attribute(DataTypes.INTEGER)
+        declare customerId: number;
+
+        // reads the customer whole-row
+        @Attribute(DataTypes.STRING)
+        @GeneratedAs({
+          expression: sql`(SELECT row_to_json(customer)->>'name' FROM dep_customers AS customer WHERE customer.id = ${sql.attribute('customerId')})`,
+          dependsOn: ['customer'],
+        })
+        declare customerName: CreationOptional<string | null>;
+
+        @BelongsTo(() => Customer, { foreignKey: 'customerId', foreignKeyConstraints: false })
+        declare customer?: NonAttribute<InstanceType<typeof Customer>>;
+      }
+
+      sequelize.addModels([Note]);
+      await Note.sync({ force: true });
+      // no guard, as the trigger of the row runs on every update
+      expect(await countTriggers('dep_notes')).to.equal(4);
+
+      const customer = await Customer.create({ name: 'owner' });
+      const note = await Note.create({ customerId: customer.id });
+      await customer.update({ name: 'renamed' });
+      await note.reload();
+      expect(note.customerName).to.equal('renamed');
+      await Note.drop();
     });
 
     it('creates the triggers when the tables it reads are created after the model', async () => {
@@ -206,12 +371,12 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
       await location.reload();
       expect(location.fuelCustomerId).to.equal(customer.id);
 
-      // own trigger, and an insert, update and delete trigger on each of the 2 tables read
-      expect(await countTriggers()).to.equal(7);
+      // own trigger and its guard, and an insert, update and delete trigger on each of the 2 tables read
+      expect(await countTriggers()).to.equal(8);
 
       // syncing again replaces them
       await Location.sync();
-      expect(await countTriggers()).to.equal(7);
+      expect(await countTriggers()).to.equal(8);
     });
 
     it('drops the triggers once the attribute no longer depends on other tables', async () => {
@@ -219,7 +384,7 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
       await Customer.sync({ force: true });
       await Location.sync({ force: true });
       await Link.sync({ force: true });
-      expect(await countTriggers()).to.equal(7);
+      expect(await countTriggers()).to.equal(8);
 
       const { Location: PlainLocation } = await defineModels({ dependsOn: false });
       await sequelize.queryInterface.syncGeneratedColumnTriggers(PlainLocation);
@@ -271,7 +436,7 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
 
       try {
         await Location.sync();
-        expect(await countTriggers()).to.equal(7);
+        expect(await countTriggers()).to.equal(8);
         const [{ exists }] = await sequelize.query<{ exists: boolean }>(
           `SELECT to_regprocedure('dep_other.maintain()') IS NOT NULL AS exists`,
           { type: QueryTypes.SELECT },
@@ -292,7 +457,7 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
         sequelize.queryInterface.syncGeneratedColumnTriggers(Location),
         sequelize.queryInterface.syncGeneratedColumnTriggers(Location),
       ]);
-      expect(await countTriggers()).to.equal(7);
+      expect(await countTriggers()).to.equal(8);
     });
 
     it('names the triggers of a table with a non-ASCII name within the identifier limit', async () => {
@@ -302,7 +467,7 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
       await Location.sync({ force: true });
       await Link.sync({ force: true });
 
-      expect(await countTriggers(locationTable)).to.equal(7);
+      expect(await countTriggers(locationTable)).to.equal(8);
       await Link.drop();
       await Location.drop();
     });

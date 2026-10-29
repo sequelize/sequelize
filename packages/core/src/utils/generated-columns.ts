@@ -14,6 +14,10 @@ export interface GeneratedColumnDependency {
   table: TableNameWithSchema;
   /** A column of the model's table */
   key: string;
+  /** The primary key columns of `table`, which pair the old and new versions of updated rows */
+  primaryKeys: string[];
+  /** The column of `table` that holds the values of `key`, when `selectKeys` reads them from the changed rows alone */
+  keyColumn?: string;
   /**
    * Returns the SQL that selects the values of `key` of the rows to recompute.
    *
@@ -48,6 +52,10 @@ export function getGeneratedColumnDependencies(model: ModelStatic): GeneratedCol
   const { queryGenerator } = model.sequelize;
   const q = (identifier: string) => queryGenerator.quoteIdentifier(identifier);
   const dependencies = new Map<string, GeneratedColumnDependency>();
+  const primaryKeys = ({ modelDefinition }: ModelStatic) =>
+    [...modelDefinition.primaryKeysAttributeNames].map(attributeName =>
+      modelDefinition.getColumnName(attributeName),
+    );
 
   function add(dependency: GeneratedColumnDependency) {
     // two associations to one table differ by the key of the model they match
@@ -73,11 +81,14 @@ export function getGeneratedColumnDependencies(model: ModelStatic): GeneratedCol
         add({
           table: throughTable,
           key: association.sourceKeyField,
+          primaryKeys: primaryKeys(association.throughModel),
+          keyColumn: association.identifierField,
           selectKeys: rows => `SELECT ${sourceKey} FROM ${rows}`,
         });
         add({
           table: association.target.table,
           key: association.sourceKeyField,
+          primaryKeys: primaryKeys(association.target),
           selectKeys: rows =>
             `SELECT through.${sourceKey} FROM ${queryGenerator.quoteTable(throughTable)} AS through INNER JOIN ${rows} AS target ON through.${q(association.foreignIdentifierField)} = target.${q(association.targetKeyField)}`,
         });
@@ -88,12 +99,16 @@ export function getGeneratedColumnDependencies(model: ModelStatic): GeneratedCol
         add({
           table: association.target.table,
           key: association.sourceKeyField,
+          primaryKeys: primaryKeys(association.target),
+          keyColumn: association.identifierField,
           selectKeys: rows => `SELECT ${q(association.identifierField)} FROM ${rows}`,
         });
       } else if (association instanceof BelongsToAssociation) {
         add({
           table: association.target.table,
           key: association.identifierField,
+          primaryKeys: primaryKeys(association.target),
+          keyColumn: association.targetKeyField,
           selectKeys: rows => `SELECT ${q(association.targetKeyField)} FROM ${rows}`,
         });
       }

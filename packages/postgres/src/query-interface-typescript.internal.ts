@@ -18,6 +18,7 @@ import {
   getGeneratedColumnDependencies,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/generated-columns.js';
 import { createHash } from 'node:crypto';
+import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
 
 export class PostgresQueryInterfaceTypescript<
@@ -132,6 +133,50 @@ export class PostgresQueryInterfaceTypescript<
     );
   }
 
+  /**
+   * Returns the columns that a query reads from each of the given tables, as Postgres records them for a view of the query.
+   * A table is left out when Postgres cannot tell, such as when the query reads its rows whole or through a function.
+   *
+   * @param view the name of the view, dropped before returning
+   * @param query
+   * @param tables quoted table names
+   * @param options
+   */
+  async #readColumns(
+    view: string,
+    query: string,
+    tables: string[],
+    options: QueryRawOptions,
+  ): Promise<Map<string, { columns: string[]; comparedAsText: string[] | null }>> {
+    const { queryGenerator, sequelize } = this;
+    await sequelize.queryRaw(`CREATE VIEW ${view} AS ${query};`, {
+      ...options,
+      type: QueryTypes.RAW,
+    });
+    // a whole-row reference records no column: it shows as attribute 0 in the stored query
+    const reads = await sequelize.queryRaw<{
+      table: string;
+      columns: string[];
+      comparedAsText: string[] | null;
+    }>(
+      `SELECT tables.name AS "table", array_agg(attribute.attname::text ORDER BY attribute.attnum) AS columns,
+              array_agg(attribute.attname::text) FILTER (WHERE NOT EXISTS (
+                SELECT FROM pg_operator WHERE oprname = '=' AND oprleft = attribute.atttypid AND oprright = attribute.atttypid
+              )) AS "comparedAsText"
+         FROM unnest(ARRAY[${[...new Set(tables)].map(table => queryGenerator.escape(table)).join(', ')}]) AS tables(name)
+        INNER JOIN pg_depend AS dependency ON dependency.refclassid = 'pg_class'::regclass AND dependency.refobjid = to_regclass(tables.name)
+        INNER JOIN pg_rewrite AS rule ON dependency.classid = 'pg_rewrite'::regclass AND dependency.objid = rule.oid
+         LEFT JOIN pg_attribute AS attribute ON attribute.attrelid = dependency.refobjid AND attribute.attnum = dependency.refobjsubid AND attribute.attnum > 0
+        WHERE rule.ev_class = to_regclass(${queryGenerator.escape(view)}) AND rule.ev_action::text NOT LIKE '%:varattno 0 %'
+        GROUP BY tables.name
+       HAVING bool_and(attribute.attname IS NOT NULL)`,
+      { ...options, type: QueryTypes.SELECT },
+    );
+    await sequelize.queryRaw(`DROP VIEW ${view};`, { ...options, type: QueryTypes.RAW });
+
+    return new Map(reads.map(read => [read.table, read]));
+  }
+
   async #generatedColumnTriggers(
     model: ModelStatic,
     quotedTable: string,
@@ -203,19 +248,32 @@ export class PostgresQueryInterfaceTypescript<
     const lockAndRefresh = (where: string) =>
       `PERFORM FROM ${quotedTable}${where} ORDER BY ${primaryKeys.map(key => `${alias}.${q(key)}`).join(', ')} FOR UPDATE; ${refresh(where)}`;
 
-    const createFunction = (name: string, body: string) => [
-      `CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql AS $sequelize$ BEGIN ${body} END $sequelize$;`,
+    const reads = await this.#readColumns(
+      functionName('_reads'),
+      `SELECT ${expressions.map((expression, i) => `${expression} AS ${columnNames[i]}`).join(', ')} FROM ${quotedTable}`,
+      [quotedTable, ...dependencies.map(dependency => queryGenerator.quoteTable(dependency.table))],
+      options,
+    );
+    // the keys are collected into arrays of the type of their column
+    const columnTypes = new Map(
+      (
+        await this.sequelize.queryRaw<{ column: string; type: string }>(
+          `SELECT attname::text AS "column", format_type(atttypid, atttypmod) AS type FROM pg_attribute
+            WHERE attrelid = to_regclass(${queryGenerator.escape(quotedTable)}) AND attnum > 0`,
+          { ...options, type: QueryTypes.SELECT },
+        )
+      ).map(({ column, type }) => [column, type]),
+    );
+
+    // the functions resolve the tables they read as this sync does, whatever the search_path of the writer.
+    // Generic plans (Postgres 12+) keep the array of keys from making the queries plan again on every call.
+    const settings = `SET search_path FROM CURRENT${semver.gte(this.sequelize.getDatabaseVersion(), '12.0.0') ? ' SET plan_cache_mode = force_generic_plan' : ''}`;
+    const createFunction = (name: string, body: string, declarations = '') => [
+      `CREATE FUNCTION ${name}() RETURNS trigger LANGUAGE plpgsql ${settings} AS $sequelize$ ${declarations}BEGIN ${body} END $sequelize$;`,
       `COMMENT ON FUNCTION ${name}() IS ${owner};`,
     ];
 
-    const statements = [
-      ...createFunction(
-        functionName(''),
-        `SELECT ${expressions.join(', ')} INTO ${columnNames.map(column => `NEW.${column}`).join(', ')} FROM (SELECT NEW.*) AS ${alias}; RETURN NEW;`,
-      ),
-      `CREATE TRIGGER ${q(prefix)} BEFORE INSERT OR UPDATE ON ${quotedTable} FOR EACH ROW EXECUTE FUNCTION ${functionName('')}();`,
-    ];
-
+    const statements: string[] = [];
     for (const [i, dependency] of dependencies.entries()) {
       const keys = (rows: string) =>
         ` WHERE ${alias}.${q(dependency.key)} IN (${dependency.selectKeys(rows)})`;
@@ -223,19 +281,58 @@ export class PostgresQueryInterfaceTypescript<
       const dependencyTable = queryGenerator.quoteTable(dependency.table);
       const trigger = (event: string, transitions: string) =>
         `CREATE TRIGGER ${q(`${prefix}_${i}_${event.toLowerCase()}`)} AFTER ${event} ON ${dependencyTable} REFERENCING ${transitions} FOR EACH STATEMENT EXECUTE FUNCTION ${name}();`;
+      const keyColumn = dependency.keyColumn && q(dependency.keyColumn);
+      // inserted or deleted rows without a key have no row to refresh
+      const withKey = keyColumn ? ` WHERE ${keyColumn} IS NOT NULL` : '';
+
+      // An updated row only matters when its key or a column that the expressions read changes. Rows count
+      // whole when Postgres cannot tell which columns are read, or when the table has no primary key to pair
+      // the old and new rows. Transition tables have no statistics, which makes two other filters traps,
+      // measured on a 3.6M-row table:
+      // - joining old_rows to new_rows inside the lock or refresh query: the planner overestimates the join
+      //   about 100x and scans the whole table, 5x slower than no filter on an 88k-row update;
+      // - gating on an EXISTS over that join: a nested loop, still running after 200 s.
+      // The keys are collected once into an array instead, which the lock and the refresh look up by index.
+      const read = reads.get(dependencyTable);
+      const pairKeys = dependency.primaryKeys.map(key => q(key));
+      let newRows = 'new_rows';
+      let oldRows = 'old_rows';
+      let collectKeys = '';
+      if (read && pairKeys.length > 0) {
+        const readColumns = dependency.keyColumn
+          ? [...new Set([...read.columns, dependency.keyColumn])]
+          : read.columns;
+        // a type without an equality operator, such as json, is compared as text
+        const row = (relation: string) =>
+          `ROW(${readColumns.map(column => `${relation}.${q(column)}${read.comparedAsText?.includes(column) ? '::text' : ''}`).join(', ')})`;
+        const pairs = `new_rows AS n FULL JOIN old_rows AS o ON ${pairKeys.map(key => `o.${key} = n.${key}`).join(' AND ')}`;
+        // a row whose primary key changes has no pair
+        const changed = `(o.${pairKeys[0]} IS NULL OR n.${pairKeys[0]} IS NULL OR ${row('n')} IS DISTINCT FROM ${row('o')})`;
+        newRows = `(SELECT n.* FROM ${pairs} WHERE ${changed})`;
+        oldRows = `(SELECT o.* FROM ${pairs} WHERE ${changed})`;
+        if (keyColumn) {
+          collectKeys = `SELECT array_agg(DISTINCT k.key) INTO sequelize_keys FROM ${pairs}
+            CROSS JOIN LATERAL (VALUES (n.${keyColumn}), (o.${keyColumn})) AS k(key) WHERE k.key IS NOT NULL AND ${changed};`;
+        }
+      }
+
+      collectKeys ||= `SELECT array_agg(k.key) INTO sequelize_keys
+        FROM (${dependency.selectKeys(newRows)} UNION ${dependency.selectKeys(oldRows)}) AS k(key) WHERE k.key IS NOT NULL;`;
 
       statements.push(
         // a refresh that changes no rows still runs the statement triggers of its table: exiting early stops cycles
         ...createFunction(
           name,
           `IF TG_OP = 'INSERT' THEN
-             IF EXISTS (SELECT FROM new_rows) THEN ${lockAndRefresh(keys('new_rows'))} END IF;
+             IF EXISTS (SELECT FROM new_rows${withKey}) THEN ${lockAndRefresh(keys('new_rows'))} END IF;
            ELSIF TG_OP = 'DELETE' THEN
-             IF EXISTS (SELECT FROM old_rows) THEN ${lockAndRefresh(keys('old_rows'))} END IF;
-           ELSIF EXISTS (SELECT FROM new_rows) THEN
-             ${lockAndRefresh(` WHERE ${alias}.${q(dependency.key)} IN (${dependency.selectKeys('new_rows')} UNION ${dependency.selectKeys('old_rows')})`)}
+             IF EXISTS (SELECT FROM old_rows${withKey}) THEN ${lockAndRefresh(keys('old_rows'))} END IF;
+           ELSE
+             ${collectKeys}
+             IF sequelize_keys IS NOT NULL THEN ${lockAndRefresh(` WHERE ${alias}.${q(dependency.key)} = ANY(sequelize_keys)`)} END IF;
            END IF;
            RETURN NULL;`,
+          `DECLARE sequelize_keys ${columnTypes.get(dependency.key)}[]; `,
         ),
         trigger('INSERT', 'NEW TABLE AS new_rows'),
         trigger('UPDATE', 'OLD TABLE AS old_rows NEW TABLE AS new_rows'),
@@ -243,8 +340,26 @@ export class PostgresQueryInterfaceTypescript<
       );
     }
 
-    // the existing rows
+    // the existing rows, before the trigger below exists, so that each row is computed once
     statements.push(refresh(''));
+
+    // the triggers above refresh the rows when other tables change, so updates only matter when they write
+    // a column of the row that the expression reads
+    const ownColumns = reads.get(quotedTable)?.columns;
+    statements.push(
+      ...createFunction(
+        functionName(''),
+        `SELECT ${expressions.join(', ')} INTO ${columnNames.map(column => `NEW.${column}`).join(', ')} FROM (SELECT NEW.*) AS ${alias}; RETURN NEW;`,
+      ),
+      `CREATE TRIGGER ${q(prefix)} BEFORE INSERT OR UPDATE${ownColumns ? ` OF ${ownColumns.map(column => q(column)).join(', ')}` : ''} ON ${quotedTable} FOR EACH ROW EXECUTE FUNCTION ${functionName('')}();`,
+    );
+    if (ownColumns) {
+      // a direct write of the columns is computed again. The refreshes above write them from a trigger, which this skips.
+      // Rows inserted by other triggers are still computed by the trigger above.
+      statements.push(
+        `CREATE TRIGGER ${q(`${prefix}_guard`)} BEFORE UPDATE OF ${columnNames.join(', ')} ON ${quotedTable} FOR EACH ROW WHEN (pg_trigger_depth() < 1) EXECUTE FUNCTION ${functionName('')}();`,
+      );
+    }
 
     return statements;
   }
