@@ -59,7 +59,12 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
     include.hasParentWhere = options.hasParentWhere || Boolean(options.where);
     include.hasParentRequired = options.hasParentRequired || Boolean(options.required);
 
-    if (include.subQuery !== false && options.hasDuplicating && options.topLimit) {
+    if (include.separate) {
+      // Not part of this query: Model._findSeparate runs it as its own query, which plans its
+      // own subquery. A flag computed here (e.g. from a duplicating sibling and this query's
+      // limit) would turn that query's grouped limit into a subquery without WHERE or LIMIT.
+      include.subQueryFilter = false;
+    } else if (include.subQuery !== false && options.hasDuplicating && options.topLimit) {
       if (include.duplicating) {
         include.subQuery = include.subQuery || false;
         include.subQueryFilter = include.required;
@@ -73,9 +78,7 @@ export function _validateIncludedElements(options: any, tableNames: any = {}) {
         include.subQueryFilter = include.subQuery;
       } else {
         include.subQueryFilter = false;
-        include.subQuery =
-          include.subQuery ||
-          (include.hasParentRequired && include.hasRequired && !include.separate);
+        include.subQuery = include.subQuery || (include.hasParentRequired && include.hasRequired);
       }
     }
 

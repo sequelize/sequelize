@@ -119,6 +119,7 @@ const nonCascadingOptions = [
   'plain',
   'group',
   'having',
+  'subQuery',
 ];
 
 /**
