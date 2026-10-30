@@ -57,15 +57,13 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createDatabaseQuery',
+      this.dialect,
+      CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     return joinSQLFragments([
       `IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = ${this.escape(database)})`,
@@ -178,15 +176,13 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE TABLE ${this.quoteTable(tableName)}`;
   }
@@ -280,15 +276,13 @@ export class MsSqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
@@ -376,11 +370,12 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     }
 
     let template: string;
+    const sqlType = attributeTypeToSql(attribute.type);
 
     const generated = this.getGeneratedColumn(attribute);
     if (generated) {
       // computed columns cannot declare a type, so the expression is cast to the attribute's type
-      template = `AS CAST(${generated.expression} AS ${attributeTypeToSql(attribute.type)})`;
+      template = `AS CAST(${generated.expression} AS ${sqlType})`;
 
       if (generated.stored) {
         template += ' PERSISTED';
@@ -401,7 +396,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
 
       return template;
     } else {
-      template = attributeTypeToSql(attribute.type);
+      template = sqlType;
 
       if (attribute.allowNull === false) {
         template += ' NOT NULL';
@@ -425,6 +420,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
       attribute.unique === true &&
       (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
     ) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

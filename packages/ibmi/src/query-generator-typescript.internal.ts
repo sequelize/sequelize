@@ -94,15 +94,13 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     afterTableName: TableOrModel,
     options?: RenameTableQueryOptions,
   ): string {
-    if (options) {
-      rejectInvalidOptions(
-        'renameTableQuery',
-        this.dialect,
-        RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'renameTableQuery',
+      this.dialect,
+      RENAME_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const beforeTable = this.extractTableDetails(beforeTableName);
     const afterTable = this.extractTableDetails(afterTableName);
@@ -117,15 +115,13 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE TABLE ${this.quoteTable(tableName)} IMMEDIATE`;
   }
@@ -191,15 +187,13 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     indexNameOrAttributes: string | string[],
     options?: RemoveIndexQueryOptions,
   ) {
-    if (options) {
-      rejectInvalidOptions(
-        'removeIndexQuery',
-        this.dialect,
-        REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
-        REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeIndexQuery',
+      this.dialect,
+      REMOVE_INDEX_QUERY_SUPPORTABLE_OPTIONS,
+      REMOVE_INDEX_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     let indexName: string;
     if (Array.isArray(indexNameOrAttributes)) {
@@ -250,6 +244,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let template;
 
+    const sqlType = attributeTypeToSql(attribute.type);
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       const enumType = attribute.type as ENUM<string>;
@@ -265,7 +260,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type);
+      template = sqlType;
     }
 
     // in the changeColumn context the nullability is emitted as its own ALTER COLUMN clause
@@ -282,6 +277,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

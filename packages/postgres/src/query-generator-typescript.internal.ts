@@ -67,15 +67,13 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createDatabaseQuery',
+      this.dialect,
+      CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_DATABASE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     return joinSQLFragments([
       `CREATE DATABASE ${this.quoteIdentifier(database)}`,
@@ -357,6 +355,7 @@ export class PostgresQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, type.toString());
       sql += ' UNIQUE';
     }
 

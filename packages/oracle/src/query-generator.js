@@ -171,15 +171,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createTableQuery',
-        this.dialect,
-        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createTableQuery',
+      this.dialect,
+      CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const primaryKeys = [];
     const foreignKeys = pojo();
@@ -190,13 +188,31 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       table: this.quoteTable(tableName),
     };
 
+    // Oracle rejects two unique constraints on the same columns (ORA-02261),
+    // so columns that have a single-column unique key don't get UNIQUE in their definition.
+    // Unique indexes are converted to unique keys below, but only if there are unique keys.
+    const uniqueKeyColumns = new Set();
+    for (const uniqueKey of [
+      ...Object.values(options?.uniqueKeys ?? {}),
+      ...(options?.uniqueKeys ? (options.indexes ?? []).filter(index => index.unique) : []),
+    ]) {
+      if (uniqueKey.fields.length === 1) {
+        const field = uniqueKey.fields[0];
+        uniqueKeyColumns.add(typeof field === 'string' ? field : (field.attribute ?? field.name));
+      }
+    }
+
     // Starting by dealing with all attributes
     for (let attr in attributes) {
       if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
-      const dataType = attributes[attr];
+      let dataType = attributes[attr];
+      if (uniqueKeyColumns.has(attr)) {
+        dataType = dataType.replace(/ UNIQUE(?= REFERENCES| PRIMARY KEY|$)/, '');
+      }
+
       attr = this.quoteIdentifier(attr);
 
       // ORACLE doesn't support inline REFERENCES declarations: move to the end
@@ -419,15 +435,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   // }
 
   addColumnQuery(table, key, dataType, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'addColumnQuery',
+      this.dialect,
+      ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const column = isPlainObject(dataType) ? dataType : { type: dataType };
 
@@ -513,14 +527,18 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    * @param {string} definition The operation that needs to be performed on the attribute
    * @param {object|string} table The table that needs to be altered
    * @param {string} attributeName The name of the attribute which would get altered
+   * @param {boolean} [addUniqueKey] Whether to add a unique constraint on the attribute in the same statement
    */
-  _modifyQuery(definition, table, attributeName) {
+  _modifyQuery(definition, table, attributeName, addUniqueKey) {
     const query = joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'MODIFY',
       this.quoteIdentifier(attributeName),
       definition,
+      // Schema changes are not transactional in Oracle,
+      // so the unique key is added in the same statement, which applies both changes, or neither.
+      addUniqueKey && `ADD ${this._uniqueKeySnippet(table, attributeName)}`,
     ]);
     const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
 
@@ -539,7 +557,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  changeColumnQuery(table, attributes) {
+  _uniqueKeySnippet(table, attributeName) {
+    // the same name as with addConstraint
+    const name = `${this.extractTableDetails(table).tableName}_${attributeName}_uk`;
+
+    return `CONSTRAINT ${this.quoteIdentifier(name)} UNIQUE (${this.quoteIdentifier(attributeName)})`;
+  }
+
+  changeColumnQuery(table, attributes, columns) {
     const sql = ['DECLARE', 'CONS_NAME VARCHAR2(200);', 'BEGIN'];
     for (const attributeName in attributes) {
       if (!Object.hasOwn(attributes, attributeName)) {
@@ -547,12 +572,18 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       }
 
       const definition = attributes[attributeName];
+      const addUniqueKey = columns?.[attributeName]?.unique === true;
       // eslint-disable-next-line unicorn/prefer-regexp-test
       if (definition.match(/REFERENCES/)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
+
+        if (addUniqueKey) {
+          const addUniqueKeyQuery = `ALTER TABLE ${this.quoteTable(table)} ADD ${this._uniqueKeySnippet(table, attributeName)}`;
+          sql.push(`EXECUTE IMMEDIATE ${this.escape(addUniqueKeyQuery)};`);
+        }
       } else {
         // Building the modify query
-        sql.push(this._modifyQuery(definition, table, attributeName));
+        sql.push(this._modifyQuery(definition, table, attributeName, addUniqueKey));
       }
     }
 

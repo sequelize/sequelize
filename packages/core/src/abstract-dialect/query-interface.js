@@ -95,6 +95,20 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
 
+    for (const uniqueKey of Object.values(options.uniqueKeys ?? {})) {
+      for (const field of uniqueKey.fields) {
+        const columnName = typeof field === 'string' ? field : field.name;
+        const attribute =
+          Object.values(attributes).find(
+            attr => attr.columnName === columnName || attr.field === columnName,
+          ) ?? attributes[columnName];
+
+        if (attribute?.type) {
+          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type);
+        }
+      }
+    }
+
     const modelTable = model?.table;
 
     if (!tableName.schema && modelTable?.schema) {
@@ -217,6 +231,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Change a column definition
    *
+   * If the new definition sets "unique: true", a unique key is added to the column,
+   * unless the table already has a unique constraint, unique index or primary key on exactly that column.
+   * Named and composite unique keys must be added with {@link AbstractQueryInterface#addConstraint}.
+   * Setting "unique" to false does not remove existing unique keys.
+   *
    * @param {string} tableName          Table name to change from
    * @param {string} attributeName      Column name
    * @param {object} dataTypeOrOptions  Attribute definition for new column
@@ -225,13 +244,33 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
-    const column = this.normalizeAttribute(dataTypeOrOptions);
-    const columns = { [column.field || column.columnName || attributeName]: column };
+    const { unique, ...column } = this.normalizeAttribute(dataTypeOrOptions);
+    const columnName = column.field || column.columnName || attributeName;
+
+    // Adding "unique" every time would add a new unique key each time changeColumn is called
+    const addUniqueKey = await this.#internals.needsUniqueKey(
+      tableName,
+      columnName,
+      unique,
+      options,
+    );
+    if (addUniqueKey) {
+      this.queryGenerator.assertTypeCanBeUnique(columnName, column.type);
+    }
+
+    // Adding it in the same query as the column change applies both, or neither
+    const addUniqueKeyInQuery = addUniqueKey && this.sequelize.dialect.supports.alterColumn.unique;
+
+    const columns = { [columnName]: addUniqueKeyInQuery ? { ...column, unique: true } : column };
     const query = this.queryGenerator.attributesToSql(columns, {
       context: 'changeColumn',
       tableOrModel: tableName,
     });
     const sql = this.queryGenerator.changeColumnQuery(tableName, query, columns);
+
+    if (addUniqueKey && !addUniqueKeyInQuery) {
+      return this.#internals.changeColumnAndAddUniqueKey(tableName, columnName, sql, options);
+    }
 
     return this.sequelize.queryRaw(sql, options);
   }
@@ -326,6 +365,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     options = cloneDeep(options) ?? {};
     options.fields = attributes;
+    // TODO: rawTablename is ignored. Because options is not an array, addIndexQuery treats it as its options,
+    //  and discards its own third parameter, which is where rawTablename ends up.
+    //  It should be passed as the fourth argument. See test/unit/query-interface/add-index.test.ts
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
     return await this.sequelize.queryRaw(sql, { ...options, supportsSearchPath: false });
@@ -341,9 +383,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @private
    */
   async showIndex(tableName, options) {
-    const sql = this.queryGenerator.showIndexesQuery(tableName, options);
-
-    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
+    return await this.#internals.showIndexRaw(tableName, options);
   }
 
   /**

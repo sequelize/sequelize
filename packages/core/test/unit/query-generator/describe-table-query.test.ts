@@ -1,9 +1,14 @@
+import sinon from 'sinon';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#describeTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   it('produces a query to describe a table', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable'), {
@@ -501,4 +506,17 @@ describe('QueryGenerator#describeTableQuery', () => {
       },
     );
   });
+
+  if (dialect.name === 'oracle') {
+    it('uses the current user as owner when there is no default schema', () => {
+      sinon.stub(dialect, 'getDefaultSchema').returns('');
+
+      expectsql(() => queryGenerator.describeTableQuery('myTable'), {
+        oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
+          LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
+          INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
+          WHERE atc.OWNER = USER AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+      });
+    });
+  }
 });
