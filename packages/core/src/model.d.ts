@@ -50,6 +50,11 @@ export interface Logging {
    * Pass query execution time in milliseconds as second argument to logging function (options.logging).
    */
   benchmark?: boolean | undefined;
+
+  /**
+   * Log the bind parameters of the query, even if the `logQueryParameters` option of the Sequelize instance is disabled.
+   */
+  logQueryParameters?: boolean | undefined;
 }
 
 export interface Poolable {

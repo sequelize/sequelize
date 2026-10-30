@@ -198,7 +198,8 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
   attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
     const attribute = normalizeAttributeToSqlColumn(column);
 
-    let template = attributeTypeToSql(attribute.type);
+    const sqlType = attributeTypeToSql(attribute.type);
+    let template = sqlType;
 
     const generated = this.getGeneratedColumn(attribute);
     if (generated) {
@@ -224,6 +225,7 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

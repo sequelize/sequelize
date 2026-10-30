@@ -199,7 +199,7 @@ export class Model extends ModelTypeScript {
     this._previousDataValues = {};
     this.uniqno = 1;
     this._changed = new Set();
-    this._options = omit(options, ['comesFromDatabase']);
+    this._options = options;
 
     /**
      * Returns true if this instance has not yet been persisted to the database
@@ -210,6 +210,10 @@ export class Model extends ModelTypeScript {
     this.isNewRecord = options.isNewRecord;
 
     this._initValues(values, options);
+
+    if (options.comesFromDatabase) {
+      options.comesFromDatabase = false;
+    }
   }
 
   _initValues(values, options) {
@@ -997,6 +1001,22 @@ ${associationOwner._getAssociationDebugList()}`);
 
         return 0;
       });
+
+    for (const index of missingIndexes) {
+      if (!index.unique) {
+        continue;
+      }
+
+      for (const field of index.fields) {
+        const columnName = typeof field === 'string' ? field : field.name;
+        const attribute = modelDefinition.columns.get(columnName);
+        if (attribute) {
+          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type, {
+            prefixLength: typeof field === 'string' ? undefined : field.length,
+          });
+        }
+      }
+    }
 
     for (const index of missingIndexes) {
       // TODO: 'options' is ignored by addIndex, making Add Index queries impossible to log.

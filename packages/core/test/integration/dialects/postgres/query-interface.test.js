@@ -226,21 +226,21 @@ if (dialect.startsWith('postgres')) {
         expect(res[0].create_job).to.be.eql('second');
       });
 
-      it('produces an error when options.variables is missing expected parameters', function () {
+      it('produces an error when options.variables is missing expected parameters', async function () {
         const body = 'return 1;';
-        expect(
+        await expect(
           this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], {
             variables: 100,
           }),
         ).to.be.rejectedWith(/expandFunctionVariableList: function variables must be an array/);
 
-        expect(
+        await expect(
           this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], {
             variables: [{ name: 'myVar' }],
           }),
         ).to.be.rejectedWith(/function variable must have a name and type/);
 
-        expect(
+        await expect(
           this.queryInterface.createFunction('test_func', [], 'integer', 'plpgsql', body, [], {
             variables: [{ type: 'integer' }],
           }),

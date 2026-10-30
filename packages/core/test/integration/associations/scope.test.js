@@ -297,6 +297,7 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           logging,
         });
 
+        expect(logs).to.have.length(2);
         expect(logs[0]).to.equal(logs[1]);
       });
       it('should created included association with scope values', async function () {
@@ -317,11 +318,13 @@ describe(Support.getTestDialectTeaser('associations'), () => {
           },
         );
         this.post = post;
+        expect(post.comments).to.have.length(2);
         for (const comment of post.comments) {
           expect(comment.get('commentable')).to.equal('post');
         }
 
         post = await this.Post.withScope('withComments').findByPk(this.post.id);
+        expect(post.comments).to.have.length(2);
         for (const comment of post.comments) {
           expect(comment.get('commentable')).to.equal('post');
         }

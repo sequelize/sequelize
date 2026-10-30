@@ -12,7 +12,7 @@ import {
   QueryTypes,
   TransactionNestMode,
 } from '@sequelize/core';
-import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
+import type { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import {
   getGeneratedAttributeDependsOn,
   getGeneratedColumnDependencies,
@@ -20,6 +20,7 @@ import {
 import { createHash } from 'node:crypto';
 import semver from 'semver';
 import type { PostgresDialect } from './dialect.js';
+import { PostgresQueryInterfaceInternal } from './query-interface.internal.js';
 
 export class PostgresQueryInterfaceTypescript<
   Dialect extends PostgresDialect = PostgresDialect,
@@ -27,7 +28,7 @@ export class PostgresQueryInterfaceTypescript<
   readonly #internalQueryInterface: AbstractQueryInterfaceInternal;
 
   constructor(dialect: Dialect, internalQueryInterface?: AbstractQueryInterfaceInternal) {
-    internalQueryInterface ??= new AbstractQueryInterfaceInternal(dialect);
+    internalQueryInterface ??= new PostgresQueryInterfaceInternal(dialect);
 
     super(dialect, internalQueryInterface);
     this.#internalQueryInterface = internalQueryInterface;

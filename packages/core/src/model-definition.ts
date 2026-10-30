@@ -26,7 +26,7 @@ import type {
 import type { Sequelize } from './sequelize.js';
 import { fieldToColumn } from './utils/deprecations.js';
 import { toDefaultValue } from './utils/dialect.js';
-import { isModelStatic } from './utils/model-utils.js';
+import { getModelClass, isModelStatic } from './utils/model-utils.js';
 import { getAllOwnEntries, removeUndefined } from './utils/object.js';
 import { generateIndexName, pluralize, underscoredIf } from './utils/string.js';
 
@@ -182,6 +182,12 @@ export class ModelDefinition<M extends Model = Model> {
 
   // TODO: add generic type to ModelHooks (model, attributes)
   get hooks(): HookHandler<ModelHooks> {
+    // Model variants (created by withScope, withSchema, etc.) share the hooks of their initial model
+    const initialModel = this.model.getInitialModel();
+    if (initialModel !== this.model) {
+      return initialModel.modelDefinition.hooks;
+    }
+
     return staticModelHooks.getFor(this);
   }
 
@@ -244,10 +250,14 @@ See https://sequelize.org/docs/v6/core-concepts/getters-setters-virtuals/#deprec
     // Model Names must be singular!
     this.options.name.singular ??= this.options.modelName;
 
-    this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
+    // Model variants (withScope, withSchema, etc.) are not new models,
+    // and share the hooks of their initial model, which already includes these.
+    if (this.model.getInitialModel() === this.model) {
+      this.#sequelize.hooks.runSync('beforeDefine', attributesOptions, this.options);
 
-    if (this.options.hooks) {
-      this.hooks.addListeners(this.options.hooks);
+      if (this.options.hooks) {
+        this.hooks.addListeners(this.options.hooks);
+      }
     }
 
     if (!this.options.tableName) {
@@ -700,8 +710,33 @@ Timestamp attributes are managed automatically by Sequelize, and their nullabili
     }
 
     this.#refreshIndexes(attributeIndexes);
+    this.#refreshAttributeGettersAndSetters();
 
     this.hooks.runSync('afterDefinitionRefresh');
+  }
+
+  #refreshAttributeGettersAndSetters(): void {
+    const modelPrototype = getModelClass().prototype;
+
+    for (const attributeName of this.#attributes.keys()) {
+      if (attributeName in modelPrototype) {
+        this.#sequelize.log(
+          `Attribute ${attributeName} in model ${this.modelName} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`,
+        );
+
+        continue;
+      }
+
+      Object.defineProperty(this.model.prototype, attributeName, {
+        configurable: true,
+        get(this: Model) {
+          return this.get(attributeName);
+        },
+        set(this: Model, value: unknown) {
+          this.set(attributeName, value);
+        },
+      });
+    }
   }
 
   #refreshIndexes(attributeIndexes: IndexOptions[]): void {

@@ -3,6 +3,8 @@ import { AbstractDialect } from '@sequelize/core';
 import { cosmiconfig } from 'cosmiconfig';
 import * as path from 'node:path';
 import { z } from 'zod/v3';
+import type { TimestampFormat } from './utils.js';
+import { TIMESTAMP_FORMATS } from './utils.js';
 
 const explorer = cosmiconfig('sequelize');
 const result = await explorer.search();
@@ -69,6 +71,7 @@ const configSchema = z.strictObject({
     .string()
     .default('/seeds')
     .transform(val => path.join(projectRoot, val)),
+  timestampFormat: z.enum(TIMESTAMP_FORMATS).default('separated'),
   // Optional at the schema level so commands that do not need a database (e.g. migration generate)
   // can run without one. createUmzug() enforces its presence with a clear error at runtime.
   database: z.object({ dialect: dialectInputSchema }).passthrough().optional(),
@@ -81,6 +84,13 @@ const configSchema = z.strictObject({
 export type Config<Dialect extends AbstractDialect = AbstractDialect> = {
   migrationFolder: string;
   seedFolder: string;
+  /**
+   * The timestamp format used in the names of generated migration and seed files.
+   *
+   * - `separated` (default): `2024-01-31t13-45-00-create-users`
+   * - `compact`: `20240131134500-create-users`, the format used by sequelize-cli v6
+   */
+  timestampFormat: TimestampFormat;
   /**
    * Options passed to the Sequelize constructor.
    *

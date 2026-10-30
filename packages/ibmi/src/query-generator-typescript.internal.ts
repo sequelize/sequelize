@@ -244,6 +244,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let template;
 
+    const sqlType = attributeTypeToSql(attribute.type);
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       const enumType = attribute.type as ENUM<string>;
@@ -259,7 +260,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type);
+      template = sqlType;
     }
 
     // in the changeColumn context the nullability is emitted as its own ALTER COLUMN clause
@@ -276,6 +277,7 @@ export class IBMiQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (attribute.unique === true && !attribute.primaryKey) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

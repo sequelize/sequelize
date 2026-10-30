@@ -370,11 +370,12 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     }
 
     let template: string;
+    const sqlType = attributeTypeToSql(attribute.type);
 
     const generated = this.getGeneratedColumn(attribute);
     if (generated) {
       // computed columns cannot declare a type, so the expression is cast to the attribute's type
-      template = `AS CAST(${generated.expression} AS ${attributeTypeToSql(attribute.type)})`;
+      template = `AS CAST(${generated.expression} AS ${sqlType})`;
 
       if (generated.stored) {
         template += ' PERSISTED';
@@ -395,7 +396,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
 
       return template;
     } else {
-      template = attributeTypeToSql(attribute.type);
+      template = sqlType;
 
       if (attribute.allowNull === false) {
         template += ' NOT NULL';
@@ -419,6 +420,7 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
       attribute.unique === true &&
       (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
     ) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

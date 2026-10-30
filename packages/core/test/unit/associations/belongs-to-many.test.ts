@@ -128,7 +128,7 @@ describe(getTestDialectTeaser('belongsToMany'), () => {
       User.prototype[method] = originalMethod;
     });
 
-    User.belongsToMany(Task, { through: 'UserTasks', as: 'task' });
+    User.belongsToMany(Task, { through: 'UserTasks', as: 'tasks' });
 
     const user = User.build();
 
