@@ -181,42 +181,93 @@ describe('Model', () => {
       ]);
     });
 
-    it('should throw when the attribute name is ambiguous with $nested.attribute$ syntax', () => {
-      expect(() => {
-        sequelize.define('foo', {
-          $id: DataTypes.INTEGER,
-        });
-      }).to.throw(
-        'Name of attribute "$id" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.',
-      );
+    describe('reserved characters in attribute names', () => {
+      const reservedSyntaxExplanation =
+        'The characters "$", ".", ":", "[", "]" and control characters are reserved syntax used to reference attributes in queries (e.g. "$association.attribute$", "json.key", "attribute::cast", "json[0]"). Column names are not affected by this restriction.';
 
-      expect(() => {
-        sequelize.define('foo', {
-          id$: DataTypes.INTEGER,
-        });
-      }).to.throw(
-        'Name of attribute "id$" in model "foo" cannot start or end with "$" as "$attribute$" is reserved syntax used to reference nested columns in queries.',
-      );
-    });
+      const rejectedNames: Array<{ name: string; character: string; reason: string }> = [
+        { name: '$id', character: '"$"', reason: 'leading $ (association syntax)' },
+        { name: 'id$', character: '"$"', reason: 'trailing $ (association syntax)' },
+        { name: '$id$', character: '"$"', reason: 'wrapped in $ (association syntax)' },
+        { name: 'my$attribute', character: '"$"', reason: '$ in the middle' },
+        { name: 'my.attribute', character: '"."', reason: '. (json path syntax)' },
+        { name: '.attribute', character: '"."', reason: 'leading .' },
+        { name: 'attribute.', character: '"."', reason: 'trailing .' },
+        { name: 'id::int', character: '":"', reason: ':: (cast syntax)' },
+        { name: 'id:unquote', character: '":"', reason: ': (modifier syntax)' },
+        { name: 'a:b', character: '":"', reason: ': in the middle' },
+        { name: 'my[attribute', character: '"["', reason: '[ (index access syntax)' },
+        { name: 'my]attribute', character: '"]"', reason: '] (index access syntax)' },
+        { name: 'my[0]', character: '"["', reason: '[0] (index access syntax)' },
+        { name: 'my\nattribute', character: 'U+000A (control character)', reason: 'newline' },
+        { name: 'my\tattribute', character: 'U+0009 (control character)', reason: 'tab' },
+        { name: '\rattribute', character: 'U+000D (control character)', reason: 'carriage return' },
+        { name: 'my\u0000attribute', character: 'U+0000 (control character)', reason: 'NUL' },
+        { name: 'my\u001Fattribute', character: 'U+001F (control character)', reason: 'U+001F' },
+        { name: 'my\u007Fattribute', character: 'U+007F (control character)', reason: 'DEL' },
+        // the first reserved character is the one reported
+        { name: 'a.b$c', character: '"."', reason: 'several reserved characters' },
+        { name: 'café.name', character: '"."', reason: 'reserved character after non-ASCII' },
+      ];
 
-    it('should throw when the attribute name is ambiguous with json.path syntax', () => {
-      expect(() => {
-        sequelize.define('foo', {
-          'my.attribute': DataTypes.INTEGER,
+      for (const { name, character, reason } of rejectedNames) {
+        it(`rejects ${JSON.stringify(name)} (${reason})`, () => {
+          expect(() => {
+            sequelize.define('foo', {
+              [name]: DataTypes.INTEGER,
+            });
+          }).to.throw(
+            `Name of attribute ${JSON.stringify(name)} in model "foo" cannot include the character ${character}. ${reservedSyntaxExplanation}`,
+          );
         });
-      }).to.throw(
-        'Name of attribute "my.attribute" in model "foo" cannot include the character "." as it would be ambiguous with the syntax used to reference nested columns, and nested json keys, in queries.',
-      );
-    });
+      }
 
-    it('should throw when the attribute name is ambiguous with casting syntax', () => {
-      expect(() => {
-        sequelize.define('foo', {
-          'id::int': DataTypes.INTEGER,
+      // Every character that is not reserved is accepted, because attribute names are always quoted in SQL.
+      const acceptedNames: string[] = [
+        'café',
+        '日本',
+        '😀',
+        'first-name',
+        'a b',
+        ' leading space',
+        'trailing space ',
+        'a"b',
+        "a'b",
+        'a`b',
+        'a\\b',
+        'a;b',
+        'a--b',
+        'a/*b*/',
+        "a'; DROP TABLE users; --",
+        'a=b',
+        '(a)',
+        'a,b',
+        'a b',
+        'a=>b',
+      ];
+
+      for (const name of acceptedNames) {
+        it(`accepts ${JSON.stringify(name)}`, () => {
+          const Foo = sequelize.define('foo', {
+            [name]: DataTypes.INTEGER,
+          });
+
+          expect(Foo.modelDefinition.attributes.get(name)?.columnName).to.equal(name);
         });
-      }).to.throw(
-        'Name of attribute "id::int" in model "foo" cannot include the character sequence "::" as it is reserved syntax used to cast attributes in queries.',
-      );
+      }
+
+      it('accepts a reserved character in the column name', () => {
+        const Foo = sequelize.define('foo', {
+          myAttribute: {
+            type: DataTypes.INTEGER,
+            columnName: '$my.attribute::int[0]$',
+          },
+        });
+
+        expect(Foo.modelDefinition.attributes.get('myAttribute')?.columnName).to.equal(
+          '$my.attribute::int[0]$',
+        );
+      });
     });
 
     it('should throw when the attribute name is ambiguous with nested-association syntax', () => {

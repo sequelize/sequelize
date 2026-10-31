@@ -90,6 +90,81 @@ const builtInModifiers: Record<string, Class<DialectAwareFn>> = pojo({
  */
 export const MAX_JSON_ARRAY_INDEX = 2_147_483_647;
 
+/**
+ * The characters that cannot be used in the name of a model attribute, because they have a special meaning
+ * in the attribute syntax (the syntax of keys in WHERE POJOs and of {@link @sequelize/core!sql.attribute}):
+ *
+ * - `$` delimits associations (`$association.attribute$`),
+ * - `.` accesses nested JSON keys (`json.key`),
+ * - `:` introduces casts & modifiers (`attribute::cast`, `attribute:unquote`),
+ * - `[` and `]` access array indexes (`json[0]`).
+ *
+ * Control characters (U+0000 to U+001F, and U+007F) are reserved too, see {@link isReservedAttributeNameCharacter}.
+ *
+ * This is the only restriction: any other character (dashes, spaces, quotes, non-ASCII characters...) is accepted,
+ * because attribute names are always quoted in the generated SQL.
+ *
+ * The parser's `identifier` rule and {@link findReservedAttributeNameCharacter} must always agree.
+ */
+export const RESERVED_ATTRIBUTE_NAME_CHARACTERS: ReadonlySet<string> = new Set([
+  '$',
+  '.',
+  ':',
+  '[',
+  ']',
+]);
+
+// Control characters are expressed as a range in the grammar; the grammar operates on UTF-16 code units.
+const CONTROL_CHARACTERS_START = '\u0000';
+const CONTROL_CHARACTERS_END = '\u001F';
+const DELETE_CHARACTER = '\u007F';
+
+/**
+ * Whether a single UTF-16 code unit is reserved in attribute names.
+ * See {@link RESERVED_ATTRIBUTE_NAME_CHARACTERS}.
+ *
+ * @param char A single UTF-16 code unit.
+ */
+export function isReservedAttributeNameCharacter(char: string): boolean {
+  return (
+    RESERVED_ATTRIBUTE_NAME_CHARACTERS.has(char) ||
+    (char >= CONTROL_CHARACTERS_START && char <= CONTROL_CHARACTERS_END) ||
+    char === DELETE_CHARACTER
+  );
+}
+
+/**
+ * Returns the first reserved character found in an attribute name, or null if the name does not contain any.
+ * See {@link RESERVED_ATTRIBUTE_NAME_CHARACTERS}.
+ *
+ * @param attributeName The attribute name to check.
+ */
+export function findReservedAttributeNameCharacter(attributeName: string): string | null {
+  for (const char of attributeName) {
+    if (isReservedAttributeNameCharacter(char)) {
+      return char;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Formats a reserved character for use in an error message: printable characters are quoted,
+ * control characters are displayed using their unicode code point.
+ *
+ * @param char The reserved character, as returned by {@link findReservedAttributeNameCharacter}.
+ */
+export function describeReservedAttributeNameCharacter(char: string): string {
+  if (RESERVED_ATTRIBUTE_NAME_CHARACTERS.has(char)) {
+    return JSON.stringify(char);
+  }
+
+  const codePoint = char.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0');
+
+  return `U+${codePoint} (control character)`;
+}
+
 type SyntaxKind = 'attribute' | 'json path';
 
 function createParseError(
@@ -136,7 +211,11 @@ const attributeParser = (() => {
 
     # Internals
 
-    identifier ::= ( "A"->"Z" | "a"->"z" | digit | "_" )+ ;
+    ## An identifier (attribute or association name) is any non-empty sequence of characters
+    ## that are not reserved by this syntax (see RESERVED_ATTRIBUTE_NAME_CHARACTERS).
+    ## Identifiers are always quoted in the generated SQL, so they are not restricted any further.
+    ## The same set of characters is rejected in model attribute names by ModelDefinition.
+    identifier ::= !( "$" | "." | ":" | "[" | "]" | "${CONTROL_CHARACTERS_START}"->"${CONTROL_CHARACTERS_END}" | "${DELETE_CHARACTER}" )+ ;
     digit ::= "0"->"9" ;
     number ::= ...digit+ ;
     association ::= %"$" identifier ("." identifier)* %"$" ;
