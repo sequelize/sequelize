@@ -155,18 +155,33 @@ export class UUID extends BaseTypes.UUID {
 }
 
 export class GEOMETRY extends BaseTypes.GEOMETRY {
-  toBindableValue(value: GeoJson) {
-    const srid = this.options.srid ? `, ${this.options.srid}` : '';
+  escape(value: GeoJson): string {
+    const dialect = this._getDialect();
 
-    return `ST_GeomFromText(${this._getDialect().escapeString(
-      wkx.Geometry.parseGeoJSON(value).toWkt(),
-    )}${srid})`;
+    return this.#toSqlFunctionCall(value, param => {
+      return typeof param === 'number' ? String(param) : dialect.escapeString(param);
+    });
+  }
+
+  toBindableValue(value: GeoJson) {
+    return this.escape(value);
   }
 
   getBindParamSql(value: GeoJson, options: BindParamOptions) {
-    const srid = this.options.srid ? `, ${options.bindParam(this.options.srid)}` : '';
+    return this.#toSqlFunctionCall(value, param => options.bindParam(param));
+  }
 
-    return `ST_GeomFromText(${options.bindParam(wkx.Geometry.parseGeoJSON(value).toWkt())}${srid})`;
+  #toSqlFunctionCall(value: GeoJson, toSqlParam: (param: string | number) => string): string {
+    const { wkt, srid } = geoJsonToWkt(value, this.options.srid);
+
+    if (!srid) {
+      return `ST_GeomFromText(${toSqlParam(wkt)})`;
+    }
+
+    // MySQL uses the axis order defined by the spatial reference system, which is latitude-longitude for most
+    // geographic SRSs (such as 4326), but GeoJSON coordinates are always in longitude-latitude order.
+    // MySQL always uses longitude-latitude in its internal storage format, which is what we parse when reading.
+    return `ST_GeomFromText(${toSqlParam(wkt)}, ${toSqlParam(srid)}, 'axis-order=long-lat')`;
   }
 
   toSql() {
@@ -181,6 +196,29 @@ export class GEOMETRY extends BaseTypes.GEOMETRY {
 
     return sql;
   }
+}
+
+function geoJsonToWkt(
+  value: GeoJson,
+  columnSrid: number | undefined,
+): { wkt: string; srid: number | undefined } {
+  const geometry = wkx.Geometry.parseGeoJSON(value);
+
+  // wkx defaults the SRID to 4326 if the GeoJSON does not specify a named crs,
+  // in which case we want to use the SRID of the column instead.
+  if (value.crs?.type !== 'name' || !value.crs.properties?.name) {
+    return { wkt: geometry.toWkt(), srid: columnSrid };
+  }
+
+  // wkx only parses the digits at the start of the SRID, so we validate the whole name ourselves
+  const sridMatch = /^(?:EPSG:|urn:ogc:def:crs:EPSG::)(\d+)$/.exec(value.crs.properties.name);
+  if (!sridMatch) {
+    throw new Error(`Invalid SRID in GeoJSON crs: ${value.crs.properties.name}`);
+  }
+
+  const srid = Number(sridMatch[1]);
+
+  return { wkt: geometry.toWkt(), srid };
 }
 
 export class ENUM<Member extends string> extends BaseTypes.ENUM<Member> {
