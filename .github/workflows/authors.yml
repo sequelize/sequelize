@@ -11,12 +11,17 @@ permissions:
 
 jobs:
   authors_update:
-    permissions:
-      contents: write # for gr2m/create-or-update-pull-request-action to push local changes
-      pull-requests: write # for gr2m/create-or-update-pull-request-action to create a PR
     if: github.repository == 'sequelize/sequelize'
     runs-on: ubuntu-latest
     steps:
+      - name: Generate Sequelize Bot Token
+        id: generate-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: '${{ secrets.SEQUELIZE_BOT_APP_ID }}'
+          private-key: '${{ secrets.SEQUELIZE_BOT_PRIVATE_KEY }}'
+          permission-contents: write
+          permission-pull-requests: write
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: '0' # This is required to actually get all the authors
@@ -24,7 +29,7 @@ jobs:
       - run: 'dev/update-authors.js' # Run the AUTHORS tool
       - uses: gr2m/create-or-update-pull-request-action@b65137ca591da0b9f43bad7b24df13050ea45d1b # Create a PR or update the Action's existing PR
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         with:
           author: SequelizeJS <mail@sequelizejs.com>
           body: >
@@ -33,5 +38,4 @@ jobs:
             `authors.yml` GitHub Action, which runs `dev/update-authors.js`.
           branch: 'actions/authors-update' # Custom branch *just* for this Action.
           commit-message: 'meta: update sequelize AUTHORS'
-          labels: meta
           title: 'meta: update sequelize AUTHORS'

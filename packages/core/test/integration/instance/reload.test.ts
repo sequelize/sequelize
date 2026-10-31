@@ -80,7 +80,7 @@ describe('Model#reload', () => {
       const original = await vars.Book.create({ title: 'Book Title 1' });
       await original.update({ title: 'Book Title 2' });
       const updated = await original.reload();
-      expect(original === updated).to.be.true;
+      expect(updated).to.equal(original);
     });
 
     it('updates local value based on the values in the database', async () => {

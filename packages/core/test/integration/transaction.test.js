@@ -42,7 +42,11 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   describe('constructor', () => {
     it('stores options', function () {
       const transaction = new Transaction(this.sequelize);
-      expect(transaction.options).to.be.an.instanceOf(Object);
+      expect(transaction.options).to.deep.include({
+        readOnly: false,
+        isolationLevel: this.sequelize.options.isolationLevel ?? null,
+      });
+      expect(transaction.options).to.be.frozen;
     });
 
     it('generates an identifier', function () {

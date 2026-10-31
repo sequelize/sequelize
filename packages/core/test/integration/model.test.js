@@ -318,18 +318,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
         await User.sync({ force: true });
 
-        try {
-          await Promise.all([
+        await expect(
+          Promise.all([
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
             User.create({ username: 'tobi', email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
+          ]),
+        ).to.be.rejectedWith(Sequelize.UniqueConstraintError, 'User and email must be unique');
       });
 
       // If you use migrations to create unique indexes that have explicit names and/or contain fields
@@ -374,18 +368,12 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: { type: DataTypes.STRING, unique: 'user_and_email_index' },
         });
 
-        try {
-          await Promise.all([
+        await expect(
+          Promise.all([
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
             User.create({ user_id: 1, email: 'tobi@tobi.me' }),
-          ]);
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error.message).to.equal('User and email must be unique');
-        }
+          ]),
+        ).to.be.rejectedWith(Sequelize.UniqueConstraintError, 'User and email must be unique');
       });
     }
 
@@ -869,7 +857,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   describe('equals', () => {
     it('correctly determines equality of objects', async function () {
       const user = await this.User.create({ username: 'hallo', data: 'welt' });
-      expect(user.equals(user)).to.be.ok;
+      const sameUser = await this.User.findByPk(user.id, { rejectOnEmpty: true });
+      const otherUser = await this.User.create({ username: 'other' });
+      expect(user.equals(sameUser)).to.be.true;
+      expect(user.equals(otherUser)).to.be.false;
     });
 
     it('correctly determines equality with multiple primary keys', async function () {
@@ -882,7 +873,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await userKeys.sync({ force: true });
       const user = await userKeys.create({ foo: '1', bar: '2', name: 'hallo', bio: 'welt' });
-      expect(user.equals(user)).to.be.ok;
+      const sameUser = await userKeys.findOne({
+        where: { foo: '1', bar: '2' },
+        rejectOnEmpty: true,
+      });
+      const otherUser = await userKeys.create({ foo: '1', bar: '3' });
+      expect(user.equals(sameUser)).to.be.true;
+      expect(user.equals(otherUser)).to.be.false;
     });
   });
 
@@ -1010,7 +1007,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       it('should be able to drop with schemas', async function () {
-        await this.UserSpecial.drop();
+        const UserSpecial = this.UserSpecial.withSchema('special');
+        expect(await this.sequelize.queryInterface.tableExists(UserSpecial.table)).to.be.true;
+        await UserSpecial.drop();
+        expect(await this.sequelize.queryInterface.tableExists(UserSpecial.table)).to.be.false;
       });
 
       it('should describeTable using the default schema settings', async function () {
@@ -1352,40 +1352,41 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       expect(foreignKeys[0].referencedColumnNames).to.deep.eq(['id']);
     });
 
-    it('throws an error if the referenced table name is invalid', async function () {
-      const Post = this.sequelize.define('post', {
+    function definePostReferencingMissingTable(context) {
+      const Post = context.sequelize.define('post', {
         title: DataTypes.STRING,
         authorId: DataTypes.INTEGER,
       });
 
-      this.Author.hasMany(Post);
-      Post.belongsTo(this.Author);
+      context.Author.hasMany(Post);
+      Post.belongsTo(context.Author);
 
       // force Post.authorId to reference a table that does not exist
       Post.modelDefinition.rawAttributes.authorId.references.table = '4uth0r5';
       Post.modelDefinition.refreshAttributes();
 
-      try {
+      return Post;
+    }
+
+    if (dialectName === 'sqlite3') {
+      it('does not check that the referenced table exists', async function () {
+        const Post = definePostReferencingMissingTable(this);
+
         // The posts table gets dropped in the before filter.
         await Post.sync();
-        if (dialectName === 'sqlite3') {
-          // sorry ... but sqlite is too stupid to understand whats going on ...
-          expect(1).to.equal(1);
-        } else {
-          // the parser should not end up here ...
-          expect(2).to.equal(1);
-        }
-      } catch (error) {
+
+        expect(await this.sequelize.queryInterface.tableExists('posts')).to.equal(true);
+      });
+    } else {
+      it('throws an error if the referenced table name is invalid', async function () {
+        const Post = definePostReferencingMissingTable(this);
+
+        // The posts table gets dropped in the before filter.
+        const error = await expect(Post.sync()).to.be.rejected;
+
         switch (dialectName) {
           case 'mysql': {
             expect(error.message).to.match(/Failed to open the referenced table '4uth0r5'/);
-
-            break;
-          }
-
-          case 'sqlite3': {
-            // the parser should not end up here ... see above
-            expect(1).to.equal(2);
 
             break;
           }
@@ -1433,8 +1434,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
             throw new Error('Undefined dialect!');
           }
         }
-      }
-    });
+      });
+    }
 
     it('works with comments', async function () {
       // Test for a case where the comment was being moved to the end of the table when there was also a reference on the column, see #1521
@@ -1669,7 +1670,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       });
 
       await this.sequelize.sync({ force: true });
-      expect(
+      await expect(
         user.bulkCreate(data, {
           validate: true,
           individualHooks: true,

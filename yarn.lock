@@ -1043,16 +1043,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@es-joy/jsdoccomment@npm:~0.100.0":
-  version: 0.100.0
-  resolution: "@es-joy/jsdoccomment@npm:0.100.0"
+"@es-joy/jsdoccomment@npm:~1.0.0":
+  version: 1.0.0
+  resolution: "@es-joy/jsdoccomment@npm:1.0.0"
   dependencies:
     "@types/estree": "npm:^1.0.9"
     "@typescript-eslint/types": "npm:^8.72.0"
     comment-parser: "npm:1.4.9"
     esquery: "npm:^1.7.0"
-    jsdoc-type-pratt-parser: "npm:~9.3.0"
-  checksum: 10c0/09dc47bac816a402bb84defd8b8fa527793902762b96e2c609445626444b6dc749c69109358baedc72d859410c8f03c3963e62cee57f7b15f5f4e0af3ee508bd
+    jsdoc-type-pratt-parser: "npm:~9.4.0"
+  checksum: 10c0/2356d56cc334fabf7e40898147b1f5b845ad631bb779eb5b90bc6f7ab251a491cd527f7ece0b8ded09c0f79d4bcc046bc2fa53fc7a5bc8d7e9ac588d76d400aa
   languageName: node
   linkType: hard
 
@@ -1435,12 +1435,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/checkbox@npm:^5.2.6":
-  version: 5.2.6
-  resolution: "@inquirer/checkbox@npm:5.2.6"
+"@inquirer/checkbox@npm:^5.2.6, @inquirer/checkbox@npm:^5.2.7":
+  version: 5.2.7
+  resolution: "@inquirer/checkbox@npm:5.2.7"
   dependencies:
     "@inquirer/ansi": "npm:^2.0.9"
-    "@inquirer/core": "npm:^12.0.4"
+    "@inquirer/core": "npm:^12.0.5"
     "@inquirer/figures": "npm:^2.0.9"
     "@inquirer/type": "npm:4.2.0"
   peerDependencies:
@@ -1448,7 +1448,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/f20b92800df57b33e601e94b3e4ae75d260c0fd870001c1b4204350fc5b825474d120048e7cbb8a32f4f75cc59df712985ea10cf00daa8ed8a91abbbe2451661
+  checksum: 10c0/efc27b46f67eb540ecead420593947f441fe89ebd10ecdf64b48ba6b99318ff3ce9b542426649c230767166a50221fca0ebb21f61f2e419f7a049371810c0855
   languageName: node
   linkType: hard
 
@@ -1477,18 +1477,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/confirm@npm:^6.3.3":
-  version: 6.3.3
-  resolution: "@inquirer/confirm@npm:6.3.3"
+"@inquirer/confirm@npm:^6.3.3, @inquirer/confirm@npm:^6.3.4":
+  version: 6.3.4
+  resolution: "@inquirer/confirm@npm:6.3.4"
   dependencies:
-    "@inquirer/core": "npm:^12.0.4"
+    "@inquirer/core": "npm:^12.0.5"
     "@inquirer/type": "npm:4.2.0"
   peerDependencies:
     "@types/node": ">=18"
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/432a1edf3bcc80de43ca23102cf9fa31f8f5c3e1d53f980ff11730d105e13a3e40b2c31a1d15f02326c96acfcb4a7e1c442c747736f122dcbd6679b1a87f1a13
+  checksum: 10c0/ede30ef4371b5b2b1f1bcf7efa2c7e057a12671a17a487847e5044c02c59eb0d3947bdeb0566e4d15814247973025c7ea66af4f22d4b53cb7d45122d12203922
   languageName: node
   linkType: hard
 
@@ -1513,9 +1513,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/core@npm:^12.0.3, @inquirer/core@npm:^12.0.4":
-  version: 12.0.4
-  resolution: "@inquirer/core@npm:12.0.4"
+"@inquirer/core@npm:^12.0.3, @inquirer/core@npm:^12.0.4, @inquirer/core@npm:^12.0.5":
+  version: 12.0.5
+  resolution: "@inquirer/core@npm:12.0.5"
   dependencies:
     "@inquirer/ansi": "npm:^2.0.9"
     "@inquirer/figures": "npm:^2.0.9"
@@ -1529,7 +1529,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/b39b358725d623fea6a29ed96b9632649ca45ddc5a31dec6b2f42f593418152200b400f8d847cc2118e6881169c22278043b44fd4971c74ed6779fea773b7129
+  checksum: 10c0/6ba9cbfe00e6021d54690cdb446a538c8c807df06ceabc475a71ba41ee1476c14203a0c198a31dbe07a9d8e36e8b4c0946f38a66e6cd57813c86d71858894cd8
   languageName: node
   linkType: hard
 
@@ -1685,18 +1685,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/input@npm:^5.1.7":
-  version: 5.1.7
-  resolution: "@inquirer/input@npm:5.1.7"
+"@inquirer/input@npm:^5.1.7, @inquirer/input@npm:^5.1.8":
+  version: 5.1.8
+  resolution: "@inquirer/input@npm:5.1.8"
   dependencies:
-    "@inquirer/core": "npm:^12.0.4"
+    "@inquirer/core": "npm:^12.0.5"
     "@inquirer/type": "npm:4.2.0"
   peerDependencies:
     "@types/node": ">=18"
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/29f35215dac71e98206af5df575cff847392f519731bf94f7f7bc5b341dcf3a67df7b72ce8d045c0cab7e5318e4aa1b4bafa15bc6595198fe411711cb0fd9340
+  checksum: 10c0/2602117aa079b1081d561520c83dad3d3b7a5b90250de5e716b06cdda44a93eb93751216db4ccf73de2f6f6a9bc6d73e18a14f895bb2062ce88b8a4e53295445
   languageName: node
   linkType: hard
 
@@ -1903,12 +1903,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@inquirer/select@npm:^5.2.6":
-  version: 5.2.6
-  resolution: "@inquirer/select@npm:5.2.6"
+"@inquirer/select@npm:^5.2.6, @inquirer/select@npm:^5.2.7":
+  version: 5.2.7
+  resolution: "@inquirer/select@npm:5.2.7"
   dependencies:
     "@inquirer/ansi": "npm:^2.0.9"
-    "@inquirer/core": "npm:^12.0.4"
+    "@inquirer/core": "npm:^12.0.5"
     "@inquirer/figures": "npm:^2.0.9"
     "@inquirer/type": "npm:4.2.0"
   peerDependencies:
@@ -1916,7 +1916,7 @@ __metadata:
   peerDependenciesMeta:
     "@types/node":
       optional: true
-  checksum: 10c0/e968035c0934eddd6b28e70377eb281f836f74ec9ad0487978de5048813c0cc555ceb1281d23e112b12d3400cc061b017b4269f331a6cd1233ab1062765a3d3e
+  checksum: 10c0/ddb9ae8f9cce41656594258500e92ac5357e8def0e544f2559bd6e09e7b751aa8e807d7563bb6364b18a21d13c2997d3ca9b150fcc6dd1e412c2a607cd306dd3
   languageName: node
   linkType: hard
 
@@ -2773,10 +2773,10 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@sequelize/cli@workspace:packages/cli"
   dependencies:
-    "@inquirer/checkbox": "npm:^5.2.6"
-    "@inquirer/confirm": "npm:^6.3.3"
-    "@inquirer/input": "npm:^5.1.7"
-    "@inquirer/select": "npm:^5.2.6"
+    "@inquirer/checkbox": "npm:^5.2.7"
+    "@inquirer/confirm": "npm:^6.3.4"
+    "@inquirer/input": "npm:^5.1.8"
+    "@inquirer/select": "npm:^5.2.7"
     "@oclif/core": "npm:^5.1.9"
     "@oclif/plugin-help": "npm:^7.0.5"
     "@oclif/test": "npm:5.0.3"
@@ -2808,11 +2808,11 @@ __metadata:
     "@types/chai-as-promised": "npm:8.0.2"
     "@types/chai-datetime": "npm:1.0.0"
     "@types/debug": "npm:^4.1.13"
-    "@types/lodash": "npm:4.17.26"
+    "@types/lodash": "npm:4.17.27"
     "@types/mocha": "npm:10.0.10"
     "@types/semver": "npm:7.8.0"
-    "@types/sinon": "npm:22.0.0"
-    "@types/sinon-chai": "npm:4.0.0"
+    "@types/sinon": "npm:22.0.2"
+    "@types/sinon-chai": "npm:4.0.1"
     "@types/validator": "npm:^13.15.10"
     ansis: "npm:^4.4.0"
     bnf-parser: "npm:^3.1.6"
@@ -2902,7 +2902,7 @@ __metadata:
     "@eslint/compat": "npm:2.1.1"
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:5.2.3"
-    "@types/lodash": "npm:4.17.26"
+    "@types/lodash": "npm:4.17.27"
     "@types/mocha": "npm:10.0.10"
     "@types/node": "npm:24.19.2"
     chai: "npm:6.3.0"
@@ -2910,7 +2910,9 @@ __metadata:
     cross-env: "npm:10.1.0"
     esbuild: "npm:0.28.2"
     eslint: "npm:10.13.0"
-    eslint-plugin-jsdoc: "npm:65.4.0"
+    eslint-plugin-chai-expect: "npm:4.1.1"
+    eslint-plugin-chai-friendly: "npm:1.2.1"
+    eslint-plugin-jsdoc: "npm:65.4.2"
     eslint-plugin-mocha: "npm:12.0.2"
     fast-glob: "npm:3.3.3"
     globals: "npm:17.13.0"
@@ -2959,7 +2961,7 @@ __metadata:
     "@sequelize/utils": "workspace:*"
     "@types/chai": "npm:5.2.3"
     "@types/mocha": "npm:10.0.10"
-    "@types/sinon": "npm:22.0.0"
+    "@types/sinon": "npm:22.0.2"
     chai: "npm:6.3.0"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
@@ -3052,7 +3054,7 @@ __metadata:
   resolution: "@sequelize/utils@workspace:packages/utils"
   dependencies:
     "@types/chai": "npm:5.2.3"
-    "@types/lodash": "npm:^4.17.26"
+    "@types/lodash": "npm:^4.17.27"
     "@types/mocha": "npm:10.0.10"
     chai: "npm:6.3.0"
     concurrently: "npm:10.0.6"
@@ -3568,10 +3570,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/lodash@npm:4.17.26, @types/lodash@npm:^4.17.26":
-  version: 4.17.26
-  resolution: "@types/lodash@npm:4.17.26"
-  checksum: 10c0/7f8a95db94698f009e59c612deaba1ee98ac738156926f4c1c062853b9e46fe5fb3a7a34a15ad2f2c846f7c24b0e61e0109dfac2d9e4fa8eaa71330fd0862ea3
+"@types/lodash@npm:4.17.27, @types/lodash@npm:^4.17.27":
+  version: 4.17.27
+  resolution: "@types/lodash@npm:4.17.27"
+  checksum: 10c0/3769c022437664352a78234b8d9f6ba24693893552ef4192e507bbc7412dc621098afad0bc36f9d03855f629b143c01f3574afb2f818abcb447ebba066ad16bf
   languageName: node
   linkType: hard
 
@@ -3668,29 +3670,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sinon-chai@npm:4.0.0":
-  version: 4.0.0
-  resolution: "@types/sinon-chai@npm:4.0.0"
+"@types/sinon-chai@npm:4.0.1":
+  version: 4.0.1
+  resolution: "@types/sinon-chai@npm:4.0.1"
   dependencies:
     "@types/chai": "npm:*"
     "@types/sinon": "npm:*"
-  checksum: 10c0/9cc2b98ebd9d81cbb6fa234d81cf6d9a0f02af8e777bd19b66baa793455056c105640abc81e5108581f92ebd5753023920e99ee992fbd240e9dd28882bcd1276
+  checksum: 10c0/8df4de76b5fc9e09bed03a407a45654b45536e203cf12752438fcee9b52747704fa5b83ca9f967cf2ea2b2d25be19f699b9b02eaa657f3e680957bfe3fe2da8e
   languageName: node
   linkType: hard
 
-"@types/sinon@npm:*, @types/sinon@npm:22.0.0":
-  version: 22.0.0
-  resolution: "@types/sinon@npm:22.0.0"
+"@types/sinon@npm:*, @types/sinon@npm:22.0.2":
+  version: 22.0.2
+  resolution: "@types/sinon@npm:22.0.2"
   dependencies:
-    "@types/sinonjs__fake-timers": "npm:*"
-  checksum: 10c0/ee665a33b5fb639e1d552b1064cbfc911ccdf8523d48ee53098e82b099279d6f18b473da858740374b8a9dd607f65884c67923db822be21681249d2ac418e3cd
-  languageName: node
-  linkType: hard
-
-"@types/sinonjs__fake-timers@npm:*":
-  version: 15.0.1
-  resolution: "@types/sinonjs__fake-timers@npm:15.0.1"
-  checksum: 10c0/be8daa4e19746f4c249ce4926b83676bb2e5500a8c33b61d81cd303495b56697c28c910f7c57c0ecfd1d7c8ead87449570586d9568b0b5c6fd94c45f116197f4
+    "@sinonjs/fake-timers": "npm:^15.4.0"
+  checksum: 10c0/48dcb65c9d1aa18efea31cf7217c573f6882845926d05b36f5ae98f48f12f7b2c93969893de4e4ead29681317c978a28326a91f1e2cfe5d2e801b00c6551d25f
   languageName: node
   linkType: hard
 
@@ -6422,6 +6417,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"eslint-plugin-chai-expect@npm:4.1.1":
+  version: 4.1.1
+  resolution: "eslint-plugin-chai-expect@npm:4.1.1"
+  peerDependencies:
+    eslint: ">=2.0.0 <=10.x"
+  checksum: 10c0/0df21927d7a6382410bd4ef4eb26bffff886f6c9cc122799614800faa752c01951096611df40c01943a760f5cc08d56192bfa83babad1d0fb071899b71dba1c5
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-chai-friendly@npm:1.2.1":
+  version: 1.2.1
+  resolution: "eslint-plugin-chai-friendly@npm:1.2.1"
+  peerDependencies:
+    eslint: ">=3.0.0"
+  checksum: 10c0/45b2e8822fd4439e1024c3d7145ec56c32175795916e393542a0d9755c86d0d3661d618cf0e7303a2e46a71cb115d7c7f419b672175152e901b9e71794710574
+  languageName: node
+  linkType: hard
+
 "eslint-plugin-eslint-comments@npm:^3.2.0":
   version: 3.2.0
   resolution: "eslint-plugin-eslint-comments@npm:3.2.0"
@@ -6484,12 +6497,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsdoc@npm:65.4.0":
-  version: 65.4.0
-  resolution: "eslint-plugin-jsdoc@npm:65.4.0"
+"eslint-plugin-jsdoc@npm:65.4.2":
+  version: 65.4.2
+  resolution: "eslint-plugin-jsdoc@npm:65.4.2"
   dependencies:
     "@es-joy/escodegen": "npm:^4.2.0"
-    "@es-joy/jsdoccomment": "npm:~0.100.0"
+    "@es-joy/jsdoccomment": "npm:~1.0.0"
     "@es-joy/resolve.exports": "npm:1.2.0"
     "@typescript-eslint/utils": "npm:^8.72.0"
     are-docs-informative: "npm:^0.1.1"
@@ -6510,7 +6523,7 @@ __metadata:
   peerDependenciesMeta:
     typescript:
       optional: true
-  checksum: 10c0/31711af88efa34ea4d83b6a6ca56a17b148db2ba96aab1b4305ee158c123729005366450a0fd6fccb5d484f93661d490420c0e6179f9136eab89cd2146c8ef03
+  checksum: 10c0/24108aee2bb1fa5f53fb5a8e7caca4bc46140c75f037895b43ab3ddbdc93f04f9abd115c9a3ae05ff691348e59af85c55f25c5e03b398ce55c36876cb6f222dd
   languageName: node
   linkType: hard
 
@@ -8728,12 +8741,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsdoc-type-pratt-parser@npm:~9.3.0":
-  version: 9.3.0
-  resolution: "jsdoc-type-pratt-parser@npm:9.3.0"
+"jsdoc-type-pratt-parser@npm:~9.4.0":
+  version: 9.4.0
+  resolution: "jsdoc-type-pratt-parser@npm:9.4.0"
   dependencies:
     "@types/estree": "npm:^1.0.9"
-  checksum: 10c0/35dfafe2b9dc38714a20416e301a3b67f0f39c465daaa7eb0c857a18338577c6f702fea3e2dbbf00ca9c425fce2575c1f9ce2c66cecc9573882bca8e171a01e2
+  checksum: 10c0/4221a547be870fae67901c4b2d2c1b8b8ece4c4e03592e98e5f773e2fc6d2dd929ebc4851d05128e6dd49cd41b53ee39e9d55a29cf7715e184ff418f7a3ee858
   languageName: node
   linkType: hard
 
