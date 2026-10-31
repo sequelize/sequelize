@@ -532,9 +532,14 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @param {object} options     Various options, please see Model.bulkCreate options
    * @param {object} attributes  Various attributes mapped by field name
    *
-   * @returns {Promise}
+   * @returns {Promise} An empty array if `records` is empty, in which case no query is executed.
    */
   async bulkInsert(tableName, records, options, attributes) {
+    // An INSERT statement without any row is invalid SQL, there is nothing to insert.
+    if (records.length === 0) {
+      return [];
+    }
+
     options = { ...options, type: QueryTypes.INSERT };
 
     const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
