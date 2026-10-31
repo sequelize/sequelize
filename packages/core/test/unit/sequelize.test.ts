@@ -135,5 +135,13 @@ describe('Sequelize', () => {
       expect(Sequelize.HasManyAssociation).to.be.a('function');
       expect(Sequelize.BelongsToManyAssociation).to.be.a('function');
     });
+
+    it('isolates subclass static property overrides using assignment receiver', () => {
+      class CustomSequelize extends Sequelize {}
+      class SubModel {}
+      (CustomSequelize as any).Model = SubModel;
+      expect(CustomSequelize.Model).to.equal(SubModel);
+      expect(Sequelize.Model).to.not.equal(SubModel);
+    });
   });
 });
