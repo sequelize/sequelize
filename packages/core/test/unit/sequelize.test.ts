@@ -125,4 +125,15 @@ describe('Sequelize', () => {
       });
     });
   });
+
+  describe('static exports', () => {
+    it('exposes Model and association classes lazily without initialization errors (#18558)', () => {
+      expect(Sequelize.Model).to.be.a('function');
+      expect(Sequelize.AbstractQueryInterface).to.be.a('function');
+      expect(Sequelize.BelongsToAssociation).to.be.a('function');
+      expect(Sequelize.HasOneAssociation).to.be.a('function');
+      expect(Sequelize.HasManyAssociation).to.be.a('function');
+      expect(Sequelize.BelongsToManyAssociation).to.be.a('function');
+    });
+  });
 });
