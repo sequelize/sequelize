@@ -42,7 +42,17 @@ describe('Model.upsert', () => {
       },
     );
 
-    return { User, UserNoTime };
+    const UserUnderscored = sequelize.define(
+      'UserUnderscored',
+      {
+        name: DataTypes.STRING,
+      },
+      {
+        underscored: true,
+      },
+    );
+
+    return { User, UserNoTime, UserUnderscored };
   });
 
   let query: SinonStub;
@@ -94,5 +104,81 @@ describe('Model.upsert', () => {
     });
 
     expect(Object.keys(stub.getCall(0).args[2])).to.deep.equal(['name', 'value', 'updatedAt']);
+  });
+
+  it('keeps the timestamps passed to it when their column names differ from their attribute names', async () => {
+    const createdAt = new Date('2020-01-01T00:00:00.000Z');
+    const updatedAt = new Date('2020-01-02T00:00:00.000Z');
+
+    await vars.UserUnderscored.upsert({
+      name: 'Old Cat',
+      createdAt,
+      updatedAt,
+    });
+
+    const insertValues = stub.getCall(0).args[1];
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(insertValues.created_at).to.equal(createdAt);
+    expect(insertValues.updated_at).to.equal(updatedAt);
+    expect(updateValues.updated_at).to.equal(updatedAt);
+  });
+
+  it('fills in the timestamps when none are passed and their column names differ from their attribute names', async () => {
+    const now = new Date('2020-01-03T00:00:00.000Z');
+    const clock = sinon.useFakeTimers({ now, toFake: ['Date'] });
+
+    try {
+      await vars.UserUnderscored.upsert({
+        name: 'Young Cat',
+      });
+    } finally {
+      clock.restore();
+    }
+
+    const insertValues = stub.getCall(0).args[1];
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(insertValues).to.deep.equal({ name: 'Young Cat', created_at: now, updated_at: now });
+    expect(updateValues).to.deep.equal({ name: 'Young Cat', updated_at: now });
+  });
+
+  it('does not update the creation timestamp passed to it', async () => {
+    const createdAt = new Date('2020-01-01T00:00:00.000Z');
+
+    await vars.UserUnderscored.upsert({
+      name: 'Old Cat',
+      createdAt,
+    });
+
+    const insertValues = stub.getCall(0).args[1];
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(insertValues.created_at).to.equal(createdAt);
+    expect(Object.keys(updateValues)).to.deep.equal(['name', 'updated_at']);
+  });
+
+  it('updates the creation timestamp passed to it if it is listed in fields', async () => {
+    const createdAt = new Date('2020-01-01T00:00:00.000Z');
+
+    await vars.UserUnderscored.upsert(
+      {
+        name: 'Old Cat',
+        createdAt,
+      },
+      { fields: ['name', 'createdAt'] },
+    );
+
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(updateValues.created_at).to.equal(createdAt);
+  });
+
+  it('does not add timestamps to the updated fields when timestamps are disabled', async () => {
+    await vars.UserNoTime.upsert({
+      name: 'Old Cat',
+    });
+
+    expect(Object.keys(stub.getCall(0).args[2])).to.deep.equal(['name']);
   });
 });
