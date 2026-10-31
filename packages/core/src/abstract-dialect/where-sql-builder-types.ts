@@ -59,10 +59,9 @@ export type WhereAttributeHashValue<AttributeType> =
       // Exception: array attribtues always use Op.eq, never Op.in.
       AttributeType extends any[]
         ? WhereOperators<AttributeType>[typeof Op.eq] | WhereOperators<AttributeType>
-        :
-            | WhereOperators<AttributeType>[typeof Op.in]
-            | WhereOperators<AttributeType>[typeof Op.eq]
-            | WhereOperators<AttributeType>
+        : | WhereOperators<AttributeType>[typeof Op.in]
+          | WhereOperators<AttributeType>[typeof Op.eq]
+          | WhereOperators<AttributeType>
     >
   // TODO: this needs a simplified version just for JSON columns
   | WhereAttributeHash<any>; // for JSON columns
@@ -81,19 +80,23 @@ export type WhereAttributeHashValue<AttributeType> =
  */
 export type WhereAttributeHash<TAttributes = any> = {
   // support 'attribute' & '$attribute$'
-  [AttributeName in keyof TAttributes as AttributeName extends string
-    ? AttributeName | `$${AttributeName}$`
-    : never]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
+  [
+    AttributeName in keyof TAttributes as AttributeName extends string
+      ? AttributeName | `$${AttributeName}$`
+      : never
+  ]?: WhereAttributeHashValue<TAttributes[AttributeName]>;
 } & {
-  [AttributeName in keyof TAttributes as AttributeName extends string
-    ? // support 'json.path', '$json$.path', json[index]', '$json$[index]'
-      | `${AttributeName}.${string}`
+  [
+    AttributeName in keyof TAttributes as AttributeName extends string
+      ? // support 'json.path', '$json$.path', json[index]', '$json$[index]'
+        | `${AttributeName}.${string}`
         | `$${AttributeName}$.${string}`
         | `${AttributeName}[${string}`
         | `$${AttributeName}$[${string}`
         // support 'attribute::cast', '$attribute$::cast', 'json.path::cast' & '$json$.path::cast'
         | `${AttributeName | `$${AttributeName}$` | `${AttributeName}.${string}` | `$${AttributeName}$.${string}`}:${string}`
-    : never]?: WhereAttributeHashValue<any>;
+      : never
+  ]?: WhereAttributeHashValue<any>;
 } & {
   // support '$nested.attribute$', '$nested.attribute$::cast', '$nested.attribute$.json.path', & '$nested.attribute$.json.path::cast', '$nested.attribute$[index]', & '$nested.attribute$[index]::cast'
   [

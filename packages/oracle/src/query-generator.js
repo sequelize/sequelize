@@ -9,7 +9,6 @@ import isPlainObject from 'lodash/isPlainObject';
 import toPath from 'lodash/toPath';
 import oracledb from 'oracledb';
 
-import { DataTypes } from '@sequelize/core';
 import { normalizeDataType } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
@@ -23,7 +22,6 @@ import {
   EMPTY_SET,
   getObjectFromMap,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import { pojo } from '@sequelize/utils';
 import { OracleQueryGeneratorTypeScript } from './query-generator-typescript.internal';
 
@@ -173,15 +171,13 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   }
 
   createTableQuery(tableName, attributes, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'createTableQuery',
-        this.dialect,
-        CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createTableQuery',
+      this.dialect,
+      CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      CREATE_TABLE_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const primaryKeys = [];
     const foreignKeys = pojo();
@@ -192,13 +188,31 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       table: this.quoteTable(tableName),
     };
 
+    // Oracle rejects two unique constraints on the same columns (ORA-02261),
+    // so columns that have a single-column unique key don't get UNIQUE in their definition.
+    // Unique indexes are converted to unique keys below, but only if there are unique keys.
+    const uniqueKeyColumns = new Set();
+    for (const uniqueKey of [
+      ...Object.values(options?.uniqueKeys ?? {}),
+      ...(options?.uniqueKeys ? (options.indexes ?? []).filter(index => index.unique) : []),
+    ]) {
+      if (uniqueKey.fields.length === 1) {
+        const field = uniqueKey.fields[0];
+        uniqueKeyColumns.add(typeof field === 'string' ? field : (field.attribute ?? field.name));
+      }
+    }
+
     // Starting by dealing with all attributes
     for (let attr in attributes) {
       if (!Object.hasOwn(attributes, attr)) {
         continue;
       }
 
-      const dataType = attributes[attr];
+      let dataType = attributes[attr];
+      if (uniqueKeyColumns.has(attr)) {
+        dataType = dataType.replace(/ UNIQUE(?= REFERENCES| PRIMARY KEY|$)/, '');
+      }
+
       attr = this.quoteIdentifier(attr);
 
       // ORACLE doesn't support inline REFERENCES declarations: move to the end
@@ -421,28 +435,27 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
   // }
 
   addColumnQuery(table, key, dataType, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'addColumnQuery',
+      this.dialect,
+      ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
+
+    const column = isPlainObject(dataType) ? dataType : { type: dataType };
 
     dataType = {
-      ...dataType,
+      ...column,
       field: key,
-      type: normalizeDataType(dataType.type, this.dialect),
+      type: normalizeDataType(column.type, this.dialect),
     };
-    dataType.field = key;
 
     const attribute = joinSQLFragments([
       this.quoteIdentifier(key),
-      this.attributeToSQL(dataType, {
-        attributeName: key,
+      this.attributeToSql(dataType, {
         context: 'addColumn',
+        tableOrModel: table,
       }),
     ]);
 
@@ -514,14 +527,18 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
    * @param {string} definition The operation that needs to be performed on the attribute
    * @param {object|string} table The table that needs to be altered
    * @param {string} attributeName The name of the attribute which would get altered
+   * @param {boolean} [addUniqueKey] Whether to add a unique constraint on the attribute in the same statement
    */
-  _modifyQuery(definition, table, attributeName) {
+  _modifyQuery(definition, table, attributeName, addUniqueKey) {
     const query = joinSQLFragments([
       'ALTER TABLE',
       this.quoteTable(table),
       'MODIFY',
       this.quoteIdentifier(attributeName),
       definition,
+      // Schema changes are not transactional in Oracle,
+      // so the unique key is added in the same statement, which applies both changes, or neither.
+      addUniqueKey && `ADD ${this._uniqueKeySnippet(table, attributeName)}`,
     ]);
     const secondQuery = query.replace('NOT NULL', '').replace('NULL', '');
 
@@ -540,7 +557,14 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     ].join(' ');
   }
 
-  changeColumnQuery(table, attributes) {
+  _uniqueKeySnippet(table, attributeName) {
+    // the same name as with addConstraint
+    const name = `${this.extractTableDetails(table).tableName}_${attributeName}_uk`;
+
+    return `CONSTRAINT ${this.quoteIdentifier(name)} UNIQUE (${this.quoteIdentifier(attributeName)})`;
+  }
+
+  changeColumnQuery(table, attributes, columns) {
     const sql = ['DECLARE', 'CONS_NAME VARCHAR2(200);', 'BEGIN'];
     for (const attributeName in attributes) {
       if (!Object.hasOwn(attributes, attributeName)) {
@@ -548,12 +572,18 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
       }
 
       const definition = attributes[attributeName];
+      const addUniqueKey = columns?.[attributeName]?.unique === true;
       // eslint-disable-next-line unicorn/prefer-regexp-test
       if (definition.match(/REFERENCES/)) {
         sql.push(this._alterForeignKeyConstraint(definition, table, attributeName));
+
+        if (addUniqueKey) {
+          const addUniqueKeyQuery = `ALTER TABLE ${this.quoteTable(table)} ADD ${this._uniqueKeySnippet(table, attributeName)}`;
+          sql.push(`EXECUTE IMMEDIATE ${this.escape(addUniqueKeyQuery)};`);
+        }
       } else {
         // Building the modify query
-        sql.push(this._modifyQuery(definition, table, attributeName));
+        sql.push(this._modifyQuery(definition, table, attributeName, addUniqueKey));
       }
     }
 
@@ -844,128 +874,6 @@ export class OracleQueryGenerator extends OracleQueryGeneratorTypeScript {
     }
 
     return queryTmpl;
-  }
-
-  attributeToSQL(attribute, options) {
-    if (!isPlainObject(attribute)) {
-      attribute = {
-        type: attribute,
-      };
-    }
-
-    // handle self referential constraints
-    if (
-      attribute.references &&
-      attribute.Model &&
-      attribute.Model.tableName === attribute.references.tableName
-    ) {
-      this.sequelize.log(
-        'Oracle does not support self referencial constraints, ' +
-          'we will remove it but we recommend restructuring your query',
-      );
-      attribute.onDelete = '';
-    }
-
-    let template;
-
-    if (attribute.type instanceof DataTypes.ENUM) {
-      // enums are a special case
-      template = attribute.type.toSql({ dialect: this.dialect });
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN(${attribute.type.options.values
-        .map(value => {
-          return this.escape(value, undefined, {});
-        })
-        .join(', ')}))`;
-
-      return template;
-    }
-
-    if (attribute.type instanceof DataTypes.JSON) {
-      template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IS JSON)`;
-
-      return template;
-    }
-
-    if (attribute.type instanceof DataTypes.BOOLEAN) {
-      template = attribute.type.toSql();
-      template += ` CHECK (${this.quoteIdentifier(options.attributeName)} IN('1', '0'))`;
-
-      return template;
-    }
-
-    if (attribute.autoIncrement) {
-      template = ' NUMBER(*,0) GENERATED BY DEFAULT ON NULL AS IDENTITY';
-    } else if (attribute.type && attribute.type === 'DOUBLE') {
-      template = attribute.type.toSql();
-    } else if (attribute.type) {
-      // setting it to false because oracle doesn't support unsigned int so put a check to make it behave like unsigned int
-      let unsignedTemplate = '';
-      if (attribute.type?.options?.unsigned) {
-        attribute.type.options.unsigned = false;
-        unsignedTemplate += ` CHECK(${this.quoteIdentifier(options.attributeName)} >= 0)`;
-      }
-
-      template = attribute.type.toString();
-
-      // Blobs/texts cannot have a defaultValue
-      if (
-        attribute.type &&
-        attribute.type !== 'TEXT' &&
-        attribute.type._binary !== true &&
-        defaultValueSchemable(attribute.defaultValue, this.dialect)
-      ) {
-        template += ` DEFAULT ${this.escape(attribute.defaultValue)}`;
-      }
-
-      if (!attribute.autoIncrement) {
-        // If autoincrement, not null is set automatically
-        if (attribute.allowNull === false) {
-          template += ' NOT NULL';
-        } else if (
-          !attribute.primaryKey &&
-          !defaultValueSchemable(attribute.defaultValue, this.dialect)
-        ) {
-          template += ' NULL';
-        }
-      }
-
-      template += unsignedTemplate;
-    } else {
-      template = '';
-    }
-
-    if (attribute.primaryKey) {
-      template += ' PRIMARY KEY';
-    }
-
-    if ((!options || !options.withoutForeignKeyConstraints) && attribute.references) {
-      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
-
-      if (attribute.references.key) {
-        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
-      } else {
-        template += ` (${this.quoteIdentifier('id')})`;
-      }
-
-      if (attribute.onDelete && attribute.onDelete.toUpperCase() !== 'NO ACTION') {
-        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
-      }
-    }
-
-    return template;
-  }
-
-  attributesToSQL(attributes, options) {
-    const result = {};
-
-    for (const key in attributes) {
-      const attribute = attributes[key];
-      const attributeName = attribute.field || key;
-      result[attributeName] = this.attributeToSQL(attribute, { attributeName, ...options });
-    }
-
-    return result;
   }
 
   createTrigger() {

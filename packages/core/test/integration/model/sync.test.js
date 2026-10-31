@@ -1,12 +1,69 @@
 'use strict';
 
 const { expect } = require('chai');
-const { DataTypes, Deferrable, Model } = require('@sequelize/core');
+const { DataTypes, Deferrable, Model, UniqueConstraintError } = require('@sequelize/core');
+const isEqual = require('lodash/isEqual');
 const { getTestDialect, getTestDialectTeaser, sequelize } = require('../support');
 
 const dialect = getTestDialect();
 
 describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
+  if (['mysql', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+    it('throws a clear error for unique attributes whose type cannot be unique', async () => {
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: { type: DataTypes.TEXT, unique: true } },
+        { tableName: 'unique_texts', timestamps: false },
+      );
+
+      await expect(Item.sync({ force: true })).to.be.rejectedWith(
+        Error,
+        `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+      );
+      expect(await sequelize.queryInterface.tableExists('unique_texts')).to.equal(false);
+    });
+
+    it('throws a clear error before adding unique indexes whose columns cannot be unique', async () => {
+      await sequelize.queryInterface.createTable('unique_texts', {
+        id: { type: DataTypes.INTEGER, primaryKey: true },
+        value: DataTypes.TEXT,
+      });
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: DataTypes.TEXT },
+        {
+          tableName: 'unique_texts',
+          timestamps: false,
+          indexes: [{ unique: true, fields: ['value'] }],
+        },
+      );
+
+      await expect(Item.sync()).to.be.rejectedWith(
+        Error,
+        `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+      );
+    });
+  }
+
+  if (['mysql', 'mariadb'].includes(dialect)) {
+    it('adds unique prefix indexes on TEXT columns', async () => {
+      const Item = sequelize.define(
+        'UniqueText',
+        { value: DataTypes.TEXT },
+        {
+          tableName: 'unique_texts',
+          timestamps: false,
+          indexes: [{ unique: true, fields: [{ name: 'value', length: 10 }] }],
+        },
+      );
+
+      await Item.sync({ force: true });
+
+      const indexes = await sequelize.queryInterface.showIndex('unique_texts');
+      expect(indexes.filter(index => index.unique && !index.primary)).to.have.length(1);
+    });
+  }
+
   it('removes a column if it exists in the databases schema but not the model', async () => {
     const User = sequelize.define('testSync', {
       name: DataTypes.STRING,
@@ -214,6 +271,38 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
       syncResults,
       '"alter" should not create new indexes if they already exist.',
     );
+  });
+
+  // https://github.com/sequelize/sequelize/issues/17978
+  it('does not add duplicate unique keys when { alter: true } is used repeatedly', async () => {
+    const User = sequelize.define(
+      'User',
+      {
+        name: {
+          type: DataTypes.STRING(30),
+          allowNull: false,
+          unique: true,
+        },
+      },
+      { timestamps: false },
+    );
+
+    await User.sync({ force: true });
+    await User.sync({ alter: true });
+    await User.sync({ alter: true });
+
+    const uniqueIndexes = (await getNonPrimaryIndexes(User)).filter(
+      index => index.unique && isEqual(getIndexFields(index), ['name']),
+    );
+    expect(uniqueIndexes).to.have.length(1);
+
+    const uniqueConstraints = (
+      await sequelize.queryInterface.showConstraints(User, { constraintType: 'UNIQUE' })
+    ).filter(constraint => isEqual(constraint.columnNames, ['name']));
+    expect(uniqueConstraints).to.have.length.at.most(1);
+
+    await User.create({ name: 'a' });
+    await expect(User.create({ name: 'a' })).to.be.rejectedWith(UniqueConstraintError);
   });
 
   it('creates one unique index per unique:true columns, and per entry in options.indexes', async () => {
@@ -569,8 +658,7 @@ describe(getTestDialectTeaser('Model.sync & Sequelize#sync'), () => {
   }
 
   it('defaults to schema provided to sync() for references #11276', async function () {
-    // TODO: this should work with MSSQL / MariaDB too
-    if (!dialect !== 'postgres') {
+    if (!sequelize.dialect.supports.schemas) {
       return;
     }
 

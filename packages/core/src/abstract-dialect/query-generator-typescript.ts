@@ -1,5 +1,5 @@
 import type { RequiredBy } from '@sequelize/utils';
-import { EMPTY_OBJECT, isPlainObject, isString, join, map } from '@sequelize/utils';
+import { EMPTY_OBJECT, isPlainObject, isString, join, map, pojo } from '@sequelize/utils';
 import isObject from 'lodash/isObject';
 import { randomUUID } from 'node:crypto';
 import NodeUtil from 'node:util';
@@ -36,10 +36,18 @@ import {
   extractTableIdentifier,
   isModelStatic,
 } from '../utils/model-utils.js';
-import type { BindParamOptions, DataType } from './data-types.js';
-import { AbstractDataType } from './data-types.js';
+import { attributeTypeToSql } from './data-types-utils.js';
+import type { BindParamOptions, DataType, NormalizedDataType } from './data-types.js';
+import { AbstractDataType, ARRAY, ENUM } from './data-types.js';
 import type { AbstractDialect } from './dialect.js';
+import type { UniqueTypeOptions } from './query-generator-internal.js';
 import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
+import type {
+  AttributesToSqlColumns,
+  AttributeToSqlColumn,
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from './query-generator.internal-types.js';
 import type {
   AddConstraintQueryOptions,
   BulkDeleteQueryOptions,
@@ -64,6 +72,21 @@ import type { TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
+
+/**
+ * Normalizes the input of {@link AbstractQueryGeneratorTypeScript#attributeToSql} into a column
+ * object, so every dialect accepts a bare data type as well as a full column description.
+ *
+ * The result is always a copy: `attributeToSql` implementations narrow referential actions and
+ * must not write to the caller's attribute.
+ *
+ * @param column a column description, or the data type of a column
+ */
+export function normalizeAttributeToSqlColumn(column: AttributeToSqlInput): AttributeToSqlColumn {
+  return isPlainObject(column)
+    ? { ...(column as AttributeToSqlColumn) }
+    : { type: column as NormalizedDataType };
+}
 
 export const CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS = new Set<keyof CreateDatabaseQueryOptions>([
   'charset',
@@ -159,7 +182,7 @@ export interface ParameterOptions {
    */
   readonly parameterStyle?: ParameterStyle | `${ParameterStyle}` | undefined;
   /**
-   * These are used to inline replacements into the query, when one is found inside of a {@link sql.literal}.
+   * These are used to inline replacements into the query, when one is found inside of a {@link @sequelize/core!sql.literal}.
    */
   readonly replacements?: BindOrReplacements | undefined;
 }
@@ -226,15 +249,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'createSchemaQuery',
-        this.dialect,
-        CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.createSchema,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createSchemaQuery',
+      this.dialect,
+      CREATE_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.createSchema,
+      options,
+    );
 
     return joinSQLFragments([
       'CREATE',
@@ -256,15 +277,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'dropSchemaQuery',
-        this.dialect,
-        DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.dropSchema,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'dropSchemaQuery',
+      this.dialect,
+      DROP_SCHEMA_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.dropSchema,
+      options,
+    );
 
     return joinSQLFragments([
       'DROP SCHEMA',
@@ -284,20 +303,39 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     throw new Error(`Schemas are not supported in ${this.dialect.name}.`);
   }
 
+  /**
+   * Throws if columns of this type cannot be unique in this dialect,
+   * to throw a clear error instead of the one of the database.
+   *
+   * @param columnName The name of the column
+   * @param type The type of the column
+   * @param options The length of the prefix of the column that is part of the unique index, if any (prefixLength)
+   */
+  assertTypeCanBeUnique(
+    columnName: string | undefined,
+    type: AbstractDataType<any> | string,
+    options?: UniqueTypeOptions,
+  ): void {
+    // enums can always be unique, and their SQL type can depend on the table they are attached to (postgres)
+    if (type instanceof ENUM || (type instanceof ARRAY && type.options.type instanceof ENUM)) {
+      return;
+    }
+
+    this.#internals.assertTypeCanBeUnique(columnName, attributeTypeToSql(type), options);
+  }
+
   describeTableQuery(tableName: TableOrModel) {
     return `DESCRIBE ${this.quoteTable(tableName)};`;
   }
 
   dropTableQuery(tableName: TableOrModel, options?: DropTableQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'dropTableQuery',
-        this.dialect,
-        DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.dropTable,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'dropTableQuery',
+      this.dialect,
+      DROP_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.dropTable,
+      options,
+    );
 
     return joinSQLFragments([
       'DROP TABLE IF EXISTS',
@@ -339,15 +377,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     columnName: string,
     options?: RemoveColumnQueryOptions,
   ): string {
-    if (options) {
-      rejectInvalidOptions(
-        'removeColumnQuery',
-        this.dialect,
-        REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.removeColumn,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeColumnQuery',
+      this.dialect,
+      REMOVE_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.removeColumn,
+      options,
+    );
 
     return joinSQLFragments([
       'ALTER TABLE',
@@ -383,15 +419,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       );
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'removeConstraintQuery',
-        this.dialect,
-        REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.constraints.removeOptions,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'removeConstraintQuery',
+      this.dialect,
+      REMOVE_CONSTRAINT_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.constraints.removeOptions,
+      options,
+    );
 
     return joinSQLFragments([
       'ALTER TABLE',
@@ -556,15 +590,13 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
       );
     }
 
-    if (options) {
-      rejectInvalidOptions(
-        'startTransactionQuery',
-        this.dialect,
-        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.startTransaction,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'startTransactionQuery',
+      this.dialect,
+      START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.startTransaction,
+      options,
+    );
 
     return joinSQLFragments([
       this.dialect.supports.startTransaction.useBegin ? 'BEGIN' : 'START',
@@ -611,18 +643,16 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    * @param options options
    */
   quoteTable(param: TableOrModel, options?: QuoteTableOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'quoteTable',
-        this.dialect,
-        QUOTE_TABLE_SUPPORTABLE_OPTIONS,
-        {
-          indexHints: this.dialect.supports.indexHints,
-          tableHints: this.dialect.supports.tableHints,
-        },
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'quoteTable',
+      this.dialect,
+      QUOTE_TABLE_SUPPORTABLE_OPTIONS,
+      {
+        indexHints: this.dialect.supports.indexHints,
+        tableHints: this.dialect.supports.tableHints,
+      },
+      options,
+    );
 
     if (isModelStatic(param)) {
       param = param.table;
@@ -658,7 +688,8 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (options?.alias) {
-      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(options.alias === true ? tableName.tableName : options.alias)}`;
+      const alias = options.alias === true ? tableName.tableName : options.alias;
+      sql += ` ${this.#internals.getAliasToken()} ${this.quoteIdentifier(alias, alias.startsWith('%'))}`;
     }
 
     if (options?.indexHints) {
@@ -785,7 +816,7 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
     }
 
     if (piece instanceof AssociationPath) {
-      return this.#internals.formatAssociationPath(piece);
+      return this.#internals.formatAssociationPath(piece, options);
     }
 
     if (piece instanceof DialectAwareFn) {
@@ -1010,6 +1041,58 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) Z
    * ```
    */
+
+  /**
+   * Generates the SQL fragment that declares a single column, without its name.
+   *
+   * Every dialect implements this. It lives here because {@link attributesToSql} calls it.
+   *
+   * @param _column a column description, or the data type of a column
+   * @param _options
+   */
+  attributeToSql(_column: AttributeToSqlInput, _options?: AttributeToSqlOptions): string {
+    throw new Error(`attributeToSql has not been implemented in ${this.dialect.name}.`);
+  }
+
+  /**
+   * Generates the SQL fragment declaring each of the given columns, keyed by column name.
+   *
+   * @param columns a map of column descriptions, keyed by attribute name
+   * @param options
+   */
+  attributesToSql(
+    columns: AttributesToSqlColumns,
+    options?: AttributeToSqlOptions,
+  ): Record<string, string> {
+    const result: Record<string, string> = pojo();
+    const referencedTables: string[] = [];
+
+    for (const attributeName of Object.keys(columns)) {
+      const attribute = normalizeAttributeToSqlColumn(columns[attributeName]);
+
+      attribute.field = attribute.field || attribute.columnName || attributeName;
+
+      this.limitReferentialActions(attribute, referencedTables);
+
+      result[attribute.field] = this.attributeToSql(attribute, options);
+    }
+
+    return result;
+  }
+
+  /**
+   * Called for each column of {@link attributesToSql} before it is generated. Dialects that reject
+   * more than one cascading constraint to the same table use this to drop the referential actions
+   * of the references they cannot accept.
+   *
+   * @param _attribute the column about to be generated. Mutate it to change what is emitted
+   * @param _referencedTables the quoted tables referenced by the columns generated so far. Push to
+   *   record one
+   */
+  protected limitReferentialActions(
+    _attribute: AttributeToSqlColumn,
+    _referencedTables: string[],
+  ): void {}
 
   generateCountAllQuery(query: string): string {
     // dialect-aware alias token

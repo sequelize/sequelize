@@ -11,7 +11,7 @@ const Support = require('../support');
 const { DataTypes, Op, Sequelize } = require('@sequelize/core');
 
 const dayjs = require('dayjs');
-const promiseProps = require('p-props');
+const { default: promiseProps } = require('p-props');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -35,6 +35,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
   });
 
   describe('findAll', () => {
+    it('restores minified aliases in included models', async function () {
+      const Task = this.sequelize.define(
+        'MinifiedAliasTask',
+        { title: DataTypes.STRING },
+        { timestamps: false },
+      );
+      const User = this.sequelize.define('MinifiedAliasUser', {}, { timestamps: false });
+
+      User.belongsTo(Task, { as: 'task', foreignKey: 'taskId' });
+
+      await Task.sync({ force: true });
+      await User.sync({ force: true });
+      const task = await Task.create({ title: 'task' });
+      await User.create({ taskId: task.id });
+
+      const [user] = await User.findAll({
+        include: [{ association: User.associations.task }],
+        minifyAliases: true,
+      });
+
+      expect(user.task.title).to.equal('task');
+    });
+
     if (current.dialect.supports.transactions) {
       it('supports transactions', async function () {
         const sequelize = await Support.createSingleTransactionalTestSequelizeInstance(
@@ -859,6 +882,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('should return a DAO when queryOptions are not set', async function () {
           const users = await this.User.findAll({ where: { username: 'barfooz' } });
+          expect(users).to.have.length(1);
           for (const user of users) {
             expect(user).to.be.instanceOf(this.User);
           }
@@ -866,6 +890,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('should return a DAO when raw is false', async function () {
           const users = await this.User.findAll({ where: { username: 'barfooz' }, raw: false });
+          expect(users).to.have.length(1);
           for (const user of users) {
             expect(user).to.be.instanceOf(this.User);
           }
@@ -873,6 +898,7 @@ The following associations are defined on "Worker": "ToDos"`);
 
         it('should return raw data when raw is true', async function () {
           const users = await this.User.findAll({ where: { username: 'barfooz' }, raw: true });
+          expect(users).to.have.length(1);
           for (const user of users) {
             expect(user).to.not.be.instanceOf(this.User);
             expect(users[0]).to.be.instanceOf(Object);
@@ -1024,7 +1050,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
             // include.attributes:[] , model doesn't exists
-            expect(kingdom.Animals).to.not.exist;
+            expect(kingdom.animals).to.not.exist;
           }
         });
 
@@ -1065,7 +1091,7 @@ The following associations are defined on "Worker": "ToDos"`);
           expect(kingdoms.length).to.be.eql(2);
           for (const kingdom of kingdoms) {
             // include.attributes: [], model doesn't exists
-            expect(kingdom.Animals).to.not.exist;
+            expect(kingdom.animals).to.not.exist;
           }
         });
       });
@@ -1491,6 +1517,8 @@ The following associations are defined on "Worker": "ToDos"`);
           attributes: ['active'],
         });
 
+        // the beforeEach hook already inserted 2 users into the same table
+        expect(users).to.have.length(3);
         for (const user of users) {
           expect(user.get('createdAt')).to.be.ok;
           expect(user.get('active')).to.equal(true);
@@ -1544,6 +1572,7 @@ The following associations are defined on "Worker": "ToDos"`);
           ],
         });
 
+        expect(users).to.have.length(1);
         for (const user of users) {
           expect(user.get('name')).to.equal('some user');
           expect(user.image.get('url')).to.equal(

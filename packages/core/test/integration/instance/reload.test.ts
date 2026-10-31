@@ -10,12 +10,12 @@ import { DataTypes, InstanceError, Model } from '@sequelize/core';
 import { Attribute, BelongsTo, HasMany, NotNull, Table } from '@sequelize/core/decorators-legacy';
 import { expect } from 'chai';
 import { describe } from 'mocha';
-import sinon from 'sinon';
 import {
   beforeAll2,
   createSingleTransactionalTestSequelizeInstance,
   sequelize,
   setResetMode,
+  useFakeTimers,
 } from '../support';
 
 describe('Model#reload', () => {
@@ -23,7 +23,7 @@ describe('Model#reload', () => {
     setResetMode('destroy');
 
     const vars = beforeAll2(async () => {
-      const clock = sinon.useFakeTimers();
+      const clock = useFakeTimers();
 
       class Book extends Model<InferAttributes<Book>, InferCreationAttributes<Book>> {
         declare id: CreationOptional<number>;
@@ -80,7 +80,7 @@ describe('Model#reload', () => {
       const original = await vars.Book.create({ title: 'Book Title 1' });
       await original.update({ title: 'Book Title 2' });
       const updated = await original.reload();
-      expect(original === updated).to.be.true;
+      expect(updated).to.equal(original);
     });
 
     it('updates local value based on the values in the database', async () => {

@@ -37,6 +37,44 @@ import { AbstractQueryGeneratorInternal } from './query-generator-internal.js';
 import { AbstractQueryGeneratorTypeScript } from './query-generator-typescript';
 import { joinWithLogicalOperator } from './where-sql-builder';
 
+const { propertyIsEnumerable } = Object.prototype;
+
+/**
+ * Avoids spreading the whole query options for every table of a SELECT.
+ *
+ * @param {string | boolean} alias The alias of the table
+ * @param {object} options The options of the query
+ * @param {object} [include] The include the table belongs to
+ * @returns {object}
+ */
+function getQuoteTableOptions(alias, options, include) {
+  return {
+    alias,
+    indexHints: getSpreadValue('indexHints', options, include),
+    tableHints: getSpreadValue('tableHints', options, include),
+  };
+}
+
+/**
+ * Returns the value that the property would have in `{ ...options, ...include }`
+ *
+ * @param {string} propertyName
+ * @param {object} options
+ * @param {object} [include]
+ * @returns {unknown}
+ */
+function getSpreadValue(propertyName, options, include) {
+  if (include != null && propertyIsEnumerable.call(include, propertyName)) {
+    return include[propertyName];
+  }
+
+  if (options != null && propertyIsEnumerable.call(options, propertyName)) {
+    return options[propertyName];
+  }
+
+  return undefined;
+}
+
 export const CREATE_TABLE_QUERY_SUPPORTABLE_OPTIONS = new Set([
   'collate',
   'charset',
@@ -157,12 +195,22 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       parameterStyle = ParameterStyle.REPLACEMENT;
     }
 
+    if (
+      this.dialect.supports.returnIntoValues &&
+      options.returning &&
+      parameterStyle !== ParameterStyle.BIND
+    ) {
+      throw new Error(
+        `The ${this.dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+      );
+    }
+
     if (parameterStyle === ParameterStyle.BIND) {
       bind = this.dialect.supports.returnIntoValues && options.bind ? options.bind : pojo();
       bindParam = createBindParamGenerator(bind, this.dialect.name === 'oracle');
     }
 
-    valueHash = removeNullishValuesFromHash(valueHash, this.options.omitNull);
+    valueHash = removeNullishValuesFromHash(valueHash, options.omitNull);
     for (const key in valueHash) {
       if (Object.hasOwn(valueHash, key)) {
         // if value is undefined, we replace it with null
@@ -356,9 +404,12 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     for (const fieldValueHash of fieldValueHashes) {
       const values = allAttributes.map(key => {
-        if (this.dialect.supports.bulkDefault && serials[key] === true) {
-          // fieldValueHashes[key] ?? 'DEFAULT'
-          return fieldValueHash[key] != null ? fieldValueHash[key] : 'DEFAULT';
+        if (
+          this.dialect.supports.bulkDefault &&
+          serials[key] === true &&
+          fieldValueHash[key] == null
+        ) {
+          return 'DEFAULT';
         }
 
         return this.escape(fieldValueHash[key] ?? null, {
@@ -838,6 +889,21 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
     // just quote as identifiers if string
     if (typeof collection === 'string') {
+      if (collection.includes('.')) {
+        const parts = collection.split('.');
+        const columnName = parts.pop();
+        const tableAlias = parts.join('->');
+        const minifiedTableAlias = this.#internals.getTableAlias(tableAlias, options);
+
+        if (minifiedTableAlias !== tableAlias) {
+          if (columnName === '*') {
+            return `${this.quoteIdentifier(minifiedTableAlias, true)}.*`;
+          }
+
+          return `${this.quoteIdentifier(minifiedTableAlias, true)}.${this.quoteIdentifier(columnName)}`;
+        }
+      }
+
       return this.quoteIdentifiers(collection);
     }
 
@@ -970,7 +1036,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       let sql = '';
 
       if (i > 0) {
-        sql += `${this.quoteIdentifier(tableNames.join(connector))}.`;
+        sql += `${this.#internals.quoteTableAlias(tableNames.join(connector), options)}.`;
       } else if (typeof collection[0] === 'string' && parent) {
         sql += `${this.quoteIdentifier(parent.name)}.`;
       }
@@ -1006,7 +1072,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
    *
    * ⚠️ You almost certainly want to use `quoteIdentifier` instead!
    * This method splits the identifier by "." into multiple identifiers, and has special meaning for "*".
-   * This behavior should never be the default and should be explicitly opted into by using {@link sql.col}.
+   * This behavior should never be the default and should be explicitly opted into by using {@link @sequelize/core!sql.col}.
    *
    * @param {string} identifiers
    *
@@ -1072,7 +1138,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     if (options.minifyAliases && !options.aliasesMapping) {
       options.aliasesMapping = new Map();
       options.aliasesByTable = {};
-      options.includeAliases = new Map();
     }
 
     // resolve table name options
@@ -1082,15 +1147,37 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       mainTable.as = mainTable.model.name;
     }
 
-    mainTable.quotedAs = mainTable.as && this.quoteIdentifier(mainTable.as);
+    if (options.minifyAliases) {
+      options.includeAliases ||= new Map();
+      options.reservedTableAliases ||= new Set(options.includeAliases.values());
+
+      if (mainTable.as) {
+        options.reservedTableAliases.add(mainTable.as);
+      }
+
+      const includes = [...(options.include ?? [])];
+
+      for (const include of includes) {
+        options.reservedTableAliases.add(include.as);
+
+        if (include.through?.as) {
+          options.reservedTableAliases.add(include.through.as);
+        }
+
+        includes.push(...(include.include ?? []));
+      }
+    }
+
+    mainTable.quotedAs =
+      mainTable.as && this.quoteIdentifier(mainTable.as, mainTable.as.startsWith('%'));
 
     mainTable.quotedName = !Array.isArray(mainTable.name)
-      ? this.quoteTable(mainTable.name, { ...options, alias: mainTable.as ?? false })
+      ? this.quoteTable(mainTable.name, getQuoteTableOptions(mainTable.as ?? false, options))
       : tableName
           .map(t => {
             return Array.isArray(t)
-              ? this.quoteTable(t[0], { ...options, alias: t[1] })
-              : this.quoteTable(t, { ...options, alias: true });
+              ? this.quoteTable(t[0], getQuoteTableOptions(t[1], options))
+              : this.quoteTable(t, getQuoteTableOptions(true, options));
           })
           .join(', ');
 
@@ -1183,7 +1270,9 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
 
         // TODO: do not use a placeholder!
-        const placeholder = '"$PLACEHOLDER$" = true';
+        // The placeholder must not be predictable, as it is searched for in the generated query,
+        // which can contain user-provided values.
+        const placeholder = `"$PLACEHOLDER_${crypto.randomUUID().replaceAll('-', '')}$" = true`;
 
         if (options.groupedLimit.on instanceof BelongsToManyAssociation) {
           // BTM includes needs to join the through table on to check ID
@@ -1257,6 +1346,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             minifyAliases: options.minifyAliases,
             aliasesMapping: options.aliasesMapping,
             aliasesByTable: options.aliasesByTable,
+            includeAliases: options.includeAliases,
+            reservedTableAliases: options.reservedTableAliases,
             where,
             include,
             model,
@@ -1492,7 +1583,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
   }
 
   escapeAttributes(attributes, options, mainTableAs) {
-    const quotedMainTableAs = mainTableAs && this.quoteIdentifier(mainTableAs);
+    const quotedMainTableAs =
+      mainTableAs && this.quoteIdentifier(mainTableAs, mainTableAs.startsWith('%'));
 
     return (
       attributes &&
@@ -1571,6 +1663,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       includeAs.externalAs = `${parentTableName.externalAs}.${include.as}`;
     }
 
+    const quotedInternalAs = this.#internals.quoteTableAlias(
+      includeAs.internalAs,
+      topLevelInfo.options,
+    );
+
     // includeIgnoreAttributes is used by aggregate functions
     if (topLevelInfo.options.includeIgnoreAttributes !== false) {
       include.model._expandAttributes(include);
@@ -1610,19 +1707,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         if (verbatim === true) {
           prefix = attr;
         } else if (/#>>|->>/.test(attr)) {
-          prefix = `(${this.quoteIdentifier(includeAs.internalAs)}.${attr.replaceAll(/\(|\)/g, '')})`;
+          prefix = `(${quotedInternalAs}.${attr.replaceAll(/\(|\)/g, '')})`;
         } else if (/json_extract\(/.test(attr)) {
-          prefix = attr.replace(
-            /json_extract\(/i,
-            `json_extract(${this.quoteIdentifier(includeAs.internalAs)}.`,
-          );
+          prefix = attr.replace(/json_extract\(/i, `json_extract(${quotedInternalAs}.`);
         } else if (/json_value\(/.test(attr)) {
-          prefix = attr.replace(
-            /json_value\(/i,
-            `json_value(${this.quoteIdentifier(includeAs.internalAs)}.`,
-          );
+          prefix = attr.replace(/json_value\(/i, `json_value(${quotedInternalAs}.`);
         } else {
-          prefix = `${this.quoteIdentifier(includeAs.internalAs)}.${this.quoteIdentifier(attr)}`;
+          prefix = `${quotedInternalAs}.${this.quoteIdentifier(attr)}`;
         }
 
         let alias = `${includeAs.externalAs}.${attrAs}`;
@@ -2091,8 +2182,14 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       asRight = `${asLeft}->${asRight}`;
     }
 
+    const quotedAsLeft = parentIsTop
+      ? topLevelInfo.names?.quotedAs || this.quoteIdentifier(asLeft)
+      : this.#internals.quoteTableAlias(asLeft, topLevelInfo.options);
+    const minifiedAsRight = this.#internals.getMinifiedTableAlias(asRight, topLevelInfo.options);
+    const quotedAsRight = this.quoteIdentifier(minifiedAsRight, minifiedAsRight.startsWith('%'));
+
     // TODO: use whereItemsQuery to generate the entire "ON" condition.
-    let joinOn = `${this.quoteTable(asLeft)}.${this.quoteIdentifier(columnNameLeft)}`;
+    let joinOn = `${quotedAsLeft}.${this.quoteIdentifier(columnNameLeft)}`;
     const subqueryAttributes = [];
 
     if (
@@ -2101,8 +2198,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     ) {
       if (parentIsTop) {
         // The main model attributes is not aliased to a prefix
-        const tableName = parent.as || parent.model.name;
-        const quotedTableName = this.quoteTable(tableName);
+        const tableName = topLevelInfo.names?.as || parent.as || parent.model.name;
+        const quotedTableName = topLevelInfo.names?.quotedAs || this.quoteIdentifier(tableName);
 
         // Check for potential aliased JOIN condition
         joinOn =
@@ -2127,31 +2224,31 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
     }
 
-    joinOn += ` = ${this.quoteIdentifier(asRight)}.${this.quoteIdentifier(fieldRight)}`;
+    joinOn += ` = ${quotedAsRight}.${this.quoteIdentifier(fieldRight)}`;
 
     if (include.on) {
       joinOn = this.whereItemsQuery(include.on, {
-        mainAlias: asRight,
+        mainAlias: minifiedAsRight,
         model: include.model,
         replacements: options?.replacements,
+        minifyAliases: topLevelInfo.options.minifyAliases,
+        includeAliases: topLevelInfo.options.includeAliases,
+        reservedTableAliases: topLevelInfo.options.reservedTableAliases,
       });
     }
 
     if (include.where) {
       joinWhere = this.whereItemsQuery(include.where, {
-        mainAlias: asRight,
+        mainAlias: minifiedAsRight,
         model: include.model,
         replacements: options?.replacements,
+        minifyAliases: topLevelInfo.options.minifyAliases,
+        includeAliases: topLevelInfo.options.includeAliases,
+        reservedTableAliases: topLevelInfo.options.reservedTableAliases,
       });
       if (joinWhere) {
         joinOn = joinWithLogicalOperator([joinOn, joinWhere], include.or ? Op.or : Op.and);
       }
-    }
-
-    if (options?.minifyAliases && asRight.length > 63) {
-      const alias = `%${topLevelInfo.options.includeAliases.size}`;
-
-      topLevelInfo.options.includeAliases.set(alias, asRight);
     }
 
     return {
@@ -2160,7 +2257,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         : include.right && this.dialect.supports['RIGHT JOIN']
           ? 'RIGHT OUTER JOIN'
           : 'LEFT OUTER JOIN',
-      body: this.quoteTable(tableRight, { ...topLevelInfo.options, ...include, alias: asRight }),
+      body: this.quoteTable(
+        tableRight,
+        getQuoteTableOptions(minifiedAsRight, topLevelInfo.options, include),
+      ),
       condition: joinOn,
       attributes: {
         main: [],
@@ -2233,7 +2333,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       // To capture output rows when there is a trigger on MSSQL DB
       if (options.hasTrigger && this.dialect.supports.tmpTableTrigger) {
         const tmpColumns = returnFields.map((field, i) => {
-          return `${field} ${attributeTypeToSql(returnTypes[i], { dialect: this.dialect })}`;
+          return `${field} ${attributeTypeToSql(returnTypes[i])}`;
         });
 
         tmpTable = `DECLARE @tmp TABLE (${tmpColumns.join(',')}); `;
@@ -2254,6 +2354,25 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const throughTable = through.model.table;
     const throughAs = `${includeAs.internalAs}->${through.as}`;
     const externalThroughAs = `${includeAs.externalAs}.${through.as}`;
+    const minifiedThroughAs = this.#internals.getMinifiedTableAlias(
+      throughAs,
+      topLevelInfo.options,
+    );
+    const minifiedIncludeAs = this.#internals.getMinifiedTableAlias(
+      includeAs.internalAs,
+      topLevelInfo.options,
+    );
+    const quotedThroughAs = this.quoteIdentifier(
+      minifiedThroughAs,
+      minifiedThroughAs.startsWith('%'),
+    );
+    const quotedIncludeAs = this.quoteIdentifier(
+      minifiedIncludeAs,
+      minifiedIncludeAs.startsWith('%'),
+    );
+    const quotedParentTableName = isRootParent
+      ? this.quoteIdentifier(parentTableName, parentTableName.startsWith('%'))
+      : this.#internals.quoteTableAlias(parentTableName, topLevelInfo.options);
 
     const throughAttributes = through.attributes.map(attr => {
       let alias = `${externalThroughAs}.${Array.isArray(attr) ? attr[1] : attr}`;
@@ -2263,7 +2382,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       }
 
       return joinSQLFragments([
-        `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(Array.isArray(attr) ? attr[0] : attr)}`,
+        `${quotedThroughAs}.${this.quoteIdentifier(Array.isArray(attr) ? attr[0] : attr)}`,
         'AS',
         this.quoteIdentifier(alias),
       ]);
@@ -2272,7 +2391,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     const association = include.association;
     const tableSource = parentTableName;
     const identSource = association.identifierField;
-    const tableTarget = includeAs.internalAs;
     const identTarget = association.foreignIdentifierField;
     const attrTarget = association.targetKeyField;
 
@@ -2292,19 +2410,6 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     let targetJoinOn;
     let throughWhere;
     let targetWhere;
-
-    if (options.minifyAliases && throughAs.length > 63) {
-      topLevelInfo.options.includeAliases.set(
-        `%${topLevelInfo.options.includeAliases.size}`,
-        throughAs,
-      );
-      if (includeAs.internalAs.length > 63) {
-        topLevelInfo.options.includeAliases.set(
-          `%${topLevelInfo.options.includeAliases.size}`,
-          includeAs.internalAs,
-        );
-      }
-    }
 
     if (topLevelInfo.options.includeIgnoreAttributes !== false) {
       // Through includes are always hasMany, so we need to add the attributes to the mainAttributes no matter what (Real join will never be executed in subquery)
@@ -2365,13 +2470,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         const joinColumn = association.sourceKeyField || attrSource || identSource;
 
         if (isRootParent) {
-          sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} = `;
+          sourceJoinOn = `${quotedParentTableName}.${this.quoteIdentifier(joinColumn)} = `;
         } else {
           const aliasBase = `${dottedTableSource}.${joinColumn}`;
 
           aliasedSource = this._getMinifiedAlias(aliasBase, tableSource, topLevelInfo.options);
 
-          const projection = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
+          const projection = `${quotedParentTableName}.${this.quoteIdentifier(joinColumn)} AS ${this.quoteIdentifier(aliasedSource)}`;
 
           if (!attributes.subQuery.includes(projection)) {
             attributes.subQuery.push(projection);
@@ -2411,26 +2516,26 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         }
       }
     } else {
-      sourceJoinOn = `${this.quoteTable(tableSource)}.${this.quoteIdentifier(attrSource)} = `;
+      sourceJoinOn = `${quotedParentTableName}.${this.quoteIdentifier(attrSource)} = `;
     }
 
-    sourceJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identSource)}`;
+    sourceJoinOn += `${quotedThroughAs}.${this.quoteIdentifier(identSource)}`;
 
     // Filter statement for right side of through
     // Used by both join and subquery where
-    targetJoinOn = `${this.quoteIdentifier(tableTarget)}.${this.quoteIdentifier(attrTarget)} = `;
-    targetJoinOn += `${this.quoteIdentifier(throughAs)}.${this.quoteIdentifier(identTarget)}`;
+    targetJoinOn = `${quotedIncludeAs}.${this.quoteIdentifier(attrTarget)} = `;
+    targetJoinOn += `${quotedThroughAs}.${this.quoteIdentifier(identTarget)}`;
 
     if (through.where) {
       throughWhere = this.whereItemsQuery(through.where, {
         ...topLevelInfo.options,
         model: through.model,
-        mainAlias: throughAs,
+        mainAlias: minifiedThroughAs,
       });
     }
 
     // Generate a wrapped join so that the through table join can be dependent on the target join
-    joinBody = `( ${this.quoteTable(throughTable, { ...topLevelInfo.options, ...include, alias: throughAs })} INNER JOIN ${this.quoteTable(include.model.table, { ...topLevelInfo.options, ...include, alias: includeAs.internalAs })} ON ${targetJoinOn}`;
+    joinBody = `( ${this.quoteTable(throughTable, getQuoteTableOptions(minifiedThroughAs, topLevelInfo.options, include))} INNER JOIN ${this.quoteTable(include.model.table, getQuoteTableOptions(minifiedIncludeAs, topLevelInfo.options, include))} ON ${targetJoinOn}`;
     if (throughWhere) {
       joinBody += ` AND ${throughWhere}`;
     }
@@ -2442,7 +2547,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       targetWhere = this.whereItemsQuery(include.where, {
         ...topLevelInfo.options,
         model: include.model,
-        mainAlias: includeAs.internalAs,
+        mainAlias: minifiedIncludeAs,
       });
       if (targetWhere) {
         joinCondition += ` AND ${targetWhere}`;
@@ -2520,7 +2625,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             [Op.and]: [
               new Literal(
                 [
-                  `${this.quoteTable(topParent.model.name)}.${this.quoteIdentifier(topParent.model.primaryKeyField)}`,
+                  `${this.quoteIdentifier(topParent.model.name)}.${this.quoteIdentifier(topAssociation.sourceKeyField || topParent.model.primaryKeyField)}`,
                   `${this.quoteIdentifier(topInclude.through.model.name)}.${this.quoteIdentifier(topAssociation.identifierField)}`,
                 ].join(' = '),
               ),
@@ -2528,6 +2633,11 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
             ],
           },
           includeIgnoreAttributes: false,
+          minifyAliases: topLevelInfo.options.minifyAliases,
+          aliasesMapping: topLevelInfo.options.aliasesMapping,
+          aliasesByTable: topLevelInfo.options.aliasesByTable,
+          includeAliases: topLevelInfo.options.includeAliases,
+          reservedTableAliases: topLevelInfo.options.reservedTableAliases,
         },
         topInclude.through.model,
       );
@@ -2540,9 +2650,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         ? topAssociation.sourceKeyField || topInclude.model.primaryKeyField
         : topAssociation.identifierField;
 
+      const minifiedTopIncludeAs = this.#internals.getMinifiedTableAlias(
+        topInclude.as,
+        topLevelInfo.options,
+      );
       const join = [
-        `${this.quoteIdentifier(topInclude.as)}.${this.quoteIdentifier(targetField)}`,
-        `${this.quoteTable(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
+        `${this.quoteIdentifier(minifiedTopIncludeAs, minifiedTopIncludeAs.startsWith('%'))}.${this.quoteIdentifier(targetField)}`,
+        `${this.quoteIdentifier(topParent.as || topParent.model.name)}.${this.quoteIdentifier(sourceField)}`,
       ].join(' = ');
 
       query = this.selectQuery(
@@ -2554,8 +2668,13 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
           where: {
             [Op.and]: [topInclude.where, new Literal(join)],
           },
-          tableAs: topInclude.as,
+          tableAs: minifiedTopIncludeAs,
           includeIgnoreAttributes: false,
+          minifyAliases: topLevelInfo.options.minifyAliases,
+          aliasesMapping: topLevelInfo.options.aliasesMapping,
+          aliasesByTable: topLevelInfo.options.aliasesByTable,
+          includeAliases: topLevelInfo.options.includeAliases,
+          reservedTableAliases: topLevelInfo.options.reservedTableAliases,
         },
         topInclude.model,
       );

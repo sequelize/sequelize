@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../support');
@@ -19,10 +20,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       this.Event = this.sequelize.define('Event', {
         data: {
           // TODO: JSON & JSONB tests should be split
-          type: dialect.name === 'postgres' ? DataTypes.JSONB : DataTypes.JSON,
+          type: dialect.supports.dataTypes.JSONB ? DataTypes.JSONB : DataTypes.JSON,
           field: 'event_data',
-          // This is only available on JSONB
-          index: dialect.name === 'postgres',
+          index: dialect.supports.dataTypes.JSONB,
         },
         json: DataTypes.JSON,
       });
@@ -33,6 +33,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
     if (current.dialect.supports.lock) {
       it('findOrCreate supports transactions, json and locks', async function () {
         const transaction = await current.startUnmanagedTransaction();
+        const logging = sinon.spy(sql => {
+          if (sql.includes('SELECT') && !sql.includes('CREATE')) {
+            expect(sql.includes('FOR UPDATE')).to.be.true;
+          }
+        });
 
         await this.Event.findOrCreate({
           where: {
@@ -44,12 +49,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           },
           transaction,
           lock: transaction.LOCK.UPDATE,
-          logging: sql => {
-            if (sql.includes('SELECT') && !sql.includes('CREATE')) {
-              expect(sql.includes('FOR UPDATE')).to.be.true;
-            }
-          },
+          logging,
         });
+        expect(logging).to.have.been.calledWithMatch('FOR UPDATE');
 
         const count = await this.Event.count();
         expect(count).to.equal(0);

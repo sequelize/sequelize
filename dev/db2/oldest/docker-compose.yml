@@ -11,8 +11,8 @@ services:
     volumes:
       - db2-oldest:/database
     healthcheck:
-      test: su - db2inst1 -c "db2 connect to testdb; db2 select 1 from sysibm.sysdummy1" || exit 1
-      start_period: 15s
+      test: test -f /database/config/.shared-data/setup_complete && su - db2inst1 -c "db2 connect to testdb; db2 select 1 from sysibm.sysdummy1" || exit 1
+      start_period: 300s
       interval: 10s
       timeout: 5s
       retries: 10

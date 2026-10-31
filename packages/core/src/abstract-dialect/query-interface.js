@@ -12,12 +12,21 @@ import { QueryTypes } from '../enums';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
 import { assertNoReservedBind, combineBinds } from '../utils/sql';
 import { AbstractDataType } from './data-types';
+import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';
 
 /**
  * The interface that Sequelize uses to talk to all databases
  */
 export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
+  #internals;
+
+  constructor(dialect, internals = new AbstractQueryInterfaceInternal(dialect)) {
+    super(dialect, internals);
+
+    this.#internals = internals;
+  }
+
   /**
    * Create a table with given set of attributes
    *
@@ -57,7 +66,6 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *   {
    *     engine: 'MYISAM',    // default: 'InnoDB'
    *     charset: 'latin1',   // default: null
-   *     schema: 'public',    // default: public, PostgreSQL only.
    *     comment: 'my table', // comment for table
    *     collate: 'latin1_danish_ci' // collation, MYSQL only
    *   }
@@ -71,8 +79,13 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    *
    * @returns {Promise}
    */
-  // TODO: remove "schema" option from the option bag, it must be passed as part of "tableName" instead
   async createTable(tableName, attributes, options, model) {
+    if (options && 'schema' in options) {
+      throw new TypeError(
+        'The "schema" option has been removed from QueryInterface#createTable. Pass a TableNameWithSchema object as "tableName" instead, such as { tableName: "users", schema: "public" }.',
+      );
+    }
+
     options = { ...options };
 
     // TODO: the sqlite implementation of createTableQuery should be improved so it also generates a CREATE UNIQUE INDEX query
@@ -82,25 +95,44 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     attributes = mapValues(attributes, attribute => this.sequelize.normalizeAttribute(attribute));
 
+    for (const uniqueKey of Object.values(options.uniqueKeys ?? {})) {
+      for (const field of uniqueKey.fields) {
+        const columnName = typeof field === 'string' ? field : field.name;
+        const attribute =
+          Object.values(attributes).find(
+            attr => attr.columnName === columnName || attr.field === columnName,
+          ) ?? attributes[columnName];
+
+        if (attribute?.type) {
+          this.queryGenerator.assertTypeCanBeUnique(columnName, attribute.type);
+        }
+      }
+    }
+
+    const modelTable = model?.table;
+
+    if (!tableName.schema && modelTable?.schema) {
+      tableName = this.queryGenerator.extractTableDetails(tableName);
+      tableName.schema = modelTable.schema;
+    }
+
+    const createSchema = this.queryGenerator.extractTableDetails(tableName).schema;
+    if (createSchema !== this.sequelize.dialect.getDefaultSchema()) {
+      attributes = mapValues(attributes, attribute =>
+        this.#internals.withReferencesSchema(attribute, createSchema),
+      );
+    }
+
     // Postgres requires special SQL commands for ENUM/ENUM[]
     await this.ensureEnums(tableName, attributes, options, model);
 
     // Snowflake requires special SQL commands for SEQUENCES
     await this.ensureSequences(tableName, attributes, options);
 
-    const modelTable = model?.table;
-
-    if (!tableName.schema && (options.schema || modelTable?.schema)) {
-      tableName = this.queryGenerator.extractTableDetails(tableName);
-      tableName.schema = modelTable?.schema || options.schema;
-    }
-
-    attributes = this.queryGenerator.attributesToSQL(attributes, {
-      table: tableName,
+    attributes = this.queryGenerator.attributesToSql(attributes, {
+      tableOrModel: tableName,
       context: 'createTable',
       withoutForeignKeyConstraints: options.withoutForeignKeyConstraints,
-      // schema override for multi-tenancy
-      schema: options.schema,
     });
 
     const sql = this.queryGenerator.createTableQuery(tableName, attributes, options);
@@ -199,6 +231,11 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   /**
    * Change a column definition
    *
+   * If the new definition sets "unique: true", a unique key is added to the column,
+   * unless the table already has a unique constraint, unique index or primary key on exactly that column.
+   * Named and composite unique keys must be added with {@link AbstractQueryInterface#addConstraint}.
+   * Setting "unique" to false does not remove existing unique keys.
+   *
    * @param {string} tableName          Table name to change from
    * @param {string} attributeName      Column name
    * @param {object} dataTypeOrOptions  Attribute definition for new column
@@ -207,16 +244,33 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
   async changeColumn(tableName, attributeName, dataTypeOrOptions, options) {
     options ||= {};
 
-    const query = this.queryGenerator.attributesToSQL(
-      {
-        [attributeName]: this.normalizeAttribute(dataTypeOrOptions),
-      },
-      {
-        context: 'changeColumn',
-        table: tableName,
-      },
+    const { unique, ...column } = this.normalizeAttribute(dataTypeOrOptions);
+    const columnName = column.field || column.columnName || attributeName;
+
+    // Adding "unique" every time would add a new unique key each time changeColumn is called
+    const addUniqueKey = await this.#internals.needsUniqueKey(
+      tableName,
+      columnName,
+      unique,
+      options,
     );
-    const sql = this.queryGenerator.changeColumnQuery(tableName, query);
+    if (addUniqueKey) {
+      this.queryGenerator.assertTypeCanBeUnique(columnName, column.type);
+    }
+
+    // Adding it in the same query as the column change applies both, or neither
+    const addUniqueKeyInQuery = addUniqueKey && this.sequelize.dialect.supports.alterColumn.unique;
+
+    const columns = { [columnName]: addUniqueKeyInQuery ? { ...column, unique: true } : column };
+    const query = this.queryGenerator.attributesToSql(columns, {
+      context: 'changeColumn',
+      tableOrModel: tableName,
+    });
+    const sql = this.queryGenerator.changeColumnQuery(tableName, query, columns);
+
+    if (addUniqueKey && !addUniqueKeyInQuery) {
+      return this.#internals.changeColumnAndAddUniqueKey(tableName, columnName, sql, options);
+    }
 
     return this.sequelize.queryRaw(sql, options);
   }
@@ -272,7 +326,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     const sql = this.queryGenerator.renameColumnQuery(
       tableName,
       attrNameBefore,
-      this.queryGenerator.attributesToSQL(_options),
+      this.queryGenerator.attributesToSql(_options),
     );
 
     return await this.sequelize.queryRaw(sql, options);
@@ -311,6 +365,9 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     options = cloneDeep(options) ?? {};
     options.fields = attributes;
+    // TODO: rawTablename is ignored. Because options is not an array, addIndexQuery treats it as its options,
+    //  and discards its own third parameter, which is where rawTablename ends up.
+    //  It should be passed as the fourth argument. See test/unit/query-interface/add-index.test.ts
     const sql = this.queryGenerator.addIndexQuery(tableName, options, rawTablename);
 
     return await this.sequelize.queryRaw(sql, { ...options, supportsSearchPath: false });
@@ -326,9 +383,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
    * @private
    */
   async showIndex(tableName, options) {
-    const sql = this.queryGenerator.showIndexesQuery(tableName, options);
-
-    return await this.sequelize.queryRaw(sql, { ...options, type: QueryTypes.SHOWINDEXES });
+    return await this.#internals.showIndexRaw(tableName, options);
   }
 
   /**

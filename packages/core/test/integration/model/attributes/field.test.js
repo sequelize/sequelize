@@ -1,7 +1,6 @@
 'use strict';
 
 const chai = require('chai');
-const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -11,7 +10,7 @@ const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   after(function () {
@@ -400,6 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         });
 
+        expect(users).to.have.length(1);
         for (const user of users) {
           expect(user.get('name')).to.be.ok;
           expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
@@ -459,6 +459,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         const users = await this.User.findAll();
+        expect(users).to.have.length(3);
         for (const user of users) {
           expect(['Abc', 'Bcd', 'Cde'].includes(user.get('name'))).to.be.true;
         }

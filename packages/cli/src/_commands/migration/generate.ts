@@ -30,12 +30,13 @@ export class GenerateMigration extends SequelizeCommand<(typeof GenerateMigratio
 
   async run(): Promise<{ path: string }> {
     const { format, name: migrationName } = this.flags;
-    const { migrationFolder } = config;
+    const { migrationFolder, timestampFormat } = config;
 
     const migrationPath = await generateMigration({
       format: format as SupportedMigrationFormat,
       migrationName,
       migrationFolder,
+      timestampFormat,
     });
 
     if (format === 'sql') {

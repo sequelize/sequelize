@@ -9,10 +9,9 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes, Op, Sequelize, sql } = require('@sequelize/core');
 
-const delay = require('delay');
-const assert = require('node:assert');
+const { default: delay } = require('delay');
 
-const pTimeout = require('p-timeout');
+const { default: pTimeout, TimeoutError } = require('p-timeout');
 
 const current = Support.sequelize;
 const dialect = current.dialect;
@@ -159,8 +158,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.sync({ force: true });
       await User.create({ username: 'gottlieb' });
 
-      try {
-        await User.findOrCreate({
+      const error = await expect(
+        User.findOrCreate({
           where: {
             [Op.or]: [
               {
@@ -174,12 +173,19 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           defaults: {
             username: 'gottlieb',
           },
-        });
-      } catch (error) {
-        expect(error).to.be.instanceof(Sequelize.UniqueConstraintError);
-        if (dialectName !== 'ibmi') {
-          expect(error.errors[0].path).to.be.a('string', 'username');
-        }
+        }),
+      ).to.be.rejectedWith(Sequelize.UniqueConstraintError);
+      switch (dialectName) {
+        case 'ibmi':
+          break;
+
+        case 'db2':
+        case 'snowflake':
+          expect(error.errors[0].path).to.be.a('string');
+          break;
+
+        default:
+          expect(error.errors[0].path).to.equal('username');
       }
     });
 
@@ -310,14 +316,18 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await User.sync({ force: true });
 
+      const description = "$$ and !! and :: and ? and ^ and * and '";
       await User.findOrCreate({
         where: {
           objectId: 1,
         },
         defaults: {
-          description: "$$ and !! and :: and ? and ^ and * and '",
+          description,
         },
       });
+
+      const user = await User.findOne({ where: { objectId: 1 }, rejectOnEmpty: true });
+      expect(user.description).to.equal(description);
     });
 
     it('should support bools in defaults', async function () {
@@ -448,14 +458,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
                   no: 1,
                 },
               }),
-              1000,
+              { milliseconds: 1000 },
             );
           } catch (error) {
             if (error instanceof Sequelize.ValidationError) {
               return test(times + 1);
             }
 
-            if (error instanceof pTimeout.TimeoutError) {
+            if (error instanceof TimeoutError) {
               throw new TypeError(error);
             }
 
@@ -697,13 +707,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await this.customSequelize.sync({ force: true });
       await User.create({ email: 'hello@sequelize.com' });
 
-      try {
-        await User.create({ email: 'hello@sequelize.com' });
-        assert(false);
-      } catch (error) {
-        expect(error).to.be.ok;
-        expect(error).to.be.an.instanceof(Error);
-      }
+      await expect(User.create({ email: 'hello@sequelize.com' })).to.be.rejectedWith(
+        Sequelize.UniqueConstraintError,
+        'Email is already registered.',
+      );
     });
 
     it('runs validation', async function () {
@@ -739,6 +746,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       ]);
 
       const logs = await Log.findAll();
+      expect(logs).to.have.length(3);
       for (const log of logs) {
         expect(log.get('id')).not.to.be.ok;
       }
@@ -1058,7 +1066,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       // functions as default values are not supported in mysql, see http://stackoverflow.com/a/270338/800016
     });
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.ARRAY) {
       it('does not cast arrays for postgresql insert', async function () {
         const User = this.customSequelize.define('UserWithArray', {
           myvals: { type: DataTypes.ARRAY(DataTypes.INTEGER) },
@@ -1119,15 +1127,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await User.sync({ force: true });
       await User.create({ username: 'foo' });
 
-      try {
-        await User.create({ username: 'foo' });
-      } catch (error) {
-        if (!(error instanceof Sequelize.UniqueConstraintError)) {
-          throw error;
-        }
-
-        expect(error).to.be.ok;
-      }
+      await expect(User.create({ username: 'foo' })).to.be.rejectedWith(
+        Sequelize.UniqueConstraintError,
+      );
     });
 
     if (dialect.supports.dataTypes.CITEXT) {
@@ -1136,21 +1138,15 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: { type: DataTypes.CITEXT, unique: true },
         });
 
-        try {
-          await User.sync({ force: true });
-          await User.create({ username: 'foo' });
-          await User.create({ username: 'fOO' });
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error).to.be.ok;
-        }
+        await User.sync({ force: true });
+        await User.create({ username: 'foo' });
+        await expect(User.create({ username: 'fOO' })).to.be.rejectedWith(
+          Sequelize.UniqueConstraintError,
+        );
       });
     }
 
-    if (dialectName === 'postgres') {
+    if (dialect.supports.dataTypes.TSVECTOR) {
       it('allows the creation of a TSVECTOR field', async function () {
         const User = this.customSequelize.define('UserWithTSVECTOR', {
           name: DataTypes.TSVECTOR,
@@ -1165,16 +1161,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           username: { type: DataTypes.TSVECTOR },
         });
 
-        try {
-          await User.sync({ force: true });
-          await User.create({ username: 42 });
-        } catch (error) {
-          if (!(error instanceof Sequelize.ValidationError)) {
-            throw error;
-          }
-
-          expect(error).to.be.ok;
-        }
+        await User.sync({ force: true });
+        await expect(User.create({ username: 42 })).to.be.rejectedWith(Sequelize.ValidationError);
       });
     }
 
@@ -1185,20 +1173,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           email: { type: DataTypes.STRING, unique: true },
         });
 
-        try {
-          await User.sync({ force: true });
-          await this.customSequelize.query(
-            `CREATE UNIQUE INDEX lower_case_username ON ${this.customSequelize.queryGenerator.quoteTable(User)} ((lower("username")))`,
-          );
-          await User.create({ username: 'foo' });
-          await User.create({ username: 'foo' });
-        } catch (error) {
-          if (!(error instanceof Sequelize.UniqueConstraintError)) {
-            throw error;
-          }
-
-          expect(error).to.be.ok;
-        }
+        await User.sync({ force: true });
+        await this.customSequelize.query(
+          `CREATE UNIQUE INDEX lower_case_username ON ${this.customSequelize.queryGenerator.quoteTable(User)} ((lower("username")))`,
+        );
+        await User.create({ username: 'foo' });
+        await expect(User.create({ username: 'foo' })).to.be.rejectedWith(
+          Sequelize.UniqueConstraintError,
+        );
       });
     }
 
@@ -1210,16 +1192,14 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
       await UserNull.sync({ force: true });
 
-      try {
-        await UserNull.create({ username: 'foo2', smth: null });
-      } catch (error) {
-        expect(error).to.exist;
+      const error = await expect(
+        UserNull.create({ username: 'foo2', smth: null }),
+      ).to.be.rejectedWith(Sequelize.ValidationError, /notNull violation/);
 
-        const smth1 = error.get('smth')[0] || {};
+      const smth1 = error.get('smth')[0] || {};
 
-        expect(smth1.path).to.equal('smth');
-        expect(smth1.type || smth1.origin).to.match(/notNull violation/);
-      }
+      expect(smth1.path).to.equal('smth');
+      expect(smth1.type || smth1.origin).to.match(/notNull violation/);
     });
 
     it('raises an error if created object breaks definition constraints', async function () {
@@ -1231,15 +1211,9 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       await UserNull.sync({ force: true });
       await UserNull.create({ username: 'foo', smth: 'foo' });
 
-      try {
-        await UserNull.create({ username: 'foo', smth: 'bar' });
-      } catch (error) {
-        if (!(error instanceof Sequelize.UniqueConstraintError)) {
-          throw error;
-        }
-
-        expect(error).to.be.ok;
-      }
+      await expect(UserNull.create({ username: 'foo', smth: 'bar' })).to.be.rejectedWith(
+        Sequelize.UniqueConstraintError,
+      );
     });
 
     it('raises an error if saving an empty string into a column allowing null or URL', async function () {
@@ -1253,12 +1227,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const str2 = await StringIsNullOrUrl.create({ str: 'http://sequelizejs.org' });
       expect(str2.str).to.equal('http://sequelizejs.org');
 
-      try {
-        await StringIsNullOrUrl.create({ str: '' });
-      } catch (error) {
-        expect(error).to.exist;
-        expect(error.get('str')[0].message).to.match(/Validation isURL on str failed/);
-      }
+      const error = await expect(StringIsNullOrUrl.create({ str: '' })).to.be.rejectedWith(
+        Sequelize.ValidationError,
+        /Validation isURL on str failed/,
+      );
+      expect(error.get('str')[0].message).to.match(/Validation isURL on str failed/);
     });
 
     if (current.dialect.supports.dataTypes.BIGINT) {

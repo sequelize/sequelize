@@ -12,10 +12,23 @@ services:
     volumes:
       - mariadb-oldest:/var/lib/mysql
     healthcheck:
-      test: ['CMD', 'mariadb-admin', '-usequelize_test', '-psequelize_test', 'status']
+      # --protocol=TCP forces a TCP probe. During initialisation the entrypoint runs a temporary
+      # server with --skip-networking, so a socket probe reports healthy before the real server is up.
+      test:
+        [
+          'CMD',
+          'mariadb-admin',
+          '--protocol=TCP',
+          '-h',
+          '127.0.0.1',
+          '-usequelize_test',
+          '-psequelize_test',
+          'status',
+        ]
       interval: 3s
-      timeout: 1s
-      retries: 10
+      timeout: 5s
+      retries: 20
+      start_period: 60s
 
 networks:
   default:

@@ -139,8 +139,8 @@ describe('Configuration', () => {
 
     destroySequelizeAfterTest(seq);
 
-    const query =
-      dialectName === 'ibmi' ? 'select 1 as hello from SYSIBM.SYSDUMMY1' : 'select 1 as hello';
+    const { dummyTable } = seq.dialect.supports.select;
+    const query = `select 1 as hello${dummyTable ? ` from ${dummyTable}` : ''}`;
 
     await expect(seq.query(query)).to.be.rejectedWith(ConnectionRefusedError);
   });
@@ -173,12 +173,14 @@ describe('Configuration', () => {
 
     const createTableFoo = 'CREATE TABLE foo (faz TEXT);';
     await Promise.all([
-      sequelizeReadOnly0
-        .query(createTableFoo)
-        .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
-      sequelizeReadWrite0
-        .query(createTableFoo)
-        .should.be.rejectedWith(Error, 'SQLITE_CANTOPEN: unable to open database file'),
+      expect(sequelizeReadOnly0.query(createTableFoo)).to.be.rejectedWith(
+        Error,
+        'SQLITE_CANTOPEN: unable to open database file',
+      ),
+      expect(sequelizeReadWrite0.query(createTableFoo)).to.be.rejectedWith(
+        Error,
+        'SQLITE_CANTOPEN: unable to open database file',
+      ),
     ]);
 
     // By default, sqlite creates a connection that's READWRITE | CREATE
@@ -207,9 +209,10 @@ describe('Configuration', () => {
 
     const createTableBar = 'CREATE TABLE bar (baz TEXT);';
     await Promise.all([
-      sequelizeReadOnly
-        .query(createTableBar)
-        .should.be.rejectedWith(Error, 'SQLITE_READONLY: attempt to write a readonly database'),
+      expect(sequelizeReadOnly.query(createTableBar)).to.be.rejectedWith(
+        Error,
+        'SQLITE_READONLY: attempt to write a readonly database',
+      ),
       sequelizeReadWrite.query(createTableBar),
     ]);
   });
