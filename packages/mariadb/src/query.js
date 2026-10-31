@@ -106,7 +106,9 @@ export class MariaDbQuery extends AbstractQuery {
         // handle bulkCreate AI primary key
         if (
           modelDefinition?.autoIncrementAttributeName &&
-          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute &&
+          !this.options.updateOnDuplicate &&
+          !this.options.ignoreDuplicates
         ) {
           // ONLY TRUE IF @auto_increment_increment is set to 1 !!
           // Doesn't work with GALERA => each node will reserve increment (x for first server, x+1 for next node...)
