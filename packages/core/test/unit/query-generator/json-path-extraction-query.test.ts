@@ -24,7 +24,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mariadb: `json_compact(json_extract(\`profile\`,'$.id'))`,
           'mysql sqlite3': `json_extract(\`profile\`,'$.id')`,
           postgres: `"profile"->'id'`,
-          oracle: `json_value("profile",'$."id"')`,
+          oracle: `json_value("profile",'$.id')`,
         },
       );
     });
@@ -60,7 +60,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mariadb: `json_compact(json_extract(\`profile\`,'$.id.username[0]."0".name'))`,
           'mysql sqlite3': `json_extract(\`profile\`,'$.id.username[0]."0".name')`,
           postgres: `"profile"#>ARRAY['id','username','0','0','name']::VARCHAR(255)[]`,
-          oracle: `json_value("profile",'$."id"."username"[0][0]."name"')`,
+          oracle: `json_value("profile",'$.id.username[0]."0".name')`,
         },
       );
     });
@@ -79,7 +79,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mariadb: `json_compact(json_extract(\`profile\`,'$."\\\\""."\\'"."$"'))`,
           sqlite3: `json_extract(\`profile\`,'$."\\""."''"."$"')`,
           postgres: `"profile"#>ARRAY['"','''','$']::VARCHAR(255)[]`,
-          oracle: `json_value("profile",'$.""."''"."$"')`,
+          oracle: `json_value("profile",'$."\\""."''"."$"')`,
         },
       );
     });
@@ -98,8 +98,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mysql: `json_extract(\`profile\`,'$."a\\\\nb"."c\\\\td"')`,
           mariadb: `json_compact(json_extract(\`profile\`,'$."a\\\\nb"."c\\\\td"'))`,
           postgres: `"profile"#>ARRAY['a\nb','c\td']::VARCHAR(255)[]`,
-          // TODO: the oracle path builder does not escape control characters
-          oracle: `json_value("profile",'$."a\nb"."c\td"')`,
+          oracle: `json_value("profile",'$."a\\nb"."c\\td"')`,
         },
       );
     });
@@ -117,8 +116,7 @@ describe('QueryGenerator#jsonPathExtractionQuery', () => {
           mysql: `json_extract(\`profile\`,'$.x.""')`,
           mariadb: `json_compact(json_extract(\`profile\`,'$.x.""'))`,
           postgres: `"profile"#>ARRAY['x','']::VARCHAR(255)[]`,
-          // TODO: the oracle path builder produces an invalid path for the empty key
-          oracle: `json_value("profile",'$."x".')`,
+          oracle: `json_value("profile",'$.x.""')`,
         },
       );
     });
