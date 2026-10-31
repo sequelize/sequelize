@@ -57,7 +57,7 @@ import { HookHandlerBuilder } from './hooks.js';
 import { listenForModelDefinition, removeModelDefinition } from './model-definition.js';
 import type { ModelHooks } from './model-hooks.js';
 import { validModelHooks } from './model-hooks.js';
-import { setTransactionFromCls } from './model-internals.js';
+import { getTableNameWithSyncSchema, setTransactionFromCls } from './model-internals.js';
 import { ModelSetView } from './model-set-view.js';
 import { EPHEMERAL_SEQUELIZE_OPTIONS, PERSISTED_SEQUELIZE_OPTIONS } from './sequelize.internals.js';
 import type { QueryRawOptions } from './sequelize.js';
@@ -1267,5 +1267,39 @@ Connection options can be used at the root of the option bag, in the "replicatio
   normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any>;
   normalizeDataType(Type: string | DataTypeClassOrInstance): string | AbstractDataType<any> {
     return normalizeDataType(Type, this.dialect);
+  }
+}
+
+/**
+ * Removes foreign key constraints on cyclically dependent models before they are dropped.
+ * Honours options.schema the same way Model sync and drop do, so a force sync against a
+ * non-default schema does not inspect or alter the default schema.
+ *
+ * @param sequelize
+ * @param options
+ */
+export async function removeCyclicForeignKeyConstraints(
+  sequelize: Sequelize,
+  options?: SyncOptions,
+): Promise<void> {
+  for (const model of sequelize.models) {
+    const tableName = getTableNameWithSyncSchema(model, options);
+
+    // eslint-disable-next-line no-await-in-loop
+    const foreignKeys = await sequelize.queryInterface.showConstraints(tableName, {
+      ...options,
+      constraintType: 'FOREIGN KEY',
+    });
+
+    // eslint-disable-next-line no-await-in-loop
+    await Promise.all(
+      foreignKeys.map(async foreignKey => {
+        return sequelize.queryInterface.removeConstraint(
+          tableName,
+          foreignKey.constraintName,
+          options,
+        );
+      }),
+    );
   }
 }
