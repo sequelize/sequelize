@@ -332,6 +332,38 @@ describe('Model', () => {
         this.clock.restore();
       });
 
+      it('does not overwrite createdAt on update when it is supplied as an explicit value', async function () {
+        const originalCreatedAt = new Date('2010-01-01T12:00:00.000Z');
+        await this.User.upsert({ id: 42, username: 'john', createdAt: originalCreatedAt });
+        await this.User.upsert({
+          id: 42,
+          username: 'doe',
+          createdAt: new Date('2020-01-01T12:00:00.000Z'),
+        });
+
+        const user = await this.User.findByPk(42);
+        expect(user.username).to.equal('doe');
+        expect(user.createdAt).to.deep.equal(originalCreatedAt);
+      });
+
+      it('overwrites createdAt on update when it is explicitly listed in fields', async function () {
+        await this.User.upsert({
+          id: 42,
+          username: 'john',
+          createdAt: new Date('2010-01-01T12:00:00.000Z'),
+        });
+
+        const newCreatedAt = new Date('2020-01-01T12:00:00.000Z');
+        await this.User.upsert(
+          { id: 42, username: 'doe', createdAt: newCreatedAt },
+          { fields: ['username', 'createdAt'] },
+        );
+
+        const user = await this.User.findByPk(42);
+        expect(user.username).to.equal('doe');
+        expect(user.createdAt).to.deep.equal(newCreatedAt);
+      });
+
       it('falls back to a noop if no update values are found in the upsert data', async function () {
         const User = this.sequelize.define(
           'user',

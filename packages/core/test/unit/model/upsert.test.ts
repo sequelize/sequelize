@@ -143,6 +143,37 @@ describe('Model.upsert', () => {
     expect(updateValues).to.deep.equal({ name: 'Young Cat', updated_at: now });
   });
 
+  it('does not update the creation timestamp passed to it', async () => {
+    const createdAt = new Date('2020-01-01T00:00:00.000Z');
+
+    await vars.UserUnderscored.upsert({
+      name: 'Old Cat',
+      createdAt,
+    });
+
+    const insertValues = stub.getCall(0).args[1];
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(insertValues.created_at).to.equal(createdAt);
+    expect(Object.keys(updateValues)).to.deep.equal(['name', 'updated_at']);
+  });
+
+  it('updates the creation timestamp passed to it if it is listed in fields', async () => {
+    const createdAt = new Date('2020-01-01T00:00:00.000Z');
+
+    await vars.UserUnderscored.upsert(
+      {
+        name: 'Old Cat',
+        createdAt,
+      },
+      { fields: ['name', 'createdAt'] },
+    );
+
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(updateValues.created_at).to.equal(createdAt);
+  });
+
   it('does not add timestamps to the updated fields when timestamps are disabled', async () => {
     await vars.UserNoTime.upsert({
       name: 'Old Cat',

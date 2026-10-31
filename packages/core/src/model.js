@@ -2185,7 +2185,8 @@ ${associationOwner._getAssociationDebugList()}`);
     options.instance = instance;
 
     const changed = [...instance._changed];
-    if (!options.fields) {
+    const hasExplicitFields = Boolean(options.fields);
+    if (!hasExplicitFields) {
       options.fields = changed;
     }
 
@@ -2216,6 +2217,12 @@ ${associationOwner._getAssociationDebugList()}`);
       const field = modelDefinition.getColumnName(createdAtAttr);
       if (!insertValues[field]) {
         insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
+      }
+
+      // On conflict, the existing row keeps its creation timestamp,
+      // unless it was explicitly listed in "fields"
+      if (!hasExplicitFields) {
+        delete updateValues[field];
       }
     }
 
