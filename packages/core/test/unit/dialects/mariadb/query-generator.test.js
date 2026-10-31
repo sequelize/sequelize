@@ -345,6 +345,54 @@ if (dialect === 'mariadb') {
         },
       ],
 
+      changeColumnQuery: [
+        {
+          title: 'should not treat ENUM value containing REFERENCES as a foreign key (fix #17544)',
+          arguments: ['users', { status: "ENUM('PREFERENCES')" }],
+          expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('PREFERENCES');",
+        },
+        {
+          title: "should not treat an ENUM value that is exactly 'REFERENCES' as a foreign key",
+          arguments: ['users', { status: "ENUM('REFERENCES')" }],
+          expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('REFERENCES');",
+        },
+        {
+          title:
+            'should not treat an ENUM value with an escaped quote and REFERENCES as a foreign key',
+          arguments: ['users', { status: "ENUM('it\\'s REFERENCES')" }],
+          expectation: "ALTER TABLE `users` CHANGE `status` `status` ENUM('it\\'s REFERENCES');",
+        },
+        {
+          title: "should not treat a DEFAULT value that is exactly 'REFERENCES' as a foreign key",
+          arguments: ['users', { status: "VARCHAR(255) DEFAULT 'REFERENCES'" }],
+          expectation:
+            "ALTER TABLE `users` CHANGE `status` `status` VARCHAR(255) DEFAULT 'REFERENCES';",
+        },
+        {
+          title: 'should extract the REFERENCES clause after a DEFAULT value containing REFERENCES',
+          arguments: [
+            'users',
+            { status: "VARCHAR(255) DEFAULT 'REFERENCES' REFERENCES levels (id)" },
+          ],
+          expectation: 'ALTER TABLE `users` ADD FOREIGN KEY (`status`) REFERENCES levels (id);',
+        },
+        {
+          title:
+            'should extract the REFERENCES clause after an ENUM value with an escaped quote and REFERENCES',
+          arguments: ['users', { status: "ENUM('it\\'s REFERENCES') REFERENCES levels (id)" }],
+          expectation: 'ALTER TABLE `users` ADD FOREIGN KEY (`status`) REFERENCES levels (id);',
+        },
+        {
+          title: 'should treat actual REFERENCES keyword as a foreign key',
+          arguments: [
+            'users',
+            { level_id: 'INTEGER REFERENCES `levels` (`id`) ON DELETE CASCADE ON UPDATE CASCADE' },
+          ],
+          expectation:
+            'ALTER TABLE `users` ADD FOREIGN KEY (`level_id`) REFERENCES `levels` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;',
+        },
+      ],
+
       updateQuery: [
         {
           arguments: ['myTable', { bar: 2 }, { name: 'foo' }],

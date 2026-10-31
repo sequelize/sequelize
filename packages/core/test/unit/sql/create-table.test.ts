@@ -4,6 +4,59 @@ import { expectsql, sequelize } from '../../support';
 const queryGenerator = sequelize.dialect.queryGenerator;
 
 describe('QueryGenerator#createTableQuery', () => {
+  // Regression test for https://github.com/sequelize/sequelize/issues/17544
+  it("does not treat an ENUM value containing 'REFERENCES' as a foreign key", () => {
+    if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+      return;
+    }
+
+    const PrefUser = sequelize.define(
+      'user',
+      {
+        pref_type: DataTypes.ENUM('PREFERENCES', 'SETTINGS'),
+      },
+      { timestamps: false },
+    );
+
+    expectsql(
+      queryGenerator.createTableQuery(
+        PrefUser.table,
+        queryGenerator.attributesToSql(PrefUser.getAttributes()),
+        {},
+      ),
+      {
+        'mysql mariadb':
+          "CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER NOT NULL auto_increment , `pref_type` ENUM('PREFERENCES', 'SETTINGS'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+      },
+    );
+  });
+
+  it("does not treat an ENUM value that is exactly 'REFERENCES' as a foreign key", () => {
+    if (!['mysql', 'mariadb'].includes(sequelize.dialect.name)) {
+      return;
+    }
+
+    const RefUser = sequelize.define(
+      'user',
+      {
+        pref_type: DataTypes.ENUM('REFERENCES', 'SETTINGS'),
+      },
+      { timestamps: false },
+    );
+
+    expectsql(
+      queryGenerator.createTableQuery(
+        RefUser.table,
+        queryGenerator.attributesToSql(RefUser.getAttributes()),
+        {},
+      ),
+      {
+        'mysql mariadb':
+          "CREATE TABLE IF NOT EXISTS `users` (`id` INTEGER NOT NULL auto_increment , `pref_type` ENUM('REFERENCES', 'SETTINGS'), PRIMARY KEY (`id`)) ENGINE=InnoDB;",
+      },
+    );
+  });
+
   it('references enum in the right schema #3171', () => {
     const FooUser = sequelize.define(
       'user',
