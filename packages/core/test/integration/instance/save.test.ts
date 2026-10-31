@@ -117,10 +117,11 @@ describe('Model#save', () => {
 
     it('only updates fields in passed array', async () => {
       const date = new Date(1990, 1, 1);
+      const originalPublishedAt = new Date(2000, 0, 1);
 
       const book = await vars.Book.create({
         title: 'foo',
-        publishedAt: new Date(),
+        publishedAt: originalPublishedAt,
       });
 
       book.title = 'fizz';
@@ -130,7 +131,7 @@ describe('Model#save', () => {
 
       const reloadedBook = await vars.Book.findByPk(book.id, { rejectOnEmpty: true });
       expect(reloadedBook.title).to.equal('fizz');
-      expect(reloadedBook.publishedAt).not.to.equal(date);
+      expect(reloadedBook.publishedAt).to.equalTime(originalPublishedAt);
     });
 
     it('sets the timestamps on insert', async () => {
@@ -206,15 +207,14 @@ describe('Model#save', () => {
     });
 
     it('validates saved attributes', async () => {
-      try {
-        await vars.Book.build({ validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save();
-      } catch (error) {
-        assert(error instanceof ValidationError);
-        expect(error.get('validateCustom')).to.exist;
-        expect(error.get('validateCustom')).to.be.instanceof(Array);
-        expect(error.get('validateCustom')[0]).to.exist;
-        expect(error.get('validateCustom')[0].message).to.equal('Length failed.');
-      }
+      const error = await expect(
+        vars.Book.build({ validateCustom: 'aaaaaaaaaaaaaaaaaaaaaaaaaa' }).save(),
+      ).to.be.rejectedWith(ValidationError);
+      assert(error instanceof ValidationError);
+      expect(error.get('validateCustom')).to.exist;
+      expect(error.get('validateCustom')).to.be.instanceof(Array);
+      expect(error.get('validateCustom')[0]).to.exist;
+      expect(error.get('validateCustom')[0].message).to.equal('Length failed.');
     });
 
     it('does not validate non-saved attributes', async () => {
@@ -295,7 +295,7 @@ describe('Model#save', () => {
         const { Book } = vars;
 
         const unhook = Book.hooks.addListener('beforeUpdate', instance => {
-          instance.set('email', 'C');
+          instance.set('title', 'C');
         });
 
         try {
@@ -312,7 +312,7 @@ describe('Model#save', () => {
             .save();
 
           const book = await Book.findOne({ rejectOnEmpty: true });
-          expect(book.get('title')).to.equal('B');
+          expect(book.get('title')).to.equal('C');
           expect(book.get('integer1')).to.equal(2);
         } finally {
           unhook();

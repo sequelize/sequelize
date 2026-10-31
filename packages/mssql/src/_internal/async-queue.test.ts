@@ -32,28 +32,37 @@ describe('AsyncQueue', () => {
 
   it('should reject if closed before execution', async () => {
     queue.close();
-    try {
-      await queue.enqueue(asyncFunction);
-    } catch (error) {
-      assert(error instanceof ConnectionError);
-      expect(error.cause).to.be.instanceOf(
-        AsyncQueueError,
+    const error = await queue.enqueue(asyncFunction).then(
+      () => expect.fail('expected enqueue to reject'),
+      (error_: unknown) => error_,
+    );
+    assert(error instanceof ConnectionError);
+    expect(error.cause)
+      .to.be.instanceOf(AsyncQueueError)
+      .and.have.property(
+        'message',
         'the connection was closed before this query could be executed',
       );
-    }
   });
 
   it('should reject if closed during execution', async () => {
-    const promise = queue.enqueue(asyncFunction);
+    const promise = queue.enqueue(async () => new Promise(() => {}));
+    // let the queue start executing the function before closing it
+    await new Promise(setImmediate);
     queue.close();
-    try {
-      await promise;
-    } catch (error) {
-      assert(error instanceof ConnectionError);
-      expect(error.cause).to.be.instanceOf(
-        AsyncQueueError,
+
+    // this package does not use chai-as-promised
+    const error = await promise.then(
+      () => null,
+      (error_: unknown) => error_,
+    );
+
+    assert(error instanceof ConnectionError);
+    expect(error.cause)
+      .to.be.instanceOf(AsyncQueueError)
+      .and.have.property(
+        'message',
         'the connection was closed before this query could finish executing',
       );
-    }
   });
 });
