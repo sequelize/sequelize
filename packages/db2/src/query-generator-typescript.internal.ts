@@ -281,6 +281,11 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       template = sqlType;
     }
 
+    const generated = this.getGeneratedColumn(attribute);
+    if (generated) {
+      template += ` GENERATED ALWAYS AS (${generated.expression})`;
+    }
+
     if (options && options.context === 'changeColumn' && attribute.type) {
       template = `DATA TYPE ${template}`;
     } else if (attribute.allowNull === false || attribute.primaryKey === true) {
