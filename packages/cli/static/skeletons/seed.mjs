@@ -1,10 +1,10 @@
 /** @type {import('@sequelize/cli').MigrationFunction} */
-export async function up(queryInterface, sequelize) {
+export async function up({ sequelize }) {
   /**
    * Add seed commands here.
    *
    * Example:
-   * await queryInterface.bulkInsert('People', [{
+   * await sequelize.queryInterface.bulkInsert('People', [{
    *   name: 'John Doe',
    *   isBetaMember: false
    * }], {});
@@ -12,11 +12,11 @@ export async function up(queryInterface, sequelize) {
 }
 
 /** @type {import('@sequelize/cli').MigrationFunction} */
-export async function down(queryInterface, sequelize) {
+export async function down({ sequelize }) {
   /**
    * Add commands to revert seed here.
    *
    * Example:
-   * await queryInterface.bulkDelete('People', null, {});
+   * await sequelize.queryInterface.bulkDelete('People', null, {});
    */
 }

@@ -496,6 +496,11 @@ export class SqliteQueryInterface<
     options?: QueryRawOptions,
   ): Promise<void> {
     const columns = await this.describeTable(tableName, options);
+    if (!Object.hasOwn(columns, columnName)) {
+      const table = this.queryGenerator.extractTableDetails(tableName);
+      throw new Error(`Table ${table.tableName} doesn't have the column ${columnName}`);
+    }
+
     for (const column of Object.values(columns)) {
       // This is handled by copying indexes over,
       // we don't use "unique" because it creates an index with a name
@@ -503,7 +508,14 @@ export class SqliteQueryInterface<
       delete column.unique;
     }
 
-    Object.assign(columns[columnName], this.sequelize.normalizeAttribute(dataTypeOrOptions));
+    const { unique, ...attribute } = this.sequelize.normalizeAttribute(dataTypeOrOptions);
+    const addUniqueKey = await this.#internalQueryInterface.needsUniqueKey(
+      tableName,
+      columnName,
+      unique,
+      options,
+    );
+    Object.assign(columns[columnName], attribute, addUniqueKey && { unique: true });
 
     await this.#internalQueryInterface.alterTableInternal(tableName, columns, options);
   }
