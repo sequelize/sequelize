@@ -2,7 +2,7 @@
 
 import { DataTypes, DatabaseError } from '@sequelize/core';
 import { expect } from 'chai';
-import { getTestDialect, getTestDialectTeaser, sequelize } from './support';
+import { expectPerDialect, getTestDialect, getTestDialectTeaser, sequelize } from './support';
 
 const dialect = getTestDialect();
 
@@ -81,27 +81,22 @@ describe(getTestDialectTeaser('Indexes'), () => {
           },
         );
 
-        if (dialect === 'db2') {
-          try {
+        await expectPerDialect(
+          async () => {
             await sequelize.sync({ force: true });
-            expect.fail('This should have failed');
-          } catch (error: any) {
-            expect(error.message).to.equal(
-              'DB2 does not support non-unique indexes with INCLUDE syntax.',
-            );
-          }
-        } else {
-          await sequelize.sync({ force: true });
-          const indexes = await sequelize.queryInterface.showIndex(User.table);
-          const indexCheck = indexes.find(index => index.name === 'user_username');
+            const indexes = await sequelize.queryInterface.showIndex(User.table);
+            const index = indexes.find(i => i.name === 'user_username');
 
-          expect(indexCheck?.name).to.equal('user_username');
-          expect(indexCheck?.fields).to.have.length(1);
-          expect(indexCheck?.fields[0].attribute).to.equal('username');
-          expect(indexCheck?.includes).to.have.length(2);
-          expect(indexCheck?.includes).to.include('first_name');
-          expect(indexCheck?.includes).to.include('last_name');
-        }
+            return {
+              fields: index?.fields.map(field => field.attribute),
+              includes: index?.includes?.toSorted(),
+            };
+          },
+          {
+            default: { fields: ['username'], includes: ['first_name', 'last_name'] },
+            db2: new Error('DB2 does not support non-unique indexes with INCLUDE syntax.'),
+          },
+        );
       });
 
       it('creates unique index with include columns', async () => {
@@ -232,13 +227,16 @@ describe(getTestDialectTeaser('Indexes'), () => {
           },
         );
 
-        try {
-          await sequelize.sync({ force: true });
-          expect.fail('This should have failed');
-        } catch (error: any) {
-          expect(error).to.be.instanceOf(DatabaseError);
-          expect(error.message).to.match(
-            /\s|^Column 'username' in table 'users' is of a type that is invalid for use as a key column in an index.$/,
+        if (dialect === 'postgres') {
+          // text columns can be unique in postgres, but the included "email" column does not exist
+          await expect(sequelize.sync({ force: true })).to.be.rejectedWith(
+            DatabaseError,
+            'column "email" does not exist',
+          );
+        } else {
+          await expect(sequelize.sync({ force: true })).to.be.rejectedWith(
+            Error,
+            `Column "username" cannot be unique: ${dialect} does not support unique constraints on`,
           );
         }
       });

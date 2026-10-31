@@ -311,6 +311,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           order: [[AccUser.getAttributes().id, 'ASC']],
         });
 
+        expect(users).to.have.length(i + 1);
         for (const user of users) {
           expect(user.Memberships).to.be.ok;
           user.Memberships.sort(sortById);
@@ -606,6 +607,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
         include: [{ model: Group, required: true }],
       });
 
+      expect(users).to.have.length(2);
       for (const user of users) {
         expect(user.group).to.be.ok;
       }
@@ -1004,6 +1006,7 @@ describe(Support.getTestDialectTeaser('Includes with schemas'), () => {
           ],
           order: [['id', 'ASC']],
         });
+        expect(users).to.have.length(i + 1);
         for (const user of users) {
           expect(user.Memberships.length).to.equal(1);
           expect(user.Memberships[0].rank.name).to.equal('Admin');

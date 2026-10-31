@@ -95,15 +95,13 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
   }
 
   addColumnQuery(table, key, dataType, options) {
-    if (options) {
-      rejectInvalidOptions(
-        'addColumnQuery',
-        this.dialect,
-        ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'addColumnQuery',
+      this.dialect,
+      ADD_COLUMN_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     const column = isPlainObject(dataType) ? dataType : { type: dataType };
 
