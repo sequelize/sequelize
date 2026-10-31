@@ -295,7 +295,7 @@ export class SqliteQueryInterface<
           const updateAction = type.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
           // SQLite double-quotes the table name in REFERENCES when the referenced table is renamed
           const [, referencedTableName, referencedColumnNames] =
-            type.match(/REFERENCES [`"](\S+)[`"] \(`(\S+)`\)/) || [];
+            type.match(/REFERENCES (`(?:[^`]|``)+`|"(?:[^"]|"")+") \(`(\S+)`\)/) || [];
 
           data.push({
             constraintSchema: '',
@@ -305,7 +305,7 @@ export class SqliteQueryInterface<
             tableName: constraintTableName,
             columnNames: [column],
             referencedTableSchema: '',
-            referencedTableName: referencedTableName ?? '',
+            referencedTableName: referencedTableName ? unquoteIdentifier(referencedTableName) : '',
             referencedColumnNames: [referencedColumnNames],
             deleteAction: deleteAction?.at(1) ?? '',
             updateAction: updateAction?.at(1) ?? '',
@@ -353,7 +353,7 @@ export class SqliteQueryInterface<
           const updateAction = definition.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
           const [, rawColumnNames, referencedTableName, rawReferencedColumnNames] =
             definition.match(
-              /\(([^\s,]+(?:,\s?[^\s,]+)*)\) REFERENCES [`"](\S+)[`"] \(([^\s,]+(?:,\s?[^\s,]+)*)\)/,
+              /\(([^\s,]+(?:,\s?[^\s,]+)*)\) REFERENCES (`(?:[^`]|``)+`|"(?:[^"]|"")+") \(([^\s,]+(?:,\s?[^\s,]+)*)\)/,
             ) || [];
           const columnsMatch = [...rawColumnNames.matchAll(/`(\S+)`/g)];
           const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
@@ -366,7 +366,7 @@ export class SqliteQueryInterface<
             tableName: constraintTableName,
             columnNames: columnsMatch.map(col => col[1]),
             referencedTableSchema: '',
-            referencedTableName: referencedTableName ?? '',
+            referencedTableName: referencedTableName ? unquoteIdentifier(referencedTableName) : '',
             referencedColumnNames: referencedColumnNames.map(col => col[1]),
             deleteAction: deleteAction?.at(1) ?? '',
             updateAction: updateAction?.at(1) ?? '',
@@ -405,7 +405,8 @@ export class SqliteQueryInterface<
           const deleteAction = key.match(/ON DELETE (\w+(?: (?!ON UPDATE)\w+)?)/);
           const updateAction = key.match(/ON UPDATE (\w+(?: (?!ON DELETE)\w+)?)/);
           const [, referencedTableName, rawReferencedColumnNames] =
-            key.match(/REFERENCES [`"](\S+)[`"] \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) || [];
+            key.match(/REFERENCES (`(?:[^`]|``)+`|"(?:[^"]|"")+") \(([^\s,]+(?:,\s?[^\s,]+)*)\)/) ||
+            [];
           const referencedColumnNames = [...rawReferencedColumnNames.matchAll(/`(\S+)`/g)];
 
           data.push({
@@ -416,7 +417,7 @@ export class SqliteQueryInterface<
             tableName: constraintTableName,
             columnNames,
             referencedTableSchema: '',
-            referencedTableName,
+            referencedTableName: unquoteIdentifier(referencedTableName),
             referencedColumnNames: referencedColumnNames.map(col => col[1]),
             deleteAction: deleteAction?.at(1) ?? '',
             updateAction: updateAction?.at(1) ?? '',
@@ -549,4 +550,16 @@ export class SqliteQueryInterface<
     );
     await this.#internalQueryInterface.executeQueriesSequentially(sql, { ...options, raw: true });
   }
+}
+
+/**
+ * Removes the quotes around a backtick- or double-quoted identifier,
+ * and unescapes the quote characters that are doubled inside it (e.g. `"a""b"` becomes `a"b`).
+ *
+ * @param quotedIdentifier
+ */
+function unquoteIdentifier(quotedIdentifier: string): string {
+  const quote = quotedIdentifier[0];
+
+  return quotedIdentifier.slice(1, -1).replaceAll(`${quote}${quote}`, quote);
 }
