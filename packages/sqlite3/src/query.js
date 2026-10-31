@@ -119,12 +119,17 @@ export class SqliteQuery extends AbstractQuery {
       return results;
     }
 
-    if (this.sql.includes('PRAGMA TABLE_INFO')) {
+    if (this.sql.includes('PRAGMA TABLE_XINFO')) {
       // this is the sqlite way of getting the metadata of a table
       const result = {};
 
       let defaultValue;
       for (const _result of results) {
+        // hidden columns of virtual tables
+        if (_result.hidden === 1) {
+          continue;
+        }
+
         if (_result.dflt_value === null) {
           // Column schema omits any "DEFAULT ..."
           defaultValue = undefined;
@@ -141,6 +146,11 @@ export class SqliteQuery extends AbstractQuery {
           defaultValue,
           primaryKey: _result.pk !== 0,
         };
+
+        // 2 is a virtual generated column, 3 a stored one. describeTable reads the expression.
+        if (_result.hidden === 2 || _result.hidden === 3) {
+          result[_result.name].generatedAs = { stored: _result.hidden === 3 };
+        }
 
         if (result[_result.name].type === 'TINYINT(1)') {
           result[_result.name].defaultValue = { 0: false, 1: true }[

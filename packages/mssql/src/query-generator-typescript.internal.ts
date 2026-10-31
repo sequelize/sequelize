@@ -370,8 +370,21 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
     }
 
     let template: string;
+    const sqlType = attributeTypeToSql(attribute.type);
 
-    if (attribute.type instanceof DataTypes.ENUM) {
+    const generated = this.getGeneratedColumn(attribute);
+    if (generated) {
+      // computed columns cannot declare a type, so the expression is cast to the attribute's type
+      template = `AS CAST(${generated.expression} AS ${sqlType})`;
+
+      if (generated.stored) {
+        template += ' PERSISTED';
+      }
+
+      if (attribute.allowNull === false) {
+        template += ' NOT NULL';
+      }
+    } else if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       template = attribute.type.toSql();
       template += ` CHECK (${this.quoteIdentifier(attribute.field!)} IN(${attribute.type.options.values
@@ -382,26 +395,25 @@ SELECT REVERSE(SUBSTRING(@ms_ver, CHARINDEX('.', @ms_ver)+1, 20)) AS 'version'`;
         .join(', ')}))`;
 
       return template;
-    }
+    } else {
+      template = sqlType;
 
-    const sqlType = attributeTypeToSql(attribute.type);
-    template = sqlType;
+      if (attribute.allowNull === false) {
+        template += ' NOT NULL';
+      } else if (
+        !attribute.primaryKey &&
+        !defaultValueSchemable(attribute.defaultValue, this.dialect)
+      ) {
+        template += ' NULL';
+      }
 
-    if (attribute.allowNull === false) {
-      template += ' NOT NULL';
-    } else if (
-      !attribute.primaryKey &&
-      !defaultValueSchemable(attribute.defaultValue, this.dialect)
-    ) {
-      template += ' NULL';
-    }
+      if (attribute.autoIncrement) {
+        template += ' IDENTITY(1,1)';
+      }
 
-    if (attribute.autoIncrement) {
-      template += ' IDENTITY(1,1)';
-    }
-
-    if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
-      template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
+      if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
+        template += ` DEFAULT ${this.escape(attribute.defaultValue, { type: attribute.type })}`;
+      }
     }
 
     if (

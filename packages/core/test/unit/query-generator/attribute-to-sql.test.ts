@@ -1,4 +1,4 @@
-import { DataTypes, Deferrable, fn, literal } from '@sequelize/core';
+import { DataTypes, Deferrable, fn, literal, sql } from '@sequelize/core';
 import type {
   AttributeToSqlInput,
   AttributeToSqlOptions,
@@ -990,6 +990,113 @@ describe('QueryGenerator#attributeToSql', () => {
     const first = queryGenerator.attributeToSql(attribute);
 
     expect(queryGenerator.attributeToSql(attribute)).to.equal(first);
+  });
+
+  describe('generatedAs', () => {
+    const unsupported = new Error('dialect does not support generated columns');
+
+    testSql(
+      { type: 'INTEGER', generatedAs: literal('a + b') },
+      {
+        default: 'INTEGER GENERATED ALWAYS AS (a + b) STORED',
+        mssql: 'AS CAST(a + b AS INTEGER) PERSISTED',
+        db2: 'INTEGER GENERATED ALWAYS AS (a + b)',
+        // oracle only has virtual columns, so they are the default
+        oracle: 'INTEGER GENERATED ALWAYS AS (a + b) VIRTUAL NULL',
+        'ibmi snowflake': unsupported,
+      },
+    );
+
+    testSql(
+      { type: 'INTEGER', allowNull: false, generatedAs: literal('a + b') },
+      {
+        default: 'INTEGER GENERATED ALWAYS AS (a + b) STORED NOT NULL',
+        mssql: 'AS CAST(a + b AS INTEGER) PERSISTED NOT NULL',
+        db2: 'INTEGER GENERATED ALWAYS AS (a + b) NOT NULL',
+        oracle: 'INTEGER GENERATED ALWAYS AS (a + b) VIRTUAL NOT NULL',
+        'ibmi snowflake': unsupported,
+      },
+    );
+
+    testSql(
+      { type: 'INTEGER', generatedAs: { expression: literal('a + b'), stored: false } },
+      {
+        default: 'INTEGER GENERATED ALWAYS AS (a + b) VIRTUAL',
+        mssql: 'AS CAST(a + b AS INTEGER)',
+        oracle: 'INTEGER GENERATED ALWAYS AS (a + b) VIRTUAL NULL',
+        db2: new Error('The db2 dialect does not support virtual generated columns.'),
+        'ibmi snowflake': unsupported,
+      },
+    );
+
+    testSql(
+      { type: 'INTEGER', generatedAs: { expression: literal('a + b'), stored: true } },
+      {
+        default: 'INTEGER GENERATED ALWAYS AS (a + b) STORED',
+        mssql: 'AS CAST(a + b AS INTEGER) PERSISTED',
+        db2: 'INTEGER GENERATED ALWAYS AS (a + b)',
+        oracle: new Error('The oracle dialect does not support stored generated columns.'),
+        'ibmi snowflake': unsupported,
+      },
+    );
+
+    testSql(
+      // @ts-expect-error -- plain strings are rejected, they would be escaped as a string value
+      { type: 'INTEGER', generatedAs: 'a + b' },
+      {
+        default: new TypeError('The "generatedAs" option must be an SQL expression'),
+      },
+    );
+
+    testSql(
+      { type: 'INTEGER', generatedAs: { expression: literal('a + b'), dependsOn: ['links'] } },
+      {
+        // a plain column, maintained by triggers
+        postgres: 'INTEGER',
+        default: new Error('dialect does not support generated columns that use "dependsOn"'),
+      },
+    );
+
+    testSql(
+      {
+        type: 'INTEGER',
+        generatedAs: { expression: literal('a + b'), dependsOn: ['links'], stored: false },
+      },
+      {
+        postgres: new Error('Generated columns that use "dependsOn" are always stored.'),
+        default: new Error('dialect does not support generated columns that use "dependsOn"'),
+      },
+    );
+
+    it('resolves attributes to the column names of their model', () => {
+      const LineItem = sequelize.define(
+        'LineItem',
+        {
+          unitPrice: DataTypes.INTEGER,
+          quantity: DataTypes.INTEGER,
+          total: {
+            type: DataTypes.INTEGER,
+            generatedAs: sql`${sql.attribute('unitPrice')} * ${sql.attribute('quantity')}`,
+          },
+        },
+        { underscored: true },
+      );
+
+      expectPerDialect(
+        () =>
+          sequelize.dialect.queryGenerator.attributeToSql(
+            LineItem.modelDefinition.attributes.get('total')!,
+          ),
+        {
+          default: 'INTEGER GENERATED ALWAYS AS ("unit_price" * "quantity") STORED',
+          'mariadb mysql sqlite3': 'INTEGER GENERATED ALWAYS AS (`unit_price` * `quantity`) STORED',
+          mssql: 'AS CAST([unit_price] * [quantity] AS INTEGER) PERSISTED',
+          db2: 'INTEGER GENERATED ALWAYS AS ("unit_price" * "quantity")',
+          oracle: 'INTEGER GENERATED ALWAYS AS ("unit_price" * "quantity") VIRTUAL NULL',
+          'ibmi snowflake': unsupported,
+        },
+      );
+    });
   });
 
   describe('quoteIdentifiers: false', () => {

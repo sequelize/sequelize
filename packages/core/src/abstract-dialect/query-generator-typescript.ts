@@ -1055,6 +1055,64 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
   }
 
   /**
+   * Returns the SQL of a generated column's expression and whether the column is stored,
+   * or undefined if the column is not generated, or is maintained by triggers because it uses `dependsOn`.
+   *
+   * @param attribute the column about to be generated
+   * @hidden
+   */
+  getGeneratedColumn(
+    attribute: AttributeToSqlColumn,
+  ): { expression: string; stored: boolean } | undefined {
+    const { generatedAs } = attribute;
+    if (generatedAs == null) {
+      return undefined;
+    }
+
+    const {
+      expression,
+      stored = this.dialect.supports.generatedColumns.stored,
+      dependsOn,
+    } = generatedAs instanceof BaseSqlExpression ? { expression: generatedAs } : generatedAs;
+
+    if (!(expression instanceof BaseSqlExpression)) {
+      throw new TypeError(
+        'The "generatedAs" option must be an SQL expression, such as one built with the sql tag.',
+      );
+    }
+
+    const supported = this.dialect.supports.generatedColumns;
+    if (dependsOn) {
+      if (!supported.dependsOn) {
+        throw new Error(
+          `The ${this.dialect.name} dialect does not support generated columns that use "dependsOn".`,
+        );
+      }
+
+      if (!stored) {
+        throw new Error('Generated columns that use "dependsOn" are always stored.');
+      }
+
+      // a plain column, see syncGeneratedColumnTriggers
+      return undefined;
+    }
+
+    if (!(stored ? supported.stored : supported.virtual)) {
+      const kind = supported.stored || supported.virtual ? (stored ? 'stored ' : 'virtual ') : '';
+
+      throw new Error(
+        `The ${this.dialect.name} dialect does not support ${kind}generated columns.`,
+      );
+    }
+
+    return {
+      // the model resolves sql.attribute() to column names
+      expression: this.escape(expression, { model: attribute.Model as ModelStatic | undefined }),
+      stored,
+    };
+  }
+
+  /**
    * Generates the SQL fragment declaring each of the given columns, keyed by column name.
    *
    * @param columns a map of column descriptions, keyed by attribute name
