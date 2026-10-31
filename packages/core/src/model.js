@@ -61,7 +61,10 @@ import {
 } from './utils/deprecations';
 import { toDefaultValue } from './utils/dialect';
 import { mapFinderOptions, mapOptionFieldNames, mapValueFieldNames } from './utils/format';
-import { getGeneratedColumnDependencies } from './utils/generated-columns.js';
+import {
+  getGeneratedAttributeDependsOn,
+  getGeneratedColumnDependencies,
+} from './utils/generated-columns.js';
 import { logger } from './utils/logger';
 import { isModelStatic, isSameInitialModel } from './utils/model-utils';
 import {
@@ -922,8 +925,15 @@ ${associationOwner._getAssociationDebugList()}`);
       ) {
         // Most databases refuse to alter a column that a generated column reads, even to the same type,
         // so neither generated columns nor the columns their expression mentions are altered.
+        // The same goes for columns that use `dependsOn`: their trigger runs on UPDATE OF the columns they read.
         const generatedExpressions = [...modelDefinition.physicalAttributes.values()]
-          .map(attribute => this.queryGenerator.getGeneratedColumn(attribute)?.expression)
+          .map(attribute => {
+            if (getGeneratedAttributeDependsOn(attribute)) {
+              return this.queryGenerator.escape(attribute.generatedAs.expression, { model: this });
+            }
+
+            return this.queryGenerator.getGeneratedColumn(attribute)?.expression;
+          })
           .filter(expression => expression != null);
 
         for (const columnName in columns) {

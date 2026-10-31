@@ -357,6 +357,41 @@ async function countTriggers(table = 'dep_locations'): Promise<number> {
       await Note.drop();
     });
 
+    it('lets sync alter a table whose trigger runs on update of the columns the expression reads', async () => {
+      const { Customer } = await defineModels();
+      await Customer.sync({ force: true });
+
+      @Table({ modelName: `DepNote${modelCount++}`, tableName: 'dep_notes', timestamps: false })
+      class Note extends Model<InferAttributes<Note>, InferCreationAttributes<Note>> {
+        declare id: CreationOptional<number>;
+
+        @Attribute(DataTypes.INTEGER)
+        declare customerId: number;
+
+        @Attribute(DataTypes.STRING)
+        @GeneratedAs({
+          expression: sql`(SELECT customer.name FROM dep_customers AS customer WHERE customer.id = ${sql.attribute('customerId')})`,
+          dependsOn: ['customer'],
+        })
+        declare customerName: CreationOptional<string | null>;
+
+        @BelongsTo(() => Customer, { foreignKey: 'customerId', foreignKeyConstraints: false })
+        declare customer?: NonAttribute<InstanceType<typeof Customer>>;
+      }
+
+      sequelize.addModels([Note]);
+      await Note.sync({ force: true });
+      // Postgres refuses to alter the type of "customerId" while a trigger runs on UPDATE OF it
+      await Note.sync({ alter: true });
+
+      const customer = await Customer.create({ name: 'owner' });
+      const note = await Note.create({ customerId: customer.id });
+      await customer.update({ name: 'renamed' });
+      await note.reload();
+      expect(note.customerName).to.equal('renamed');
+      await Note.drop();
+    });
+
     it('creates the triggers when the tables it reads are created after the model', async () => {
       const { Customer, Link, Location } = await defineModels();
       // the link table does not exist when the location table syncs
