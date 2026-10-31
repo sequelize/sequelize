@@ -213,9 +213,24 @@ export class SqliteQueryGeneratorTypeScript extends AbstractQueryGenerator {
       ? `${createTableSql.replace(`CREATE TABLE ${quotedTableName}`, `CREATE TABLE ${quotedBackupTableName}`)};`
       : this.createTableQuery(backupTable, tableAttributes);
 
+    // Copying rows only restores the largest remaining id, not the largest id ever used.
+    // Preserve sqlite_sequence before dropping the original table, including when it is empty.
+    const sequenceQueries: string[] = [];
+    if (Object.values(attributes).some(attribute => attribute.autoIncrement)) {
+      const sequenceTable = this.quoteTable({ ...table, tableName: 'sqlite_sequence' });
+      const originalName = this.escape(table.tableName);
+      const backupName = this.escape(backupTable.tableName);
+
+      sequenceQueries.push(
+        `INSERT INTO ${sequenceTable} (name, seq) SELECT ${backupName}, seq FROM ${sequenceTable} WHERE name = ${originalName} AND NOT EXISTS (SELECT 1 FROM ${sequenceTable} WHERE name = ${backupName});`,
+        `UPDATE ${sequenceTable} SET seq = MAX(seq, (SELECT seq FROM ${sequenceTable} WHERE name = ${originalName})) WHERE name = ${backupName} AND EXISTS (SELECT 1 FROM ${sequenceTable} WHERE name = ${originalName});`,
+      );
+    }
+
     return [
       backupTableSql,
       `INSERT INTO ${quotedBackupTableName} SELECT ${attributeNames} FROM ${quotedTableName};`,
+      ...sequenceQueries,
       `DROP TABLE ${quotedTableName};`,
       `ALTER TABLE ${quotedBackupTableName} RENAME TO ${quotedTableName};`,
     ];
