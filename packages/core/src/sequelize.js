@@ -832,7 +832,7 @@ Object.defineProperties(Sequelize, {
       return Model;
     },
     set(value) {
-      Object.defineProperty(Sequelize, 'Model', {
+      Object.defineProperty(this, 'Model', {
         value,
         writable: true,
         configurable: true,
@@ -847,7 +847,7 @@ Object.defineProperties(Sequelize, {
       return AbstractQueryInterface;
     },
     set(value) {
-      Object.defineProperty(Sequelize, 'AbstractQueryInterface', {
+      Object.defineProperty(this, 'AbstractQueryInterface', {
         value,
         writable: true,
         configurable: true,
@@ -862,7 +862,7 @@ Object.defineProperties(Sequelize, {
       return BelongsToAssociation;
     },
     set(value) {
-      Object.defineProperty(Sequelize, 'BelongsToAssociation', {
+      Object.defineProperty(this, 'BelongsToAssociation', {
         value,
         writable: true,
         configurable: true,
@@ -877,7 +877,7 @@ Object.defineProperties(Sequelize, {
       return HasOneAssociation;
     },
     set(value) {
-      Object.defineProperty(Sequelize, 'HasOneAssociation', {
+      Object.defineProperty(this, 'HasOneAssociation', {
         value,
         writable: true,
         configurable: true,
@@ -892,7 +892,7 @@ Object.defineProperties(Sequelize, {
       return HasManyAssociation;
     },
     set(value) {
-      Object.defineProperty(Sequelize, 'HasManyAssociation', {
+      Object.defineProperty(this, 'HasManyAssociation', {
         value,
         writable: true,
         configurable: true,
@@ -907,7 +907,7 @@ Object.defineProperties(Sequelize, {
       return BelongsToManyAssociation;
     },
     set(value) {
-      Object.defineProperty(Sequelize, 'BelongsToManyAssociation', {
+      Object.defineProperty(this, 'BelongsToManyAssociation', {
         value,
         writable: true,
         configurable: true,
