@@ -123,4 +123,31 @@ describe('Model.upsert', () => {
     expect(insertValues.updated_at).to.equal(updatedAt);
     expect(updateValues.updated_at).to.equal(updatedAt);
   });
+
+  it('fills in the timestamps when none are passed and their column names differ from their attribute names', async () => {
+    const now = new Date('2020-01-03T00:00:00.000Z');
+    const clock = sinon.useFakeTimers({ now, toFake: ['Date'] });
+
+    try {
+      await vars.UserUnderscored.upsert({
+        name: 'Young Cat',
+      });
+    } finally {
+      clock.restore();
+    }
+
+    const insertValues = stub.getCall(0).args[1];
+    const updateValues = stub.getCall(0).args[2];
+
+    expect(insertValues).to.deep.equal({ name: 'Young Cat', created_at: now, updated_at: now });
+    expect(updateValues).to.deep.equal({ name: 'Young Cat', updated_at: now });
+  });
+
+  it('does not add timestamps to the updated fields when timestamps are disabled', async () => {
+    await vars.UserNoTime.upsert({
+      name: 'Old Cat',
+    });
+
+    expect(Object.keys(stub.getCall(0).args[2])).to.deep.equal(['name']);
+  });
 });

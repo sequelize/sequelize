@@ -2213,14 +2213,14 @@ ${associationOwner._getAssociationDebugList()}`);
     // insertValues & updateValues are keyed by column name, not by attribute name
     // Attach createdAt
     if (createdAtAttr) {
-      const field = modelDefinition.attributes.get(createdAtAttr).columnName || createdAtAttr;
+      const field = modelDefinition.getColumnName(createdAtAttr);
       if (!insertValues[field]) {
         insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
       }
     }
 
     if (updatedAtAttr) {
-      const field = modelDefinition.attributes.get(updatedAtAttr).columnName || updatedAtAttr;
+      const field = modelDefinition.getColumnName(updatedAtAttr);
       if (!updateValues[field]) {
         insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
       }
