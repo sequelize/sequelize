@@ -151,8 +151,7 @@ export class BelongsToAssociation<
     }
 
     if (!source.modelDefinition.attributes.has(foreignKey)) {
-      foreignKey =
-        source.modelDefinition.columns.get(foreignKey)?.attributeName ?? foreignKey;
+      foreignKey = source.modelDefinition.columns.get(foreignKey)?.attributeName ?? foreignKey;
     }
 
     this.#foreignKey = foreignKey as SourceKey;
