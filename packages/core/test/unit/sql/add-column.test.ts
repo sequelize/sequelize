@@ -40,9 +40,7 @@ describe('QueryGenerator#addColumnQuery', () => {
               table: 'level',
               key: 'id',
             },
-            // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
             onUpdate: 'cascade',
-            // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
             onDelete: 'cascade',
           }),
         ),
@@ -62,7 +60,6 @@ describe('QueryGenerator#addColumnQuery', () => {
           'test_added_col_first',
           sequelize.normalizeAttribute({
             type: DataTypes.STRING,
-            // @ts-expect-error -- "first" is supported by MySQL and MariaDB, but missing from the typings. See https://github.com/sequelize/sequelize/issues/18567
             first: true,
           }),
         ),
