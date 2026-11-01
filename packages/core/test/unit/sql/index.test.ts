@@ -91,10 +91,7 @@ describe('QueryGenerator#addIndexQuery', () => {
     expectsql(
       queryGenerator.addIndexQuery(
         'User',
-        [
-          'fieldB',
-          { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 },
-        ],
+        ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }],
         {
           name: 'a_b_uniq',
           unique: true,
