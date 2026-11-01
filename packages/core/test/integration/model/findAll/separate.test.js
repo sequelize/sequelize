@@ -92,6 +92,44 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(projects[0].levelTwos[0].type_ones).to.have.length(0);
         expect(projects[0].levelTwos[1].type_ones).to.have.length(0);
       });
+
+      it('should properly group separate associations when foreignKey references column with different attributeName', async () => {
+        // #17449
+        const Parent = current.define('Parent', { name: DataTypes.STRING }, { underscored: true });
+        const Child = current.define(
+          'Child',
+          {
+            parentId: {
+              type: DataTypes.INTEGER,
+              field: 'parent_id',
+            },
+            title: DataTypes.STRING,
+          },
+          { underscored: true },
+        );
+
+        Parent.hasMany(Child, { foreignKey: 'parent_id' });
+        Child.belongsTo(Parent, { foreignKey: 'parent_id' });
+
+        await current.sync({ force: true });
+
+        const parent = await Parent.create({ name: 'Parent 1' });
+        await Child.create({ parentId: parent.id, title: 'Child 1' });
+
+        const found = await Parent.findOne({
+          where: { id: parent.id },
+          include: [
+            {
+              model: Child,
+              separate: true,
+            },
+          ],
+        });
+
+        expect(found).to.be.ok;
+        expect(found.children).to.have.length(1);
+        expect(found.children[0].title).to.equal('Child 1');
+      });
     });
   });
 });
