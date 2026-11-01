@@ -242,6 +242,26 @@ describe('QueryInterface', () => {
         expect(table).to.not.have.property('active');
       });
 
+      it('renames a column with a keyword function default value', async function () {
+        const Events = this.sequelize.define(
+          '_Events',
+          {
+            createdAt: {
+              type: DataTypes.DATE,
+              allowNull: false,
+              defaultValue: DataTypes.NOW,
+            },
+          },
+          { freezeTableName: true },
+        );
+
+        await Events.sync({ force: true });
+        await this.queryInterface.renameColumn('_Events', 'createdAt', 'createdOn');
+        const table = await this.queryInterface.describeTable('_Events');
+        expect(table).to.have.property('createdOn');
+        expect(table).to.not.have.property('createdAt');
+      });
+
       if (dialectName !== 'db2') {
         // Db2 does not allow rename of a primary key column
         it('renames a column primary key autoIncrement column', async function () {
