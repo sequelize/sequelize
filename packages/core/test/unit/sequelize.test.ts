@@ -138,8 +138,11 @@ describe('Sequelize', () => {
 
     it('isolates subclass static property overrides using assignment receiver', () => {
       class CustomSequelize extends Sequelize {}
+
       class SubModel {}
+
       (CustomSequelize as any).Model = SubModel;
+
       expect(CustomSequelize.Model).to.equal(SubModel);
       expect(Sequelize.Model).to.not.equal(SubModel);
     });
