@@ -1723,7 +1723,17 @@ export interface NormalizedAttributeReferencesOptions extends Omit<
 }
 
 // TODO: when merging model.d.ts with model.js, make this an enum.
-export type ReferentialAction = 'CASCADE' | 'RESTRICT' | 'SET DEFAULT' | 'SET NULL' | 'NO ACTION';
+export type ReferentialAction =
+  | 'CASCADE'
+  | 'RESTRICT'
+  | 'SET DEFAULT'
+  | 'SET NULL'
+  | 'NO ACTION'
+  | 'cascade'
+  | 'restrict'
+  | 'set default'
+  | 'set null'
+  | 'no action';
 
 /**
  * Column options for the model schema attributes.
@@ -1780,6 +1790,13 @@ export interface AttributeOptions<M extends Model = Model> {
    * If true, this attribute will be marked as primary key
    */
   primaryKey?: boolean | undefined;
+
+  /**
+   * Places the column at the first position in the table.
+   *
+   * Supported by MySQL, MariaDB, Snowflake, and IBM i.
+   */
+  first?: boolean | undefined;
 
   /**
    * Is this field an auto increment field
