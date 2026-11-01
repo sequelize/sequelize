@@ -73,5 +73,42 @@ describe(Support.getTestDialectTeaser('Model'), () => {
       const account = await account0.reload();
       expect(account.version).to.eq(1);
     });
+
+    describe('when the version column name differs from the attribute name', () => {
+      let UnderscoredAccount;
+      beforeEach(async function () {
+        UnderscoredAccount = this.sequelize.define(
+          'UnderscoredAccount',
+          {
+            number: {
+              type: DataTypes.INTEGER,
+            },
+          },
+          {
+            version: 'lockVersion',
+            underscored: true,
+          },
+        );
+        await UnderscoredAccount.sync({ force: true });
+      });
+
+      it('increment() also increments the version', async () => {
+        const account = await UnderscoredAccount.create({ number: 1 });
+        expect(account.lockVersion).to.eq(0);
+        await account.increment('number', { by: 1 });
+        await account.reload();
+        expect(account.number).to.eq(2);
+        expect(account.lockVersion).to.eq(1);
+      });
+
+      it('decrement() also increments the version', async () => {
+        const account = await UnderscoredAccount.create({ number: 1 });
+        expect(account.lockVersion).to.eq(0);
+        await account.decrement('number', { by: 1 });
+        await account.reload();
+        expect(account.number).to.eq(0);
+        expect(account.lockVersion).to.eq(1);
+      });
+    });
   });
 });
