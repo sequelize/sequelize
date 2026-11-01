@@ -248,8 +248,11 @@ If having two associations does not make sense (for instance a "spouse" associat
       const results = await Target.findAll(options);
       const result = new Map<any, T | null>();
 
+      const foreignKeyAttribute =
+        this.target.modelDefinition.columns.get(this.foreignKey)?.attributeName ?? this.foreignKey;
+
       for (const targetInstance of results) {
-        result.set(targetInstance.get(this.foreignKey, { raw: true }), targetInstance);
+        result.set(targetInstance.get(foreignKeyAttribute, { raw: true }), targetInstance);
       }
 
       return result;

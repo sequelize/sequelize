@@ -319,9 +319,15 @@ export class HasManyAssociation<
       result.set(instance.get(this.sourceKey, { raw: true }), []);
     }
 
+    const foreignKeyAttribute =
+      this.target.modelDefinition.columns.get(this.foreignKey)?.attributeName ?? this.foreignKey;
+
     for (const instance of results) {
-      const value = instance.get(this.foreignKey, { raw: true });
-      result.get(value)!.push(instance);
+      const value = instance.get(foreignKeyAttribute, { raw: true });
+      const targetList = result.get(value);
+      if (targetList) {
+        targetList.push(instance);
+      }
     }
 
     return result;
