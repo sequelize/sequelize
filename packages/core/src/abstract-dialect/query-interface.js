@@ -319,9 +319,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     } else if (typeof defaultValue === 'string') {
       const trimmed = defaultValue.trim();
       const unparenthesized =
-        trimmed.startsWith('(') && trimmed.endsWith(')')
-          ? trimmed.slice(1, -1).trim()
-          : trimmed;
+        trimmed.startsWith('(') && trimmed.endsWith(')') ? trimmed.slice(1, -1).trim() : trimmed;
 
       if (
         /^(?:CURRENT_TIMESTAMP(?:())?|NOW()|CURRENT_DATE(?:())?|CURRENT_TIME(?:())?|LOCALTIME(?:())?|LOCALTIMESTAMP(?:())?|GETDATE()|SYSDATE|SYSTIMESTAMP|UUID()|GEN_RANDOM_UUID())$/i.test(
