@@ -82,7 +82,14 @@ export interface IndexField {
   /**
    * The name of the column
    */
-  name: string;
+  name?: string;
+
+  /**
+   * Legacy alias for {@link name}.
+   *
+   * @deprecated Use {@link name} instead.
+   */
+  attribute?: string;
 
   /**
    * Create a prefix index of length chars

@@ -117,9 +117,7 @@ describe('QueryInterface#changeColumn', () => {
         table: 'level',
         key: 'id',
       },
-      // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
       onUpdate: 'cascade',
-      // @ts-expect-error -- lowercase referential actions work, but are not typed. See https://github.com/sequelize/sequelize/issues/18567
       onDelete: 'cascade',
     });
 

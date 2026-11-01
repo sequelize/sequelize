@@ -91,11 +91,7 @@ describe('QueryGenerator#addIndexQuery', () => {
     expectsql(
       queryGenerator.addIndexQuery(
         'User',
-        [
-          'fieldB',
-          // @ts-expect-error -- "attribute" is a legacy alias of "name" that is missing from the typings. See https://github.com/sequelize/sequelize/issues/18567
-          { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 },
-        ],
+        ['fieldB', { attribute: 'fieldA', collate: 'en_US', order: 'DESC', length: 5 }],
         {
           name: 'a_b_uniq',
           unique: true,
