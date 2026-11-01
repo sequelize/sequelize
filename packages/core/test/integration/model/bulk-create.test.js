@@ -7,7 +7,7 @@ const {
   createMultiTransactionalTestSequelizeInstance,
   sequelize,
 } = require('../support');
-const { AggregateError, col, DataTypes, Op } = require('@sequelize/core');
+const { AggregateError, col, DataTypes, Op, ParameterStyle } = require('@sequelize/core');
 
 const dialect = sequelize.dialect;
 const dialectName = dialect.name;
@@ -167,7 +167,15 @@ describe('Model', () => {
 
       const logging = sinon.spy(sql => {
         if (dialect.supports.autoIncrement.defaultValue) {
-          const idValue = dialect.supports.bulkDefault ? 'DEFAULT' : 'NULL';
+          let idValue;
+          if (dialect.supports.bulkDefault) {
+            idValue = 'DEFAULT';
+          } else if (dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]) {
+            idValue = dialectName === 'sqlite3' ? '$sequelize_1' : '?';
+          } else {
+            idValue = 'NULL';
+          }
+
           expect(sql).to.include(
             `INSERT INTO ${quote('Beers')} (${quote('id')},${columns}) VALUES (${idValue}`,
           );
@@ -182,7 +190,12 @@ describe('Model', () => {
             style: 'ipa',
           },
         ],
-        { logging },
+        {
+          ...(dialect.supports.inserts.bulkInsertParameterStyles[ParameterStyle.BIND]
+            ? { parameterStyle: ParameterStyle.BIND }
+            : {}),
+          logging,
+        },
       );
       expect(logging).to.have.been.called;
     });

@@ -1,5 +1,13 @@
-import type { AbstractQueryInterface, TableNameWithSchema } from '@sequelize/core';
+import type {
+  AbstractQueryInterface,
+  CreationAttributes,
+  CreationOptional,
+  InferAttributes,
+  InferCreationAttributes,
+  TableNameWithSchema,
+} from '@sequelize/core';
 import { DataTypes, Model, col, fn, literal } from '@sequelize/core';
+import { expectTypeOf } from 'expect-type';
 
 declare let queryInterface: AbstractQueryInterface;
 
@@ -271,4 +279,50 @@ async function test() {
   await queryInterface.upsert('test', { a: 1 }, { b: 2 }, { c: 3 }, { model: TestModel });
 
   await queryInterface.insert(null, 'test', {});
+}
+
+class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
+  declare id: CreationOptional<number>;
+  declare firstName: string;
+}
+
+async function bulkInsertTypings() {
+  await queryInterface.bulkInsert('users', [{ first_name: 'a' }]);
+  await queryInterface.bulkInsert({ tableName: 'users', schema: 'public' }, [{ first_name: 'a' }]);
+  await queryInterface.bulkInsert(User, [{ first_name: 'a' }]);
+  await queryInterface.bulkInsert(User.table, [{ first_name: 'a' }]);
+
+  await queryInterface.bulkInsert('users', [
+    {
+      first_name: literal('DEFAULT'),
+      lower: fn('lower', col('first_name')),
+      deleted_at: null,
+      note: undefined,
+      created_at: new Date(),
+    },
+  ]);
+
+  const seed = [{ first_name: 'a' }, { first_name: 'b' }] as const;
+  await queryInterface.bulkInsert('users', seed);
+
+  const creationAttributes: ReadonlyArray<CreationAttributes<User>> = [{ firstName: 'a' }];
+  await queryInterface.bulkInsert('users', creationAttributes);
+
+  expectTypeOf(
+    await queryInterface.bulkInsert(
+      'users',
+      [{ meta: {} }],
+      {},
+      { meta: { type: DataTypes.JSON } },
+    ),
+  ).toEqualTypeOf<object | number>();
+
+  // @ts-expect-error -- records must be an array
+  await queryInterface.bulkInsert('users', { first_name: 'a' });
+  // @ts-expect-error -- records must be objects, not primitives
+  await queryInterface.bulkInsert('users', ['a']);
+  // @ts-expect-error -- records must be objects, not arrays of values
+  await queryInterface.bulkInsert('users', [['a']]);
+  // @ts-expect-error -- model instances are not supported, use Model.bulkCreate
+  await queryInterface.bulkInsert(User, [User.build({ firstName: 'a' })]);
 }

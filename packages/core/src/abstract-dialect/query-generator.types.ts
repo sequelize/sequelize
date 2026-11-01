@@ -14,7 +14,7 @@ export type TableOrModel = TableName | ModelStatic<any> | ModelDefinition<any>;
 
 export interface BoundQuery {
   query: string;
-  bind?: Record<string, unknown> | undefined;
+  bind?: Record<string, unknown> | unknown[] | undefined;
 }
 
 // keep CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS updated when modifying this
