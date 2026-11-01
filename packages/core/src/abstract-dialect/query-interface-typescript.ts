@@ -959,6 +959,8 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
    * @param records List of records to insert, keyed by column name
    * @param options Various options, please see Model.bulkCreate options
    * @param attributes Various attributes mapped by field name
+   *
+   * @returns An empty array if `records` is empty, in which case no query is executed.
    */
   async bulkInsert(
     tableOrModel: TableOrModel,
@@ -966,6 +968,11 @@ export class AbstractQueryInterfaceTypeScript<Dialect extends AbstractDialect = 
     options?: QiBulkInsertOptions,
     attributes?: Record<string, AttributeOptions>,
   ): Promise<object | number> {
+    // An INSERT statement without any row is invalid SQL, there is nothing to insert.
+    if (records.length === 0) {
+      return [];
+    }
+
     const queryOptions = { ...options, type: QueryTypes.INSERT as const };
 
     const supportedStyles = this.dialect.supports.inserts.bulkInsertParameterStyles;
