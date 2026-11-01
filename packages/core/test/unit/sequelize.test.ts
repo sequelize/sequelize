@@ -125,4 +125,26 @@ describe('Sequelize', () => {
       });
     });
   });
+
+  describe('static exports', () => {
+    it('exposes Model and association classes lazily without initialization errors (#18558)', () => {
+      expect((Sequelize as any).Model).to.be.a('function');
+      expect((Sequelize as any).AbstractQueryInterface).to.be.a('function');
+      expect((Sequelize as any).BelongsToAssociation).to.be.a('function');
+      expect((Sequelize as any).HasOneAssociation).to.be.a('function');
+      expect((Sequelize as any).HasManyAssociation).to.be.a('function');
+      expect((Sequelize as any).BelongsToManyAssociation).to.be.a('function');
+    });
+
+    it('isolates subclass static property overrides using assignment receiver', () => {
+      class CustomSequelize extends Sequelize {}
+
+      class SubModel {}
+
+      (CustomSequelize as any).Model = SubModel;
+
+      expect((CustomSequelize as any).Model).to.equal(SubModel);
+      expect((Sequelize as any).Model).to.not.equal(SubModel);
+    });
+  });
 });

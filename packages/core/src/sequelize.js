@@ -826,13 +826,98 @@ Sequelize.prototype.QueryTypes = Sequelize.QueryTypes = QueryTypes;
  */
 Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 
-Sequelize.Model = Model;
-
-Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsToAssociation = BelongsToAssociation;
-Sequelize.HasOneAssociation = HasOneAssociation;
-Sequelize.HasManyAssociation = HasManyAssociation;
-Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
+Object.defineProperties(Sequelize, {
+  Model: {
+    get() {
+      return Model;
+    },
+    set(value) {
+      Object.defineProperty(this, 'Model', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    },
+    configurable: true,
+    enumerable: true,
+  },
+  AbstractQueryInterface: {
+    get() {
+      return AbstractQueryInterface;
+    },
+    set(value) {
+      Object.defineProperty(this, 'AbstractQueryInterface', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    },
+    configurable: true,
+    enumerable: true,
+  },
+  BelongsToAssociation: {
+    get() {
+      return BelongsToAssociation;
+    },
+    set(value) {
+      Object.defineProperty(this, 'BelongsToAssociation', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    },
+    configurable: true,
+    enumerable: true,
+  },
+  HasOneAssociation: {
+    get() {
+      return HasOneAssociation;
+    },
+    set(value) {
+      Object.defineProperty(this, 'HasOneAssociation', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    },
+    configurable: true,
+    enumerable: true,
+  },
+  HasManyAssociation: {
+    get() {
+      return HasManyAssociation;
+    },
+    set(value) {
+      Object.defineProperty(this, 'HasManyAssociation', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    },
+    configurable: true,
+    enumerable: true,
+  },
+  BelongsToManyAssociation: {
+    get() {
+      return BelongsToManyAssociation;
+    },
+    set(value) {
+      Object.defineProperty(this, 'BelongsToManyAssociation', {
+        value,
+        writable: true,
+        configurable: true,
+        enumerable: true,
+      });
+    },
+    configurable: true,
+    enumerable: true,
+  },
+});
 
 Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {
