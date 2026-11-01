@@ -311,17 +311,34 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
 
     const _options = {};
 
+    let defaultValue = data.defaultValue;
+
+    // fix: a not-null column cannot have null as default value
+    if (defaultValue === null && !data.allowNull) {
+      defaultValue = undefined;
+    } else if (typeof defaultValue === 'string') {
+      const trimmed = defaultValue.trim();
+      const unparenthesized =
+        trimmed.startsWith('(') && trimmed.endsWith(')')
+          ? trimmed.slice(1, -1).trim()
+          : trimmed;
+
+      if (
+        /^(?:CURRENT_TIMESTAMP(?:())?|NOW()|CURRENT_DATE(?:())?|CURRENT_TIME(?:())?|LOCALTIME(?:())?|LOCALTIMESTAMP(?:())?|GETDATE()|SYSDATE|SYSTIMESTAMP|UUID()|GEN_RANDOM_UUID())$/i.test(
+          unparenthesized,
+        ) ||
+        (trimmed.startsWith('(') && trimmed.endsWith(')'))
+      ) {
+        defaultValue = this.sequelize.literal(unparenthesized);
+      }
+    }
+
     _options[attrNameAfter] = {
       attribute: attrNameAfter,
       type: data.type,
       allowNull: data.allowNull,
-      defaultValue: data.defaultValue,
+      ...(defaultValue !== undefined ? { defaultValue } : {}),
     };
-
-    // fix: a not-null column cannot have null as default value
-    if (data.defaultValue === null && !data.allowNull) {
-      delete _options[attrNameAfter].defaultValue;
-    }
 
     const sql = this.queryGenerator.renameColumnQuery(
       tableName,
