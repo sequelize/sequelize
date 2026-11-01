@@ -3500,7 +3500,12 @@ Instead of specifying a Model, either:
     const { attributes, attributesWithGetters } = this.modelDefinition;
 
     if (attributeName) {
-      const attribute = attributes.get(attributeName);
+      let attribute = attributes.get(attributeName);
+      if (!attribute && this.modelDefinition.columns.has(attributeName)) {
+        attributeName = this.modelDefinition.columns.get(attributeName).attributeName;
+        attribute = attributes.get(attributeName);
+      }
+
       if (attribute?.get && !options.raw) {
         return attribute.get.call(this, attributeName, options);
       }
