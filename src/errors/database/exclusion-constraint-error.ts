@@ -1,4 +1,5 @@
-import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
+import { stackWithHeader } from '../base-error';
+import DatabaseError, {DatabaseErrorSubclassOptions } from '../database-error';
 
 interface ExclusionConstraintErrorOptions {
   constraint?: string;
@@ -27,6 +28,10 @@ class ExclusionConstraintError extends DatabaseError implements ExclusionConstra
     this.constraint = options.constraint;
     this.fields = options.fields;
     this.table = options.table;
+
+    if (options.stack) {
+      this.stack = stackWithHeader(this, options.stack);
+    }
   }
 }
 
