@@ -10,6 +10,7 @@ import { Col } from '../expression-builders/col.js';
 import { JsonPath } from '../expression-builders/json-path.js';
 import { SQL_NULL } from '../expression-builders/json-sql-null.js';
 import { Literal } from '../expression-builders/literal.js';
+import { Value } from '../expression-builders/value.js';
 import { Where } from '../expression-builders/where.js';
 import type { AbstractDialect, Expression, ModelDefinition, WhereOptions } from '../index.js';
 import { Op } from '../operators';
@@ -362,8 +363,14 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
-    const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
+    const rightEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(right, rightDataType, leftDataType),
+    };
+    const leftEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(left, leftDataType, rightDataType),
+    };
 
     let rightSql: string;
     if (right instanceof Literal) {
@@ -435,8 +442,14 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
-    const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
+    const rightEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(right, rightDataType, leftDataType),
+    };
+    const leftEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(left, leftDataType, rightDataType),
+    };
 
     const leftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
 
@@ -669,11 +682,7 @@ export class WhereSqlBuilder {
       literalBuilder.push(escapedPercent, ', ');
     }
 
-    // The value is compared to the attribute, so it is escaped (and validated) using the attribute's type.
-    // This is done here because the values interpolated in a literal are escaped without a type.
-    literalBuilder.push(
-      this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType }),
-    );
+    literalBuilder.push(new Value(right));
 
     if (end) {
       literalBuilder.push(', ', escapedPercent);
@@ -686,7 +695,9 @@ export class WhereSqlBuilder {
       leftDataType,
       operator,
       new Literal(literalBuilder),
-      rightDataType,
+      // The value inside CONCAT() is compared to the attribute, so it keeps the attribute's type
+      // (unless it is itself a literal), even though the CONCAT() literal around it would not get it.
+      this.#getEscapeType(right, rightDataType, leftDataType),
       options,
     );
   }
@@ -752,13 +763,13 @@ export class WhereSqlBuilder {
 
     const leftSql = this.#queryGenerator.escape(left, {
       ...options,
-      type: leftDataType ?? rightDataType,
+      type: this.#getEscapeType(left, leftDataType, rightDataType),
     });
     const rightSql =
       this.#formatOpAnyAll(right, rightDataType ?? leftDataType) ||
       this.#queryGenerator.escape(right, {
         ...options,
-        type: rightDataType ?? leftDataType,
+        type: this.#getEscapeType(right, rightDataType, leftDataType),
       });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
@@ -954,6 +965,28 @@ export class WhereSqlBuilder {
     }
 
     return operand;
+  }
+
+  /**
+   * Returns the type an operand is escaped with.
+   * An operand without a type of its own is escaped with the type of the other operand,
+   * unless it is a literal: the values interpolated in a literal are not values of the other operand
+   * (e.g. the 'abc' in `{ intAttr: sql\`LENGTH(${'abc'})\` }`), so they are escaped based on their JS type.
+   *
+   * @param operand The operand to escape
+   * @param operandDataType The type of the operand, if known
+   * @param otherOperandDataType The type of the operand it is compared to
+   */
+  #getEscapeType(
+    operand: Expression,
+    operandDataType: NormalizedDataType | undefined,
+    otherOperandDataType: NormalizedDataType | undefined,
+  ): NormalizedDataType | undefined {
+    if (operandDataType || operand instanceof Literal) {
+      return operandDataType;
+    }
+
+    return otherOperandDataType;
   }
 
   #getOperandType(

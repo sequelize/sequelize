@@ -2134,6 +2134,26 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
+      it('collects bind parameters in the order they appear in the query', () => {
+        const bind: unknown[] = [];
+        const sqlString = queryGen.whereItemsQuery(
+          sql.where(sql`${'foobar'}`, Op.startsWith, sql`${'foo'}`),
+          {
+            bindParam: value => {
+              bind.push(value);
+
+              return '?';
+            },
+          },
+        );
+
+        expectsql(sqlString, {
+          default: `? LIKE CONCAT(?, '%')`,
+          mssql: `? LIKE CONCAT(?, N'%')`,
+        });
+        expect(bind).to.deep.equal(['foobar', 'foo']);
+      });
+
       testSql(
         {
           stringAttr: {

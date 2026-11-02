@@ -340,13 +340,10 @@ export class AbstractQueryGeneratorInternal<Dialect extends AbstractDialect = Ab
   }
 
   formatLiteral(piece: Literal, options?: EscapeOptions): string {
-    // values interpolated in a literal can be anything, they are not necessarily of the type of the attribute
-    // the literal is compared to, so we need to remove the type from their escape options
-    const partEscapeOptions = options?.type ? { ...options, type: undefined } : options;
     const sql = piece.val
       .map(part => {
         if (part instanceof BaseSqlExpression) {
-          return this.queryGenerator.formatSqlExpression(part, partEscapeOptions);
+          return this.queryGenerator.formatSqlExpression(part, options);
         }
 
         return part;
