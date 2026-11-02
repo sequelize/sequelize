@@ -281,7 +281,7 @@ if (dialect.startsWith('postgres')) {
       });
     });
 
-    it('should throw due to table name being truncated', async () => {
+    it('should load nested includes of models whose names exceed the identifier length limit', async () => {
       const sequelize = Support.createSingleTestSequelizeInstance({ minifyAliases: true });
 
       const User = sequelize.define(
@@ -312,20 +312,26 @@ if (dialect.startsWith('postgres')) {
           tableName: 'company',
         },
       );
-      User.hasMany(Project, { foreignKey: 'userId' });
-      Project.belongsTo(Company, { foreignKey: 'companyId' });
+      const userProjects = User.hasMany(Project, { foreignKey: 'userId' });
+      const projectCompany = Project.belongsTo(Company, { foreignKey: 'companyId' });
 
       await sequelize.sync({ force: true });
       const comp = await Company.create({ name: 'Sequelize' });
       const user = await User.create({ name: 'standard user' });
       await Project.create({ name: 'Manhattan', companyId: comp.id, userId: user.id });
 
-      await User.findAll({
+      const users = await User.findAll({
         include: {
           model: Project,
           include: Company,
         },
       });
+
+      expect(users).to.have.length(1);
+      const projects = users[0][userProjects.as];
+      expect(projects).to.have.length(1);
+      expect(projects[0].name).to.equal('Manhattan');
+      expect(projects[0][projectCompany.as].name).to.equal('Sequelize');
     });
 
     it('supports alias minification with long model names in joins', async () => {
@@ -659,14 +665,18 @@ if (dialect.startsWith('postgres')) {
       );
 
       await sequelizeMinifyAliases.sync({ force: true });
+      await Foo.create({ name: 'foo' });
 
-      await Foo.findAll({
+      const foos = await Foo.findAll({
         subQuery: false,
         attributes: {
           include: [[sequelizeMinifyAliases.literal('"Foo".my_name'), 'order_0']],
         },
         order: [['order_0', 'DESC']],
       });
+
+      expect(foos).to.have.length(1);
+      expect(foos[0].get('order_0')).to.equal('foo');
     });
 
     describe('Connection Invalidation', () => {

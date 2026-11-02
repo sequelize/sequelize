@@ -399,6 +399,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           ],
         });
 
+        expect(users).to.have.length(1);
         for (const user of users) {
           expect(user.get('name')).to.be.ok;
           expect(user.get('tasks')[0].get('title')).to.equal('DoDat');
@@ -458,6 +459,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         const users = await this.User.findAll();
+        expect(users).to.have.length(3);
         for (const user of users) {
           expect(['Abc', 'Bcd', 'Cde'].includes(user.get('name'))).to.be.true;
         }

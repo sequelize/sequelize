@@ -266,6 +266,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     let template: string;
 
+    const sqlType = attributeTypeToSql(attribute.type);
     if (attribute.type instanceof DataTypes.ENUM) {
       // enums are a special case
       const enumType = attribute.type as ENUM<string>;
@@ -277,7 +278,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
         })
         .join(', ')}))`;
     } else {
-      template = attributeTypeToSql(attribute.type);
+      template = sqlType;
     }
 
     if (options && options.context === 'changeColumn' && attribute.type) {
@@ -303,6 +304,7 @@ export class Db2QueryGeneratorTypeScript extends AbstractQueryGenerator {
       attribute.unique === true &&
       (options?.context !== 'changeColumn' || this.dialect.supports.alterColumn.unique)
     ) {
+      this.#internals.assertTypeCanBeUnique(attribute.field, sqlType);
       template += ' UNIQUE';
     }
 

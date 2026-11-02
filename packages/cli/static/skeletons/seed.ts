@@ -1,4 +1,4 @@
-import { UmzugContext } from '@sequelize/cli';
+import type { UmzugContext } from '@sequelize/cli';
 
 export async function up({ sequelize }: UmzugContext): Promise<void> {
   /**

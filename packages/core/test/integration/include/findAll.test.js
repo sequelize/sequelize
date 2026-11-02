@@ -379,6 +379,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
           ],
           order: [['id', 'ASC']],
         });
+        expect(users).to.have.length(i + 1);
         for (const user of users) {
           user.Memberships.sort(sortById);
 
@@ -827,6 +828,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         include: [{ model: Group, required: true }],
       });
 
+      expect(users).to.have.length(2);
       for (const user of users) {
         expect(user.group).to.be.ok;
       }
@@ -1222,6 +1224,7 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ],
         order: [['id', 'ASC']],
       });
+      expect(users).to.have.length(5);
       for (const user of users) {
         expect(user.Memberships.length).to.equal(1);
         expect(user.Memberships[0].rank.name).to.equal('Admin');
@@ -1328,10 +1331,11 @@ describe(Support.getTestDialectTeaser('Include'), () => {
         ],
       });
 
+      expect(products).to.have.length(20);
       for (const product of products) {
         expect(product.tags.length).to.be.ok;
         for (const tag of product.tags) {
-          expect(tag.get().productTags).not.to.be.ok;
+          expect(tag.get()).not.to.have.property('product_tag');
         }
       }
     });

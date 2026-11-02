@@ -242,7 +242,7 @@ describe('QueryGenerator#attributesToSql', () => {
         },
         mssql: { a: 'INTEGER NULL UNIQUE REFERENCES [Bar] ([id]) ON DELETE CASCADE' },
         db2: { a: 'INTEGER UNIQUE REFERENCES "Bar" ("id")' },
-        oracle: { a: 'INTEGER NULL REFERENCES "Bar" ("id") ON DELETE CASCADE' },
+        oracle: { a: 'INTEGER NULL UNIQUE REFERENCES "Bar" ("id") ON DELETE CASCADE' },
       },
     );
   });

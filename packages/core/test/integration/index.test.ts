@@ -227,13 +227,16 @@ describe(getTestDialectTeaser('Indexes'), () => {
           },
         );
 
-        try {
-          await sequelize.sync({ force: true });
-          expect.fail('This should have failed');
-        } catch (error: any) {
-          expect(error).to.be.instanceOf(DatabaseError);
-          expect(error.message).to.match(
-            /\s|^Column 'username' in table 'users' is of a type that is invalid for use as a key column in an index.$/,
+        if (dialect === 'postgres') {
+          // text columns can be unique in postgres, but the included "email" column does not exist
+          await expect(sequelize.sync({ force: true })).to.be.rejectedWith(
+            DatabaseError,
+            'column "email" does not exist',
+          );
+        } else {
+          await expect(sequelize.sync({ force: true })).to.be.rejectedWith(
+            Error,
+            `Column "username" cannot be unique: ${dialect} does not support unique constraints on`,
           );
         }
       });

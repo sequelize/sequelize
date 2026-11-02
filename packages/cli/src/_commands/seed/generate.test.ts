@@ -1,9 +1,11 @@
 import { runCommand } from '@oclif/test';
 import { fileUrlToDirname } from '@sequelize/utils/node';
 import { expect } from 'chai';
-import { access, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { access, mkdtemp, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { basename, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { generateSeed } from '../../api/generate-seed.js';
 
 const __dirname = fileUrlToDirname(import.meta.url);
 const packageRoot = join(__dirname, '..', '..', '..');
@@ -66,5 +68,24 @@ describe('seed:generate', () => {
 
     expect(Object.keys(asJson)).to.deep.eq(['path']);
     expect(pathToFileURL(asJson.path).pathname).to.match(/seeds\/[\d\-t]{19}-unnamed/);
+  });
+});
+
+describe('generateSeed', () => {
+  it('supports the compact timestamp format', async () => {
+    const folder = await mkdtemp(join(tmpdir(), 'sequelize-cli-'));
+
+    try {
+      const path = await generateSeed({
+        format: 'esm',
+        seedName: 'test-seed',
+        seedFolder: folder,
+        timestampFormat: 'compact',
+      });
+
+      expect(basename(path)).to.match(/^\d{14}-test-seed\.mjs$/);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+    }
   });
 });

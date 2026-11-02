@@ -274,11 +274,12 @@ if (dialect.startsWith('mssql')) {
 
       await User.sync({ force: true });
 
-      try {
-        await User.bulkCreate([...times(1000, () => ({ username: 'John' })), { username: null }]);
-      } catch {
-        // ignore
-      }
+      await expect(
+        User.bulkCreate([...times(1000, () => ({ username: 'John' })), { username: null }]),
+      ).to.be.rejectedWith(
+        Error,
+        "MSSQL doesn't allow for inserting more than 1,000 rows at a time",
+      );
 
       const count = await User.count();
       expect(count).to.equal(0);

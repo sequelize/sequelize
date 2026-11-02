@@ -149,6 +149,24 @@ describe('QueryInterface#createTable', () => {
     });
   });
 
+  if (['mysql', 'mssql', 'db2', 'ibmi', 'oracle'].includes(dialect.name)) {
+    it('checks the type of the columns of unique keys by column name', async () => {
+      const stub = sinon.stub(sequelize, 'queryRaw');
+
+      await expect(
+        sequelize.queryInterface.createTable(
+          'table',
+          {
+            name: { type: DataTypes.TEXT, field: 'value' },
+            value: { type: DataTypes.STRING, field: 'other_value' },
+          },
+          { uniqueKeys: { table_value: { fields: ['value'] } } },
+        ),
+      ).to.be.rejectedWith(Error, 'Column "value" cannot be unique');
+      expect(stub.called).to.equal(false);
+    });
+  }
+
   it('rejects the removed "schema" option', async () => {
     await expect(
       sequelize.queryInterface.createTable(

@@ -1,9 +1,14 @@
+import sinon from 'sinon';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#showIndexesQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   it('produces a SHOW INDEX query from a table', () => {
     expectsql(() => queryGenerator.showIndexesQuery('myTable'), {
@@ -228,4 +233,17 @@ describe('QueryGenerator#showIndexesQuery', () => {
       },
     );
   });
+
+  if (dialect.name === 'oracle') {
+    it('uses the current user as owner when there is no default schema', () => {
+      sinon.stub(dialect, 'getDefaultSchema').returns('');
+
+      expectsql(() => queryGenerator.showIndexesQuery('myTable'), {
+        oracle: `SELECT i.index_name,i.table_name, i.column_name, u.uniqueness, i.descend, c.constraint_type
+          FROM all_ind_columns i INNER JOIN all_indexes u ON (u.table_name = i.table_name AND u.index_name = i.index_name)
+          LEFT OUTER JOIN all_constraints c ON (c.table_name = i.table_name AND c.index_name = i.index_name)
+          WHERE i.table_name = 'myTable' AND u.table_owner = USER ORDER BY index_name, column_position`,
+      });
+    });
+  }
 });

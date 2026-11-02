@@ -1,7 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { SKELETONS_FOLDER } from '../_internal/skeletons.js';
-import { getCurrentYYYYMMDDHHmms, slugify } from '../_internal/utils.js';
+import type { TimestampFormat } from '../_internal/utils.js';
+import { getTimestamp, slugify } from '../_internal/utils.js';
 
 export const SUPPORTED_SEED_FORMATS = ['sql', 'typescript', 'cjs', 'esm'] as const;
 export type SupportedSeedFormat = (typeof SUPPORTED_SEED_FORMATS)[number];
@@ -17,12 +18,14 @@ export interface GenerateSeedOptions {
   format: SupportedSeedFormat;
   seedName: string;
   seedFolder: string;
+  /** Defaults to `separated` */
+  timestampFormat?: TimestampFormat | undefined;
 }
 
 export async function generateSeed(options: GenerateSeedOptions): Promise<string> {
-  const { format, seedName, seedFolder } = options;
+  const { format, seedName, seedFolder, timestampFormat = 'separated' } = options;
 
-  const seedFilename = `${getCurrentYYYYMMDDHHmms()}-${slugify(seedName)}`;
+  const seedFilename = `${getTimestamp(timestampFormat)}-${slugify(seedName)}`;
   const seedPath = path.join(seedFolder, seedFilename);
 
   if (format === 'sql') {

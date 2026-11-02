@@ -1,9 +1,11 @@
 import { runCommand } from '@oclif/test';
 import { fileUrlToDirname } from '@sequelize/utils/node';
 import { expect } from 'chai';
-import { access, readdir } from 'node:fs/promises';
-import { join } from 'node:path';
+import { access, mkdtemp, readdir, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { basename, join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { generateMigration } from '../../api/generate-migration.js';
 
 const __dirname = fileUrlToDirname(import.meta.url);
 const packageRoot = join(__dirname, '..', '..', '..');
@@ -75,5 +77,24 @@ describe('migration:generate', () => {
 
     expect(Object.keys(asJson)).to.deep.eq(['path']);
     expect(pathToFileURL(asJson.path).pathname).to.match(/migrations\/[\d\-t]{19}-unnamed/);
+  });
+});
+
+describe('generateMigration', () => {
+  it('supports the compact timestamp format', async () => {
+    const folder = await mkdtemp(join(tmpdir(), 'sequelize-cli-'));
+
+    try {
+      const path = await generateMigration({
+        format: 'esm',
+        migrationName: 'test-migration',
+        migrationFolder: folder,
+        timestampFormat: 'compact',
+      });
+
+      expect(basename(path)).to.match(/^\d{14}-test-migration\.mjs$/);
+    } finally {
+      await rm(folder, { recursive: true, force: true });
+    }
   });
 });

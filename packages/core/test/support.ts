@@ -1,5 +1,6 @@
-import type { AbstractDialect, BoundQuery, Options } from '@sequelize/core';
+import type { AbstractDialect, BindOrReplacements, BoundQuery, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString, pojo } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
@@ -585,6 +586,32 @@ export function minifySql(sql: string): string {
 }
 
 export const sequelize = createSequelizeInstance<AbstractDialect>();
+
+/**
+ * Replaces the bind parameters of a query with their escaped values,
+ * after checking that the dialect parses the query's placeholders into exactly those parameters.
+ *
+ * @param sql the SQL string
+ * @param bind the bind parameters
+ * @param sequelizeInstance the instance whose dialect parses and escapes the query
+ */
+export function inlineBindParameters(
+  sql: string,
+  bind: BindOrReplacements = {},
+  sequelizeInstance: Sequelize = sequelize,
+): string {
+  const values: Record<string, unknown> = Array.isArray(bind)
+    ? Object.fromEntries(bind.map((value, index) => [String(index + 1), value]))
+    : bind;
+
+  expect([...mapBindParameters(sql, sequelizeInstance.dialect).parameterSet]).to.have.members(
+    Object.keys(values),
+  );
+
+  return sql.replaceAll(/\$(\w+)/g, (_match, name: string) =>
+    sequelizeInstance.queryGenerator.escape(values[name]),
+  );
+}
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
   sequelizeInstance.removeAllModels();

@@ -45,4 +45,9 @@ export class MsSqlQueryGeneratorInternal<
 
     return fragment;
   }
+
+  // (MAX), XML and the deprecated TEXT, NTEXT and IMAGE columns cannot be part of an index key
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/\(MAX\)$|^(?:XML|N?TEXT|IMAGE)$/i.test(sqlType);
+  }
 }

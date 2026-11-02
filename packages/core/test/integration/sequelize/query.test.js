@@ -41,7 +41,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
   describe('query', () => {
     afterEach(() => {
-      console.log.restore && console.log.restore();
+      console.log.restore?.();
     });
 
     beforeEach(async function () {
@@ -131,7 +131,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
         await sequelize.query(`select 1${fromQuery()};`);
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(/Executed \((\d*|default)\): select 1/);
-        expect(typeof logger.args[0][1] === 'number').to.be.true;
+        expect(logger.args[0][1]).to.be.a('number');
       });
 
       it('executes a query with benchmarking option and custom logger', async function () {
@@ -144,7 +144,7 @@ describe(getTestDialectTeaser('Sequelize'), () => {
 
         expect(logger.calledOnce).to.be.true;
         expect(logger.args[0][0]).to.be.match(/Executed \(\d*|default\): select 1;/);
-        expect(typeof logger.args[0][1] === 'number').to.be.true;
+        expect(logger.args[0][1]).to.be.a('number');
       });
 
       it('executes a query with queryLabel option and custom logger', async () => {

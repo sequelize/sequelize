@@ -9,4 +9,9 @@ export class IBMiQueryGeneratorInternal<
   addLimitAndOffset(options: AddLimitOffsetOptions) {
     return formatDb2StyleLimitOffset(options, this.queryGenerator);
   }
+
+  // LOB columns cannot be part of a unique constraint
+  canTypeBeUnique(sqlType: string): boolean {
+    return !/^(?:CLOB|BLOB|DBCLOB)\b/i.test(sqlType);
+  }
 }

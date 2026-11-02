@@ -195,6 +195,7 @@ Instead of specifying a Model, either:
       });
 
       expect(company).to.be.ok;
+      expect(company.CEO).to.be.null;
     });
 
     it('should support a hasOne association reference', async function () {

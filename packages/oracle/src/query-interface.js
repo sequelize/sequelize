@@ -4,8 +4,13 @@ import { AbstractQueryInterface, QueryTypes } from '@sequelize/core';
 import { assertNoReservedBind } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import intersection from 'lodash/intersection.js';
 import uniq from 'lodash/uniq.js';
+import { OracleQueryInterfaceInternal } from './query-interface.internal.js';
 
 export class OracleQueryInterface extends AbstractQueryInterface {
+  constructor(dialect, internalQueryInterface) {
+    super(dialect, internalQueryInterface ?? new OracleQueryInterfaceInternal(dialect));
+  }
+
   async upsert(tableName, insertValues, updateValues, where, options) {
     if (options.bind) {
       assertNoReservedBind(options.bind);
