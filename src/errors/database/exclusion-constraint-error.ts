@@ -1,5 +1,5 @@
 import { stackWithHeader } from '../base-error';
-import DatabaseError, {DatabaseErrorSubclassOptions } from '../database-error';
+import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
 
 interface ExclusionConstraintErrorOptions {
   constraint?: string;

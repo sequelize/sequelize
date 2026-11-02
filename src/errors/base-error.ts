@@ -13,6 +13,11 @@ export interface CommonErrorProperties {
   readonly sql: string;
 }
 
+interface ErrorHeader {
+  name: string;
+  message: string;
+}
+
 /**
  * Replaces the header of a stack captured before an error existed (usually "Error")
  * with the error's own "name: message", so test runners that print `.stack` show the message.
@@ -21,10 +26,7 @@ export interface CommonErrorProperties {
  * @param stack The captured stack trace
  * @returns the stack, headed by the error's name and message
  */
-export function stackWithHeader(
-  error: { name: string; message: string },
-  stack: string
-): string {
+export function stackWithHeader(error: ErrorHeader, stack: string): string {
   const firstFrame = stack.search(/^\s+at /m);
   const frames = firstFrame === -1 ? '' : stack.slice(firstFrame);
   const header = error.message ? `${error.name}: ${error.message}` : error.name;
