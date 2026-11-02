@@ -363,8 +363,14 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
-    const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
+    const rightEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(right, rightDataType, leftDataType),
+    };
+    const leftEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(left, leftDataType, rightDataType),
+    };
 
     let rightSql: string;
     if (right instanceof Literal) {
@@ -380,7 +386,7 @@ export class WhereSqlBuilder {
 
         rightSql = '(NULL)';
       } else {
-        rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
+        rightSql = `(${this.#escapeEach(right, rightDataType, leftDataType, options).join(', ')})`;
       }
     } else {
       throw new TypeError(
@@ -436,8 +442,14 @@ export class WhereSqlBuilder {
     rightDataType: NormalizedDataType | undefined,
     options: FormatWhereOptions,
   ): string {
-    const rightEscapeOptions = { ...options, type: rightDataType ?? leftDataType };
-    const leftEscapeOptions = { ...options, type: leftDataType ?? rightDataType };
+    const rightEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(right, rightDataType, leftDataType),
+    };
+    const leftEscapeOptions = {
+      ...options,
+      type: this.#getEscapeType(left, leftDataType, rightDataType),
+    };
 
     const leftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
 
@@ -445,7 +457,8 @@ export class WhereSqlBuilder {
     if (right instanceof BaseSqlExpression) {
       rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
     } else if (Array.isArray(right) && right.length === 2) {
-      rightSql = `${this.#queryGenerator.escape(right[0], rightEscapeOptions)} AND ${this.#queryGenerator.escape(right[1], rightEscapeOptions)}`;
+      const [from, to] = this.#escapeEach(right, rightDataType, leftDataType, options);
+      rightSql = `${from} AND ${to}`;
     } else {
       throw new Error(
         'Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.',
@@ -683,7 +696,9 @@ export class WhereSqlBuilder {
       leftDataType,
       operator,
       new Literal(literalBuilder),
-      rightDataType,
+      // The value inside CONCAT() is compared to the attribute, so it keeps the attribute's type
+      // (unless it is itself a literal), even though the CONCAT() literal around it would not get it.
+      this.#getEscapeType(right, rightDataType, leftDataType),
       options,
     );
   }
@@ -749,13 +764,13 @@ export class WhereSqlBuilder {
 
     const leftSql = this.#queryGenerator.escape(left, {
       ...options,
-      type: leftDataType ?? rightDataType,
+      type: this.#getEscapeType(left, leftDataType, rightDataType),
     });
     const rightSql =
       this.#formatOpAnyAll(right, rightDataType ?? leftDataType) ||
       this.#queryGenerator.escape(right, {
         ...options,
-        type: rightDataType ?? leftDataType,
+        type: this.#getEscapeType(right, rightDataType, leftDataType),
       });
 
     return `${wrapAmbiguousWhere(left, leftSql)} ${this.#operatorMap[operator]} ${wrapAmbiguousWhere(right, rightSql)}`;
@@ -951,6 +966,51 @@ export class WhereSqlBuilder {
     }
 
     return operand;
+  }
+
+  /**
+   * Returns the type an operand is escaped with.
+   * An operand without a type of its own is escaped with the type of the other operand,
+   * unless it is a literal: the values interpolated in a literal are not values of the other operand
+   * (e.g. the 'abc' in `{ intAttr: sql\`LENGTH(${'abc'})\` }`), so they are escaped based on their JS type.
+   *
+   * @param operand The operand to escape
+   * @param operandDataType The type of the operand, if known
+   * @param otherOperandDataType The type of the operand it is compared to
+   */
+  #getEscapeType(
+    operand: Expression,
+    operandDataType: NormalizedDataType | undefined,
+    otherOperandDataType: NormalizedDataType | undefined,
+  ): NormalizedDataType | undefined {
+    if (operandDataType || operand instanceof Literal) {
+      return operandDataType;
+    }
+
+    return otherOperandDataType;
+  }
+
+  /**
+   * Escapes the values of an operand that is a list (Op.in, Op.between),
+   * choosing the escape type of each value separately so a literal among them is treated like a literal operand.
+   *
+   * @param values The values to escape
+   * @param valuesDataType The type of the values, if known
+   * @param otherOperandDataType The type of the operand they are compared to
+   * @param options The escape options
+   */
+  #escapeEach(
+    values: readonly unknown[],
+    valuesDataType: NormalizedDataType | undefined,
+    otherOperandDataType: NormalizedDataType | undefined,
+    options: FormatWhereOptions,
+  ): string[] {
+    return values.map(value =>
+      this.#queryGenerator.escape(value, {
+        ...options,
+        type: this.#getEscapeType(value, valuesDataType, otherOperandDataType),
+      }),
+    );
   }
 
   #getOperandType(
