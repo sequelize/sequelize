@@ -10,7 +10,6 @@ import { Col } from '../expression-builders/col.js';
 import { JsonPath } from '../expression-builders/json-path.js';
 import { SQL_NULL } from '../expression-builders/json-sql-null.js';
 import { Literal } from '../expression-builders/literal.js';
-import { Value } from '../expression-builders/value.js';
 import { Where } from '../expression-builders/where.js';
 import type { AbstractDialect, Expression, ModelDefinition, WhereOptions } from '../index.js';
 import { Op } from '../operators';
@@ -670,7 +669,11 @@ export class WhereSqlBuilder {
       literalBuilder.push(escapedPercent, ', ');
     }
 
-    literalBuilder.push(new Value(right));
+    // The value is compared to the attribute, so it is escaped (and validated) using the attribute's type.
+    // This is done here because the values interpolated in a literal are escaped without a type.
+    literalBuilder.push(
+      this.#queryGenerator.escape(right, { ...options, type: rightDataType ?? leftDataType }),
+    );
 
     if (end) {
       literalBuilder.push(', ', escapedPercent);

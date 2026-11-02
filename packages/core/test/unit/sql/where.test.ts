@@ -708,6 +708,31 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
+      // values in a literal are not of the type of the attribute it is compared to
+      testSql(
+        { intAttr1: sql`LENGTH(${'abc'})` },
+        {
+          default: `[intAttr1] = LENGTH('abc')`,
+          mssql: `[intAttr1] = LENGTH(N'abc')`,
+        },
+      );
+
+      testSql(
+        { intAttr1: { [Op.gt]: sql`CAST(${'5'} AS INTEGER)` } },
+        {
+          default: `[intAttr1] > CAST('5' AS INTEGER)`,
+          mssql: `[intAttr1] > CAST(N'5' AS INTEGER)`,
+        },
+      );
+
+      testSql(
+        { stringAttr: sql`CONCAT(${'a'}, ${1})` },
+        {
+          default: `[stringAttr] = CONCAT('a', 1)`,
+          mssql: `[stringAttr] = CONCAT(N'a', 1)`,
+        },
+      );
+
       testSql(
         { stringAttr: fn('UPPER', col('stringAttr')) },
         {
