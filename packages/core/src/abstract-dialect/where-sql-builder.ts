@@ -386,7 +386,7 @@ export class WhereSqlBuilder {
 
         rightSql = '(NULL)';
       } else {
-        rightSql = this.#queryGenerator.escapeList(right, rightEscapeOptions);
+        rightSql = `(${this.#escapeEach(right, rightDataType, leftDataType, options).join(', ')})`;
       }
     } else {
       throw new TypeError(
@@ -457,7 +457,8 @@ export class WhereSqlBuilder {
     if (right instanceof BaseSqlExpression) {
       rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
     } else if (Array.isArray(right) && right.length === 2) {
-      rightSql = `${this.#queryGenerator.escape(right[0], rightEscapeOptions)} AND ${this.#queryGenerator.escape(right[1], rightEscapeOptions)}`;
+      const [from, to] = this.#escapeEach(right, rightDataType, leftDataType, options);
+      rightSql = `${from} AND ${to}`;
     } else {
       throw new Error(
         'Operators Op.between and Op.notBetween must be used with an array of two values, or a literal.',
@@ -987,6 +988,29 @@ export class WhereSqlBuilder {
     }
 
     return otherOperandDataType;
+  }
+
+  /**
+   * Escapes the values of an operand that is a list (Op.in, Op.between),
+   * choosing the escape type of each value separately so a literal among them is treated like a literal operand.
+   *
+   * @param values The values to escape
+   * @param valuesDataType The type of the values, if known
+   * @param otherOperandDataType The type of the operand they are compared to
+   * @param options The escape options
+   */
+  #escapeEach(
+    values: readonly unknown[],
+    valuesDataType: NormalizedDataType | undefined,
+    otherOperandDataType: NormalizedDataType | undefined,
+    options: FormatWhereOptions,
+  ): string[] {
+    return values.map(value =>
+      this.#queryGenerator.escape(value, {
+        ...options,
+        type: this.#getEscapeType(value, valuesDataType, otherOperandDataType),
+      }),
+    );
   }
 
   #getOperandType(

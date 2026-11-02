@@ -734,6 +734,22 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       testSql(
+        { intAttr1: { [Op.in]: [sql`LENGTH(${'abc'})`, 2] } },
+        {
+          default: `[intAttr1] IN (LENGTH('abc'), 2)`,
+          mssql: `[intAttr1] IN (LENGTH(N'abc'), 2)`,
+        },
+      );
+
+      testSql(
+        { intAttr1: { [Op.between]: [sql`LENGTH(${'abc'})`, 10] } },
+        {
+          default: `[intAttr1] BETWEEN LENGTH('abc') AND 10`,
+          mssql: `[intAttr1] BETWEEN LENGTH(N'abc') AND 10`,
+        },
+      );
+
+      testSql(
         { stringAttr: fn('UPPER', col('stringAttr')) },
         {
           default: '[stringAttr] = UPPER([stringAttr])',
