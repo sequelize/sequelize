@@ -1,3 +1,4 @@
+import { stackWithHeader } from '../base-error';
 import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
 
 interface UnknownConstraintErrorOptions {
@@ -27,6 +28,10 @@ class UnknownConstraintError extends DatabaseError implements UnknownConstraintE
     this.constraint = options.constraint;
     this.fields = options.fields;
     this.table = options.table;
+
+    if (options.stack) {
+      this.stack = stackWithHeader(this, options.stack);
+    }
   }
 }
 

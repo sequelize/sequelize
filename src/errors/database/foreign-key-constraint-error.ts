@@ -1,3 +1,4 @@
+import { stackWithHeader } from '../base-error';
 import DatabaseError, { DatabaseErrorSubclassOptions } from '../database-error';
 
 export enum RelationshipType {
@@ -39,6 +40,10 @@ class ForeignKeyConstraintError extends DatabaseError {
     this.value = options.value;
     this.index = options.index;
     this.reltype = options.reltype;
+
+    if (options.stack) {
+      this.stack = stackWithHeader(this, options.stack);
+    }
   }
 }
 

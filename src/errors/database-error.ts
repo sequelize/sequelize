@@ -1,4 +1,8 @@
-import BaseError, { CommonErrorProperties, ErrorOptions } from './base-error';
+import BaseError, {
+  CommonErrorProperties,
+  ErrorOptions,
+  stackWithHeader
+} from './base-error';
 
 export interface DatabaseErrorParent
   extends Error,
@@ -39,7 +43,7 @@ class DatabaseError
     this.parameters = parent.parameters ?? {};
 
     if (options.stack) {
-      this.stack = options.stack;
+      this.stack = stackWithHeader(this, options.stack);
     }
   }
 }

@@ -1,4 +1,4 @@
-import { CommonErrorProperties, ErrorOptions } from '../base-error';
+import { CommonErrorProperties, ErrorOptions, stackWithHeader } from '../base-error';
 import ValidationError, { ValidationErrorItem } from '../validation-error';
 
 interface UniqueConstraintErrorParent
@@ -35,6 +35,10 @@ class UniqueConstraintError extends ValidationError implements CommonErrorProper
     this.parent = options.parent;
     this.original = options.parent;
     this.sql = options.parent.sql;
+
+    if (options.stack) {
+      this.stack = stackWithHeader(this, options.stack);
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 import type { Model } from '..';
 import type { ErrorOptions } from './base-error';
-import BaseError from './base-error';
+import BaseError, { stackWithHeader } from './base-error';
 
 /**
  * An enum that is used internally by the `ValidationErrorItem` class
@@ -232,7 +232,7 @@ class ValidationError extends BaseError {
 
     // Allow overriding the stack if the original stacktrace is uninformative
     if (options.stack) {
-      this.stack = options.stack;
+      this.stack = stackWithHeader(this, options.stack);
     }
   }
 
