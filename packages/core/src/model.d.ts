@@ -1380,6 +1380,15 @@ export interface AggregateOptions<T extends DataType | unknown, TAttributes = an
 export interface IncrementDecrementOptions<TAttributes = any>
   extends Logging, Transactionable, Silent, SearchPathable, Filterable<TAttributes> {
   /**
+   * If true, only non-deleted records will be updated.
+   * If false, both deleted and non-deleted records will be updated.
+   * Only applies to paranoid models.
+   *
+   * @default true
+   */
+  paranoid?: boolean;
+
+  /**
    * Return the affected rows (only for postgres)
    */
   returning?: boolean | Array<keyof TAttributes | Literal | Col>;

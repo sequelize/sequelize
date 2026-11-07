@@ -95,7 +95,7 @@ MyModel.increment('int', { by: 1 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.increment({ int: 2 }, {}).then(result => {
+MyModel.increment({ int: 2 }, { paranoid: false }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
@@ -107,13 +107,23 @@ MyModel.decrement('int', { by: 1 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
-MyModel.decrement({ int: 2 }, {}).then(result => {
+MyModel.decrement({ int: 2 }, { paranoid: false }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
 
 MyModel.decrement(['int'], { by: 3 }).then(result => {
   expectTypeOf(result).toEqualTypeOf<[affectedRows: MyModel[], affectedCount?: number]>();
 });
+
+expectTypeOf(Instance.increment('int', { by: 2, paranoid: false })).toEqualTypeOf<
+  Promise<MyModel>
+>();
+expectTypeOf(Instance.decrement('int', { by: 2, paranoid: false })).toEqualTypeOf<
+  Promise<MyModel>
+>();
+
+// @ts-expect-error -- paranoid must be a boolean
+MyModel.increment('int', { paranoid: 'false' });
 
 MyModel.build({ int: 10 }, { include: OtherModel });
 
