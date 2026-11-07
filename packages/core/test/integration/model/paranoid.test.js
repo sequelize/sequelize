@@ -1,7 +1,7 @@
 'use strict';
 
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, Op } = require('@sequelize/core');
 const chai = require('chai');
 
 const expect = chai.expect;
@@ -16,6 +16,58 @@ describe('Paranoid Model', () => {
 
   after(function () {
     this.clock.restore();
+  });
+
+  describe('deleted-at attribute and column name collisions', () => {
+    beforeEach(async function () {
+      this.Item = this.sequelize.define(
+        'Item',
+        {
+          counter: DataTypes.INTEGER,
+          removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+          removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
+        },
+        { paranoid: true, deletedAt: 'removedAt' },
+      );
+      await this.Item.sync({ force: true });
+      await this.Item.bulkCreate([
+        { id: 1, counter: 10, removedAt: null, removed_at: new Date(0) },
+        { id: 2, counter: 20, removedAt: new Date(1000), removed_at: null },
+      ]);
+    });
+
+    it('finds live rows and preserves caller predicates on the decoy attribute', async function () {
+      const options = { where: { removed_at: { [Op.ne]: null } } };
+      const originalOptions = { where: { removed_at: { [Op.ne]: null } } };
+      expect((await this.Item.findAll()).map(row => row.id)).to.deep.equal([1]);
+      expect((await this.Item.findAll(options)).map(row => row.id)).to.deep.equal([1]);
+      expect((await this.Item.findAll(options)).map(row => row.id)).to.deep.equal([1]);
+      expect(options).to.deep.equal(originalOptions);
+      expect(await this.Item.findAll({ where: { removed_at: null } })).to.have.length(0);
+      expect(
+        (await this.Item.findAll({ where: { removed_at: null }, paranoid: false })).map(
+          row => row.id,
+        ),
+      ).to.deep.equal([2]);
+    });
+
+    it('aggregates live rows with the mapped deleted-at attribute', async function () {
+      expect(await this.Item.sum('counter')).to.equal(10);
+      expect(await this.Item.sum('counter', { paranoid: false })).to.equal(30);
+    });
+
+    it('updates only live rows with the mapped deleted-at attribute', async function () {
+      const before = await this.Item.findByPk(2, { paranoid: false });
+      const deletedValues = structuredClone(before.get({ plain: true }));
+      await this.Item.update({ counter: 99 }, { where: { id: [1, 2] } });
+      const rows = await this.Item.findAll({ paranoid: false, order: ['id'] });
+      expect(rows.map(row => row.counter)).to.deep.equal([99, 20]);
+      expect(rows[1].get({ plain: true })).to.deep.equal(deletedValues);
+      await this.Item.update({ counter: 42 }, { where: { id: [1, 2] }, paranoid: false });
+      expect(
+        (await this.Item.findAll({ paranoid: false, order: ['id'] })).map(row => row.counter),
+      ).to.deep.equal([42, 42]);
+    });
   });
 
   it('should be able to soft delete with timestamps', async function () {

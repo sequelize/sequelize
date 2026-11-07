@@ -58,6 +58,145 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         };
       });
 
+      describe('paranoid', () => {
+        beforeEach(async function () {
+          this.ParanoidUser = this.sequelize.define(
+            'ParanoidUser',
+            {
+              aNumber: DataTypes.INTEGER,
+              name: DataTypes.STRING,
+              removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+              removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
+            },
+            { paranoid: true, deletedAt: 'removedAt', version: true },
+          );
+          await this.ParanoidUser.sync({ force: true });
+          this.liveUser = await this.ParanoidUser.create({
+            aNumber: 10,
+            name: 'same',
+            removed_at: new Date('2020-01-01T00:00:00Z'),
+          });
+          this.deletedUser = await this.ParanoidUser.create({ aNumber: 10, name: 'same' });
+          await this.deletedUser.destroy();
+          await this.deletedUser.reload({ paranoid: false });
+          this.clock.tick(1000);
+        });
+
+        it('does not change soft-deleted counters, versions or timestamps by default (#17612)', async function () {
+          const deletedValues = structuredClone(this.deletedUser.get({ plain: true }));
+          const liveUpdatedAt = this.liveUser.updatedAt;
+
+          await this.ParanoidUser[method]('aNumber', { where: { name: 'same' }, by: 2 });
+
+          await this.liveUser.reload({ paranoid: false });
+          await this.deletedUser.reload({ paranoid: false });
+          expect(this.liveUser.aNumber).to.equal(this.assert(12, 8));
+          expect(this.liveUser.version).to.equal(1);
+          expect(this.liveUser.updatedAt).to.be.afterTime(liveUpdatedAt);
+          expect(this.deletedUser.get({ plain: true })).to.deep.equal(deletedValues);
+        });
+
+        it('updates both live and soft-deleted rows with paranoid: false', async function () {
+          const oldVersions = [this.liveUser.version, this.deletedUser.version];
+          await this.ParanoidUser[method]('aNumber', {
+            where: { name: 'same' },
+            by: 2,
+            paranoid: false,
+          });
+
+          for (const [index, user] of [this.liveUser, this.deletedUser].entries()) {
+            const oldUpdatedAt = user.updatedAt;
+            await user.reload({ paranoid: false });
+            expect(user.aNumber).to.equal(this.assert(12, 8));
+            expect(user.version).to.equal(oldVersions[index] + 1);
+            expect(user.updatedAt).to.be.afterTime(oldUpdatedAt);
+          }
+        });
+
+        if (Support.sequelize.dialect.supports.transactions) {
+          it('preserves an explicit transaction and rolls back paranoid updates', async function () {
+            const transaction = await this.sequelize.startUnmanagedTransaction();
+            const options = { where: { name: 'same' }, by: 2, transaction };
+            try {
+              await this.ParanoidUser[method]('aNumber', options);
+              const users = await this.ParanoidUser.findAll({
+                paranoid: false,
+                order: ['id'],
+                transaction,
+              });
+              expect(users.map(user => user.aNumber)).to.deep.equal([this.assert(12, 8), 10]);
+              expect(options.transaction).to.equal(transaction);
+            } finally {
+              await transaction.rollback();
+            }
+
+            await this.liveUser.reload({ paranoid: false });
+            await this.deletedUser.reload({ paranoid: false });
+            expect(this.liveUser.aNumber).to.equal(10);
+            expect(this.liveUser.version).to.equal(0);
+            expect(this.deletedUser.aNumber).to.equal(10);
+          });
+        }
+
+        it('composes a mapped deletedAt with scope and caller where without mutating reused options', async function () {
+          const User = this.sequelize.define(
+            'MappedParanoidUser',
+            {
+              aNumber: DataTypes.INTEGER,
+              name: DataTypes.STRING,
+              group: DataTypes.INTEGER,
+              removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
+              removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+            },
+            {
+              paranoid: true,
+              deletedAt: 'removedAt',
+              defaultScope: { where: { group: 1 } },
+            },
+          );
+          await User.sync({ force: true });
+          const users = await User.bulkCreate([
+            { aNumber: 10, name: 'same', group: 1, removed_at: new Date(0) },
+            { aNumber: 10, name: 'same', group: 1, removed_at: new Date(0) },
+            { aNumber: 10, name: 'other', group: 1, removed_at: new Date(0) },
+            { aNumber: 10, name: 'same', group: 2, removed_at: new Date(0) },
+          ]);
+          await users[1].destroy();
+          const options = { where: { name: 'same', removed_at: new Date(0) }, by: 2 };
+          const originalOptions = structuredClone(options);
+
+          await User[method]('aNumber', options);
+          await User[method]('aNumber', options);
+
+          const reloaded = await User.withoutScope().findAll({ paranoid: false, order: ['id'] });
+          expect(reloaded.map(user => user.aNumber)).to.deep.equal([
+            this.assert(14, 6),
+            10,
+            10,
+            10,
+          ]);
+          expect(options).to.deep.equal(originalOptions);
+        });
+
+        it('applies paranoid filtering and its opt-out through instance delegation', async function () {
+          await this.liveUser[method]('aNumber', { by: 2 });
+          await this.liveUser.reload({ paranoid: false });
+          expect(this.liveUser.aNumber).to.equal(this.assert(12, 8));
+          expect(this.liveUser.version).to.equal(1);
+
+          const deletedValues = structuredClone(this.deletedUser.get({ plain: true }));
+          await this.deletedUser[method]('aNumber', { by: 2 });
+          await this.deletedUser.reload({ paranoid: false });
+          expect(this.deletedUser.get({ plain: true })).to.deep.equal(deletedValues);
+
+          await this.deletedUser[method]('aNumber', { by: 2, paranoid: false });
+          await this.deletedUser.reload({ paranoid: false });
+          expect(this.deletedUser.aNumber).to.equal(this.assert(12, 8));
+          await this.liveUser.reload({ paranoid: false });
+          expect(this.liveUser.aNumber).to.equal(this.assert(12, 8));
+        });
+      });
+
       it('supports where conditions', async function () {
         await this.User.findByPk(1);
         await this.User[method](['aNumber'], { by: 2, where: { id: 1 } });

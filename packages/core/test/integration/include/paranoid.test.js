@@ -39,6 +39,58 @@ describe(Support.getTestDialectTeaser('Paranoid'), () => {
     this.clock.restore();
   });
 
+  describe('deleted-at attribute and column name collisions', () => {
+    beforeEach(async function () {
+      const Parent = this.sequelize.define('Parent', {}, { timestamps: false });
+      const Item = this.sequelize.define(
+        'Item',
+        {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+          removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
+        },
+        { paranoid: true, deletedAt: 'removedAt' },
+      );
+      Parent.hasMany(Item, { as: 'items', foreignKey: 'parentId' });
+      Parent.belongsToMany(Parent, {
+        as: 'targets',
+        inverse: { as: 'sources' },
+        through: Item,
+        foreignKey: 'sourceId',
+        otherKey: 'targetId',
+      });
+      await this.sequelize.sync({ force: true });
+      await Parent.bulkCreate([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      await Item.bulkCreate([
+        { id: 1, parentId: 1, sourceId: 1, targetId: 2, removed_at: new Date(0) },
+        { id: 2, parentId: 1, sourceId: 1, targetId: 3, removedAt: new Date(1000) },
+      ]);
+      this.Parent = Parent;
+    });
+
+    it('filters recursive includes using the included model and alias', async function () {
+      const parent = await this.Parent.findByPk(1, {
+        include: [{ association: 'targets', include: ['sources'] }, 'items'],
+      });
+      expect(parent.items.map(item => item.id)).to.deep.equal([1]);
+      expect(parent.targets.map(target => target.id)).to.deep.equal([2]);
+      expect(parent.targets[0].sources.map(source => source.id)).to.deep.equal([1]);
+      const all = await this.Parent.findByPk(1, {
+        include: [{ association: 'items', paranoid: false }],
+      });
+      expect(all.items.map(item => item.id).sort()).to.deep.equal([1, 2]);
+    });
+
+    it('filters through aliases and respects the through paranoid opt-out', async function () {
+      const parent = await this.Parent.findByPk(1, { include: ['targets'] });
+      expect(parent.targets.map(target => target.id)).to.deep.equal([2]);
+      const all = await this.Parent.findByPk(1, {
+        include: [{ association: 'targets', through: { paranoid: false } }],
+      });
+      expect(all.targets.map(target => target.id).sort()).to.deep.equal([2, 3]);
+    });
+  });
+
   it('paranoid with timestamps: false should be ignored / not crash', async function () {
     const S = this.sequelize;
     const Test = S.define(

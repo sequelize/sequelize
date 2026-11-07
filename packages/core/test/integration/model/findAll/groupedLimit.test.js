@@ -40,10 +40,18 @@ if (current.dialect.supports['UNION ALL']) {
 
           this.ProjectUserParanoid = this.sequelize.define(
             'project_user_paranoid',
-            {},
+            {
+              removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+              removed_at: {
+                type: DataTypes.DATE,
+                columnName: 'other_date',
+                defaultValue: new Date(0),
+              },
+            },
             {
               timestamps: true,
               paranoid: true,
+              deletedAt: 'removedAt',
               createdAt: false,
               updatedAt: false,
             },

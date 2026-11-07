@@ -311,7 +311,7 @@ export class Model extends ModelTypeScript {
       [Op.eq]: null,
     };
 
-    deletedAtObject[deletedAtAttribute.field || deletedAtCol] = deletedAtDefaultValue;
+    deletedAtObject[deletedAtCol] = deletedAtDefaultValue;
 
     if (isWhereEmpty(options.where)) {
       options.where = deletedAtObject;
@@ -3277,7 +3277,7 @@ Instead of specifying a Model, either:
    *   whenever supported by dialect
    */
   static async increment(fields, options) {
-    options ||= {};
+    options = cloneDeep(options) ?? {};
     if (typeof fields === 'string') {
       fields = [fields];
     }
@@ -3319,6 +3319,7 @@ Instead of specifying a Model, either:
 
     mapOptionFieldNames(options, this);
 
+    options = this._paranoidClause(this, options);
     const where = { ...options.where };
 
     // A plain object whose keys are the fields to be incremented and whose values are
