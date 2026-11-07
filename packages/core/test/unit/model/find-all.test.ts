@@ -1,4 +1,4 @@
-import { DataTypes, QueryError } from '@sequelize/core';
+import { DataTypes, Op, QueryError } from '@sequelize/core';
 import { Logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
 import { expect } from 'chai';
 import type { SinonSpy, SinonStub } from 'sinon';
@@ -79,6 +79,41 @@ describe('Model.findAll', () => {
   after(() => {
     stub.restore();
     _warnOnInvalidOptionsStub.restore();
+  });
+
+  it('preserves deleted-at identity in grouped-limit through predicates and aliases', async () => {
+    const User = sequelize.define('GroupedUser', {}, { timestamps: false });
+    const Project = sequelize.define('GroupedProject', {}, { timestamps: false });
+    const Membership = sequelize.define(
+      'Membership',
+      {
+        removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+        removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
+      },
+      { paranoid: true, deletedAt: 'removedAt' },
+    );
+    const projects = User.belongsToMany(Project, { through: Membership });
+    await User.findAll({
+      groupedLimit: {
+        on: projects,
+        limit: 1,
+        values: [1, 2],
+        through: { where: { removed_at: { [Op.ne]: null } } },
+      },
+    });
+
+    const options = stub.lastCall.args[2];
+    expect(options.groupedLimit.through.where).to.deep.equal({
+      [Op.and]: [{ removedAt: { [Op.eq]: null } }, { removed_at: { [Op.ne]: null } }],
+    });
+    const sql = sequelize.queryGenerator.selectQuery(User.table, options, User);
+    const alias = sequelize.queryGenerator.quoteIdentifier('Membership');
+    expect(sql).to.include(
+      `${alias}.${sequelize.queryGenerator.quoteIdentifier('removed_at')} IS NULL`,
+    );
+    expect(sql).to.include(
+      `${alias}.${sequelize.queryGenerator.quoteIdentifier('other_date')} IS NOT NULL`,
+    );
   });
 
   describe('handles input validation', () => {

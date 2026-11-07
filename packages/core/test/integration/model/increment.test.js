@@ -62,11 +62,20 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         beforeEach(async function () {
           this.ParanoidUser = this.sequelize.define(
             'ParanoidUser',
-            { aNumber: DataTypes.INTEGER, name: DataTypes.STRING },
-            { paranoid: true, version: true },
+            {
+              aNumber: DataTypes.INTEGER,
+              name: DataTypes.STRING,
+              removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
+              removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
+            },
+            { paranoid: true, deletedAt: 'removedAt', version: true },
           );
           await this.ParanoidUser.sync({ force: true });
-          this.liveUser = await this.ParanoidUser.create({ aNumber: 10, name: 'same' });
+          this.liveUser = await this.ParanoidUser.create({
+            aNumber: 10,
+            name: 'same',
+            removed_at: new Date('2020-01-01T00:00:00Z'),
+          });
           this.deletedUser = await this.ParanoidUser.create({ aNumber: 10, name: 'same' });
           await this.deletedUser.destroy();
           await this.deletedUser.reload({ paranoid: false });
@@ -79,7 +88,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
 
           await this.ParanoidUser[method]('aNumber', { where: { name: 'same' }, by: 2 });
 
-          await this.liveUser.reload();
+          await this.liveUser.reload({ paranoid: false });
           await this.deletedUser.reload({ paranoid: false });
           expect(this.liveUser.aNumber).to.equal(this.assert(12, 8));
           expect(this.liveUser.version).to.equal(1);
@@ -121,7 +130,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               await transaction.rollback();
             }
 
-            await this.liveUser.reload();
+            await this.liveUser.reload({ paranoid: false });
             await this.deletedUser.reload({ paranoid: false });
             expect(this.liveUser.aNumber).to.equal(10);
             expect(this.liveUser.version).to.equal(0);
@@ -136,6 +145,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               aNumber: DataTypes.INTEGER,
               name: DataTypes.STRING,
               group: DataTypes.INTEGER,
+              removed_at: { type: DataTypes.DATE, columnName: 'other_date' },
               removedAt: { type: DataTypes.DATE, columnName: 'removed_at' },
             },
             {
@@ -146,13 +156,13 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           );
           await User.sync({ force: true });
           const users = await User.bulkCreate([
-            { aNumber: 10, name: 'same', group: 1 },
-            { aNumber: 10, name: 'same', group: 1 },
-            { aNumber: 10, name: 'other', group: 1 },
-            { aNumber: 10, name: 'same', group: 2 },
+            { aNumber: 10, name: 'same', group: 1, removed_at: new Date(0) },
+            { aNumber: 10, name: 'same', group: 1, removed_at: new Date(0) },
+            { aNumber: 10, name: 'other', group: 1, removed_at: new Date(0) },
+            { aNumber: 10, name: 'same', group: 2, removed_at: new Date(0) },
           ]);
           await users[1].destroy();
-          const options = { where: { name: 'same' }, by: 2 };
+          const options = { where: { name: 'same', removed_at: new Date(0) }, by: 2 };
           const originalOptions = structuredClone(options);
 
           await User[method]('aNumber', options);
@@ -169,6 +179,11 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('applies paranoid filtering and its opt-out through instance delegation', async function () {
+          await this.liveUser[method]('aNumber', { by: 2 });
+          await this.liveUser.reload({ paranoid: false });
+          expect(this.liveUser.aNumber).to.equal(this.assert(12, 8));
+          expect(this.liveUser.version).to.equal(1);
+
           const deletedValues = structuredClone(this.deletedUser.get({ plain: true }));
           await this.deletedUser[method]('aNumber', { by: 2 });
           await this.deletedUser.reload({ paranoid: false });
@@ -177,8 +192,8 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           await this.deletedUser[method]('aNumber', { by: 2, paranoid: false });
           await this.deletedUser.reload({ paranoid: false });
           expect(this.deletedUser.aNumber).to.equal(this.assert(12, 8));
-          await this.liveUser.reload();
-          expect(this.liveUser.aNumber).to.equal(10);
+          await this.liveUser.reload({ paranoid: false });
+          expect(this.liveUser.aNumber).to.equal(this.assert(12, 8));
         });
       });
 

@@ -311,7 +311,7 @@ export class Model extends ModelTypeScript {
       [Op.eq]: null,
     };
 
-    deletedAtObject[deletedAtAttribute.field || deletedAtCol] = deletedAtDefaultValue;
+    deletedAtObject[deletedAtCol] = deletedAtDefaultValue;
 
     if (isWhereEmpty(options.where)) {
       options.where = deletedAtObject;
