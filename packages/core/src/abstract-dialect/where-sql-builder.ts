@@ -372,29 +372,30 @@ export class WhereSqlBuilder {
       type: this.#getEscapeType(left, leftDataType, rightDataType),
     };
 
-    let rightSql: string;
-    if (right instanceof Literal) {
-      rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
-    } else if (Array.isArray(right)) {
-      if (right.length === 0) {
-        // NOT IN () does not exist in SQL, so we need to return a condition that is:
-        // - always false if the operator is IN
-        // - always true if the operator is NOT IN
-        if (operator === Op.notIn) {
-          return '1 = 1';
-        }
-
-        rightSql = '(NULL)';
-      } else {
-        rightSql = `(${this.#escapeEach(right, rightDataType, leftDataType, options).join(', ')})`;
-      }
-    } else {
+    if (!(right instanceof Literal) && !Array.isArray(right)) {
       throw new TypeError(
         'Operators Op.in and Op.notIn must be called with an array of values, or a literal',
       );
     }
 
+    // NOT IN () does not exist in SQL, so we need to return a condition that is:
+    // - always false if the operator is IN
+    // - always true if the operator is NOT IN
+    if (Array.isArray(right) && right.length === 0 && operator === Op.notIn) {
+      return '1 = 1';
+    }
+
+    // the left operand is escaped first so bind parameters are collected in the order they appear in the query
     const leftSql = this.#queryGenerator.escape(left, leftEscapeOptions);
+
+    let rightSql: string;
+    if (right instanceof Literal) {
+      rightSql = this.#queryGenerator.escape(right, rightEscapeOptions);
+    } else if (right.length === 0) {
+      rightSql = '(NULL)';
+    } else {
+      rightSql = `(${this.#escapeEach(right, rightDataType, leftDataType, options).join(', ')})`;
+    }
 
     return `${leftSql} ${this.#operatorMap[operator]} ${rightSql}`;
   }

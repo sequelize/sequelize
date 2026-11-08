@@ -1668,6 +1668,25 @@ Caused by: "undefined" cannot be escaped`),
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: { [Op.all]: [] } } };
         }
 
+        it('collects bind parameters in the order they appear in the query', () => {
+          const bind: unknown[] = [];
+          const sqlString = queryGen.whereItemsQuery(
+            sql.where(sql`${'a'}`, operator, [sql`LENGTH(${'b'})`, 'c']),
+            {
+              bindParam: value => {
+                bind.push(value);
+
+                return '?';
+              },
+            },
+          );
+
+          expectsql(sqlString, {
+            default: `? ${sqlOperator} (LENGTH(?), ?)`,
+          });
+          expect(bind).to.deep.equal(['a', 'b', 'c']);
+        });
+
         extraTests();
       });
     }
