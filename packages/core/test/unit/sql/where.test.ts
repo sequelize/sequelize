@@ -750,6 +750,14 @@ Caused by: "undefined" cannot be escaped`),
       );
 
       testSql(
+        { intAttr1: { [Op.between]: [1, sql`LENGTH(${'abc'})`] } },
+        {
+          default: `[intAttr1] BETWEEN 1 AND LENGTH('abc')`,
+          mssql: `[intAttr1] BETWEEN 1 AND LENGTH(N'abc')`,
+        },
+      );
+
+      testSql(
         { stringAttr: fn('UPPER', col('stringAttr')) },
         {
           default: '[stringAttr] = UPPER([stringAttr])',
@@ -1477,6 +1485,25 @@ Caused by: "undefined" cannot be escaped`),
             },
           );
         }
+
+        it('collects bind parameters in the order they appear in the query', () => {
+          const bind: unknown[] = [];
+          const sqlString = queryGen.whereItemsQuery(
+            sql.where(sql`${'a'}`, operator, [sql`LENGTH(${'b'})`, 'c']),
+            {
+              bindParam: value => {
+                bind.push(value);
+
+                return '?';
+              },
+            },
+          );
+
+          expectsql(sqlString, {
+            default: `? ${sqlOperator} LENGTH(?) AND ?`,
+          });
+          expect(bind).to.deep.equal(['a', 'b', 'c']);
+        });
       });
     }
 
