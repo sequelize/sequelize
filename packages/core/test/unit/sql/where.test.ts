@@ -708,6 +708,55 @@ Caused by: "undefined" cannot be escaped`),
         },
       );
 
+      // values in a literal are not of the type of the attribute it is compared to
+      testSql(
+        { intAttr1: sql`LENGTH(${'abc'})` },
+        {
+          default: `[intAttr1] = LENGTH('abc')`,
+          mssql: `[intAttr1] = LENGTH(N'abc')`,
+        },
+      );
+
+      testSql(
+        { intAttr1: { [Op.gt]: sql`CAST(${'5'} AS INTEGER)` } },
+        {
+          default: `[intAttr1] > CAST('5' AS INTEGER)`,
+          mssql: `[intAttr1] > CAST(N'5' AS INTEGER)`,
+        },
+      );
+
+      testSql(
+        { stringAttr: sql`CONCAT(${'a'}, ${1})` },
+        {
+          default: `[stringAttr] = CONCAT('a', 1)`,
+          mssql: `[stringAttr] = CONCAT(N'a', 1)`,
+        },
+      );
+
+      testSql(
+        { intAttr1: { [Op.in]: [sql`LENGTH(${'abc'})`, 2] } },
+        {
+          default: `[intAttr1] IN (LENGTH('abc'), 2)`,
+          mssql: `[intAttr1] IN (LENGTH(N'abc'), 2)`,
+        },
+      );
+
+      testSql(
+        { intAttr1: { [Op.between]: [sql`LENGTH(${'abc'})`, 10] } },
+        {
+          default: `[intAttr1] BETWEEN LENGTH('abc') AND 10`,
+          mssql: `[intAttr1] BETWEEN LENGTH(N'abc') AND 10`,
+        },
+      );
+
+      testSql(
+        { intAttr1: { [Op.between]: [1, sql`LENGTH(${'abc'})`] } },
+        {
+          default: `[intAttr1] BETWEEN 1 AND LENGTH('abc')`,
+          mssql: `[intAttr1] BETWEEN 1 AND LENGTH(N'abc')`,
+        },
+      );
+
       testSql(
         { stringAttr: fn('UPPER', col('stringAttr')) },
         {
@@ -1436,6 +1485,25 @@ Caused by: "undefined" cannot be escaped`),
             },
           );
         }
+
+        it('collects bind parameters in the order they appear in the query', () => {
+          const bind: unknown[] = [];
+          const sqlString = queryGen.whereItemsQuery(
+            sql.where(sql`${'a'}`, operator, [sql`LENGTH(${'b'})`, 'c']),
+            {
+              bindParam: value => {
+                bind.push(value);
+
+                return '?';
+              },
+            },
+          );
+
+          expectsql(sqlString, {
+            default: `? ${sqlOperator} LENGTH(?) AND ?`,
+          });
+          expect(bind).to.deep.equal(['a', 'b', 'c']);
+        });
       });
     }
 
@@ -1626,6 +1694,25 @@ Caused by: "undefined" cannot be escaped`),
           // @ts-expect-error -- Op.all is not compatible with Op.in
           const ignoreWrong: TestModelWhere = { intAttr1: { [Op.in]: { [Op.all]: [] } } };
         }
+
+        it('collects bind parameters in the order they appear in the query', () => {
+          const bind: unknown[] = [];
+          const sqlString = queryGen.whereItemsQuery(
+            sql.where(sql`${'a'}`, operator, [sql`LENGTH(${'b'})`, 'c']),
+            {
+              bindParam: value => {
+                bind.push(value);
+
+                return '?';
+              },
+            },
+          );
+
+          expectsql(sqlString, {
+            default: `? ${sqlOperator} (LENGTH(?), ?)`,
+          });
+          expect(bind).to.deep.equal(['a', 'b', 'c']);
+        });
 
         extraTests();
       });
@@ -2108,6 +2195,26 @@ Caused by: "undefined" cannot be escaped`),
           mssql: `[stringAttr] LIKE CONCAT(NOW(), N'%')`,
         },
       );
+
+      it('collects bind parameters in the order they appear in the query', () => {
+        const bind: unknown[] = [];
+        const sqlString = queryGen.whereItemsQuery(
+          sql.where(sql`${'foobar'}`, Op.startsWith, sql`${'foo'}`),
+          {
+            bindParam: value => {
+              bind.push(value);
+
+              return '?';
+            },
+          },
+        );
+
+        expectsql(sqlString, {
+          default: `? LIKE CONCAT(?, '%')`,
+          mssql: `? LIKE CONCAT(?, N'%')`,
+        });
+        expect(bind).to.deep.equal(['foobar', 'foo']);
+      });
 
       testSql(
         {

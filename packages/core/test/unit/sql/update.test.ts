@@ -1,4 +1,4 @@
-import { DataTypes } from '@sequelize/core';
+import { DataTypes, sql } from '@sequelize/core';
 import { expectsql, sequelize } from '../../support';
 
 const queryGenerator = sequelize.dialect.queryGenerator;
@@ -138,4 +138,45 @@ describe('QueryGenerator#updateQuery', () => {
       },
     );
   });
+
+  if (sequelize.dialect.supports.dataTypes.JSON) {
+    it('escapes the values interpolated in a literal with the type of the attribute they are written to', () => {
+      const User = sequelize.define(
+        'user',
+        {
+          data: DataTypes.JSON,
+          meta: DataTypes.JSON,
+        },
+        {
+          timestamps: false,
+        },
+      );
+
+      expectsql(
+        queryGenerator.updateQuery(
+          User.table,
+          { data: sql`${{ a: 1 }}`, meta: sql`${null}` },
+          { id: 2 },
+          {},
+          User.getAttributes(),
+        ),
+        {
+          query: {
+            default:
+              'UPDATE [users] SET [data]=$sequelize_1,[meta]=$sequelize_2 WHERE [id] = $sequelize_3',
+            mysql:
+              'UPDATE `users` SET `data`=CAST($sequelize_1 AS JSON),`meta`=CAST($sequelize_2 AS JSON) WHERE `id` = $sequelize_3',
+          },
+          bind: {
+            default: { sequelize_1: '{"a":1}', sequelize_2: 'null', sequelize_3: 2 },
+            oracle: {
+              sequelize_1: Buffer.from('{"a":1}'),
+              sequelize_2: Buffer.from('null'),
+              sequelize_3: 2,
+            },
+          },
+        },
+      );
+    });
+  }
 });
