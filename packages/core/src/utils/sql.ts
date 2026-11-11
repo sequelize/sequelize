@@ -617,6 +617,8 @@ function normalizeMySqlMariaDbCurrentTimestampDefault(
  * Resolves a column description's default value into a representation safe for column DDL generation.
  *
  * @param column The column description returned by describeTable.
+ * @param column.type The SQL column type string from describeTable.
+ * @param column.defaultValue The raw default value from describeTable.
  *
  * @returns The normalized keyword, literal expression, or original default value.
  */

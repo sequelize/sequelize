@@ -10,11 +10,7 @@ import uniq from 'lodash/uniq';
 import * as DataTypes from '../data-types';
 import { QueryTypes } from '../enums';
 import { cloneDeep, getObjectFromMap } from '../utils/object';
-import {
-  assertNoReservedBind,
-  combineBinds,
-  resolveDescribedDefaultValue,
-} from '../utils/sql';
+import { assertNoReservedBind, combineBinds, resolveDescribedDefaultValue } from '../utils/sql';
 import { AbstractDataType } from './data-types';
 import { AbstractQueryInterfaceInternal } from './query-interface-internal.js';
 import { AbstractQueryInterfaceTypeScript } from './query-interface-typescript';

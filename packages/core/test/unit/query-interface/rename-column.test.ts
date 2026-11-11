@@ -24,8 +24,7 @@ describe('QueryInterface#renameColumn', () => {
         updatedAt: {
           type: 'TIMESTAMP(6)',
           allowNull: false,
-          defaultValue:
-            dialectName === 'mariadb' ? 'current_timestamp(6)' : 'CURRENT_TIMESTAMP(6)',
+          defaultValue: dialectName === 'mariadb' ? 'current_timestamp(6)' : 'CURRENT_TIMESTAMP(6)',
           primaryKey: false,
           autoIncrement: false,
           comment: null,
@@ -87,8 +86,7 @@ describe('QueryInterface#renameColumn', () => {
 
       expect(queryStub.callCount).to.eq(1);
       expectsql(queryStub.getCall(0).args[0], {
-        default:
-          `ALTER TABLE \`sample_table\` CHANGE \`label\` \`label_new\` VARCHAR(255) NOT NULL DEFAULT 'CURRENT_TIMESTAMP';`,
+        default: `ALTER TABLE \`sample_table\` CHANGE \`label\` \`label_new\` VARCHAR(255) NOT NULL DEFAULT 'CURRENT_TIMESTAMP';`,
       });
     });
   }
