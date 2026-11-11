@@ -10,6 +10,7 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { markGeneratedDefaultColumn } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { inspect } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
@@ -21,6 +22,17 @@ const ER_NO_REFERENCED_ROW = 1452;
 const ER_CANT_DROP_FIELD_OR_KEY = 1091;
 
 const debug = logger.debugContext('sql:mariadb');
+
+const MARIADB_NILADIC_DEFAULT_KEYWORDS = new Set([
+  'CURRENT_TIMESTAMP',
+  'CURRENT_DATE',
+  'CURRENT_TIME',
+  'LOCALTIME',
+  'LOCALTIMESTAMP',
+  'UTC_DATE',
+  'UTC_TIME',
+  'UTC_TIMESTAMP',
+]);
 
 export class MariaDbQuery extends AbstractQuery {
   constructor(connection, sequelize, options) {
@@ -169,6 +181,16 @@ export class MariaDbQuery extends AbstractQuery {
             Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
+
+        if (
+          typeof _result.Default === 'string' &&
+          !_result.Default.startsWith("'") &&
+          _result.Default.toUpperCase() !== 'NULL' &&
+          (_result.Default.includes('(') ||
+            MARIADB_NILADIC_DEFAULT_KEYWORDS.has(_result.Default.toUpperCase()))
+        ) {
+          markGeneratedDefaultColumn(result[_result.Field]);
+        }
       }
 
       return result;
