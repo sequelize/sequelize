@@ -826,13 +826,48 @@ Sequelize.prototype.QueryTypes = Sequelize.QueryTypes = QueryTypes;
  */
 Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 
-Sequelize.Model = Model;
+// `Model` cannot be read eagerly here: when `@sequelize/core/decorators-legacy` is
+// imported before `@sequelize/core`, this module is evaluated while `model.js` is still
+// initializing, so reading `Model` throws `Cannot access 'Model' before initialization`.
+// Only resolve it when it is actually accessed.
+// See https://github.com/sequelize/sequelize/issues/18558
+Object.defineProperty(Sequelize, 'Model', {
+  enumerable: true,
+  get() {
+    return Model;
+  },
+});
 
 Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsToAssociation = BelongsToAssociation;
-Sequelize.HasOneAssociation = HasOneAssociation;
-Sequelize.HasManyAssociation = HasManyAssociation;
-Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
+
+// The association classes cannot be read eagerly here either: they live in modules
+// that are still initializing when this module is evaluated through the
+// `decorators-legacy` entry point (see the comment on `Sequelize.Model` above).
+// See https://github.com/sequelize/sequelize/issues/18558
+Object.defineProperty(Sequelize, 'BelongsToAssociation', {
+  enumerable: true,
+  get() {
+    return BelongsToAssociation;
+  },
+});
+Object.defineProperty(Sequelize, 'HasOneAssociation', {
+  enumerable: true,
+  get() {
+    return HasOneAssociation;
+  },
+});
+Object.defineProperty(Sequelize, 'HasManyAssociation', {
+  enumerable: true,
+  get() {
+    return HasManyAssociation;
+  },
+});
+Object.defineProperty(Sequelize, 'BelongsToManyAssociation', {
+  enumerable: true,
+  get() {
+    return BelongsToManyAssociation;
+  },
+});
 
 Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {
