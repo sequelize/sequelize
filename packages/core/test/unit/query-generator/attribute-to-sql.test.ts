@@ -961,6 +961,23 @@ describe('QueryGenerator#attributeToSql', () => {
     );
   }
 
+  if (['mariadb', 'mysql'].includes(sequelize.dialect.name)) {
+    testSql(
+      { type: 'DATETIME', allowNull: false, defaultValue: 'CURRENT_TIMESTAMP' },
+      { default: 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP' },
+    );
+
+    testSql(
+      { type: 'DATETIME(6)', allowNull: false, defaultValue: 'current_timestamp(6)' },
+      { default: 'DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6)' },
+    );
+
+    testSql(
+      { type: 'VARCHAR(255)', allowNull: false, defaultValue: 'CURRENT_TIMESTAMP' },
+      { default: `VARCHAR(255) NOT NULL DEFAULT 'CURRENT_TIMESTAMP'` },
+    );
+  }
+
   it('does not modify the attribute it is given', () => {
     const Foo = sequelize.define('Foo', {}, { tableName: 'foo' });
     const attribute = {

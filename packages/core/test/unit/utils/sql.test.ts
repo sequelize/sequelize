@@ -1,8 +1,12 @@
 import type { AbstractDialect } from '@sequelize/core';
-import { sql as sqlTag } from '@sequelize/core';
+import { literal, sql as sqlTag } from '@sequelize/core';
 import {
+  formatMySqlMariaDbDefaultValue,
   injectReplacements,
+  isGeneratedDefaultColumn,
   mapBindParameters,
+  markGeneratedDefaultColumn,
+  resolveDescribedDefaultValue,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { expect } from 'chai';
 import {
@@ -1096,6 +1100,52 @@ SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
           (N'john', N'john@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10'),
           (N'michael', N'michael@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10');`,
     });
+  });
+});
+
+describe('resolveDescribedDefaultValue & formatMySqlMariaDbDefaultValue', () => {
+  it('normalizes CURRENT_TIMESTAMP keywords on DATETIME and TIMESTAMP columns', () => {
+    const col = { type: 'DATETIME', defaultValue: 'current_timestamp()' };
+    markGeneratedDefaultColumn(col);
+
+    expect(isGeneratedDefaultColumn(col)).to.equal(true);
+    expect(resolveDescribedDefaultValue(col)).to.equal('CURRENT_TIMESTAMP');
+    expect(
+      resolveDescribedDefaultValue({ type: 'TIMESTAMP(6)', defaultValue: 'current_timestamp(6)' }),
+    ).to.equal('CURRENT_TIMESTAMP(6)');
+  });
+
+  it('converts marked expression defaults outside CURRENT_TIMESTAMP to literal expressions', () => {
+    const col = { type: 'CHAR(36)', defaultValue: 'uuid()' };
+    markGeneratedDefaultColumn(col);
+
+    expect(resolveDescribedDefaultValue(col)).to.deep.equal(literal('uuid()'));
+  });
+
+  it('keeps unmarked string defaults literal on non-temporal columns', () => {
+    const col = { type: 'VARCHAR(255)', defaultValue: 'CURRENT_TIMESTAMP' };
+
+    expect(isGeneratedDefaultColumn(col)).to.equal(false);
+    expect(resolveDescribedDefaultValue(col)).to.equal('CURRENT_TIMESTAMP');
+  });
+
+  it('formats MySQL and MariaDB default values consistently', () => {
+    const escape = (val: unknown): string => (typeof val === 'string' ? `'${val}'` : String(val));
+
+    expect(formatMySqlMariaDbDefaultValue('CURRENT_TIMESTAMP', 'DATETIME', escape)).to.equal(
+      'CURRENT_TIMESTAMP',
+    );
+    expect(formatMySqlMariaDbDefaultValue('current_timestamp(6)', 'DATETIME(6)', escape)).to.equal(
+      'CURRENT_TIMESTAMP(6)',
+    );
+    expect(formatMySqlMariaDbDefaultValue('CURRENT_TIMESTAMP', 'VARCHAR(255)', escape)).to.equal(
+      `'CURRENT_TIMESTAMP'`,
+    );
+    expect(
+      formatMySqlMariaDbDefaultValue(literal('uuid()'), 'CHAR(36)', val =>
+        dialect.queryGenerator.escape(val),
+      ),
+    ).to.equal('(uuid())');
   });
 });
 

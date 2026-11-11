@@ -25,6 +25,7 @@ import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-ri
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { formatMySqlMariaDbDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import type { MariaDbDialect } from './dialect.js';
 import { MariaDbQueryGeneratorInternal } from './query-generator.internal.js';
@@ -217,11 +218,12 @@ export class MariaDbQueryGeneratorTypeScript extends AbstractQueryGenerator {
     }
 
     if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
-      const { defaultValue } = attribute;
-      const escaped = this.escape(defaultValue, { type: attribute.type });
-
       // MariaDB only accepts an expression default if it is wrapped in parentheses
-      template += ` DEFAULT ${defaultValue instanceof BaseSqlExpression ? `(${escaped})` : escaped}`;
+      template += ` DEFAULT ${formatMySqlMariaDbDefaultValue(
+        attribute.defaultValue,
+        attribute.type,
+        value => this.escape(value, { type: attribute.type }),
+      )}`;
     }
 
     if (attribute.unique === true) {

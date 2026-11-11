@@ -28,6 +28,7 @@ import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-ri
 import { buildJsonPath } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/json.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
 import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
+import { formatMySqlMariaDbDefaultValue } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { generateIndexName } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import type { MySqlDialect } from './dialect.js';
 import { MySqlQueryGeneratorInternal } from './query-generator.internal.js';
@@ -211,12 +212,16 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (defaultValueSchemable(attribute.defaultValue, this.dialect)) {
       const { defaultValue } = attribute;
-      const escaped = this.escape(defaultValue, { type: attribute.type });
-      const needsParentheses =
-        defaultValue instanceof BaseSqlExpression ||
-        typeNeedingParenthesizedDefault.has(attributeTypeToDataTypeId(attribute.type));
+      const parenthesizeAll = typeNeedingParenthesizedDefault.has(
+        attributeTypeToDataTypeId(attribute.type),
+      );
 
-      template += ` DEFAULT ${needsParentheses ? `(${escaped})` : escaped}`;
+      template += ` DEFAULT ${formatMySqlMariaDbDefaultValue(
+        defaultValue,
+        attribute.type,
+        value => this.escape(value, { type: attribute.type }),
+        parenthesizeAll,
+      )}`;
     }
 
     if (attribute.unique === true) {
