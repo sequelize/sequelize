@@ -488,7 +488,7 @@ class Sequelize {
       throw new Error(`${modelName} has not been defined`);
     }
 
-    return this.modelManager.getModel(modelName);
+    return this.models[modelName];
   }
 
   /**
@@ -499,7 +499,7 @@ class Sequelize {
    * @returns {boolean} Returns true if model is already defined, otherwise false
    */
   isDefined(modelName) {
-    return !!this.modelManager.models.find(model => model.name === modelName);
+    return Object.prototype.hasOwnProperty.call(this.models, modelName);
   }
 
   /**
