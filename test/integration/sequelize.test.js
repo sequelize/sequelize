@@ -212,6 +212,10 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       });
       expect(this.sequelize.isDefined('Project')).to.be.true;
     });
+
+    it('returns false for a property inherited from Object.prototype', function() {
+      expect(this.sequelize.isDefined('toString')).to.be.false;
+    });
   });
 
   describe('model', () => {
@@ -219,6 +223,12 @@ describe(Support.getTestDialectTeaser('Sequelize'), () => {
       expect(() => {
         this.sequelize.model('Project');
       }).to.throw(/project has not been defined/i);
+    });
+
+    it('throws an error for a property inherited from Object.prototype', function() {
+      expect(() => {
+        this.sequelize.model('toString');
+      }).to.throw(/tostring has not been defined/i);
     });
 
     it('returns the dao factory defined by daoName', function() {
