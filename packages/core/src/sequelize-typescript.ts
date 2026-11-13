@@ -364,12 +364,16 @@ If you really need to access the connection manager, access it through \`sequeli
    *
    * @example
    * // option examples
-   * import { MsSqlDialect } from '@sequelize/mssql';
+   * import { PostgresDialect } from '@sequelize/postgres';
    *
-   * const sequelize = new Sequelize('database', 'username', 'password', {
+   * const sequelize = new Sequelize({
    *   // the dialect of the database
    *   // It is a Dialect class exported from the dialect package
-   *   dialect: MsSqlDialect,
+   *   dialect: PostgresDialect,
+   *
+   *   database: 'database',
+   *   user: 'username',
+   *   password: 'password',
    *
    *   // custom host;
    *   host: 'my.server.tld',
@@ -380,15 +384,8 @@ If you really need to access the connection manager, access it through \`sequeli
    *   // custom port;
    *   port: 12345,
    *
-   *   // disable logging or provide a custom logging function; default: console.log
+   *   // disable logging or provide a custom logging function; default: false
    *   logging: false,
-   *
-   *   // This option is specific to MySQL and MariaDB
-   *   socketPath: '/Applications/MAMP/tmp/mysql/mysql.sock',
-   *
-   *   // the storage engine for sqlite
-   *   // - default ':memory:'
-   *   storage: 'path/to/database.sqlite',
    *
    *   // disable inserting undefined values as NULL
    *   // - default: false
@@ -409,7 +406,7 @@ If you really need to access the connection manager, access it through \`sequeli
    *     underscored: false,
    *     freezeTableName: false,
    *     charset: 'utf8',
-   *     collate: 'utf8_general_ci'
+   *     collate: 'utf8_general_ci',
    *     timestamps: true
    *   },
    *
