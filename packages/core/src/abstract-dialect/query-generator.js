@@ -1546,6 +1546,10 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
     }
 
     if (options.lock && this.dialect.supports.lock) {
+      if (options.skipLocked && options.noWait) {
+        throw new Error('The "skipLocked" and "noWait" options cannot be used together.');
+      }
+
       let lock = options.lock;
       if (typeof options.lock === 'object') {
         lock = options.lock.level;
@@ -1565,6 +1569,8 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
 
       if (this.dialect.supports.skipLocked && options.skipLocked) {
         query += ' SKIP LOCKED';
+      } else if (this.dialect.supports.noWait && options.noWait) {
+        query += ' NOWAIT';
       }
     }
 
