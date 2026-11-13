@@ -29,6 +29,10 @@ export type {
   RangeOptions,
   TextOptions,
   TimeOptions,
+  VectorElementType,
+  VectorOptions,
+  VectorTypedArray,
+  VectorValue,
   VirtualOptions,
 } from './abstract-dialect/data-types.js';
 export {

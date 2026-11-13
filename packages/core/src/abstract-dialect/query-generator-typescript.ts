@@ -68,7 +68,7 @@ import type {
   TableOrModel,
   TruncateTableQueryOptions,
 } from './query-generator.types.js';
-import type { TableNameWithSchema } from './query-interface.js';
+import type { IndexOptions, TableNameWithSchema } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 import type { WhereSqlBuilder } from './where-sql-builder.js';
 import { PojoWhere } from './where-sql-builder.js';
@@ -1041,6 +1041,18 @@ export class AbstractQueryGeneratorTypeScript<Dialect extends AbstractDialect = 
    * // SELECT COUNT(*) AS count FROM (SELECT * FROM "Users" WHERE "active" = true) Z
    * ```
    */
+
+  /**
+   * Validates column definitions and resolved indexes before schema synchronization can make changes.
+   *
+   * @hidden
+   * @param _columns The column definitions to validate.
+   * @param _indexes The resolved indexes to validate.
+   */
+  _validateAttributes(
+    _columns: AttributesToSqlColumns,
+    _indexes: readonly IndexOptions[] = [],
+  ): void {}
 
   /**
    * Generates the SQL fragment that declares a single column, without its name.

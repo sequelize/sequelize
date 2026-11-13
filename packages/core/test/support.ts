@@ -14,6 +14,7 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
+import semver from 'semver';
 import type { SinonFakeTimers } from 'sinon';
 import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
@@ -688,6 +689,25 @@ export function beforeAll2<T extends Record<string, any>>(cb: () => Promise<T> |
   });
 
   return out;
+}
+
+/**
+ * Registers a hook that skips the suite on older Oracle versions.
+ *
+ * @param minimumVersion The minimum Oracle Database version required.
+ */
+export function skipSuiteIfOracleVersionBelow(minimumVersion: string): void {
+  if (sequelize.dialect.name !== 'oracle') {
+    return;
+  }
+
+  before(async function checkOracleDatabaseVersion() {
+    const version = semver.coerce(await sequelize.fetchDatabaseVersion());
+
+    if (!version || semver.lt(version, minimumVersion)) {
+      this.skip();
+    }
+  });
 }
 
 export function typeTest(_name: string, _callback: () => void): void {
