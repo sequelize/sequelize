@@ -442,6 +442,21 @@ export class VECTOR extends BaseTypes.VECTOR {
   }
 
   /**
+   * Serializes a VECTOR value when bind parameters are unavailable.
+   *
+   * @see https://docs.oracle.com/en/database/oracle/oracle-database/26/sqlrf/to_vector.html
+   * @param value The vector value to escape.
+   */
+  override escape(value: BaseTypes.VectorValue): string {
+    // Numeric literals avoid text limits; the D suffix preserves the FLOAT64 range.
+    const elements = Array.from(this.toBindableValue(value), element => `${Number(element)}D`).join(
+      ',',
+    );
+
+    return `TO_VECTOR(JSON_ARRAY(${elements} RETURNING CLOB), ${this.options.dimensions ?? '*'}, ${this.options.elementType.toUpperCase()})`;
+  }
+
+  /**
    * Converts plain arrays to the typed arrays expected by node-oracledb.
    *
    * @param value

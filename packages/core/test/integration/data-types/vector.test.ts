@@ -5,7 +5,7 @@ import type {
   VectorElementType,
   VectorValue,
 } from '@sequelize/core';
-import { DataTypes, Model, ValidationErrorItem } from '@sequelize/core';
+import { DataTypes, Model, ParameterStyle, QueryTypes, ValidationErrorItem } from '@sequelize/core';
 import { expect } from 'chai';
 import {
   beforeEach2,
@@ -137,6 +137,23 @@ describe(getTestDialectTeaser('DataTypes.VECTOR'), () => {
         expect(await vars.VectorItem.count()).to.equal(2);
       });
 
+      it('round-trips vector values without bind parameters', async () => {
+        const { query, bind } = sequelize.queryGenerator.insertQuery(
+          vars.VectorItem.table,
+          { embedding_value: testCase.initialValue, typedEmbedding: testCase.typedValue },
+          vars.VectorItem.getAttributes(),
+          { parameterStyle: ParameterStyle.REPLACEMENT },
+        );
+
+        expect(bind).to.equal(undefined);
+        await sequelize.queryRaw(query, { type: QueryTypes.INSERT });
+
+        const item = await vars.VectorItem.findOne({ rejectOnEmpty: true });
+
+        expect([...item.embedding]).to.deep.equal([...testCase.typedValue]);
+        expect(item.typedEmbedding).to.deep.equal(testCase.typedValue);
+      });
+
       it('updates and reloads a vector value', async () => {
         const item = await vars.VectorItem.create({
           embedding: testCase.initialValue,
@@ -174,7 +191,7 @@ describe(getTestDialectTeaser('DataTypes.VECTOR'), () => {
       vectorSupport.elementTypes[testCase.elementType]!.maxDimensions >= 1536,
   );
   if (largeVectorTestCase) {
-    it('round-trips a realistic 1536-dimension embedding', async () => {
+    it('round-trips a realistic 1536-dimension embedding with and without bind parameters', async () => {
       class Document extends Model<InferAttributes<Document>, InferCreationAttributes<Document>> {
         declare id: CreationOptional<number>;
         declare embedding: VectorValue;
@@ -193,11 +210,24 @@ describe(getTestDialectTeaser('DataTypes.VECTOR'), () => {
       await Document.sync({ force: true });
 
       const embedding = Array.from({ length: 1536 }, (_, index) => index / 1536);
-      const document = await Document.create({ embedding });
-      await document.reload();
+      await Document.create({ embedding });
+      const { query, bind } = sequelize.queryGenerator.insertQuery(
+        Document.table,
+        { embedding },
+        Document.getAttributes(),
+        { parameterStyle: ParameterStyle.REPLACEMENT },
+      );
 
-      expect(document.embedding).to.have.length(1536);
-      expect(document.embedding[1024]).to.be.closeTo(embedding[1024], 1e-6);
+      expect(bind).to.equal(undefined);
+      await sequelize.queryRaw(query, { type: QueryTypes.INSERT });
+
+      const documents = await Document.findAll();
+
+      expect(documents).to.have.length(2);
+      for (const document of documents) {
+        expect(document.embedding).to.have.length(1536);
+        expect(document.embedding[1024]).to.be.closeTo(embedding[1024], 1e-6);
+      }
     });
   }
 

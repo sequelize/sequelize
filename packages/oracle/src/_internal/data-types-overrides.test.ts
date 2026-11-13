@@ -79,6 +79,17 @@ describe('Oracle VECTOR data type', () => {
     expect(bound).to.equal(false);
   });
 
+  it('rejects FLOAT32 conversion overflow when escaping without bind parameters', () => {
+    const type = toOracleVector(DataTypes.VECTOR(1));
+
+    for (const value of [Number.MAX_VALUE, -Number.MAX_VALUE]) {
+      expect(() => type.escape([value])).to.throw(
+        ValidationErrorItem,
+        'VECTOR value overflows FLOAT32',
+      );
+    }
+  });
+
   it('accepts finite FLOAT32 boundaries and normal rounding without changing the input', () => {
     const maximum = 3.402_823_466_385_288_6e38;
     const value = [maximum, -maximum, 0.1];
@@ -92,6 +103,25 @@ describe('Oracle VECTOR data type', () => {
     const type = toOracleVector(DataTypes.VECTOR(3));
 
     expect(() => type.validate([1, Number.NaN, 3])).to.throw('not a valid vector element');
+  });
+
+  it('escapes large vectors without generating oversized text literals', () => {
+    const value = Array.from({ length: 1536 }, (_, index) => index / 1536);
+    const converted = [...Float32Array.from(value)];
+    const elements = converted.map(element => `${element}D`).join(',');
+
+    expect(JSON.stringify(converted).length).to.be.greaterThan(4000);
+    expect(toOracleVector(DataTypes.VECTOR(1536)).escape(value)).to.equal(
+      `TO_VECTOR(JSON_ARRAY(${elements} RETURNING CLOB), 1536, FLOAT32)`,
+    );
+  });
+
+  it('escapes FLOAT64 boundary values as binary double literals', () => {
+    const type = toOracleVector(DataTypes.VECTOR({ dimensions: 3, elementType: 'float64' }));
+
+    expect(type.escape([Number.MAX_VALUE, -Number.MAX_VALUE, Number.MIN_VALUE])).to.equal(
+      'TO_VECTOR(JSON_ARRAY(1.7976931348623157e+308D,-1.7976931348623157e+308D,5e-324D RETURNING CLOB), 3, FLOAT64)',
+    );
   });
 
   it('returns Oracle VECTOR bind metadata', () => {

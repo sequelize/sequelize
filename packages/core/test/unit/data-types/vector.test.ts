@@ -235,6 +235,54 @@ See https://sequelize.org/docs/v7/models/data-types/ for a list of supported dat
     });
   });
 
+  describe('escape', () => {
+    for (const [name, type, value, oracleSql] of [
+      [
+        'float32 arrays',
+        DataTypes.VECTOR(3),
+        [1, 2, 3],
+        'TO_VECTOR(JSON_ARRAY(1D,2D,3D RETURNING CLOB), 3, FLOAT32)',
+      ],
+      [
+        'float32 typed arrays',
+        DataTypes.VECTOR(3),
+        new Float32Array([1, 2, 3]),
+        'TO_VECTOR(JSON_ARRAY(1D,2D,3D RETURNING CLOB), 3, FLOAT32)',
+      ],
+      [
+        'float64 arrays',
+        DataTypes.VECTOR({ dimensions: 3, elementType: 'float64' }),
+        [1, 2, 3],
+        'TO_VECTOR(JSON_ARRAY(1D,2D,3D RETURNING CLOB), 3, FLOAT64)',
+      ],
+      [
+        'int8 arrays',
+        DataTypes.VECTOR({ dimensions: 3, elementType: 'int8' }),
+        [-128, 0, 127],
+        'TO_VECTOR(JSON_ARRAY(-128D,0D,127D RETURNING CLOB), 3, INT8)',
+      ],
+      [
+        'packed binary vectors',
+        DataTypes.VECTOR({ dimensions: 24, elementType: 'binary' }),
+        new Uint8Array([170, 85, 240]),
+        'TO_VECTOR(JSON_ARRAY(170D,85D,240D RETURNING CLOB), 24, BINARY)',
+      ],
+      [
+        'optional dimensions',
+        DataTypes.VECTOR(),
+        [1, 2, 3],
+        'TO_VECTOR(JSON_ARRAY(1D,2D,3D RETURNING CLOB), *, FLOAT32)',
+      ],
+    ] as const) {
+      it(`escapes ${name} without bind parameters`, () => {
+        expectsql(() => sequelize.queryGenerator.escape(value, { type }), {
+          default: new Error(`${dialectName} does not support the VECTOR data type`),
+          oracle: oracleSql,
+        });
+      });
+    }
+  });
+
   describe('validate', () => {
     it('should throw an error if value is invalid', () => {
       const type: DataTypeInstance = DataTypes.VECTOR();
