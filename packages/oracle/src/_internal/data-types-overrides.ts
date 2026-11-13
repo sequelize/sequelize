@@ -1,6 +1,7 @@
 // Copyright (c) 2025, Oracle and/or its affiliates. All rights reserved
 
 import type { AbstractDialect, BindParamOptions } from '@sequelize/core';
+import { ValidationErrorItem } from '@sequelize/core';
 import type { AcceptedDate } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import * as BaseTypes from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types.js';
 import dayjs from 'dayjs';
@@ -425,5 +426,53 @@ export class DATEONLY extends BaseTypes.DATEONLY {
     }
 
     return options.bindParam(value);
+  }
+}
+
+/**
+ * Maps the shared VECTOR data type to Oracle's native VECTOR declaration and driver bindings.
+ * Oracle VECTOR requires Oracle Database 23.4 or newer.
+ */
+export class VECTOR extends BaseTypes.VECTOR {
+  override toSql(): string {
+    const dimensions = this.options.dimensions ?? '*';
+    const elementType = this.options.elementType.toUpperCase();
+
+    return `VECTOR(${dimensions}, ${elementType})`;
+  }
+
+  /**
+   * Converts plain arrays to the typed arrays expected by node-oracledb.
+   *
+   * @param value
+   */
+  toBindableValue(value: BaseTypes.VectorValue) {
+    if (!Array.isArray(value)) {
+      return value;
+    }
+
+    if (this.options.elementType === 'float16') {
+      throw new Error('Oracle does not support FLOAT16 VECTOR values');
+    }
+
+    const bindValue = this._toTypedArray(value);
+    // Finite JavaScript numbers can overflow to Infinity when converted to FLOAT32.
+    if (
+      this.options.elementType === 'float32' &&
+      bindValue.some(element => !Number.isFinite(element))
+    ) {
+      ValidationErrorItem.throwDataTypeValidationError('VECTOR value overflows FLOAT32');
+    }
+
+    return bindValue;
+  }
+
+  /**
+   * Uses node-oracledb's native VECTOR bind type.
+   *
+   * @param oracledb
+   */
+  _getBindDef(oracledb: Lib) {
+    return { type: oracledb.DB_TYPE_VECTOR };
   }
 }

@@ -7,6 +7,11 @@ describe('QueryInterface#addIndex', () => {
     return;
   }
 
+  beforeEach(() => {
+    // Keep column metadata lookups separate from the index SQL being tested.
+    sinon.stub(sequelize.queryInterface, 'describeTable').resolves({});
+  });
+
   afterEach(() => {
     sinon.restore();
   });
