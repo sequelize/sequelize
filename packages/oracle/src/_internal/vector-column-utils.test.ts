@@ -66,6 +66,30 @@ describe('Oracle VECTOR column utilities', () => {
       );
     });
 
+    for (const nameOption of ['field', 'columnName'] as const) {
+      it(`checks the physical column selected by ${nameOption} when both column names exist`, async () => {
+        const queryInterface = {
+          normalizeAttribute: () => ({ type: vector, [nameOption]: 'embedding_vector' }),
+          describeTable: async () => ({
+            embedding: { type: 'VECTOR(3, FLOAT32)' },
+            embedding_vector: { type: 'VECTOR(4, FLOAT32)' },
+          }),
+        };
+
+        let error: unknown;
+        try {
+          await shouldSkipOracleVectorColumnChange(queryInterface, 'items', 'embedding', vector);
+        } catch (caughtError) {
+          error = caughtError;
+        }
+
+        expect(error).to.be.instanceOf(Error);
+        expect((error as Error).message).to.include(
+          'Changing Oracle VECTOR column embedding_vector from VECTOR(4, FLOAT32) to VECTOR(3, FLOAT32) is not supported',
+        );
+      });
+    }
+
     it('does not guess when VECTOR metadata is unavailable', async () => {
       let error: unknown;
       try {

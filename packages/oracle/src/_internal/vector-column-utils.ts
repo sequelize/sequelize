@@ -102,7 +102,7 @@ export async function shouldSkipOracleVectorColumnChange(
 
   const columnName = attribute.field ?? attribute.columnName ?? attributeName;
   const description = await queryInterface.describeTable(tableName, options);
-  const currentColumn = description[attributeName] ?? description[columnName];
+  const currentColumn = description[columnName] ?? description[attributeName];
 
   if (!currentColumn) {
     throw new Error(`Could not find Oracle VECTOR column ${columnName} while changing its type.`);
