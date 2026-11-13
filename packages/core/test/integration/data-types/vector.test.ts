@@ -73,6 +73,10 @@ describe(getTestDialectTeaser('DataTypes.VECTOR'), () => {
 
   for (const testCase of vectorTestCases) {
     describe(`${testCase.elementType} vectors`, () => {
+      if (testCase.elementType === 'binary') {
+        skipSuiteIfOracleVersionBelow('23.5.0');
+      }
+
       const vars = beforeEach2(async () => {
         class VectorItem extends Model<
           InferAttributes<VectorItem>,
