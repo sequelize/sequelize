@@ -994,6 +994,32 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
         });
       }
 
+      if (current.dialect.supports.noWait) {
+        it('supports for update with nowait', async function () {
+          const User = this.sequelize.define('user', {
+            username: DataTypes.STRING,
+          });
+
+          await this.sequelize.sync({ force: true });
+
+          await User.create({ username: 'jan' });
+
+          const t1 = await this.sequelize.startUnmanagedTransaction();
+          const t2 = await this.sequelize.startUnmanagedTransaction();
+
+          try {
+            await User.findAll({ lock: true, transaction: t1 });
+
+            await expect(
+              User.findAll({ lock: true, noWait: true, transaction: t2 }),
+            ).to.be.rejectedWith(/could not obtain lock on row/);
+          } finally {
+            await t2.rollback();
+            await t1.commit();
+          }
+        });
+      }
+
       it('fail locking with outer joins', async function () {
         const User = this.sequelize.define('User', { username: DataTypes.STRING });
         const Task = this.sequelize.define('Task', {
