@@ -1,7 +1,12 @@
 import type { AttributeOptions, DataType, IndexOptions } from '@sequelize/core';
 import { DataTypes, Model, QueryTypes, sql } from '@sequelize/core';
 import { expect } from 'chai';
-import { getTestDialectTeaser, sequelize, skipSuiteIfOracleVersionBelow } from '../../support';
+import {
+  createSequelizeInstance,
+  getTestDialectTeaser,
+  sequelize,
+  skipSuiteIfOracleVersionBelow,
+} from '../../support';
 
 describe(getTestDialectTeaser('Oracle VECTOR column alterations'), () => {
   if (sequelize.dialect.name !== 'oracle' || !sequelize.dialect.supports.dataTypes.VECTOR) {
@@ -43,6 +48,20 @@ describe(getTestDialectTeaser('Oracle VECTOR column alterations'), () => {
 
     return ChangedItem;
   }
+
+  it('skips an unchanged VECTOR when changeColumn is the first database operation', async () => {
+    await createOriginal();
+    const freshSequelize = createSequelizeInstance();
+
+    try {
+      expect(freshSequelize.getDatabaseVersionIfExist()).to.equal(null);
+      await freshSequelize.queryInterface.changeColumn(tableName, 'embedding', DataTypes.VECTOR(3));
+      const description = await freshSequelize.queryInterface.describeTable(tableName);
+      expect(description.embedding.type).to.equal('VECTOR(3, FLOAT32)');
+    } finally {
+      await freshSequelize.close();
+    }
+  });
 
   for (const [name, type] of [
     ['element type', DataTypes.VECTOR({ dimensions: 3, elementType: 'float64' })],
