@@ -4007,7 +4007,13 @@ Instead of specifying a Model, either:
 
     // Validate
     if (options.validate) {
+      const changedBeforeValidation = this.changed();
       await this.validate(options);
+
+      // persist attributes changed by validation hooks
+      if (options.defaultFields && !this.isNewRecord) {
+        options.fields = union(options.fields, difference(this.changed(), changedBeforeValidation));
+      }
     }
 
     // Run before hook
