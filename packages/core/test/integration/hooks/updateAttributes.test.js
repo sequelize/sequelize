@@ -102,6 +102,20 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('happy');
       });
 
+      it('persists changes made in beforeValidate', async function () {
+        this.User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await this.User.create({ username: 'fireninja', mood: 'sad' });
+        user.username = 'hero';
+        await user.save();
+        await user.reload();
+        expect(user.mood).to.equal('happy');
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';
