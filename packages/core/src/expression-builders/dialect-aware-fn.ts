@@ -103,7 +103,7 @@ export class Unquote extends DialectAwareFn {
 
     if (arg instanceof JsonPath) {
       return dialect.queryGenerator.jsonPathExtractionQuery(
-        dialect.queryGenerator.escape(arg.expression),
+        dialect.queryGenerator.escape(arg.expression, options),
         arg.path,
         true,
       );
