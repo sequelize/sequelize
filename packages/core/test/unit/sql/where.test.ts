@@ -3390,6 +3390,16 @@ Caused by: "undefined" cannot be escaped`),
           );
 
           testSql(
+            { 'jsonAttr.key:unquote': 0 },
+            {
+              postgres: `"User"."jsonAttr"->>'key' = 0`,
+              mssql: `JSON_VALUE([User].[jsonAttr], N'$.key') = 0`,
+              'sqlite3 mysql mariadb': `json_unquote(json_extract([User].[jsonAttr],'$.key')) = 0`,
+            },
+            { mainAlias: 'User' },
+          );
+
+          testSql(
             { 'jsonAttr.nested.key:unquote': 0 },
             {
               postgres: `"jsonAttr"#>>ARRAY['nested','key']::VARCHAR(255)[] = 0`,
