@@ -405,8 +405,6 @@ If you really need to access the connection manager, access it through \`sequeli
    *   define: {
    *     underscored: false,
    *     freezeTableName: false,
-   *     charset: 'utf8',
-   *     collate: 'utf8_general_ci',
    *     timestamps: true
    *   },
    *
