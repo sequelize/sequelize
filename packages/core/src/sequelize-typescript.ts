@@ -463,7 +463,7 @@ new Sequelize({
     // @ts-expect-error -- sanity check
     if (options.operatorsAliases) {
       throw new Error(
-        'String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#deprecated-operator-aliases',
+        'String based operators have been removed. Please use Symbol operators, read more at https://sequelize.org/docs/v7/querying/operators/',
       );
     }
 

@@ -307,8 +307,8 @@ export class ModelTypeScript {
    *
    * sequelize.models.modelName // The model will now be available in models under the class name
    *
-   * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
-   * @see https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
+   * @see https://sequelize.org/docs/v7/models/defining-models/
+   * @see https://sequelize.org/docs/v7/models/validations-and-constraints/
    *
    * @param attributes An object, where each attribute is a column of the table. Each column can be either a
    *   DataType, a string or a type-description object.
