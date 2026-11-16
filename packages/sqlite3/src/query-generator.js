@@ -42,7 +42,7 @@ export class SqliteQueryGenerator extends SqliteQueryGeneratorTypeScript {
         let dataTypeString = dataType;
         if (dataType.includes('PRIMARY KEY')) {
           if (dataType.includes('INT')) {
-            // Only INTEGER is allowed for primary key, see https://github.com/sequelize/sequelize/issues/969 (no lenght, unsigned etc)
+            // Only INTEGER is allowed for primary key, see https://github.com/sequelize/sequelize/issues/969 (no length, unsigned etc)
             dataTypeString = containsAutoIncrement
               ? 'INTEGER PRIMARY KEY AUTOINCREMENT'
               : 'INTEGER PRIMARY KEY';

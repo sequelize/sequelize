@@ -366,7 +366,7 @@ export class OracleQueryGeneratorTypeScript extends AbstractQueryGenerator {
     options?: CatalogQueryOptions,
   ): string | BoundCatalogQuery {
     return this.#catalogQuery(options, valueToSql => {
-      // We don't call quoteTable as we don't want the schema in the table name, Oracle seperates it on another field
+      // We don't call quoteTable as we don't want the schema in the table name, Oracle separates it on another field
       const table = this.extractTableDetails(tableName);
 
       return [
