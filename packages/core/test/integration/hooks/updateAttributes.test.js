@@ -157,6 +157,26 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('happy');
       });
 
+      it('persists beforeValidate changes to dirty attributes excluded from update', async function () {
+        this.User.beforeSave(user => {
+          if (!user.isNewRecord) {
+            user.username = 'hero';
+          }
+        });
+        this.User.beforeValidate(user => {
+          if (user.username === 'hero') {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await this.User.create({ username: 'fireninja', mood: 'sad' });
+        user.mood = 'neutral';
+        await user.update({ username: 'other' });
+        await user.reload();
+        expect(user.username).to.equal('hero');
+        expect(user.mood).to.equal('happy');
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';

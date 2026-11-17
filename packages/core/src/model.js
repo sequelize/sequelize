@@ -4007,13 +4007,15 @@ Instead of specifying a Model, either:
 
     // persist attributes changed by validation hooks
     const validateAndCollectFields = async () => {
-      const changedBeforeValidation = this.changed() || [];
+      const valuesBeforeValidation = { ...this.dataValues };
       await this.validate(options);
 
       if (options.defaultFields && !this.isNewRecord) {
         options.fields = union(
           options.fields,
-          difference(this.changed() || [], changedBeforeValidation),
+          Array.from(modelDefinition.attributes.keys()).filter(
+            key => !isEqual(this.dataValues[key], valuesBeforeValidation[key]),
+          ),
         );
 
         if (versionAttr && options.fields.length > 0 && !options.fields.includes(versionAttr)) {
