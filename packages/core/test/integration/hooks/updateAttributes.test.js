@@ -116,6 +116,28 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('happy');
       });
 
+      it('increments the version when beforeValidate changes a clean instance', async function () {
+        const User = this.sequelize.define(
+          'VersionedUser',
+          { mood: DataTypes.STRING },
+          { version: true },
+        );
+        await User.sync({ force: true });
+
+        User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await User.create({ mood: 'sad' });
+        await user.save();
+        expect(user.version).to.equal(1);
+        await user.reload();
+        expect(user.mood).to.equal('happy');
+        expect(user.version).to.equal(1);
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';
