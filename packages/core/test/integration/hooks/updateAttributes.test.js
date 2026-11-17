@@ -177,6 +177,30 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('happy');
       });
 
+      it('persists nested JSON changes made in beforeValidate', async function () {
+        if (!this.sequelize.dialect.supports.dataTypes.JSON) {
+          this.skip();
+        }
+
+        const User = this.sequelize.define('JsonUser', {
+          username: DataTypes.STRING,
+          settings: DataTypes.JSON,
+        });
+        await User.sync({ force: true });
+
+        User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.set('settings.status', 'happy');
+          }
+        });
+
+        const user = await User.create({ username: 'fireninja', settings: { status: 'sad' } });
+        user.username = 'hero';
+        await user.save();
+        await user.reload();
+        expect(user.settings).to.deep.equal({ status: 'happy' });
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';

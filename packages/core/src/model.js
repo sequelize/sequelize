@@ -4007,7 +4007,9 @@ Instead of specifying a Model, either:
 
     // persist attributes changed by validation hooks
     const validateAndCollectFields = async () => {
-      const valuesBeforeValidation = { ...this.dataValues };
+      const valuesBeforeValidation = mapValues(this.dataValues, value =>
+        value instanceof BaseSqlExpression ? value : cloneDeepLodash(value),
+      );
       await this.validate(options);
 
       if (options.defaultFields && !this.isNewRecord) {
