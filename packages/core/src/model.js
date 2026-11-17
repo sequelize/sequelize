@@ -4005,12 +4005,11 @@ Instead of specifying a Model, either:
       );
     }
 
-    // Validate
-    if (options.validate) {
+    // persist attributes changed by validation hooks
+    const validateAndCollectFields = async () => {
       const changedBeforeValidation = this.changed() || [];
       await this.validate(options);
 
-      // persist attributes changed by validation hooks
       if (options.defaultFields && !this.isNewRecord) {
         options.fields = union(
           options.fields,
@@ -4021,6 +4020,10 @@ Instead of specifying a Model, either:
           options.fields.push(versionAttr);
         }
       }
+    };
+
+    if (options.validate) {
+      await validateAndCollectFields();
     }
 
     // Run before hook
@@ -4053,7 +4056,7 @@ Instead of specifying a Model, either:
         // Validate again
 
         options.skip = difference(Array.from(modelDefinition.attributes.keys()), hookChanged);
-        await this.validate(options);
+        await validateAndCollectFields();
         delete options.skip;
       }
     }

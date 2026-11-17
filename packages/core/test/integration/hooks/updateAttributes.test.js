@@ -138,6 +138,25 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.version).to.equal(1);
       });
 
+      it('persists changes made in beforeValidate after beforeSave', async function () {
+        this.User.beforeSave(user => {
+          if (!user.isNewRecord) {
+            user.username = 'hero';
+          }
+        });
+        this.User.beforeValidate(user => {
+          if (user.username === 'hero') {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await this.User.create({ username: 'fireninja', mood: 'sad' });
+        await user.save();
+        await user.reload();
+        expect(user.username).to.equal('hero');
+        expect(user.mood).to.equal('happy');
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';
