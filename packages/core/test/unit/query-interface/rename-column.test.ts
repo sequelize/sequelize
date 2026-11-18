@@ -30,7 +30,7 @@ describe('QueryInterface#renameColumn', () => {
           comment: null,
         },
       });
-      const queryStub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+      const queryStub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
       await sequelize.queryInterface.renameColumn('sample_table', 'createdAt', 'created_on');
       await sequelize.queryInterface.renameColumn('sample_table', 'updatedAt', 'updated_on');
@@ -58,7 +58,7 @@ describe('QueryInterface#renameColumn', () => {
       markGeneratedDefaultColumn(idColumn);
 
       sinon.stub(sequelize.queryInterface, 'describeTable').resolves({ id: idColumn });
-      const queryStub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+      const queryStub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
       await sequelize.queryInterface.renameColumn('sample_table', 'id', 'uuid_col');
 
@@ -80,7 +80,7 @@ describe('QueryInterface#renameColumn', () => {
           comment: null,
         },
       });
-      const queryStub = sinon.stub(sequelize, 'queryRaw').resolves([]);
+      const queryStub = sinon.stub(sequelize, 'queryRaw').resolves([[], 0]);
 
       await sequelize.queryInterface.renameColumn('sample_table', 'label', 'label_new');
 
