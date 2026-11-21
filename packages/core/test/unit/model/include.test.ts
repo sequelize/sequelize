@@ -443,7 +443,8 @@ describe('_validateIncludedElements', () => {
       });
 
       expect(options.subQuery).to.equal(false);
-      expect(options.include[0].subQuery).to.equal(false);
+      // left unset: the separate query plans its own subquery (see Model._findSeparate)
+      expect(options.include[0].subQuery).to.be.undefined;
       expect(options.include[0].subQueryFilter).to.equal(false);
     });
 

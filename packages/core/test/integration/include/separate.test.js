@@ -513,6 +513,86 @@ if (current.dialect.supports.groupedLimit) {
         expect(results[0].user.tasks[0].user.company.id).to.equal(3);
       });
 
+      // A where makes the include required. Next to a duplicating include under a top-level limit,
+      // the separate query used to receive the parent's subQuery flag and lose its WHERE and LIMIT.
+      it('should run a separate include with where and limit next to a duplicating include under findByPk', async function () {
+        const Company = this.sequelize.define('Company', {});
+        const User = this.sequelize.define('User', {});
+        const Project = this.sequelize.define('Project', {});
+        const Task = this.sequelize.define('Task', { done: DataTypes.BOOLEAN });
+
+        Company.hasMany(User, { as: 'users' });
+        User.hasMany(Project, { as: 'projects' });
+        User.hasMany(Task, { as: 'tasks' });
+
+        await this.sequelize.sync({ force: true });
+        await Company.create({ id: 1 });
+        await User.bulkCreate([
+          { id: 1, companyId: 1 },
+          { id: 2, companyId: 1 },
+        ]);
+        await Project.bulkCreate([{ userId: 1 }, { userId: 2 }]);
+        await Task.bulkCreate([
+          { userId: 1, done: true },
+          { userId: 1, done: true },
+          { userId: 1, done: true },
+          { userId: 2, done: true },
+          { userId: 2, done: false },
+        ]);
+
+        const company = await Company.findByPk(1, {
+          include: [
+            {
+              association: 'users',
+              include: [
+                'projects',
+                { association: 'tasks', separate: true, where: { done: true }, limit: 2 },
+              ],
+            },
+          ],
+        });
+
+        const tasksByUser = Object.fromEntries(
+          company.users.map(user => [user.id, user.tasks.map(task => task.done)]),
+        );
+        expect(tasksByUser).to.deep.equal({ 1: [true, true], 2: [true] });
+      });
+
+      // The separate query must plan its own subquery, so its limit counts users, not joined task rows.
+      it('should apply the limit of a separate include to its rows, not to the rows of its own includes', async function () {
+        const Company = this.sequelize.define('Company', {});
+        const User = this.sequelize.define('User', {});
+        const Task = this.sequelize.define('Task', {});
+
+        Company.hasMany(User, { as: 'users' });
+        User.hasMany(Task, { as: 'tasks' });
+
+        await this.sequelize.sync({ force: true });
+        await Company.create({ id: 1 });
+        await User.bulkCreate([
+          { id: 1, companyId: 1 },
+          { id: 2, companyId: 1 },
+        ]);
+        await Task.bulkCreate([{ userId: 1 }, { userId: 1 }, { userId: 1 }, { userId: 2 }]);
+
+        const company = await Company.findByPk(1, {
+          include: [
+            {
+              association: 'users',
+              separate: true,
+              limit: 2,
+              order: [['id', 'ASC']],
+              include: ['tasks'],
+            },
+          ],
+        });
+
+        expect(company.users.map(user => [user.id, user.tasks.length])).to.deep.equal([
+          [1, 3],
+          [2, 1],
+        ]);
+      });
+
       it('does not modify values that look like the placeholder used for grouped limits', async function () {
         const User = this.sequelize.define('User', {});
         const Task = this.sequelize.define('Task', {});
