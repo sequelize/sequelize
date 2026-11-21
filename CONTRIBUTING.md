@@ -73,7 +73,7 @@ Please check the _allow edits from maintainers_ box when opening it. Thank you i
 
 If you started to work on something but didn't finish it yet, you can open a draft pull request if you want (by choosing the "draft" option). Maintainers will know that it's not ready to be reviewed yet.
 
-A pull request should mention in its description one or more issues that is addresses. If your pull request does not address any existing issue, explain in its description what it is doing - you are also welcome to write an issue first, and then mention this new issue in the PR description.
+A pull request should mention in its description one or more issues that it addresses. If your pull request does not address any existing issue, explain in its description what it is doing - you are also welcome to write an issue first, and then mention this new issue in the PR description.
 
 If your pull request implements a new feature, it's better if the feature was already explicitly approved by a maintainer, otherwise you are taking the risk of having the feature request rejected later and your pull request closed without merge.
 
