@@ -1,7 +1,74 @@
-import { Sequelize } from '@sequelize/core';
+import { ConnectionError, Sequelize } from '@sequelize/core';
 import { PostgresDialect } from '@sequelize/postgres';
 import { expect } from 'chai';
 import { EventEmitter } from 'node:events';
+
+// Setup now runs after connect(), before the pool owns the connection.
+// Exercise the real dialect methods so cleanup cannot silently move back into connect().
+describe('Postgres connection setup cleanup', () => {
+  for (const stage of ['timezone setup', 'OID refresh']) {
+    for (const teardownFails of [false, true]) {
+      it(`preserves the ${stage} error when teardown ${teardownFails ? 'fails' : 'succeeds'}`, async () => {
+        const setupError = new Error(`${stage} failed`);
+        const teardownError = new Error('connection teardown failed');
+        let endCalls = 0;
+        const queryCalls: string[] = [];
+
+        class FailingPgClient extends EventEmitter {
+          readonly connection = new EventEmitter();
+
+          connect(callback: (error: Error | null) => void) {
+            callback(null);
+          }
+
+          async query(sql: string) {
+            queryCalls.push(sql);
+            if (stage === 'timezone setup' || sql.includes('WITH ranges AS')) {
+              throw setupError;
+            }
+
+            return { rows: [] };
+          }
+
+          async end() {
+            endCalls += 1;
+            if (teardownFails) {
+              throw teardownError;
+            }
+          }
+        }
+
+        const sequelize = new Sequelize({
+          dialect: PostgresDialect,
+          pgModule: { Client: FailingPgClient } as any,
+          databaseVersion: '17.0.0',
+          timezone: 'Asia/Kolkata',
+          clientMinMessages: false,
+          standardConformingStrings: false,
+        });
+
+        try {
+          const error = await sequelize.pool.acquire().then(
+            () => null,
+            (error_: unknown) => error_,
+          );
+
+          expect(error).to.be.instanceOf(ConnectionError);
+          expect((error as ConnectionError).cause).to.equal(setupError);
+          expect(endCalls).to.equal(1);
+          expect(queryCalls[0]).to.equal("SET TIME ZONE 'Asia/Kolkata';");
+          if (stage === 'OID refresh') {
+            expect(queryCalls[1]).to.include('WITH ranges AS');
+          }
+
+          expect(sequelize.pool.size).to.equal(0);
+        } finally {
+          await sequelize.close();
+        }
+      });
+    }
+  }
+});
 
 const HSTORE_OID = 90_001;
 const HSTORE_ARRAY_OID = 90_002;
