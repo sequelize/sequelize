@@ -2185,7 +2185,8 @@ ${associationOwner._getAssociationDebugList()}`);
     options.instance = instance;
 
     const changed = [...instance._changed];
-    if (!options.fields) {
+    const hasExplicitFields = Boolean(options.fields);
+    if (!hasExplicitFields) {
       options.fields = changed;
     }
 
@@ -2210,15 +2211,26 @@ ${associationOwner._getAssociationDebugList()}`);
     const updateValues = mapValueFieldNames(updatedDataValues, options.fields, this);
     const now = new Date();
 
+    // insertValues & updateValues are keyed by column name, not by attribute name
     // Attach createdAt
-    if (createdAtAttr && !insertValues[createdAtAttr]) {
-      const field = modelDefinition.attributes.get(createdAtAttr).columnName || createdAtAttr;
-      insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
+    if (createdAtAttr) {
+      const field = modelDefinition.getColumnName(createdAtAttr);
+      if (!insertValues[field]) {
+        insertValues[field] = this._getDefaultTimestamp(createdAtAttr) || now;
+      }
+
+      // On conflict, the existing row keeps its creation timestamp,
+      // unless it was explicitly listed in "fields"
+      if (!hasExplicitFields) {
+        delete updateValues[field];
+      }
     }
 
-    if (updatedAtAttr && !updateValues[updatedAtAttr]) {
-      const field = modelDefinition.attributes.get(updatedAtAttr).columnName || updatedAtAttr;
-      insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
+    if (updatedAtAttr) {
+      const field = modelDefinition.getColumnName(updatedAtAttr);
+      if (!updateValues[field]) {
+        insertValues[field] = updateValues[field] = this._getDefaultTimestamp(updatedAtAttr) || now;
+      }
     }
 
     // Db2 does not allow NULL values for unique columns.
