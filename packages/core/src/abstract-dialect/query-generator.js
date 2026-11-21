@@ -676,7 +676,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
       const columnName = model
         ? model.modelDefinition.getColumnNameLoose(attributeName)
         : attributeName;
-      const incrementAmount = incrementAmountsByAttribute[columnName];
+      const incrementAmount = incrementAmountsByAttribute[attributeName];
       const quotedField = this.quoteIdentifier(columnName);
       const escapedAmount = this.escape(incrementAmount, escapeOptions);
       updateSetSqlFragments.push(`${quotedField}=${quotedField}${operator} ${escapedAmount}`);
@@ -687,7 +687,7 @@ export class AbstractQueryGenerator extends AbstractQueryGeneratorTypeScript {
         ? model.modelDefinition.getColumnNameLoose(attributeName)
         : attributeName;
 
-      const newValue = extraAttributesToBeUpdated[columnName];
+      const newValue = extraAttributesToBeUpdated[attributeName];
       const quotedField = this.quoteIdentifier(columnName);
       const escapedValue = this.escape(newValue, escapeOptions);
       updateSetSqlFragments.push(`${quotedField}=${escapedValue}`);
