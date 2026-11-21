@@ -50,6 +50,15 @@ export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleC
       COLLATE_BINARY: true,
       GEOMETRY: false,
       JSON: true,
+      VECTOR: {
+        elementTypes: {
+          float32: { maxDimensions: 65_535 },
+          float64: { maxDimensions: 65_535 },
+          int8: { maxDimensions: 65_535 },
+          binary: { maxDimensions: 65_528 },
+        },
+        optionalDimensions: true,
+      },
       INTS: numericOptions,
       DOUBLE: numericOptions,
       DECIMAL: { unconstrained: true },

@@ -6,7 +6,7 @@ import type { Sequelize } from '../sequelize.js';
 import { logger } from '../utils/logger.js';
 import type { DeepPartial } from '../utils/types.js';
 import type { AbstractConnectionManager } from './connection-manager.js';
-import type { AbstractDataType } from './data-types.js';
+import type { AbstractDataType, VectorElementType } from './data-types.js';
 import * as BaseDataTypes from './data-types.js';
 import type { AbstractQueryGenerator } from './query-generator.js';
 import type { AbstractQueryInterface } from './query-interface.js';
@@ -201,6 +201,12 @@ export type DialectSupports = {
     GEOGRAPHY: boolean;
     HSTORE: boolean;
     TSVECTOR: boolean;
+    VECTOR:
+      | false
+      | {
+          elementTypes: Partial<Record<VectorElementType, { maxDimensions: number }>>;
+          optionalDimensions: boolean;
+        };
     CIDR: boolean;
     INET: boolean;
     MACADDR: boolean;
@@ -463,6 +469,7 @@ export abstract class AbstractDialect<
       GEOGRAPHY: false,
       HSTORE: false,
       TSVECTOR: false,
+      VECTOR: false,
       DATETIME: {
         infinity: false,
       },

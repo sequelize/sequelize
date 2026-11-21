@@ -2994,9 +2994,13 @@ __metadata:
   dependencies:
     "@sequelize/core": "workspace:*"
     "@sequelize/utils": "workspace:*"
+    "@types/chai": "npm:5.2.3"
+    "@types/mocha": "npm:10.0.10"
     "@types/oracledb": "npm:^7.0.3"
+    chai: "npm:6.3.0"
     dayjs: "npm:^1.11.23"
     lodash: "npm:^4.18.1"
+    mocha: "npm:12.0.3"
     oracledb: "npm:^26.0.0"
     semver: "npm:^7.8.5"
   languageName: unknown

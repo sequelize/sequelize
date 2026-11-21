@@ -848,6 +848,8 @@ ${associationOwner._getAssociationDebugList()}`);
       await this.hooks.runAsync('beforeSync', options);
     }
 
+    this.queryInterface.queryGenerator._validateAttributes(physicalAttributes, this.getIndexes());
+
     const tableName = { ...this.table };
     if (options.schema && options.schema !== tableName.schema) {
       // Some users sync the same set of tables in different schemas for various reasons

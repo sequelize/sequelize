@@ -33,16 +33,25 @@ export class OracleQueryInterfaceInternal extends AbstractQueryInterfaceInternal
     tableName: TableOrModel,
     options?: QueryRawOptions,
   ): Promise<ColumnsDescription> {
+    const databaseVersion = this.dialect.sequelize.getDatabaseVersionIfExist();
     const { query, bind } = this.dialect.queryGenerator.describeTableQuery(tableName, {
       parameterStyle: ParameterStyle.BIND,
     });
 
-    return this.dialect.sequelize.queryRaw(query, {
+    const description = await this.dialect.sequelize.queryRaw(query, {
       logQueryParameters: true,
       ...options,
       bind,
       type: QueryTypes.DESCRIBE,
     });
+
+    // The first connection discovers the version after the catalog SQL was generated.
+    // Regenerate it once so version-gated VECTOR metadata is included when supported.
+    if (!databaseVersion && this.dialect.sequelize.getDatabaseVersionIfExist()) {
+      return this.describeTableRaw(tableName, options);
+    }
+
+    return description;
   }
 
   async showConstraintsRaw(

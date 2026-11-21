@@ -17,6 +17,7 @@ import mapKeys from 'lodash/mapKeys';
 import mapValues from 'lodash/mapValues';
 import reduce from 'lodash/reduce';
 import oracledb from 'oracledb';
+import { getOracleColumnType } from './_internal/vector-column-utils.js';
 
 const debug = logger.debugContext('sql:oracle');
 
@@ -498,7 +499,7 @@ export class OracleQuery extends AbstractQuery {
           }
 
           result[key] = {
-            type: _result.DATA_TYPE.toUpperCase(),
+            type: getOracleColumnType(_result),
             // eslint-disable-next-line no-unneeded-ternary
             allowNull: _result.NULLABLE === 'N' ? false : true,
             defaultValue: undefined,
