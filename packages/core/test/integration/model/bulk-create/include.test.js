@@ -354,6 +354,29 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         expect(persistedProducts[1].categories.length).to.equal(2);
       });
 
+      it('should bulkCreate data for HasMany relations only once with individualHooks', async function () {
+        const Product = this.sequelize.define('Product', {
+          title: DataTypes.STRING,
+        });
+        const Tag = this.sequelize.define('Tag', {
+          name: DataTypes.STRING,
+        });
+
+        Product.hasMany(Tag);
+
+        await this.sequelize.sync({ force: true });
+
+        await Product.bulkCreate(
+          [
+            { title: 'Chair', tags: [{ name: 'Alpha' }, { name: 'Beta' }] },
+            { title: 'Table', tags: [{ name: 'Gamma' }] },
+          ],
+          { include: [Tag], individualHooks: true },
+        );
+
+        expect(await Tag.count()).to.equal(3);
+      });
+
       it('should bulkCreate data for HasOne relations', async function () {
         const User = this.sequelize.define('User', {
           username: DataTypes.STRING,

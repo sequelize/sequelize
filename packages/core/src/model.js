@@ -2559,7 +2559,8 @@ ${associationOwner._getAssociationDebugList()}`);
         }
       }
 
-      if (options.include && options.include.length > 0) {
+      // with individualHooks, `instance.save` already created the non-BelongsTo includes
+      if (!options.individualHooks && options.include && options.include.length > 0) {
         await Promise.all(
           options.include
             .filter(
