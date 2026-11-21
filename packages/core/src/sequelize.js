@@ -826,13 +826,31 @@ Sequelize.prototype.QueryTypes = Sequelize.QueryTypes = QueryTypes;
  */
 Sequelize.prototype.Validator = Sequelize.Validator = Validator;
 
-Sequelize.Model = Model;
+/**
+ * These statics are exposed through lazy getters instead of plain assignments:
+ * `model.js` and `sequelize.js` import each other, so reading them eagerly here
+ * throws `ReferenceError: Cannot access 'Model' before initialization` when a
+ * module that imports `model.js` first (for example
+ * `@sequelize/core/decorators-legacy`) triggers this file's evaluation before
+ * `model.js` has finished initializing. The getters resolve the bindings on
+ * first access, by which time all modules have loaded.
+ * See https://github.com/sequelize/sequelize/issues/18558
+ */
+for (const [name, getValue] of [
+  ['Model', () => Model],
+  ['BelongsToAssociation', () => BelongsToAssociation],
+  ['HasOneAssociation', () => HasOneAssociation],
+  ['HasManyAssociation', () => HasManyAssociation],
+  ['BelongsToManyAssociation', () => BelongsToManyAssociation],
+]) {
+  Object.defineProperty(Sequelize, name, {
+    configurable: true,
+    enumerable: true,
+    get: getValue,
+  });
+}
 
 Sequelize.AbstractQueryInterface = AbstractQueryInterface;
-Sequelize.BelongsToAssociation = BelongsToAssociation;
-Sequelize.HasOneAssociation = HasOneAssociation;
-Sequelize.HasManyAssociation = HasManyAssociation;
-Sequelize.BelongsToManyAssociation = BelongsToManyAssociation;
 
 Sequelize.DataTypes = DataTypes;
 for (const dataTypeName in DataTypes) {
