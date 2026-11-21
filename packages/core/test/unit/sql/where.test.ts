@@ -4168,5 +4168,298 @@ Caused by: "undefined" cannot be escaped`),
         }
       });
     });
+
+    describe('attribute names containing non-reserved special characters', () => {
+      // A model can declare any attribute name that does not contain a character reserved by the attribute syntax
+      // ($ . : [ ] and control characters). These tests cover the whole chain for names that would be dangerous
+      // if they were not quoted: WHERE key -> attribute syntax parser -> column name mapping -> quoteIdentifier.
+      // The expectations are written out per dialect family (instead of using the [] placeholder)
+      // so that the exact escaping of the delimiter is pinned.
+      class SpecialNamesModel extends Model<InferAttributes<SpecialNamesModel>> {
+        declare 'café': number;
+        declare 'first-name': number;
+        declare 'a b': number;
+        declare 'a"b': number;
+        declare 'a`b': number;
+        declare "a'b": number;
+        declare '日本': number;
+        declare 'a;b': number;
+        declare 'a--b': number;
+        declare 'a/*b*/': number;
+        declare "a'; DROP TABLE users; --": number;
+        declare mappedToHostileColumn: number;
+        declare 'j"son': object | null;
+      }
+
+      before(() => {
+        SpecialNamesModel.init(
+          {
+            café: DataTypes.INTEGER,
+            'first-name': { type: DataTypes.INTEGER, columnName: 'first_name' },
+            'a b': DataTypes.INTEGER,
+            'a"b': DataTypes.INTEGER,
+            'a`b': DataTypes.INTEGER,
+            "a'b": DataTypes.INTEGER,
+            日本: { type: DataTypes.INTEGER, columnName: 'japan' },
+            'a;b': DataTypes.INTEGER,
+            'a--b': DataTypes.INTEGER,
+            'a/*b*/': DataTypes.INTEGER,
+            "a'; DROP TABLE users; --": DataTypes.INTEGER,
+            mappedToHostileColumn: { type: DataTypes.INTEGER, columnName: 'x"y`z]' },
+            ...(dialectSupportsJson() && { 'j"son': DataTypes.JSON }),
+          },
+          { sequelize, noPrimaryKey: true, timestamps: false },
+        );
+      });
+
+      const testSpecialSql = createTester(
+        (it, whereObj: WhereOptions<Attributes<SpecialNamesModel>>, expectations: Expectations) => {
+          it(util.inspect(whereObj, { depth: 10 }), () => {
+            const sqlOrError = attempt(() =>
+              queryGen.whereItemsQuery(whereObj, { model: SpecialNamesModel }),
+            );
+
+            return expectsql(sqlOrError, expectations);
+          });
+        },
+      );
+
+      const DOUBLE_QUOTES = 'postgres db2 ibmi snowflake oracle';
+      const BACKTICKS = 'mysql mariadb sqlite3';
+
+      // plain attributes, no column name mapping
+      testSpecialSql(
+        { café: 1 },
+        {
+          [DOUBLE_QUOTES]: `"café" = 1`,
+          [BACKTICKS]: '`café` = 1',
+          mssql: '[café] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { 'a b': 1 },
+        {
+          [DOUBLE_QUOTES]: `"a b" = 1`,
+          [BACKTICKS]: '`a b` = 1',
+          mssql: '[a b] = 1',
+        },
+      );
+
+      // the delimiter of the dialect is doubled, other delimiters are left alone
+      testSpecialSql(
+        { 'a"b': 1 },
+        {
+          [DOUBLE_QUOTES]: `"a""b" = 1`,
+          [BACKTICKS]: '`a"b` = 1',
+          mssql: '[a"b] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { 'a`b': 1 },
+        {
+          [DOUBLE_QUOTES]: '"a`b" = 1',
+          [BACKTICKS]: '`a``b` = 1',
+          mssql: '[a`b] = 1',
+        },
+      );
+
+      // single quotes delimit strings, not identifiers: never doubled inside an identifier
+      testSpecialSql(
+        { "a'b": 1 },
+        {
+          [DOUBLE_QUOTES]: `"a'b" = 1`,
+          [BACKTICKS]: "`a'b` = 1",
+          mssql: "[a'b] = 1",
+        },
+      );
+
+      testSpecialSql(
+        { 'a;b': 1 },
+        {
+          [DOUBLE_QUOTES]: `"a;b" = 1`,
+          [BACKTICKS]: '`a;b` = 1',
+          mssql: '[a;b] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { 'a--b': 1 },
+        {
+          [DOUBLE_QUOTES]: `"a--b" = 1`,
+          [BACKTICKS]: '`a--b` = 1',
+          mssql: '[a--b] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { 'a/*b*/': 1 },
+        {
+          [DOUBLE_QUOTES]: `"a/*b*/" = 1`,
+          [BACKTICKS]: '`a/*b*/` = 1',
+          mssql: '[a/*b*/] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { "a'; DROP TABLE users; --": 1 },
+        {
+          [DOUBLE_QUOTES]: `"a'; DROP TABLE users; --" = 1`,
+          [BACKTICKS]: "`a'; DROP TABLE users; --` = 1",
+          mssql: "[a'; DROP TABLE users; --] = 1",
+        },
+      );
+
+      // attributes mapped to a different column name: the column name is used
+      testSpecialSql(
+        { 'first-name': 1 },
+        {
+          [DOUBLE_QUOTES]: `"first_name" = 1`,
+          [BACKTICKS]: '`first_name` = 1',
+          mssql: '[first_name] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { 日本: 1 },
+        {
+          [DOUBLE_QUOTES]: `"japan" = 1`,
+          [BACKTICKS]: '`japan` = 1',
+          mssql: '[japan] = 1',
+        },
+      );
+
+      // column names are not restricted at all, they are quoted like any identifier
+      testSpecialSql(
+        { mappedToHostileColumn: 1 },
+        {
+          [DOUBLE_QUOTES]: '"x""y`z]" = 1',
+          [BACKTICKS]: '`x"y``z]` = 1',
+          mssql: '[x"y`z]]] = 1',
+        },
+      );
+
+      // operators
+      testSpecialSql(
+        { 'a"b': { [Op.gt]: 1, [Op.ne]: 2 } },
+        {
+          [DOUBLE_QUOTES]: `"a""b" > 1 AND "a""b" != 2`,
+          [BACKTICKS]: '`a"b` > 1 AND `a"b` != 2',
+          mssql: '[a"b] > 1 AND [a"b] != 2',
+        },
+      );
+
+      testSpecialSql(
+        { [Op.or]: [{ café: 1 }, { 'first-name': 2 }] },
+        {
+          [DOUBLE_QUOTES]: `"café" = 1 OR "first_name" = 2`,
+          [BACKTICKS]: '`café` = 1 OR `first_name` = 2',
+          mssql: '[café] = 1 OR [first_name] = 2',
+        },
+      );
+
+      // sql.attribute() goes through the same parser & mapping
+      testSpecialSql(where(attribute('a"b'), 1), {
+        [DOUBLE_QUOTES]: `"a""b" = 1`,
+        [BACKTICKS]: '`a"b` = 1',
+        mssql: '[a"b] = 1',
+      });
+
+      testSpecialSql(where(attribute('first-name'), Op.gt, 1), {
+        [DOUBLE_QUOTES]: `"first_name" > 1`,
+        [BACKTICKS]: '`first_name` > 1',
+        mssql: '[first_name] > 1',
+      });
+
+      testSpecialSql(where(attribute('a`b'), Op.eq, attribute("a'b")), {
+        [DOUBLE_QUOTES]: `"a\`b" = "a'b"`,
+        [BACKTICKS]: "`a``b` = `a'b`",
+        mssql: "[a`b] = [a'b]",
+      });
+
+      // casts & modifiers still apply
+      testSpecialSql(
+        { 'a"b::integer': 1 },
+        {
+          [DOUBLE_QUOTES]: `CAST("a""b" AS INTEGER) = 1`,
+          [BACKTICKS]: 'CAST(`a"b` AS INTEGER) = 1',
+          mssql: 'CAST([a"b] AS INTEGER) = 1',
+        },
+      );
+
+      // associations: each segment is quoted separately
+      testSpecialSql(
+        { '$café.first-name$': 1 },
+        {
+          [DOUBLE_QUOTES]: `"café"."first-name" = 1`,
+          [BACKTICKS]: '`café`.`first-name` = 1',
+          mssql: '[café].[first-name] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { '$a"b.c`d$': 1 },
+        {
+          [DOUBLE_QUOTES]: '"a""b"."c`d" = 1',
+          [BACKTICKS]: '`a"b`.`c``d` = 1',
+          mssql: '[a"b].[c`d] = 1',
+        },
+      );
+
+      testSpecialSql(
+        { "$a'; DROP TABLE users; --.b$": 1 },
+        {
+          [DOUBLE_QUOTES]: `"a'; DROP TABLE users; --"."b" = 1`,
+          [BACKTICKS]: "`a'; DROP TABLE users; --`.`b` = 1",
+          mssql: "[a'; DROP TABLE users; --].[b] = 1",
+        },
+      );
+
+      // keys that are not attributes of the model are quoted the same way
+      testSpecialSql(
+        // @ts-expect-error -- not an attribute of the model
+        { 'not"defined': 1 },
+        {
+          [DOUBLE_QUOTES]: `"not""defined" = 1`,
+          [BACKTICKS]: '`not"defined` = 1',
+          mssql: '[not"defined] = 1',
+        },
+      );
+
+      // reserved characters are still parsed as syntax
+      testSpecialSql(
+        // @ts-expect-error -- not an attribute of the model
+        { 'a:b': 1 },
+        {
+          default: new Error(
+            `"a:b": "b" is not a recognized built-in modifier. Here is the list of supported modifiers: unquote`,
+          ),
+        },
+      );
+
+      testSpecialSql(
+        // @ts-expect-error -- not an attribute of the model
+        { a$b: 1 },
+        {
+          default: new Error(`Failed to parse syntax of attribute. Parse error at index 1:
+"a$b"
+  ^`),
+        },
+      );
+
+      if (dialectSupportsJsonOperations() && dialectSupportsJsonQuotedExtraction()) {
+        testSpecialSql(
+          { 'j"son.nested': 'value' },
+          {
+            postgres: `"j""son"->'nested' = '"value"'`,
+            sqlite3: `json_extract(\`j"son\`,'$.nested') = '"value"'`,
+            mariadb: `json_compact(json_extract(\`j"son\`,'$.nested')) = '"value"'`,
+            mysql: `json_extract(\`j"son\`,'$.nested') = CAST('"value"' AS JSON)`,
+            oracle: `json_value("j""son",'$."nested"') = 'value'`,
+          },
+        );
+      }
+    });
   });
 });
