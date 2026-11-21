@@ -461,8 +461,10 @@ export class Transaction {
  * Pass in the desired level as the first argument:
  *
  * ```js
+ * import { IsolationLevel } from '@sequelize/core';
+ *
  * try {
- *   await sequelize.transaction({isolationLevel: Sequelize.Transaction.SERIALIZABLE}, transaction => {
+ *   await sequelize.transaction({isolationLevel: IsolationLevel.SERIALIZABLE}, transaction => {
  *      // your transactions
  *   });
  *   // transaction has been committed. Do something after the commit if required.
@@ -489,22 +491,22 @@ export enum TransactionType {
  *
  * Usage:
  * ```js
- * import { LOCK } from '@sequelize/core';
+ * import { Lock } from '@sequelize/core';
  *
  * Model.findAll({
  *   transaction,
- *   lock: LOCK.UPDATE,
+ *   lock: Lock.UPDATE,
  * });
  * ```
  *
  * Postgres also supports specific locks while eager loading by using OF:
  * ```js
- * import { LOCK } from '@sequelize/core';
+ * import { Lock } from '@sequelize/core';
  *
  * UserModel.findAll({
  *   transaction,
  *   lock: {
- *     level: LOCK.KEY_SHARE,
+ *     level: Lock.KEY_SHARE,
  *     of: UserModel,
  *   },
  * });
