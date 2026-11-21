@@ -4,7 +4,7 @@ import type {
   InferCreationAttributes,
   Model,
 } from '@sequelize/core';
-import { DataTypes, IndexHints, Op, TableHints, or, sql as sqlTag } from '@sequelize/core';
+import { DataTypes, IndexHints, Lock, Op, TableHints, or, sql as sqlTag } from '@sequelize/core';
 import { _validateIncludedElements } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { expect } from 'chai';
@@ -2581,5 +2581,71 @@ Only named replacements (:name) are allowed in literal() because we cannot guara
         },
       );
     });
+  });
+
+  describe('lock options', () => {
+    if (sequelize.dialect.supports.noWait) {
+      it('adds NOWAIT when "noWait" is enabled', () => {
+        const { User } = vars;
+
+        expectsql(
+          queryGenerator.selectQuery(
+            User.table,
+            { model: User, attributes: ['id'], lock: true, noWait: true },
+            User,
+          ),
+          {
+            default: `SELECT "id" FROM "Users" AS "User" FOR UPDATE NOWAIT;`,
+          },
+        );
+      });
+
+      it('adds NOWAIT after the lock level and "of" clause', () => {
+        const { User } = vars;
+
+        expectsql(
+          queryGenerator.selectQuery(
+            User.table,
+            {
+              model: User,
+              attributes: ['id'],
+              lock: { level: Lock.SHARE, of: User },
+              noWait: true,
+            },
+            User,
+          ),
+          {
+            default: `SELECT "id" FROM "Users" AS "User" FOR SHARE OF "User" NOWAIT;`,
+          },
+        );
+      });
+
+      it('does not add NOWAIT if "lock" is not set', () => {
+        const { User } = vars;
+
+        expectsql(
+          queryGenerator.selectQuery(
+            User.table,
+            { model: User, attributes: ['id'], noWait: true },
+            User,
+          ),
+          {
+            default: `SELECT "id" FROM "Users" AS "User";`,
+          },
+        );
+      });
+
+      it('throws if "noWait" and "skipLocked" are used together', () => {
+        const { User } = vars;
+
+        expect(() =>
+          queryGenerator.selectQuery(
+            User.table,
+            { model: User, attributes: ['id'], lock: true, noWait: true, skipLocked: true },
+            User,
+          ),
+        ).to.throw('The "skipLocked" and "noWait" options cannot be used together.');
+      });
+    }
   });
 });

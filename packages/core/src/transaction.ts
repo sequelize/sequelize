@@ -408,6 +408,19 @@ export class Transaction {
    *
    * The query will now return any rows that aren't locked by another transaction
    *
+   * @example You can also fail immediately instead of waiting for locked rows (Postgres only):
+   * ```ts
+   * // t1 is a transaction
+   * Model.findAll({
+   *   where: ...,
+   *   transaction: t1,
+   *   lock: true,
+   *   noWait: true
+   * });
+   * ```
+   *
+   * The query will now throw an error if any of the selected rows is locked by another transaction
+   *
    * @returns possible options for row locking
    * @property UPDATE
    * @property SHARE
