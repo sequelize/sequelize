@@ -162,6 +162,24 @@ describe('DataTypes.DATEONLY', () => {
         oracle: `TO_DATE('1970/01/01', 'YYYY/MM/DD')`,
       });
     });
+
+    it('preserves years below 100', () => {
+      expectsql(type.escape('0000-02-29'), {
+        default: `'0000-02-29'`,
+        mssql: `N'0000-02-29'`,
+        oracle: `TO_DATE('0000/02/29', 'YYYY/MM/DD')`,
+      });
+      expectsql(type.escape('0001-01-01'), {
+        default: `'0001-01-01'`,
+        mssql: `N'0001-01-01'`,
+        oracle: `TO_DATE('0001/01/01', 'YYYY/MM/DD')`,
+      });
+      expectsql(type.escape('0099-12-31'), {
+        default: `'0099-12-31'`,
+        mssql: `N'0099-12-31'`,
+        oracle: `TO_DATE('0099/12/31', 'YYYY/MM/DD')`,
+      });
+    });
   });
 
   describe('validate', () => {
@@ -177,6 +195,20 @@ describe('DataTypes.DATEONLY', () => {
     it('sanitizes a Date object or string to a string', () => {
       expect(type.sanitize(now)).to.equal(nowDateOnly);
       expect(type.sanitize(nowString)).to.equal(nowDateOnly);
+    });
+
+    it('preserves years below 100', () => {
+      expect(type.sanitize('0000-02-29')).to.equal('0000-02-29');
+      expect(type.sanitize('0001-01-01')).to.equal('0001-01-01');
+      expect(type.sanitize('0099-12-31')).to.equal('0099-12-31');
+      expect(type.sanitize('0100-01-01')).to.equal('0100-01-01');
+      expect(type.sanitize('0001-02-29')).to.equal('0001-03-01');
+      expect(type.sanitize('0001-01-01T00:30:00+01:00')).to.equal('0000-12-31');
+
+      const date = new Date(0);
+      date.setUTCFullYear(1, 0, 1);
+      expect(type.sanitize(date)).to.equal('0001-01-01');
+      expect(type.sanitize(date.valueOf())).to.equal('0001-01-01');
     });
 
     if (dialect.supports.dataTypes.DATEONLY.infinity) {

@@ -1531,6 +1531,22 @@ export class DATE extends AbstractDataType<AcceptedDate> {
   }
 }
 
+const LOW_YEAR_PREFIX = /^00\d{2}(?=-)/;
+
+function formatDateOnly(value: AcceptedDate): string {
+  if (typeof value !== 'string' || !LOW_YEAR_PREFIX.test(value)) {
+    return dayjs.utc(value).format('YYYY-MM-DD');
+  }
+
+  // Date.UTC treats years from 0 to 99 as 1900 to 1999. Parse the same date 2,000 years
+  // later, which preserves the Gregorian calendar and timezone offset, then restore the year.
+  const supportedYearValue = `${Number(value.slice(0, 4)) + 2000}${value.slice(4)}`;
+  const normalizedDate = dayjs.utc(supportedYearValue).toDate();
+  normalizedDate.setUTCFullYear(normalizedDate.getUTCFullYear() - 2000);
+
+  return dayjs.utc(normalizedDate).format('YYYY-MM-DD');
+}
+
 /**
  * A date only column (no timestamp)
  *
@@ -1554,7 +1570,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
   }
 
   toBindableValue(date: AcceptedDate) {
-    return dayjs.utc(date).format('YYYY-MM-DD');
+    return formatDateOnly(date);
   }
 
   sanitize(value: unknown): unknown {
@@ -1563,7 +1579,7 @@ export class DATEONLY extends AbstractDataType<AcceptedDate> {
     }
 
     if (value) {
-      return dayjs.utc(value).format('YYYY-MM-DD');
+      return formatDateOnly(value);
     }
 
     return value;
