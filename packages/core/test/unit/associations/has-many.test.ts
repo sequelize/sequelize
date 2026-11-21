@@ -422,4 +422,91 @@ describe(getTestDialectTeaser('hasMany'), () => {
       });
     });
   });
+
+  describe('raw plain objects', () => {
+    const rawVars = beforeAll2(() => {
+      class User extends Model<InferAttributes<User>> {
+        declare setTasks: HasManySetAssociationsMixin<Task, number>;
+        declare addTask: any;
+        declare addTasks: any;
+        declare getTasks: any;
+      }
+
+      class Task extends Model<InferAttributes<Task>> {
+        declare id: number;
+        declare title: string;
+        declare userId: ForeignKey<number> | null;
+      }
+
+      User.init({ username: DataTypes.STRING }, { sequelize });
+      Task.init({ title: DataTypes.STRING }, { sequelize });
+      User.hasMany(Task, { inverse: { as: 'tasks' } });
+
+      const user = User.build({ id: 1 });
+
+      return { User, Task, user };
+    });
+
+    let create: SinonStub;
+    let update: SinonStub;
+    let destroy: SinonStub;
+
+    beforeEach(() => {
+      const { Task } = rawVars;
+
+      create = sinon.stub(Task, 'create').resolves(Task.build({ id: 999 }));
+      update = sinon.stub(Task, 'update').resolves([1]);
+      destroy = sinon.stub(Task, 'destroy').resolves(1);
+    });
+
+    afterEach(() => {
+      create.restore();
+      update.restore();
+      destroy.restore();
+    });
+
+    it('add() accepts a raw plain object and creates the record', async () => {
+      const { user } = rawVars;
+
+      await user.addTask!({ title: 'raw task' });
+
+      expect(create).to.have.been.calledOnce;
+      expect(update).to.have.been.calledOnce;
+    });
+
+    it('add() accepts an array of raw plain objects and creates each', async () => {
+      const { user } = rawVars;
+
+      await user.addTasks!([{ title: 'task a' }, { title: 'task b' }]);
+
+      expect(create).to.have.been.calledTwice;
+      expect(update).to.have.been.calledTwice;
+    });
+
+    it('set() accepts a raw plain object and creates the record', async () => {
+      const { Task, user } = rawVars;
+
+      const findAll = sinon.stub(Task, 'findAll').resolves([]);
+      try {
+        await user.setTasks!([{ title: 'new task' }]);
+        expect(create).to.have.been.calledOnce;
+      } finally {
+        findAll.restore();
+      }
+    });
+
+    it('set() still works with primary key values (existing behavior)', async () => {
+      const { Task, user } = rawVars;
+
+      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({ id: 10, title: 'old' })]);
+      try {
+        await user.setTasks!([10]);
+        // Should update, not create
+        expect(create).to.not.have.been.called;
+        expect(update).to.have.been.called;
+      } finally {
+        findAll.restore();
+      }
+    });
+  });
 });
