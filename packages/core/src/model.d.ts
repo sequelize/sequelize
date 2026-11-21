@@ -109,7 +109,7 @@ export interface Filterable<TAttributes = any> {
   /**
    * The `WHERE` clause. Can be many things from a hash of attributes to raw SQL.
    *
-   * Visit {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information.
+   * Visit {@link https://sequelize.org/docs/v7/category/querying/} for more information.
    */
   where?: WhereOptions<TAttributes>;
 }
@@ -288,7 +288,7 @@ type StaticValues<Type> =
  *
  * @template AttributeType - The JS type of the attribute the operator is operating on.
  *
- * See https://sequelize.org/docs/v7/core-concepts/model-querying-basics/#operators
+ * See https://sequelize.org/docs/v7/querying/operators/
  */
 // TODO: default to something more strict than `any` which lists serializable values
 export interface WhereOperators<AttributeType = any> {
@@ -1896,7 +1896,7 @@ export type ModelAttributes<M extends Model = Model, TAttributes = any> = {
  *
  * Used by {@link Sequelize.define}, {@link Model.init}, and the {@link @sequelize/core!decorators-legacy.Table} decorator.
  *
- * @see https://sequelize.org/docs/v7/core-concepts/model-basics/
+ * @see https://sequelize.org/docs/v7/models/defining-models/
  */
 export interface ModelOptions<M extends Model = Model> {
   /**
@@ -2392,7 +2392,7 @@ export abstract class Model<
 
   /**
    * Search for multiple instances.
-   * See {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information about querying.
+   * See {@link https://sequelize.org/docs/v7/category/querying/} for more information about querying.
    *
    * __Example of a simple search:__
    * ```js
@@ -2708,7 +2708,7 @@ export abstract class Model<
    * Restores multiple paranoid instances.
    * Only usable if {@link ModelOptions.paranoid} is true.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See {@link https://sequelize.org/docs/v7/models/paranoid/} to learn more about soft deletion / paranoid models.
    */
   static restore<M extends Model>(
     this: ModelStatic<M>,
@@ -2808,7 +2808,7 @@ export abstract class Model<
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -2834,7 +2834,7 @@ export abstract class Model<
    * Creates an association between this (the source) and the provided target.
    * The foreign key is added on the source Model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -2860,7 +2860,7 @@ export abstract class Model<
    * Defines a 1:n association between two models.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -2886,7 +2886,7 @@ export abstract class Model<
    * Create an N:M association with a join table. Defining `through` is required.
    * The foreign key is added on the through model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -3092,7 +3092,7 @@ export abstract class Model<
    * Restores the row corresponding to this instance.
    * Only available for paranoid models.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See {@link https://sequelize.org/docs/v7/models/paranoid/} to learn more about soft deletion / paranoid models.
    */
   restore(options?: InstanceRestoreOptions): Promise<void>;
 
@@ -3167,7 +3167,7 @@ export abstract class Model<
    * Returns true if this instance is "soft deleted".
    * Throws an error if {@link ModelOptions.paranoid} is not enabled.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See {@link https://sequelize.org/docs/v7/models/paranoid/} to learn more about soft deletion / paranoid models.
    */
   isSoftDeleted(): boolean;
 }

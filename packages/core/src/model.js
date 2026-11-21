@@ -1339,7 +1339,7 @@ ${associationOwner._getAssociationDebugList()}`);
 
   /**
    * Search for multiple instances.
-   * See {@link https://sequelize.org/docs/v7/core-concepts/model-querying-basics/} for more information about querying.
+   * See {@link https://sequelize.org/docs/v7/category/querying/} for more information about querying.
    *
    * __Example of a simple search:__
    * ```js
@@ -4386,7 +4386,7 @@ Instead of specifying a Model, either:
    * Returns true if this instance is "soft deleted".
    * Throws an error if {@link ModelOptions.paranoid} is not enabled.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See {@link https://sequelize.org/docs/v7/models/paranoid/} to learn more about soft deletion / paranoid models.
    *
    * @returns {boolean}
    */
@@ -4410,7 +4410,7 @@ Instead of specifying a Model, either:
    * Restores the row corresponding to this instance.
    * Only available for paranoid models.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/paranoid/} to learn more about soft deletion / paranoid models.
+   * See {@link https://sequelize.org/docs/v7/models/paranoid/} to learn more about soft deletion / paranoid models.
    *
    * @param {object}      [options={}] restore options
    * @returns {Promise}
@@ -4577,7 +4577,7 @@ Instead of specifying a Model, either:
    * Defines a 1:n association between two models.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -4596,7 +4596,7 @@ Instead of specifying a Model, either:
    * Create an N:M association with a join table. Defining `through` is required.
    * The foreign keys are added on the through model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -4622,7 +4622,7 @@ Instead of specifying a Model, either:
    * Creates a 1:1 association between this model (the source) and the provided target.
    * The foreign key is added on the target model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript
@@ -4641,7 +4641,7 @@ Instead of specifying a Model, either:
    * Creates an association between this (the source) and the provided target.
    * The foreign key is added on the source Model.
    *
-   * See {@link https://sequelize.org/docs/v7/core-concepts/assocs/} to learn more about associations.
+   * See {@link https://sequelize.org/docs/v7/category/associations/} to learn more about associations.
    *
    * @example
    * ```javascript

@@ -446,16 +446,16 @@ export class Sequelize<
    * getters.
    *
    * For a list of possible data types, see
-   * https://sequelize.org/docs/v7/other-topics/other-data-types
+   * https://sequelize.org/docs/v7/models/data-types/
    *
    * For more about getters and setters, see
-   * https://sequelize.org/docs/v7/core-concepts/getters-setters-virtuals/
+   * https://sequelize.org/docs/v7/models/getters-setters-virtuals/
    *
    * For more about instance and class methods, see
-   * https://sequelize.org/docs/v7/core-concepts/model-basics/#taking-advantage-of-models-being-classes
+   * https://sequelize.org/docs/v7/models/defining-models/#model-methods
    *
    * For more about validation, see
-   * https://sequelize.org/docs/v7/core-concepts/validations-and-constraints/
+   * https://sequelize.org/docs/v7/models/validations-and-constraints/
    *
    * @param modelName  The name of the model. The model will be stored in `sequelize.models` under this name
    * @param attributes An object, where each attribute is a column of the table. Each column can be either a
