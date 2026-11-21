@@ -2990,7 +2990,7 @@ export abstract class Model<
    * association while also making sure that the proper include options have been set (from .build() or
    * .findOne())
    *
-   * If called with a dot.seperated key on a JSON/JSONB attribute it will set the value nested and flag the
+   * If called with a dot.separated key on a JSON/JSONB attribute it will set the value nested and flag the
    * entire object as changed.
    */
   // TODO: 'key' accepts nested paths for JSON values (json.property)

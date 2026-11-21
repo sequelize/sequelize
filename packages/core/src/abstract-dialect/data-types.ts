@@ -851,7 +851,7 @@ export class BaseIntegerDataType extends BaseNumberDataType<IntegerOptions> {
  *
  * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a SMALLINT or greater,
- *   with a CHECK constraint to ensure the value is withing the bounds of an 8-bit integer.
+ *   with a CHECK constraint to ensure the value is within the bounds of an 8-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  *
@@ -876,7 +876,7 @@ export class TINYINT extends BaseIntegerDataType {
  *
  * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a MEDIUMINT or greater,
- *   with a CHECK constraint to ensure the value is withing the bounds of an 16-bit integer.
+ *   with a CHECK constraint to ensure the value is within the bounds of an 16-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  *
@@ -901,7 +901,7 @@ export class SMALLINT extends BaseIntegerDataType {
  *
  * __Fallback policy:__
  * - If this type or its unsigned option is unsupported by the dialect, it will be replaced by a INTEGER (32 bits) or greater,
- *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
+ *   with a CHECK constraint to ensure the value is within the bounds of an 32-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  *
@@ -926,7 +926,7 @@ export class MEDIUMINT extends BaseIntegerDataType {
  *
  * __Fallback policy:__
  * - When this type or its unsigned option is unsupported by the dialect, it will be replaced by a BIGINT,
- *   with a CHECK constraint to ensure the value is withing the bounds of an 32-bit integer.
+ *   with a CHECK constraint to ensure the value is within the bounds of an 32-bit integer.
  * - If the zerofill option is unsupported by the dialect, an error will be raised.
  * - If the length option is unsupported by the dialect, it will be discarded.
  *
