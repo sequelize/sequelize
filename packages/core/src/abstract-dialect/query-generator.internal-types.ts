@@ -1,7 +1,8 @@
 import type { Nullish } from '@sequelize/utils';
 import type { Deferrable } from '../deferrable.js';
+import type { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
 import type { Literal } from '../expression-builders/literal.js';
-import type { ReferentialAction } from '../model.js';
+import type { GeneratedColumnOptions, ReferentialAction } from '../model.js';
 import type { BindOrReplacements } from '../sequelize.js';
 import type { NormalizedDataType } from './data-types.js';
 import type { TableOrModel } from './query-generator.types.js';
@@ -58,6 +59,7 @@ export interface AttributeToSqlColumn {
   defaultValue?: unknown;
   unique?: boolean | string;
   comment?: string | null;
+  generatedAs?: BaseSqlExpression | GeneratedColumnOptions;
 
   /**
    * The model the column belongs to, when it comes from one. mssql and oracle read it to detect

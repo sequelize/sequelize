@@ -1,4 +1,5 @@
 import type { Deferrable } from '../deferrable';
+import type { GeneratedColumnOptions } from '../model';
 import type { QueryRawOptions } from '../sequelize';
 import type { IsolationLevel } from '../transaction';
 import type {
@@ -30,6 +31,8 @@ export interface ColumnDescription {
   primaryKey: boolean;
   autoIncrement: boolean;
   comment: string | null;
+  /** Only reported by sqlite3 */
+  generatedAs?: GeneratedColumnOptions;
 }
 
 export type ColumnsDescription = Record<string, ColumnDescription>;

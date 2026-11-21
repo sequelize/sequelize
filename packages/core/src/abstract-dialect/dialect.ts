@@ -294,6 +294,11 @@ export type DialectSupports = {
   delete: {
     limit: boolean;
   };
+  /** Which kinds of generated columns (the `generatedAs` attribute option) the dialect supports */
+  generatedColumns: {
+    stored: boolean;
+    virtual: boolean;
+  };
 };
 
 type TypeParser = (...params: any[]) => unknown;
@@ -526,6 +531,10 @@ export abstract class AbstractDialect<
     },
     delete: {
       limit: true,
+    },
+    generatedColumns: {
+      stored: false,
+      virtual: false,
     },
   });
 

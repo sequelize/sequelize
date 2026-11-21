@@ -13,6 +13,7 @@ export const AutoIncrement = Pkg.AutoIncrement;
 export const ColumnName = Pkg.ColumnName;
 export const Comment = Pkg.Comment;
 export const Default = Pkg.Default;
+export const GeneratedAs = Pkg.GeneratedAs;
 export const NotNull = Pkg.NotNull;
 export const PrimaryKey = Pkg.PrimaryKey;
 export const Unique = Pkg.Unique;

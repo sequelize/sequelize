@@ -109,3 +109,110 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
     });
   }
 }
+
+// quoted strings, quoted identifiers and comments, which scanSql skips
+const CLOSING_DELIMITERS = new Map([
+  ["'", "'"],
+  ['"', '"'],
+  ['`', '`'],
+  ['[', ']'],
+  ['--', '\n'],
+  ['/*', '*/'],
+]);
+
+/**
+ * Calls `visit` with each character of `sql` that is not inside a quoted string, quoted identifier or comment,
+ * and the parenthesis depth once that character is read, until `visit` returns true.
+ *
+ * @param sql
+ * @param start index to start reading at
+ * @param visit
+ * @returns the index `visit` returned true at, or -1
+ */
+function scanSql(
+  sql: string,
+  start: number,
+  visit: (char: string, index: number, depth: number) => boolean,
+): number {
+  let depth = 0;
+  for (let i = start; i < sql.length; i++) {
+    const opening = ['--', '/*'].find(delimiter => sql.startsWith(delimiter, i)) ?? sql[i];
+    const closing = CLOSING_DELIMITERS.get(opening);
+    if (closing) {
+      // an escaped quote ('it''s') is read as two adjacent quoted strings
+      const closingIndex = sql.indexOf(closing, i + opening.length);
+      if (closingIndex === -1) {
+        return -1;
+      }
+
+      i = closingIndex + closing.length - 1;
+      continue;
+    }
+
+    if (sql[i] === '(') {
+      depth++;
+    } else if (sql[i] === ')') {
+      depth--;
+    }
+
+    if (visit(sql[i], i, depth)) {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+/**
+ * Returns the expression of each generated column declared in a CREATE TABLE statement, keyed by column name.
+ * SQLite keeps these expressions nowhere but in the statement it stores in sqlite_master.
+ *
+ * @param createTableSql
+ */
+export function getGeneratedColumnExpressions(createTableSql: string): Map<string, string> {
+  // the column definitions are the comma-separated parts of the outermost parentheses
+  const definitions: string[] = [];
+  let definitionStart = -1;
+  scanSql(createTableSql, 0, (char, index, depth) => {
+    if (depth === 1 && (char === '(' || char === ',')) {
+      if (definitionStart !== -1) {
+        definitions.push(createTableSql.slice(definitionStart, index));
+      }
+
+      definitionStart = index + 1;
+    } else if (depth === 0 && char === ')') {
+      definitions.push(createTableSql.slice(definitionStart, index));
+
+      return true;
+    }
+
+    return false;
+  });
+
+  const expressions = new Map<string, string>();
+  for (const definition of definitions) {
+    const name = /^\s*(?:"((?:[^"]|"")*)"|`((?:[^`]|``)*)`|\[([^\]]*)]|(\S+))/.exec(definition)!;
+
+    // the generation clause is "[GENERATED ALWAYS] AS (expression)"
+    const asIndex = scanSql(
+      definition,
+      name[0].length,
+      (char, index, depth) =>
+        depth === 0 &&
+        /[\s)]/.test(definition[index - 1]) &&
+        /^as\s*\(/i.test(definition.slice(index)),
+    );
+    if (asIndex === -1) {
+      continue;
+    }
+
+    const open = definition.indexOf('(', asIndex);
+    const close = scanSql(definition, open, (char, _index, depth) => char === ')' && depth === 0);
+    expressions.set(
+      name[1]?.replaceAll('""', '"') ?? name[2]?.replaceAll('``', '`') ?? name[3] ?? name[4],
+      definition.slice(open + 1, close),
+    );
+  }
+
+  return expressions;
+}
