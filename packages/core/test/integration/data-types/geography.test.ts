@@ -91,6 +91,50 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       expect(user.geography).to.deep.eq(point2);
     });
 
+    it('should create geography objects with bulkCreate', async () => {
+      const point: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+
+      await vars.User.bulkCreate([{ geography: point }]);
+      const user = await vars.User.findOne({ rejectOnEmpty: true });
+      expect(user.geography).to.deep.eq(point);
+    });
+
+    it('can compare geography objects', async () => {
+      const point1: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+      const point2: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [-76.984_722, 39.807_222],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+
+      await vars.User.create({ geography: point1 });
+      await vars.User.create({ geography: point2 });
+
+      const users = await vars.User.findAll({ where: { geography: point1 } });
+      expect(users.map(user => user.geography)).to.deep.eq([point1]);
+    });
+
+    it('should properly escape single quotes in inlined values', async () => {
+      const point: GeoJsonPoint = {
+        type: 'Point',
+        properties: {
+          exploit: "'); DELETE YOLO INJECTIONS; -- ",
+        },
+        coordinates: [39.807_222, -76.984_722],
+      };
+
+      await vars.User.bulkCreate([{ geography: point }]);
+      expect(await vars.User.count({ where: { geography: point } })).to.eq(1);
+    });
+
     it('should properly escape single quotes', async () => {
       await vars.User.create({
         geography: {
