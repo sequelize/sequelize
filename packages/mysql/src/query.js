@@ -111,7 +111,9 @@ export class MySqlQuery extends AbstractQuery {
         if (
           data.constructor.name === 'ResultSetHeader' &&
           modelDefinition?.autoIncrementAttributeName &&
-          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute
+          modelDefinition?.autoIncrementAttributeName === this.model.primaryKeyAttribute &&
+          !this.options.updateOnDuplicate &&
+          !this.options.ignoreDuplicates
         ) {
           const startId = data[this.getInsertIdField()];
           result = [];
