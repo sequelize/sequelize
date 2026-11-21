@@ -102,6 +102,105 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.mood).to.equal('happy');
       });
 
+      it('persists changes made in beforeValidate', async function () {
+        this.User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await this.User.create({ username: 'fireninja', mood: 'sad' });
+        user.username = 'hero';
+        await user.save();
+        await user.reload();
+        expect(user.mood).to.equal('happy');
+      });
+
+      it('increments the version when beforeValidate changes a clean instance', async function () {
+        const User = this.sequelize.define(
+          'VersionedUser',
+          { mood: DataTypes.STRING },
+          { version: true },
+        );
+        await User.sync({ force: true });
+
+        User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await User.create({ mood: 'sad' });
+        await user.save();
+        expect(user.version).to.equal(1);
+        await user.reload();
+        expect(user.mood).to.equal('happy');
+        expect(user.version).to.equal(1);
+      });
+
+      it('persists changes made in beforeValidate after beforeSave', async function () {
+        this.User.beforeSave(user => {
+          if (!user.isNewRecord) {
+            user.username = 'hero';
+          }
+        });
+        this.User.beforeValidate(user => {
+          if (user.username === 'hero') {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await this.User.create({ username: 'fireninja', mood: 'sad' });
+        await user.save();
+        await user.reload();
+        expect(user.username).to.equal('hero');
+        expect(user.mood).to.equal('happy');
+      });
+
+      it('persists beforeValidate changes to dirty attributes excluded from update', async function () {
+        this.User.beforeSave(user => {
+          if (!user.isNewRecord) {
+            user.username = 'hero';
+          }
+        });
+        this.User.beforeValidate(user => {
+          if (user.username === 'hero') {
+            user.mood = 'happy';
+          }
+        });
+
+        const user = await this.User.create({ username: 'fireninja', mood: 'sad' });
+        user.mood = 'neutral';
+        await user.update({ username: 'other' });
+        await user.reload();
+        expect(user.username).to.equal('hero');
+        expect(user.mood).to.equal('happy');
+      });
+
+      it('persists nested JSON changes made in beforeValidate', async function () {
+        if (!this.sequelize.dialect.supports.dataTypes.JSON) {
+          this.skip();
+        }
+
+        const User = this.sequelize.define('JsonUser', {
+          username: DataTypes.STRING,
+          settings: DataTypes.JSON,
+        });
+        await User.sync({ force: true });
+
+        User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.set('settings.status', 'happy');
+          }
+        });
+
+        const user = await User.create({ username: 'fireninja', settings: { status: 'sad' } });
+        user.username = 'hero';
+        await user.save();
+        await user.reload();
+        expect(user.settings).to.deep.equal({ status: 'happy' });
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';
