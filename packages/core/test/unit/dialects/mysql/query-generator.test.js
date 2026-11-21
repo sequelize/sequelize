@@ -45,6 +45,10 @@ if (dialect === 'mysql') {
           expectation: { id: 'INTEGER PRIMARY KEY' },
         },
         {
+          arguments: [{ id: { type: 'INTEGER PRIMARY KEY', allowNull: true } }],
+          expectation: { id: 'INTEGER PRIMARY KEY' },
+        },
+        {
           arguments: [{ id: { type: 'INTEGER', primaryKey: true, autoIncrement: true } }],
           expectation: { id: 'INTEGER auto_increment PRIMARY KEY' },
         },
