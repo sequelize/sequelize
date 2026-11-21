@@ -53,6 +53,7 @@ export class MariaDbDialect extends AbstractDialect<
   MariaDbConnectionOptions
 > {
   static supports = AbstractDialect.extendSupport({
+    generatedColumns: { stored: true, virtual: true },
     maxTableAliasLength: 256,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,

@@ -22,6 +22,7 @@ const numericOptions: SupportableNumericOptions = {
 
 export class OracleDialect extends AbstractDialect<OracleDialectOptions, OracleConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
+    generatedColumns: { stored: false, virtual: true },
     maxTableAliasLength: 128,
     'VALUES ()': true,
     'LIMIT ON UPDATE': true,

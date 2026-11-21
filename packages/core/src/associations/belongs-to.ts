@@ -200,9 +200,13 @@ export class BelongsToAssociation<
       newReference.key = this.targetKeyField;
 
       newForeignKeyAttribute.references = newReference;
-      newForeignKeyAttribute.onDelete ??=
-        newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
-      newForeignKeyAttribute.onUpdate ??= newForeignKeyAttribute.onUpdate ?? 'CASCADE';
+
+      // databases reject SET NULL and ON UPDATE CASCADE on generated columns, so they keep the database default
+      if ((existingForeignKey?.generatedAs ?? newForeignKeyAttribute.generatedAs) == null) {
+        newForeignKeyAttribute.onDelete ??=
+          newForeignKeyAttribute.allowNull !== false ? 'SET NULL' : 'CASCADE';
+        newForeignKeyAttribute.onUpdate ??= newForeignKeyAttribute.onUpdate ?? 'CASCADE';
+      }
     }
 
     this.source.mergeAttributesDefault({

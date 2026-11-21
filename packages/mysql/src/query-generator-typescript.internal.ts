@@ -201,6 +201,11 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
     const sqlType = attributeTypeToSql(attribute.type);
     let template = sqlType;
 
+    const generated = this.getGeneratedColumn(attribute);
+    if (generated) {
+      template += ` GENERATED ALWAYS AS (${generated.expression}) ${generated.stored ? 'STORED' : 'VIRTUAL'}`;
+    }
+
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
     }
