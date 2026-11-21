@@ -651,7 +651,10 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'INTEGER', comment: 'Test' },
     {
       default: "INTEGER COMMENT 'Test'",
-      'postgres db2': 'INTEGER COMMENT Test',
+      postgres: 'INTEGER COMMENT Test',
+      // DB2 has no inline column COMMENT in CREATE TABLE;
+      // Db2QueryInterface#createTable applies comments separately
+      db2: 'INTEGER',
       'sqlite3 ibmi': 'INTEGER',
       mssql: 'INTEGER NULL COMMENT Test',
       oracle: 'INTEGER NULL',
