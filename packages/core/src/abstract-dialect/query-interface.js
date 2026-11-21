@@ -541,6 +541,7 @@ export class AbstractQueryInterface extends AbstractQueryInterfaceTypeScript {
     }
 
     options = { ...options, type: QueryTypes.INSERT };
+    options.hasTrigger = options.model?.modelDefinition?.options.hasTrigger;
 
     const sql = this.queryGenerator.bulkInsertQuery(tableName, records, options, attributes);
 
