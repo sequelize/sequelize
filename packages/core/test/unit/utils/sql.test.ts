@@ -1,6 +1,8 @@
 import type { AbstractDialect } from '@sequelize/core';
 import { sql as sqlTag } from '@sequelize/core';
 import {
+  findForeignKeyReference,
+  hasForeignKeyReference,
   injectReplacements,
   mapBindParameters,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
@@ -1096,6 +1098,81 @@ SELECT * FROM users WHERE id = '\\\\\\' ?' OR id = ?`),
           (N'john', N'john@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10'),
           (N'michael', N'michael@gmail.com', N'2012-01-01 10:10:10', N'2012-01-01 10:10:10');`,
     });
+  });
+});
+
+describe('hasForeignKeyReference', () => {
+  it('detects a REFERENCES clause', () => {
+    expect(hasForeignKeyReference('INTEGER REFERENCES `levels` (`id`) ON DELETE CASCADE')).to.equal(
+      true,
+    );
+  });
+
+  it('detects a REFERENCES clause that follows a string literal', () => {
+    expect(hasForeignKeyReference("VARCHAR(10) DEFAULT 'it''s' REFERENCES levels (id)")).to.equal(
+      true,
+    );
+  });
+
+  it('ignores REFERENCES inside single-quoted string literals', () => {
+    expect(hasForeignKeyReference("ENUM('REFERENCES')")).to.equal(false);
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'REFERENCES'")).to.equal(false);
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'a REFERENCES b'")).to.equal(false);
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'it''s REFERENCES'")).to.equal(false);
+  });
+
+  it('ignores words that merely contain REFERENCES', () => {
+    expect(hasForeignKeyReference("ENUM('PREFERENCES')")).to.equal(false);
+  });
+
+  it('ignores REFERENCES after a backslash-escaped quote when backslash escapes are enabled', () => {
+    expect(
+      hasForeignKeyReference("ENUM('it\\'s REFERENCES')", { backslashEscapes: true }),
+    ).to.equal(false);
+  });
+
+  it('treats a backslash before a closing quote as a complete literal by default', () => {
+    expect(hasForeignKeyReference("VARCHAR(255) DEFAULT 'C:\\' REFERENCES users (id)")).to.equal(
+      true,
+    );
+  });
+
+  it('detects a REFERENCES clause after an escaped backslash when backslash escapes are enabled', () => {
+    expect(
+      hasForeignKeyReference("VARCHAR(255) DEFAULT 'a\\\\' REFERENCES users (id) COMMENT 'x'", {
+        backslashEscapes: true,
+      }),
+    ).to.equal(true);
+  });
+});
+
+describe('findForeignKeyReference', () => {
+  it('returns the index of REFERENCES when there is no literal', () => {
+    expect(findForeignKeyReference('INTEGER REFERENCES levels (id)')).to.equal(8);
+  });
+
+  it('returns the index of the REFERENCES clause that follows a literal containing REFERENCES', () => {
+    const definition = "VARCHAR(255) DEFAULT 'REFERENCES' REFERENCES levels (id)";
+
+    expect(findForeignKeyReference(definition)).to.equal(definition.lastIndexOf('REFERENCES'));
+  });
+
+  it('returns the index of the REFERENCES clause after a doubled-quote escape in a literal', () => {
+    const definition = "DEFAULT 'it''s REFERENCES' REFERENCES levels (id)";
+
+    expect(findForeignKeyReference(definition)).to.equal(definition.lastIndexOf('REFERENCES'));
+  });
+
+  it('returns -1 when REFERENCES only appears inside a literal', () => {
+    expect(findForeignKeyReference("ENUM('REFERENCES')")).to.equal(-1);
+  });
+
+  it('returns the index of the REFERENCES clause after a backslash-escaped quote when backslash escapes are enabled', () => {
+    const definition = "ENUM('it\\'s REFERENCES') REFERENCES levels (id)";
+
+    expect(findForeignKeyReference(definition, { backslashEscapes: true })).to.equal(
+      definition.lastIndexOf('REFERENCES'),
+    );
   });
 });
 

@@ -9,7 +9,10 @@ import {
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { removeNullishValuesFromHash } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/format.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
-import { createBindParamGenerator } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
+import {
+  createBindParamGenerator,
+  hasForeignKeyReference,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { removeTrailingSemicolon } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/string.js';
 import { pojo } from '@sequelize/utils';
 import defaults from 'lodash/defaults';
@@ -79,7 +82,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
         if (includes(dataType, 'PRIMARY KEY')) {
           primaryKeys.push(attr);
 
-          if (includes(dataType, 'REFERENCES')) {
+          if (hasForeignKeyReference(dataType)) {
             // Db2 doesn't support inline REFERENCES declarations: move to the end
             match = dataType.match(/^(.+) (REFERENCES.*)$/);
             attrStr.push(`${this.quoteIdentifier(attr)} ${match[1].replace(/PRIMARY KEY/, '')}`);
@@ -87,7 +90,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
           } else {
             attrStr.push(`${this.quoteIdentifier(attr)} ${dataType.replace(/PRIMARY KEY/, '')}`);
           }
-        } else if (includes(dataType, 'REFERENCES')) {
+        } else if (hasForeignKeyReference(dataType)) {
           // Db2 doesn't support inline REFERENCES declarations: move to the end
           match = dataType.match(/^(.+) (REFERENCES.*)$/);
           attrStr.push(`${this.quoteIdentifier(attr)} ${match[1]}`);
@@ -198,7 +201,7 @@ export class Db2QueryGenerator extends Db2QueryGeneratorTypeScript {
       }
 
       for (const definition of defs) {
-        if (/REFERENCES/.test(definition)) {
+        if (hasForeignKeyReference(definition)) {
           constraintString.push(
             template(
               '<%= fkName %> FOREIGN KEY (<%= attrName %>) <%= definition %>',

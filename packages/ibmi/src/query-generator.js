@@ -9,6 +9,7 @@ import { BaseSqlExpression } from '@sequelize/core/_non-semver-use-at-your-own-r
 import { conformIndex } from '@sequelize/core/_non-semver-use-at-your-own-risk_/model-internals.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { hasForeignKeyReference } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import {
   nameIndex,
   removeTrailingSemicolon,
@@ -134,7 +135,7 @@ export class IBMiQueryGenerator extends IBMiQueryGeneratorTypeScript {
 
     for (const attributeName in attributes) {
       let definition = attributes[attributeName];
-      if (definition.includes('REFERENCES')) {
+      if (hasForeignKeyReference(definition)) {
         const attrName = this.quoteIdentifier(attributeName);
         definition = definition.replace(/.+?(?=REFERENCES)/, '');
         const foreignKey = this.quoteIdentifier(`${attributeName}`);
