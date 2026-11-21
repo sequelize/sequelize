@@ -13,6 +13,7 @@ export { InvalidConnectionError } from './connection/invalid-connection-error';
 export { DatabaseError } from './database-error';
 export { ExclusionConstraintError } from './database/exclusion-constraint-error';
 export { ForeignKeyConstraintError } from './database/foreign-key-constraint-error';
+export { SerializationError } from './database/serialization-error';
 export { TimeoutError } from './database/timeout-error';
 export { UnknownConstraintError } from './database/unknown-constraint-error';
 export { EagerLoadingError } from './eager-loading-error';

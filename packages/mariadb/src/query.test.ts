@@ -1,4 +1,10 @@
-import { DataTypes, Sequelize } from '@sequelize/core';
+import {
+  DataTypes,
+  DatabaseError,
+  Sequelize,
+  SerializationError,
+  UniqueConstraintError,
+} from '@sequelize/core';
 import { MariaDbDialect, MariaDbQuery } from '@sequelize/mariadb';
 import { expect } from 'chai';
 
@@ -123,5 +129,42 @@ describe('MariaDbQuery#handleJsonSelectQuery', () => {
     query.handleJsonSelectQuery(Object.assign(rows, { meta: [] }));
 
     expect(rows[0].data).to.equal('{"a":1}');
+  });
+});
+
+describe('MariaDbQuery#formatError', () => {
+  const sequelize = new Sequelize({ dialect: MariaDbDialect });
+
+  function format(error: { errno: number; message: string; sqlState?: string }) {
+    const query = new MariaDbQuery({}, sequelize, { plain: false, raw: false });
+
+    return query.formatError(Object.assign(new Error(error.message), error));
+  }
+
+  it('maps a duplicate entry to a UniqueConstraintError', () => {
+    const error = format({
+      errno: 1062,
+      sqlState: '23000',
+      message: `Duplicate entry 'winner' for key 'uniqueName'`,
+    });
+
+    expect(error).to.be.an.instanceOf(UniqueConstraintError);
+  });
+
+  it('maps a record-changed error to a SerializationError', () => {
+    const error = format({
+      errno: 1020,
+      sqlState: 'HY000',
+      message: `Record has changed since last read in table 'Users'`,
+    });
+
+    expect(error).to.be.an.instanceOf(SerializationError);
+  });
+
+  it('maps an unrecognised error to a DatabaseError', () => {
+    const error = format({ errno: 1064, message: 'You have an error in your SQL syntax' });
+
+    expect(error).to.be.an.instanceOf(DatabaseError);
+    expect(error).to.not.be.an.instanceOf(SerializationError);
   });
 });

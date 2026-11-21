@@ -5,6 +5,7 @@ import {
   DataTypes,
   DatabaseError,
   ForeignKeyConstraintError,
+  SerializationError,
   UniqueConstraintError,
   UnknownConstraintError,
   ValidationErrorItem,
@@ -14,6 +15,7 @@ import { inspect } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import zipObject from 'lodash/zipObject';
 
+const ER_CHECKREAD = 1020;
 const ER_DUP_ENTRY = 1062;
 const ER_DEADLOCK = 1213;
 const ER_ROW_IS_REFERENCED = 1451;
@@ -288,6 +290,9 @@ export class MariaDbQuery extends AbstractQuery {
           cause: err,
         });
       }
+
+      case ER_CHECKREAD:
+        return new SerializationError(err);
 
       default:
         return new DatabaseError(err);
