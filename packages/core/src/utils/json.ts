@@ -8,8 +8,10 @@ function quoteJsonPathIdentifier(identifier: string): string {
     return identifier;
   }
 
-  // Escape backslashes and double quotes
-  return `"${identifier.replaceAll(/["\\]/g, s => `\\${s}`)}"`;
+  // Quoted JSON path keys use JSON string escaping.
+  // Besides backslashes and double quotes, control characters (e.g. newlines) must be escaped too:
+  // mysql rejects a path containing a raw newline, and mariadb silently returns NULL for it.
+  return JSON.stringify(identifier);
 }
 
 /**
