@@ -9,6 +9,7 @@ import {
   ValidationErrorItem,
 } from '@sequelize/core';
 import { logger } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/logger.js';
+import { markGeneratedDefaultColumn } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import { inspect } from '@sequelize/utils';
 import forOwn from 'lodash/forOwn';
 import map from 'lodash/map';
@@ -151,6 +152,14 @@ export class MySqlQuery extends AbstractQuery {
             Object.hasOwn(_result, 'Extra') && _result.Extra.toLowerCase() === 'auto_increment',
           comment: _result.Comment ? _result.Comment : null,
         };
+
+        if (
+          _result.Default != null &&
+          Object.hasOwn(_result, 'Extra') &&
+          /\bdefault_generated\b/i.test(_result.Extra)
+        ) {
+          markGeneratedDefaultColumn(result[_result.Field]);
+        }
       }
 
       return result;

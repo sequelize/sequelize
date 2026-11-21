@@ -5,6 +5,7 @@ import type { EscapeOptions } from '../abstract-dialect/query-generator-typescri
 import type { AddLimitOffsetOptions } from '../abstract-dialect/query-generator.internal-types.js';
 import type { AbstractQueryGenerator } from '../abstract-dialect/query-generator.js';
 import { BaseSqlExpression } from '../expression-builders/base-sql-expression.js';
+import { literal } from '../expression-builders/literal.js';
 import type { BindOrReplacements, QueryRawOptions, Sequelize } from '../sequelize.js';
 
 type OnBind = (oldName: string) => string;
@@ -564,4 +565,110 @@ export function createBindParamGenerator(
 
     return `$${bindName}`;
   };
+}
+
+const generatedDefaultColumns = new WeakSet<object>();
+const MYSQL_MARIADB_TEMPORAL_COLUMN_RE = /^(?:DATETIME|TIMESTAMP)(?:\(\s*\d*\s*\))?$/i;
+const CURRENT_TIMESTAMP_DEFAULT_RE = /^CURRENT_TIMESTAMP(?:\(\s*(\d*)\s*\))?$/i;
+
+/**
+ * Marks a described column whose default value is a SQL expression or keyword rather than a string literal.
+ *
+ * @param column The column description object produced while parsing a describe query.
+ */
+export function markGeneratedDefaultColumn(column: object): void {
+  generatedDefaultColumns.add(column);
+}
+
+/**
+ * Returns whether the described column was marked as having a generated expression default.
+ *
+ * @param column The column description object produced while parsing a describe query.
+ *
+ * @returns True when the column default is a generated SQL expression.
+ */
+export function isGeneratedDefaultColumn(column: object): boolean {
+  return generatedDefaultColumns.has(column);
+}
+
+function normalizeMySqlMariaDbCurrentTimestampDefault(
+  defaultValue: unknown,
+  type: unknown,
+): string | null {
+  if (typeof type !== 'string' || !MYSQL_MARIADB_TEMPORAL_COLUMN_RE.test(type.trim())) {
+    return null;
+  }
+
+  if (typeof defaultValue !== 'string') {
+    return null;
+  }
+
+  const match = defaultValue.trim().match(CURRENT_TIMESTAMP_DEFAULT_RE);
+  if (!match) {
+    return null;
+  }
+
+  const precision = match[1];
+
+  return precision ? `CURRENT_TIMESTAMP(${precision})` : 'CURRENT_TIMESTAMP';
+}
+
+/**
+ * Resolves a column description's default value into a representation safe for column DDL generation.
+ *
+ * @param column The column description returned by describeTable.
+ * @param column.type The SQL column type string from describeTable.
+ * @param column.defaultValue The raw default value from describeTable.
+ *
+ * @returns The normalized keyword, literal expression, or original default value.
+ */
+export function resolveDescribedDefaultValue(column: {
+  type?: unknown;
+  defaultValue?: unknown;
+}): unknown {
+  if (column.defaultValue == null) {
+    return column.defaultValue;
+  }
+
+  const currentTimestampDefault = normalizeMySqlMariaDbCurrentTimestampDefault(
+    column.defaultValue,
+    column.type,
+  );
+  if (currentTimestampDefault !== null) {
+    return currentTimestampDefault;
+  }
+
+  if (typeof column.defaultValue === 'string' && isGeneratedDefaultColumn(column)) {
+    return literal(column.defaultValue);
+  }
+
+  return column.defaultValue;
+}
+
+/**
+ * Formats a MySQL or MariaDB column DEFAULT clause expression, preserving CURRENT_TIMESTAMP
+ * keywords without quotes and parenthesizing SQL expression defaults.
+ *
+ * @param defaultValue The attribute's raw or expression defaultValue.
+ * @param type The normalized or raw SQL type of the attribute.
+ * @param escapeValue Dialect-bound escape function for literal values.
+ * @param parenthesizeAll Whether the column type requires parentheses around every default.
+ *
+ * @returns The SQL fragment to place after DEFAULT.
+ */
+export function formatMySqlMariaDbDefaultValue(
+  defaultValue: unknown,
+  type: unknown,
+  escapeValue: (value: unknown) => string,
+  parenthesizeAll = false,
+): string {
+  const currentTimestampDefault = normalizeMySqlMariaDbCurrentTimestampDefault(defaultValue, type);
+  if (currentTimestampDefault !== null) {
+    return parenthesizeAll ? `(${currentTimestampDefault})` : currentTimestampDefault;
+  }
+
+  const escaped = escapeValue(defaultValue);
+  const needsParentheses = parenthesizeAll || defaultValue instanceof BaseSqlExpression;
+
+  return needsParentheses ? `(${escaped})` : escaped;
 }
