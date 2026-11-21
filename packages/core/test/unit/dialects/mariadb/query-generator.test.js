@@ -34,7 +34,15 @@ if (dialect === 'mariadb') {
         },
         {
           arguments: [{ id: { type: 'INTEGER', allowNull: true } }],
-          expectation: { id: 'INTEGER' },
+          expectation: { id: 'INTEGER NULL' },
+        },
+        {
+          arguments: [{ id: { type: 'TIMESTAMP', allowNull: true } }],
+          expectation: { id: 'TIMESTAMP NULL' },
+        },
+        {
+          arguments: [{ id: { type: 'INTEGER', allowNull: true, primaryKey: true } }],
+          expectation: { id: 'INTEGER PRIMARY KEY' },
         },
         {
           arguments: [{ id: { type: 'INTEGER', primaryKey: true, autoIncrement: true } }],

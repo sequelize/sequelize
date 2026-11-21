@@ -187,6 +187,10 @@ export class MySqlQueryGenerator extends MySqlQueryGeneratorTypeScript {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
+    } else if (attribute.allowNull === true && !attribute.primaryKey) {
+      // TIMESTAMP columns are NOT NULL by default unless explicit_defaults_for_timestamp is enabled,
+      // so nullability must be explicit for them to accept NULL.
+      template += ' NULL';
     }
 
     if (attribute.autoIncrement) {
