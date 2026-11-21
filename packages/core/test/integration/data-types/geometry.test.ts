@@ -17,7 +17,7 @@ import { beforeEach2, getTestDialectTeaser, sequelize } from '../support';
 
 const dialect = sequelize.dialect;
 
-async function createUserModelWithGeometry(type?: GeoJsonType) {
+async function createUserModelWithGeometry(type?: GeoJsonType, srid?: number) {
   class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
     declare id: CreationOptional<number>;
     declare geometry: GeoJson | null;
@@ -30,7 +30,7 @@ async function createUserModelWithGeometry(type?: GeoJsonType) {
         primaryKey: true,
         autoIncrement: true,
       },
-      geometry: type ? DataTypes.GEOMETRY(type) : DataTypes.GEOMETRY,
+      geometry: type ? DataTypes.GEOMETRY(type, srid) : DataTypes.GEOMETRY,
     },
     { sequelize, timestamps: false },
   );
@@ -77,6 +77,120 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const pub = await User.create({ geometry: point });
       expect(pub).not.to.be.null;
       expect(pub.geometry).to.deep.eq(point);
+
+      const reloaded = await User.findByPk(pub.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(point);
+    });
+
+    it('does not add a crs to geometries that were stored without one', async () => {
+      const User = vars.User;
+      const point: GeoJsonPoint = { type: 'Point', coordinates: [100, 0] };
+
+      const user = await User.create({ geometry: point });
+      const reloaded = await User.findByPk(user.id, { rejectOnEmpty: true });
+
+      if (dialect.name === 'postgres') {
+        // PostGIS's ST_GeomFromGeoJSON uses SRID 4326 for GeoJSON that does not specify a crs
+        expect(reloaded.geometry).to.deep.eq({
+          ...point,
+          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+        });
+      } else {
+        expect(reloaded.geometry).to.deep.eq(point);
+      }
+    });
+
+    it('persists the crs field with update and save', async () => {
+      const User = vars.User;
+      const point1: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [39.807_222, -76.984_722],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+      const point2: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [-76.984_722, 39.807_222],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+
+      const user = await User.create({ geometry: null });
+
+      await User.update({ geometry: point1 }, { where: { id: user.id } });
+      const updated = await User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(updated.geometry).to.deep.eq(point1);
+
+      user.geometry = point2;
+      await user.save();
+      const saved = await User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(saved.geometry).to.deep.eq(point2);
+    });
+
+    // TODO: on postgres, inlined (non-bind) geometry values are escaped as a string literal instead of a function call
+    (dialect.name === 'postgres' ? it.skip : it)(
+      'persists the crs field with bulkCreate',
+      async () => {
+        const User = vars.User;
+        const point: GeoJsonPoint = {
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
+          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+        };
+
+        await User.bulkCreate([{ geometry: point }]);
+        const user = await User.findOne({ rejectOnEmpty: true });
+        expect(user.geometry).to.deep.eq(point);
+      },
+    );
+
+    // TODO: on postgres, inlined (non-bind) geometry values are escaped as a string literal instead of a function call
+    (dialect.name === 'postgres' ? it.skip : it)(
+      'can compare geometries that have a crs field',
+      async () => {
+        const User = vars.User;
+        const point1: GeoJsonPoint = {
+          type: 'Point',
+          coordinates: [39.807_222, -76.984_722],
+          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+        };
+        const point2: GeoJsonPoint = {
+          type: 'Point',
+          coordinates: [-76.984_722, 39.807_222],
+          crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+        };
+
+        await User.create({ geometry: point1 });
+        await User.create({ geometry: point2 });
+
+        const users = await User.findAll({ where: { geometry: point1 } });
+        expect(users.map(user => user.geometry)).to.deep.eq([point1]);
+      },
+    );
+
+    it('handles SRIDs that are unknown to the database', async () => {
+      const User = vars.User;
+      const point: GeoJsonPoint = {
+        type: 'Point',
+        coordinates: [1, 2],
+        crs: { type: 'name', properties: { name: 'EPSG:999999' } },
+      };
+
+      if (dialect.name === 'mysql') {
+        await expect(User.create({ geometry: point })).to.be.rejectedWith(
+          "There's no spatial reference system with SRID 999999",
+        );
+
+        return;
+      }
+
+      const user = await User.create({ geometry: point });
+      const reloaded = await User.findByPk(user.id, { rejectOnEmpty: true });
+
+      if (dialect.name === 'postgres') {
+        // PostGIS ignores crs names that are not in spatial_ref_sys
+        expect(reloaded.geometry).to.deep.eq({ type: 'Point', coordinates: [1, 2] });
+      } else {
+        expect(reloaded.geometry).to.deep.eq(point);
+      }
     });
 
     it('correctly parses null GEOMETRY field', async () => {
@@ -115,6 +229,13 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       return { User: await createUserModelWithGeometry(GeoJsonType.Point) };
     });
 
+    it('correctly parses null POINT field', async () => {
+      const user = await vars.User.create({ geometry: null });
+
+      const reloaded = await vars.User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.eq(null);
+    });
+
     it('supports inserting/updating a Point object', async () => {
       const User = vars.User;
       const point: GeoJsonPoint = { type: 'Point', coordinates: [39.807_222, -76.984_722] };
@@ -139,6 +260,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
       const newUser = await User.create({ geometry: point });
       expect(newUser).not.to.be.null;
       expect(newUser.geometry).to.deep.eq(point);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(point);
     });
 
     // TODO: this is not possible until we support specifying the type of a bind parameter
@@ -179,6 +303,38 @@ describe(getTestDialectTeaser('DataTypes'), () => {
           },
         }),
       ).to.be.rejectedWith('specifies an invalid point');
+    });
+  });
+
+  describe('GEOMETRY(POINT, 4326)', () => {
+    const vars = beforeEach2(async () => {
+      return { User: await createUserModelWithGeometry(GeoJsonType.Point, 4326) };
+    });
+
+    it('stores coordinates in longitude, latitude order', async () => {
+      const User = vars.User;
+      const point: GeoJsonPoint = {
+        type: 'Point',
+        // longitude 100 would be an invalid latitude
+        coordinates: [100, 39.807_222],
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      };
+
+      const user = await User.create({ geometry: point });
+      const reloaded = await User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(point);
+    });
+
+    it('uses the SRID of the column if the geometry does not have a crs field', async () => {
+      const User = vars.User;
+      const point: GeoJsonPoint = { type: 'Point', coordinates: [100, 39.807_222] };
+
+      const user = await User.create({ geometry: point });
+      const reloaded = await User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq({
+        ...point,
+        crs: { type: 'name', properties: { name: 'EPSG:4326' } },
+      });
     });
   });
 
@@ -228,6 +384,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       const newUser = await User.create({ geometry: point });
       expect(newUser.geometry).to.deep.eq(point);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(point);
     });
 
     it('is not a vector of SQL injection', async () => {
@@ -321,6 +480,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       const newUser = await User.create({ geometry: point });
       expect(newUser.geometry).to.deep.eq(point);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(point);
     });
 
     it('is not a vector of SQL injection', async () => {
@@ -406,6 +568,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       const newUser = await User.create({ geometry: point });
       expect(newUser.geometry).to.deep.eq(point);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(point);
     });
 
     it('is not a vector of SQL injection', async () => {
@@ -502,6 +667,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       const newUser = await User.create({ geometry: line });
       expect(newUser.geometry).to.deep.eq(line);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(line);
     });
 
     it('is not a vector of SQL injection', async () => {
@@ -619,6 +787,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       const newUser = await User.create({ geometry: polygon });
       expect(newUser.geometry).to.deep.eq(polygon);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(polygon);
     });
 
     it('is not a vector of SQL injection', async () => {
@@ -754,6 +925,9 @@ describe(getTestDialectTeaser('DataTypes'), () => {
 
       const newUser = await User.create({ geometry });
       expect(newUser.geometry).to.deep.eq(geometry);
+
+      const reloaded = await User.findByPk(newUser.id, { rejectOnEmpty: true });
+      expect(reloaded.geometry).to.deep.eq(geometry);
     });
 
     it('is not a vector of SQL injection', async () => {

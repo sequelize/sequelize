@@ -52,16 +52,22 @@ export function registerMySqlDbDataTypeParsers(dialect: MySqlDialect) {
   });
 
   dialect.registerDataTypeParser(['GEOMETRY'], (value: TypeCastField) => {
-    let buffer = value.buffer();
+    const buffer = value.buffer();
     // Empty buffer, MySQL doesn't support POINT EMPTY
     // check, https://dev.mysql.com/worklog/task/?id=2381
     if (!buffer || buffer.length === 0) {
       return null;
     }
 
-    // For some reason, discard the first 4 bytes
-    buffer = buffer.subarray(4);
+    // MySQL's internal geometry format is the SRID (4-byte little-endian integer) followed by the WKB representation.
+    // The WKB always uses longitude-latitude order, even for geographic SRSs.
+    // See "Internal Geometry Storage Format" in https://dev.mysql.com/doc/refman/8.4/en/gis-data-formats.html
+    const srid = buffer.readUInt32LE(0);
+    const geometry = wkx.Geometry.parse(buffer.subarray(4));
+    if (srid !== 0) {
+      geometry.srid = srid;
+    }
 
-    return wkx.Geometry.parse(buffer).toGeoJSON({ shortCrs: true });
+    return geometry.toGeoJSON({ shortCrs: true });
   });
 }
