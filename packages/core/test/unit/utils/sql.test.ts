@@ -42,6 +42,29 @@ describe('mapBindParameters', () => {
     }
   });
 
+  it('reuses the position of bind parameters that appear more than once', () => {
+    const { sql, bindOrder } = mapBindParameters(
+      `SELECT * FROM users WHERE id = $id OR parent_id = $id OR name = $name OR alias = $id`,
+      dialect,
+    );
+
+    expectsql(sql, {
+      default: `SELECT * FROM users WHERE id = ? OR parent_id = ? OR name = ? OR alias = ?`,
+      postgres: `SELECT * FROM users WHERE id = $1 OR parent_id = $1 OR name = $2 OR alias = $1`,
+      sqlite3: `SELECT * FROM users WHERE id = $id OR parent_id = $id OR name = $name OR alias = $id`,
+      mssql: `SELECT * FROM users WHERE id = @id OR parent_id = @id OR name = @name OR alias = @id`,
+      oracle: `SELECT * FROM users WHERE id = :1 OR parent_id = :1 OR name = :2 OR alias = :1`,
+    });
+
+    if (supportsNamedParameters) {
+      expect(bindOrder).to.be.null;
+    } else if (['postgres', 'oracle'].includes(dialect.name)) {
+      expect(bindOrder).to.deep.eq(['id', 'name']);
+    } else {
+      expect(bindOrder).to.deep.eq(['id', 'id', 'name', 'id']);
+    }
+  });
+
   it('parses numeric bind parameters', () => {
     const { sql, bindOrder, parameterSet } = mapBindParameters(
       `SELECT * FROM users WHERE id = $1`,
