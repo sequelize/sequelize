@@ -1,9 +1,14 @@
+import sinon from 'sinon';
 import { createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 const dialect = sequelize.dialect;
 
 describe('QueryGenerator#describeTableQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   it('produces a query to describe a table', () => {
     expectsql(() => queryGenerator.describeTableQuery('myTable'), {
@@ -15,7 +20,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.is_nullable as "Null",
         (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
         (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
-        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
+        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND c.table_schema = st.schemaname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
         cu.column_name, tc.constraint_type
@@ -94,7 +99,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.is_nullable as "Null",
         (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
         (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
-        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
+        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND c.table_schema = st.schemaname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
         cu.column_name, tc.constraint_type
@@ -174,7 +179,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.is_nullable as "Null",
         (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
         (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
-        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
+        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND c.table_schema = st.schemaname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
         cu.column_name, tc.constraint_type
@@ -254,7 +259,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.is_nullable as "Null",
         (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
         (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
-        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
+        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND c.table_schema = st.schemaname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
         cu.column_name, tc.constraint_type
@@ -336,7 +341,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.is_nullable as "Null",
         (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
         (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
-        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
+        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND c.table_schema = st.schemaname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
         cu.column_name, tc.constraint_type
@@ -416,7 +421,7 @@ describe('QueryGenerator#describeTableQuery', () => {
         c.is_nullable as "Null",
         (CASE WHEN c.udt_name = 'hstore' THEN c.udt_name ELSE c.data_type END) || (CASE WHEN c.character_maximum_length IS NOT NULL THEN '(' || c.character_maximum_length || ')' ELSE '' END) as "Type",
         (SELECT array_agg(e.enumlabel) FROM pg_catalog.pg_type t JOIN pg_catalog.pg_enum e ON t.oid=e.enumtypid WHERE t.typname=c.udt_name) AS "special",
-        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname) AS "Comment"
+        (SELECT pgd.description FROM pg_catalog.pg_statio_all_tables AS st INNER JOIN pg_catalog.pg_description pgd on (pgd.objoid=st.relid) WHERE c.ordinal_position=pgd.objsubid AND c.table_name=st.relname AND c.table_schema = st.schemaname) AS "Comment"
         FROM information_schema.columns c
         LEFT JOIN (SELECT tc.table_schema, tc.table_name,
         cu.column_name, tc.constraint_type
@@ -501,4 +506,17 @@ describe('QueryGenerator#describeTableQuery', () => {
       },
     );
   });
+
+  if (dialect.name === 'oracle') {
+    it('uses the current user as owner when there is no default schema', () => {
+      sinon.stub(dialect, 'getDefaultSchema').returns('');
+
+      expectsql(() => queryGenerator.describeTableQuery('myTable'), {
+        oracle: `SELECT atc.COLUMN_NAME, atc.DATA_TYPE, atc.DATA_LENGTH, atc.CHAR_LENGTH, atc.DEFAULT_LENGTH, atc.NULLABLE, ucc.constraint_type FROM all_tab_columns atc
+          LEFT OUTER JOIN (SELECT acc.column_name, acc.table_name, ac.constraint_type FROM all_cons_columns acc
+          INNER JOIN all_constraints ac ON acc.constraint_name = ac.constraint_name) ucc ON (atc.table_name = ucc.table_name AND atc.COLUMN_NAME = ucc.COLUMN_NAME)
+          WHERE atc.OWNER = USER AND (atc.TABLE_NAME = 'myTable')ORDER BY atc.COLUMN_NAME, CONSTRAINT_TYPE DESC`,
+      });
+    });
+  }
 });

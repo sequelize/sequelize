@@ -29,7 +29,7 @@ if (dialect === 'mysql') {
       );
 
       // https://github.com/sequelize/sequelize/issues/7184
-      await affectedCount.should.equal(1);
+      expect(affectedCount).to.equal(1);
     });
 
     it('should acquire a valid connection when keepDefaultTimezone is true', async () => {

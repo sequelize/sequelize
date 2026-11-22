@@ -1,6 +1,6 @@
 'use strict';
 
-import { DataTypes, QueryTypes } from '@sequelize/core';
+import { DataTypes, QueryTypes, isModelStatic } from '@sequelize/core';
 import { PostgresQueryInterfaceTypescript } from './query-interface-typescript.internal.js';
 
 /**
@@ -100,6 +100,28 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
         } else if (Boolean(results[enumIdx]) && Boolean(model)) {
           const enumVals = this.queryGenerator.fromArray(results[enumIdx].enum_value);
           const vals = enumType.options.values;
+
+          // The enum type already exists, but has no values yet (e.g. it was created with
+          // CREATE TYPE ... AS ENUM ()). There's no existing value to anchor a BEFORE/AFTER
+          // clause to, so just append every value in order instead of going through the
+          // relative-positioning logic below, which requires at least one old value.
+          if (enumVals.length === 0) {
+            for (const val of vals) {
+              promises.push(() => {
+                return this.sequelize.queryRaw(
+                  this.queryGenerator.pgEnumAdd(tableName, field, val, {
+                    ...options,
+                    before: null,
+                    after: null,
+                  }),
+                  options,
+                );
+              });
+            }
+
+            enumIdx++;
+            continue;
+          }
 
           // Going through already existing values allows us to make queries that depend on those values
           // We will prepend all new values between the old ones, but keep in mind - we can't change order of already existing values
@@ -239,28 +261,29 @@ export class PostgresQueryInterface extends PostgresQueryInterfaceTypescript {
   async dropTable(tableName, options) {
     await super.dropTable(tableName, options);
     const promises = [];
-    // TODO: we support receiving the model class instead of getting it from modelManager. More than one model can use the same table.
-    const model = this.sequelize.models.find(model =>
-      this.queryGenerator.isSameTable(model.table, tableName),
-    );
+    // More than one model can use the same table, so prefer the model that was passed in
+    const model = isModelStatic(tableName)
+      ? tableName
+      : this.sequelize.models.find(model =>
+          this.queryGenerator.isSameTable(model.table, tableName),
+        );
 
     if (!model) {
       // Do nothing when model is not available
       return;
     }
 
-    const getTableName =
-      (!options || !options.schema || options.schema === 'public' ? '' : `${options.schema}_`) +
-      tableName;
-
     const attributes = model.modelDefinition.attributes;
 
     for (const attribute of attributes.values()) {
-      if (!(attribute.type instanceof DataTypes.ENUM)) {
+      const enumType =
+        attribute.type instanceof DataTypes.ARRAY ? attribute.type.options.type : attribute.type;
+
+      if (!(enumType instanceof DataTypes.ENUM)) {
         continue;
       }
 
-      const sql = this.queryGenerator.pgEnumDrop(getTableName, attribute.attributeName);
+      const sql = this.queryGenerator.pgEnumDrop(tableName, attribute.columnName);
       promises.push(
         this.sequelize.queryRaw(sql, {
           ...options,

@@ -17,10 +17,13 @@ import type { NormalizedReplicationOptions } from './sequelize.js';
  *
  * Used in {@link SequelizeCoreOptions.pool}
  */
-export interface PoolOptions<Dialect extends AbstractDialect>
-  extends PartialOrUndefined<ReplicationPoolOptions> {
+export interface PoolOptions<
+  Dialect extends AbstractDialect,
+> extends PartialOrUndefined<ReplicationPoolOptions> {
   /**
    * A function that validates a connection.
+   * It is called before an idle connection is reused, and once for every new connection after it has been set up.
+   * If it returns false for a new connection, that connection is closed and acquiring it fails with a `ConnectionError`.
    *
    * If provided, this overrides the default connection validation built in to sequelize.
    */
@@ -33,8 +36,7 @@ export interface PoolOptions<Dialect extends AbstractDialect>
  * See {@link Options} for the full list of options, including those dialect-specific.
  */
 interface SequelizeCoreOptions<Dialect extends AbstractDialect>
-  extends PersistedSequelizeOptions<Dialect>,
-    EphemeralSequelizeOptions<Dialect> {}
+  extends PersistedSequelizeOptions<Dialect>, EphemeralSequelizeOptions<Dialect> {}
 
 /**
  * Options for the constructor of the {@link Sequelize} main class.

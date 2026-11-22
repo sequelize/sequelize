@@ -5,7 +5,7 @@ import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 import { where } from './where.js';
 
 /**
- * Do not use me directly. Use {@link sql.fn}
+ * Do not use me directly. Use {@link @sequelize/core!sql.fn}
  */
 export class Fn extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'fn';
@@ -22,10 +22,10 @@ export class Fn extends BaseSqlExpression {
 
 /**
  * Creates an object representing a database function. This can be used in search queries, both in where and order parts, and as default values in column definitions.
- * If you want to refer to columns in your function, you should use {@link sql.attribute} (recommended), {@link sql.identifier}, or {@link sql.col} (discouraged)
+ * If you want to refer to columns in your function, you should use {@link @sequelize/core!sql.attribute} (recommended), {@link @sequelize/core!sql.identifier}, or {@link @sequelize/core!sql.col} (discouraged)
  * otherwise the value will be interpreted as a string.
  *
- * ℹ️ This method is usually verbose and we recommend using the {@link sql} template string tag instead.
+ * ℹ️ This method is usually verbose and we recommend using the {@link @sequelize/core!sql} template string tag instead.
  *
  * @param fnName The SQL function you want to call
  * @param args All further arguments will be passed as arguments to the function

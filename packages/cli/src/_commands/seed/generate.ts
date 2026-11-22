@@ -30,12 +30,13 @@ export class GenerateSeed extends SequelizeCommand<(typeof GenerateSeed)['flags'
 
   async run(): Promise<{ path: string }> {
     const { format, name: seedName } = this.flags;
-    const { seedFolder } = config;
+    const { seedFolder, timestampFormat } = config;
 
     const seedPath = await generateSeed({
       format: format as SupportedSeedFormat,
       seedName,
       seedFolder,
+      timestampFormat,
     });
 
     if (format === 'sql') {

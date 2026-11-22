@@ -272,7 +272,10 @@ export class REAL extends BaseTypes.REAL {
   }
 
   // https://www.oracle.com/pls/topic/lookup?ctx=dblatest&id=GUID-0BA2E065-8006-426C-A3CB-1F6B0C8F283C
-  toBindableValue(value: any) {
+  toBindableValue(value: AcceptedNumber): string | number {
+    // Like the parent implementation, always validate the value, as escape() inserts it in the query as-is
+    this.validate(value);
+
     if (value === Number.POSITIVE_INFINITY) {
       return 'inf';
     }
@@ -281,7 +284,7 @@ export class REAL extends BaseTypes.REAL {
       return '-inf';
     }
 
-    return value;
+    return value as string | number;
   }
 
   _getBindDef(oracledb: Lib) {
@@ -329,6 +332,19 @@ export class BLOB extends BaseTypes.BLOB {
   }
 }
 
+function jsonToBindableValue(value: any, dialect: AbstractDialect): string {
+  if (value === null) {
+    const isExplicit = dialect.sequelize.options.nullJsonStringification === 'explicit';
+    if (isExplicit) {
+      throw new Error(
+        `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
+      );
+    }
+  }
+
+  return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+}
+
 export class JSON extends BaseTypes.JSON {
   toSql(): string {
     return 'BLOB';
@@ -339,22 +355,17 @@ export class JSON extends BaseTypes.JSON {
   }
 
   toBindableValue(value: any): string {
-    if (value === null) {
-      const sequelize = this._getDialect().sequelize;
-
-      const isExplicit = sequelize.options.nullJsonStringification === 'explicit';
-      if (isExplicit) {
-        throw new Error(
-          `Attempted to insert the JavaScript null into a JSON column, but the "nullJsonStringification" option is set to "explicit", so Sequelize cannot decide whether to use the SQL NULL or the JSON 'null'. Use the SQL_NULL or JSON_NULL variable instead, or set the option to a different value. See https://sequelize.org/docs/v7/querying/json/ for details.`,
-        );
-      }
-    }
-
-    return typeof value === 'string' ? value : globalThis.JSON.stringify(value);
+    return jsonToBindableValue(value, this._getDialect());
   }
 
   getBindParamSql(value: any, options: BindParamOptions): any {
     return options.bindParam(Buffer.from(globalThis.JSON.stringify(value)));
+  }
+}
+
+export class JsonPathExtractionResult extends BaseTypes.JsonPathExtractionResult {
+  toBindableValue(value: any): string {
+    return jsonToBindableValue(value, this._getDialect());
   }
 }
 

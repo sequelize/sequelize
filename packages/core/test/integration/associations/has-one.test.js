@@ -7,7 +7,6 @@ const Support = require('../support');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const current = Support.sequelize;
-const dialect = Support.getTestDialect();
 
 describe(Support.getTestDialectTeaser('HasOne'), () => {
   describe('get', () => {
@@ -361,8 +360,10 @@ describe(Support.getTestDialectTeaser('HasOne'), () => {
       await user.destroy();
     });
 
-    // NOTE: mssql does not support changing an autoincrement primary key
-    if (!['mssql', 'db2', 'ibmi', 'oracle'].includes(dialect)) {
+    if (
+      current.dialect.supports.autoIncrement.update &&
+      current.dialect.supports.constraints.onUpdate
+    ) {
       it('can cascade updates', async function () {
         const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
         const User = this.sequelize.define('User', { username: DataTypes.STRING });

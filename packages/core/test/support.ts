@@ -1,9 +1,10 @@
-import type { AbstractDialect, BoundQuery, Options } from '@sequelize/core';
+import type { AbstractDialect, BindOrReplacements, BoundQuery, Options } from '@sequelize/core';
 import { Sequelize } from '@sequelize/core';
+import { mapBindParameters } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/sql.js';
 import type { PostgresDialect } from '@sequelize/postgres';
 import { isNotString, pojo } from '@sequelize/utils';
 import { isNodeError } from '@sequelize/utils/node';
-import chai from 'chai';
+import * as chai from 'chai';
 import chaiAsPromised from 'chai-as-promised';
 import chaiDatetime from 'chai-datetime';
 import defaults from 'lodash/defaults';
@@ -13,6 +14,8 @@ import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { inspect, isDeepStrictEqual } from 'node:util';
+import type { SinonFakeTimers } from 'sinon';
+import sinon from 'sinon';
 import sinonChai from 'sinon-chai';
 import type { Class } from 'type-fest';
 import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
@@ -20,15 +23,7 @@ import { CONFIG, SQLITE_DATABASES_DIR } from './config/config';
 export { getSqliteDatabasePath } from './config/config';
 
 export type DialectName =
-  | 'mysql'
-  | 'postgres'
-  | 'sqlite3'
-  | 'mariadb'
-  | 'mssql'
-  | 'db2'
-  | 'snowflake'
-  | 'ibmi'
-  | 'oracle';
+  'mysql' | 'postgres' | 'sqlite3' | 'mariadb' | 'mssql' | 'db2' | 'snowflake' | 'ibmi' | 'oracle';
 
 const expect = chai.expect;
 
@@ -72,7 +67,7 @@ function withInlineCause(cb: () => any): () => void {
 
 export function inlineErrorCause(error: unknown): string {
   if (!(error instanceof Error)) {
-    return String(error);
+    return inspect(error);
   }
 
   let message = error.message;
@@ -86,7 +81,6 @@ export function inlineErrorCause(error: unknown): string {
 }
 
 chai.config.includeStack = true;
-chai.should();
 
 // Make sure errors get thrown when testing
 process.on('uncaughtException', e => {
@@ -215,7 +209,24 @@ type Permutations<T extends string, Depth extends number, U extends string = T> 
 
 type PartialRecord<K extends keyof any, V> = Partial<Record<K, V>>;
 
-export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>) {
+/**
+ * Runs `method` and checks its result, or the error it throws, against the expectation for the current dialect.
+ * If `method` returns a promise, the check happens once it settles, and the returned promise must be awaited.
+ * `method` must be typed precisely: if its return type is not a promise type (for example `any`),
+ * the synchronous overload is used and a missing `await` is not reported by the linter.
+ *
+ * @param method The function to test.
+ * @param assertions The expected result or error, per dialect. Keys are `default` or a space-separated list of dialect names.
+ */
+export function expectPerDialect<Out>(
+  method: () => Promise<Out>,
+  assertions: ExpectationRecord<Out>,
+): Promise<void>;
+export function expectPerDialect<Out>(method: () => Out, assertions: ExpectationRecord<Out>): void;
+export function expectPerDialect<Out>(
+  method: () => Out | Promise<Out>,
+  assertions: ExpectationRecord<Out>,
+): void | Promise<void> {
   const expectations =
     pojo<PartialRecord<'default' | DialectName, Out | Error | Expectation<Out>>>();
 
@@ -227,7 +238,7 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
         throw new Error(`The 'default' expectation cannot be combined with other dialects.`);
       }
 
-      if (expectations[dialect] !== undefined) {
+      if (dialect in expectations) {
         throw new Error(`The expectation for ${dialect} was already defined.`);
       }
 
@@ -235,38 +246,73 @@ export function expectPerDialect<Out>(method: () => Out, assertions: Expectation
     }
   }
 
-  let result: Out | Error;
-
-  try {
-    result = method();
-  } catch (error: unknown) {
-    assert(error instanceof Error, 'method threw a non-error');
-
-    result = error;
-  }
-
-  const expectation = expectations[sequelize.dialect.name as DialectName] ?? expectations.default;
-  if (expectation === undefined) {
+  // Expectations are looked up by key, as null and undefined are valid expected values.
+  const isDefault = !(sequelize.dialect.name in expectations);
+  const expectationKey = isDefault ? 'default' : (sequelize.dialect.name as DialectName);
+  if (!(expectationKey in expectations)) {
     throw new Error(
       `No expectation was defined for ${sequelize.dialect.name} and the 'default' expectation has not been defined.`,
     );
   }
 
+  // The key is present, so the value is the expectation even when it is undefined.
+  const expectation = expectations[expectationKey] as Out | Error | Expectation<Out>;
+
+  let value: Out | Promise<Out>;
+
+  try {
+    value = method();
+  } catch (error: unknown) {
+    assert(error instanceof Error, 'method threw a non-error');
+
+    assertOutcomeMatchesExpectation({ threw: true, error }, expectation, isDefault);
+
+    return;
+  }
+
+  if (value instanceof Promise) {
+    return value.then(
+      resolvedValue => {
+        assertOutcomeMatchesExpectation(
+          { threw: false, value: resolvedValue },
+          expectation,
+          isDefault,
+        );
+      },
+      (error: unknown) => {
+        assert(error instanceof Error, 'method rejected with a non-error');
+
+        assertOutcomeMatchesExpectation({ threw: true, error }, expectation, isDefault);
+      },
+    );
+  }
+
+  assertOutcomeMatchesExpectation({ threw: false, value }, expectation, isDefault);
+}
+
+type Outcome<Out> = { threw: false; value: Out } | { threw: true; error: Error };
+
+function assertOutcomeMatchesExpectation<Out>(
+  outcome: Outcome<Out>,
+  expectation: Out | Error | Expectation<Out>,
+  isDefault: boolean,
+): void {
   if (expectation instanceof Error) {
-    assert(
-      result instanceof Error,
-      `Expected method to error with "${expectation.message}", but it returned ${inspect(result)}.`,
-    );
+    if (!outcome.threw) {
+      assert.fail(
+        `Expected method to error with "${expectation.message}", but it returned ${inspect(outcome.value)}.`,
+      );
+    }
 
-    expect(inlineErrorCause(result)).to.include(expectation.message);
+    expect(inlineErrorCause(outcome.error)).to.include(expectation.message);
   } else {
-    assert(
-      !(result instanceof Error),
-      `Did not expect query to error, but it errored with ${inlineErrorCause(result)}`,
-    );
+    if (outcome.threw) {
+      assert.fail(
+        `Did not expect method to error, but it errored with ${inlineErrorCause(outcome.error)}`,
+      );
+    }
 
-    const isDefault = expectations[sequelize.dialect.name as DialectName] === undefined;
-    assertMatchesExpectation(result, expectation, isDefault);
+    assertMatchesExpectation(outcome.value, expectation, isDefault);
   }
 }
 
@@ -368,10 +414,9 @@ type MaybeLazy<T> = T | (() => T);
  * @param query The SQL that was generated
  * @param assertions The SQL to compare against
  */
-export function expectsql(
-  query: MaybeLazy<string | Error>,
-  assertions: PartialRecord<ExpectationKey, string | Error>,
-): void;
+export type SqlExpectations = PartialRecord<ExpectationKey, string | Error>;
+
+export function expectsql(query: MaybeLazy<string | Error>, assertions: SqlExpectations): void;
 export function expectsql(
   query: MaybeLazy<BoundQuery | Error>,
   assertions: {
@@ -488,6 +533,28 @@ function replaceGenericIdentifierQuotes(sql: string, dialect: AbstractDialect): 
   );
 }
 
+/**
+ * Installs sinon's fake timers, except for `process.nextTick` and `queueMicrotask`.
+ *
+ * sinon 22 (fake-timers 13+) fakes those two by default, which stalls the socket I/O
+ * of the database drivers and makes every query hang.
+ */
+export function useFakeTimers(): SinonFakeTimers {
+  return sinon.useFakeTimers({
+    toFake: [
+      'setTimeout',
+      'clearTimeout',
+      'setImmediate',
+      'clearImmediate',
+      'setInterval',
+      'clearInterval',
+      'Date',
+      'hrtime',
+      'performance',
+    ],
+  });
+}
+
 export function rand() {
   return Math.floor(Math.random() * 10e5);
 }
@@ -519,6 +586,32 @@ export function minifySql(sql: string): string {
 }
 
 export const sequelize = createSequelizeInstance<AbstractDialect>();
+
+/**
+ * Replaces the bind parameters of a query with their escaped values,
+ * after checking that the dialect parses the query's placeholders into exactly those parameters.
+ *
+ * @param sql the SQL string
+ * @param bind the bind parameters
+ * @param sequelizeInstance the instance whose dialect parses and escapes the query
+ */
+export function inlineBindParameters(
+  sql: string,
+  bind: BindOrReplacements = {},
+  sequelizeInstance: Sequelize = sequelize,
+): string {
+  const values: Record<string, unknown> = Array.isArray(bind)
+    ? Object.fromEntries(bind.map((value, index) => [String(index + 1), value]))
+    : bind;
+
+  expect([...mapBindParameters(sql, sequelizeInstance.dialect).parameterSet]).to.have.members(
+    Object.keys(values),
+  );
+
+  return sql.replaceAll(/\$(\w+)/g, (_match, name: string) =>
+    sequelizeInstance.queryGenerator.escape(values[name]),
+  );
+}
 
 export function resetSequelizeInstance(sequelizeInstance: Sequelize = sequelize): void {
   sequelizeInstance.removeAllModels();

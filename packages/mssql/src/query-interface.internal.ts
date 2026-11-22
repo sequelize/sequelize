@@ -1,10 +1,37 @@
-import { IsolationLevel } from '@sequelize/core';
+import type { QueryRawOptions, TableOrModel } from '@sequelize/core';
+import { IsolationLevel, TransactionNestMode } from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import type { MsSqlDialect } from './dialect.js';
 
 export class MsSqlQueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   constructor(readonly dialect: MsSqlDialect) {
     super(dialect);
+  }
+
+  /**
+   * Schema changes are transactional in SQL Server, so the column change and the unique key are done in one transaction:
+   * if the unique key cannot be added (e.g. because of duplicate values), the column is not changed either.
+   *
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param changeColumnSql The query that changes the column
+   * @param options Query options
+   */
+  async changeColumnAndAddUniqueKey(
+    tableName: TableOrModel,
+    columnName: string,
+    changeColumnSql: string,
+    options?: QueryRawOptions,
+  ): Promise<unknown> {
+    return this.dialect.sequelize.transaction(
+      { nestMode: TransactionNestMode.savepoint, transaction: options?.transaction },
+      async transaction => {
+        return super.changeColumnAndAddUniqueKey(tableName, columnName, changeColumnSql, {
+          ...options,
+          transaction,
+        });
+      },
+    );
   }
 
   /**

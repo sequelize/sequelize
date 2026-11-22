@@ -5,7 +5,10 @@ const Support = require('../../../support');
 const expectsql = Support.expectsql;
 const current = Support.sequelize;
 const { DataTypes, Op } = require('@sequelize/core');
+const { MsSqlDialect } = require('@sequelize/mssql');
 const { MsSqlQueryGenerator: QueryGenerator } = require('@sequelize/mssql');
+const { Sequelize } = require('@sequelize/core');
+const expect = require('chai').expect;
 
 if (current.dialect.name === 'mssql') {
   describe('[MSSQL Specific] QueryGenerator', () => {
@@ -128,6 +131,36 @@ if (current.dialect.name === 'mssql') {
             "@level2type = N'Column', @level2name = [myColumn];",
         },
       );
+    });
+
+    describe('useUnicodeStrings', () => {
+      it('defaults to true', () => {
+        expect(current.dialect.useUnicodeStrings).to.equal(true);
+      });
+
+      it('can be disabled through the dialect options', () => {
+        const sequelize = new Sequelize({ dialect: MsSqlDialect, useUnicodeStrings: false });
+
+        expect(sequelize.dialect.useUnicodeStrings).to.equal(false);
+      });
+
+      it('can be enabled through the dialect options', () => {
+        const sequelize = new Sequelize({ dialect: MsSqlDialect, useUnicodeStrings: true });
+
+        expect(sequelize.dialect.useUnicodeStrings).to.equal(true);
+      });
+    });
+
+    describe('escapeString', () => {
+      it('escapes strings as Unicode literals by default', () => {
+        expect(current.dialect.escapeString("O'Reilly")).to.equal("N'O''Reilly'");
+      });
+
+      it('escapes strings as non-Unicode literals when useUnicodeStrings is disabled', () => {
+        const sequelize = new Sequelize({ dialect: MsSqlDialect, useUnicodeStrings: false });
+
+        expect(sequelize.dialect.escapeString("O'Reilly")).to.equal("'O''Reilly'");
+      });
     });
   });
 }

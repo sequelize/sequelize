@@ -1,4 +1,5 @@
 import { buildInvalidOptionReceivedError } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
+import sinon from 'sinon';
 import { createSequelizeInstance, expectsql } from '../../support';
 
 const sequelize = createSequelizeInstance();
@@ -6,6 +7,10 @@ const dialect = sequelize.dialect;
 
 describe('QueryGenerator#showConstraintsQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
+
+  afterEach(() => {
+    sinon.restore();
+  });
 
   it('produces a show constraints query for a table', () => {
     expectsql(() => queryGenerator.showConstraintsQuery('myTable'), {
@@ -165,4 +170,21 @@ describe('QueryGenerator#showConstraintsQuery', () => {
       },
     );
   });
+
+  if (dialect.name === 'oracle') {
+    it('uses the current user as owner when there is no default schema', () => {
+      sinon.stub(dialect, 'getDefaultSchema').returns('');
+
+      expectsql(() => queryGenerator.showConstraintsQuery('myTable'), {
+        oracle: `SELECT C.CONSTRAINT_NAME "constraintName", CASE A.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType", C.TABLE_NAME "tableName", A.OWNER "tableSchema", C.OWNER "constraintSchema", C.COLUMN_NAME "columnNames", A.SEARCH_CONDITION "definition" FROM ALL_CONS_COLUMNS C INNER JOIN ALL_CONSTRAINTS A ON C.CONSTRAINT_NAME = A.CONSTRAINT_NAME AND C.OWNER = A.OWNER WHERE C.TABLE_NAME ='myTable' AND C.OWNER =USER ORDER BY C.CONSTRAINT_NAME, C.POSITION`,
+      });
+
+      expectsql(
+        () => queryGenerator.showConstraintsQuery('myTable', { constraintType: 'FOREIGN KEY' }),
+        {
+          oracle: `SELECT DISTINCT a.table_name "tableName", a.constraint_name "constraintName", c.owner "tableSchema", a.owner "constraintSchema", a.column_name "columnNames",CASE c.CONSTRAINT_TYPE WHEN 'P' THEN 'PRIMARY KEY' WHEN 'R' THEN 'FOREIGN KEY' WHEN 'C' THEN 'CHECK' WHEN 'U' THEN 'UNIQUE' ELSE NULL END "constraintType", c.r_owner "referencedTableSchema", c.DELETE_RULE "deleteAction", 'NO ACTION' AS "updateAction", b.table_name "referencedTableName", b.column_name "referencedColumnNames" FROM all_cons_columns a JOIN all_constraints c ON a.owner = c.owner AND a.constraint_name = c.constraint_name JOIN all_cons_columns b ON c.r_owner = b.owner AND c.r_constraint_name = b.constraint_name WHERE c.constraint_type = 'R' AND a.table_name = 'myTable' AND a.owner = USER ORDER BY a.table_name, a.column_name, b.column_name`,
+        },
+      );
+    });
+  }
 });

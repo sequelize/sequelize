@@ -1,6 +1,6 @@
 import { DataTypes, ParameterStyle, literal } from '@sequelize/core';
 import { expect } from 'chai';
-import { beforeAll2, expectsql, sequelize } from '../../support';
+import { beforeAll2, createSequelizeInstance, expectsql, sequelize } from '../../support';
 
 describe('QueryGenerator#insertQuery', () => {
   const queryGenerator = sequelize.queryGenerator;
@@ -86,6 +86,58 @@ describe('QueryGenerator#insertQuery', () => {
     });
   });
 
+  it('omits nullish values if omitNull is true', () => {
+    const { User } = vars;
+
+    const { query, bind } = queryGenerator.insertQuery(
+      User.table,
+      { firstName: 'John', lastName: null },
+      {},
+      { omitNull: true },
+    );
+
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+    });
+    expect(bind).to.deep.eq({ sequelize_1: 'John' });
+  });
+
+  it('uses the omitNull option of the Sequelize instance by default', () => {
+    const { User } = vars;
+    const omitNullSequelize = createSequelizeInstance({ omitNull: true });
+
+    const { query } = omitNullSequelize.queryGenerator.insertQuery(User.table, {
+      firstName: 'John',
+      lastName: null,
+    });
+
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName]) VALUES ($sequelize_1);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName") VALUES ($sequelize_1))`,
+    });
+  });
+
+  it('keeps nullish values if omitNull is false, even if the Sequelize instance sets it', () => {
+    const { User } = vars;
+    const omitNullSequelize = createSequelizeInstance({ omitNull: true });
+
+    const { query } = omitNullSequelize.queryGenerator.insertQuery(
+      User.table,
+      { firstName: 'John', lastName: null },
+      {},
+      { omitNull: false },
+    );
+
+    expectsql(query, {
+      default: `INSERT INTO [Users] ([firstName],[lastName]) VALUES ($sequelize_1,$sequelize_2);`,
+      db2: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($sequelize_1,$sequelize_2));`,
+      ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName") VALUES ($sequelize_1,$sequelize_2))`,
+    });
+  });
+
   it('throws an error if the bindParam option is used', () => {
     const { User } = vars;
 
@@ -127,6 +179,25 @@ describe('QueryGenerator#insertQuery', () => {
       ibmi: `SELECT * FROM FINAL TABLE (INSERT INTO "Users" ("firstName","lastName","username") VALUES ('John',$1,'jd'))`,
     });
     expect(bind).to.be.undefined;
+  });
+
+  it('throws an error if returning is used with parameterStyle: REPLACEMENT on a dialect that returns into binds', () => {
+    if (!dialect.supports.returnIntoValues) {
+      return;
+    }
+
+    const { User } = vars;
+
+    expect(() => {
+      queryGenerator.insertQuery(
+        User.table,
+        { firstName: 'John' },
+        {},
+        { returning: true, parameterStyle: ParameterStyle.REPLACEMENT },
+      );
+    }).to.throw(
+      `The ${dialect.name} dialect requires bind parameters for insert queries that use the returning option.`,
+    );
   });
 
   // This test was added due to a regression where these values were being converted to strings
@@ -181,8 +252,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of strings (column names)', () => {
-      // node-oracledb requires OUTBIND definition, RETURNING '*' isn't valid for oracle.
-      if (dialect.name === 'oracle') {
+      if (dialect.supports.returnIntoValues) {
         return;
       }
 
@@ -214,8 +284,7 @@ describe('QueryGenerator#insertQuery', () => {
     });
 
     it('supports array of literals', () => {
-      // node-oracledb requires OUTBIND definition, '*' isn't valid for oracle.
-      if (dialect.name === 'oracle') {
+      if (dialect.supports.returnIntoValues) {
         return;
       }
 

@@ -1,3 +1,4 @@
+import type { QueryRawOptions, TableOrModel } from '@sequelize/core';
 import { IsolationLevel } from '@sequelize/core';
 import { AbstractQueryInterfaceInternal } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-interface-internal.js';
 import type { Db2Dialect } from './dialect.js';
@@ -17,6 +18,32 @@ enum Db2IsolationLevel {
 export class Db2QueryInterfaceInternal extends AbstractQueryInterfaceInternal {
   constructor(readonly dialect: Db2Dialect) {
     super(dialect);
+  }
+
+  /**
+   * Db2 only accepts unique constraints on columns that are NOT NULL (SQL0542N).
+   * Nullable columns get a unique index instead, which, like a unique constraint, rejects duplicate values.
+   * Note that a Db2 unique index treats NULL values as equal, so only one row can have a NULL value in that column.
+   *
+   * @param tableName The table that contains the column
+   * @param columnName The name of the column, as it is in the database
+   * @param options Query options
+   */
+  async addUniqueKey(
+    tableName: TableOrModel,
+    columnName: string,
+    options?: QueryRawOptions,
+  ): Promise<void> {
+    const queryInterface = this.dialect.sequelize.queryInterface;
+    const columns = await queryInterface.describeTable(tableName, options);
+
+    if (columns[columnName]?.allowNull) {
+      await this.addUniqueIndex(tableName, columnName, options);
+
+      return;
+    }
+
+    await super.addUniqueKey(tableName, columnName, options);
   }
 
   /**

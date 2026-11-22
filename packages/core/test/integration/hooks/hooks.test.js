@@ -6,7 +6,6 @@ const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
 const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Hooks'), () => {
@@ -307,10 +306,6 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
 
   describe('Sequelize hooks', () => {
     it('should run before/afterPoolAcquire hooks', async function () {
-      if (dialect === 'sqlite3') {
-        return this.skip();
-      }
-
       const beforeHook = sinon.spy();
       const afterHook = sinon.spy();
 

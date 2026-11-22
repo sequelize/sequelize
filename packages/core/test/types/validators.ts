@@ -25,3 +25,29 @@ ValidatedUser.init(
   },
   { sequelize },
 );
+
+class UserWithUUID extends Model {}
+
+UserWithUUID.init(
+  {
+    uuidV4: {
+      type: DataTypes.STRING,
+      validate: {
+        isUUID: 4,
+      },
+    },
+    uuidAny: {
+      type: DataTypes.STRING,
+      validate: {
+        isUUID: 'all',
+      },
+    },
+    uuidWithMessage: {
+      type: DataTypes.STRING,
+      validate: {
+        isUUID: { msg: 'Must be a valid UUID', args: 'all' },
+      },
+    },
+  },
+  { sequelize },
+);

@@ -63,6 +63,35 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
         const metadata = await this.queryInterface.describeTable('my_tables');
         expect(metadata.username1).not.to.be.undefined;
       });
+
+      // https://github.com/sequelize/sequelize/issues/18379
+      it('reads the comment of the requested schema when two schemas share a table name', async function () {
+        const MyTable1 = this.sequelize.define('my_table', {
+          username: { type: DataTypes.STRING, comment: 'default schema comment' },
+        });
+
+        const MyTable2 = this.sequelize.define(
+          'my_table',
+          {
+            // Deliberately at the same ordinal position as MyTable1.username: the
+            // comment lookup used to match on table name alone, so it saw both rows.
+            username: { type: DataTypes.STRING, comment: 'test_meta schema comment' },
+          },
+          { schema: 'test_meta' },
+        );
+
+        await this.sequelize.createSchema('test_meta');
+        await MyTable1.sync({ force: true });
+        await MyTable2.sync({ force: true });
+
+        const defaultSchema = await this.queryInterface.describeTable('my_tables');
+        const otherSchema = await this.queryInterface.describeTable('my_tables', 'test_meta');
+
+        if (['postgres', 'mysql', 'mssql'].includes(dialect)) {
+          expect(defaultSchema.username.comment).to.equal('default schema comment');
+          expect(otherSchema.username.comment).to.equal('test_meta schema comment');
+        }
+      });
     }
 
     it('rejects when no data is available', async function () {

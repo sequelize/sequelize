@@ -4,6 +4,7 @@ import type { Col } from '../expression-builders/col.js';
 import type { Literal } from '../expression-builders/literal.js';
 import type {
   AttributeOptions,
+  Attributes,
   FindOptions,
   Model,
   ModelStatic,
@@ -16,14 +17,21 @@ import type {
   AbstractQueryGeneratorTypeScript,
   ParameterOptions,
 } from './query-generator-typescript.js';
-import type { AttributeToSqlOptions } from './query-generator.internal-types.js';
 import type { BoundQuery, TableOrModel } from './query-generator.types.js';
-import type { TableName } from './query-interface.js';
-import type { ColumnsDescription } from './query-interface.types.js';
+import type { IndexOptions, TableName } from './query-interface.js';
 import type { WhereOptions } from './where-sql-builder-types.js';
 
-type SelectOptions<M extends Model> = FindOptions<M> & {
-  model: ModelStatic<M>;
+type SelectOptions<M extends Model> = FindOptions<Attributes<M>> & {
+  /**
+   * Only required when the query includes associations
+   */
+  model?: ModelStatic<M>;
+
+  /**
+   * When the query has includes, attributes are prefixed with the name of the main table,
+   * except for attributes that contain a dot. Set this to also prefix those.
+   */
+  dotNotation?: boolean;
 };
 
 type InsertOptions = ParameterOptions &
@@ -32,7 +40,10 @@ type InsertOptions = ParameterOptions &
     updateOnDuplicate?: string[];
     ignoreDuplicates?: boolean;
     upsertKeys?: string[];
+    conflictWhere?: WhereOptions;
     returning?: boolean | Array<string | Literal | Col>;
+    hasTrigger?: boolean;
+    omitNull?: boolean;
   };
 
 type BulkInsertOptions = ParameterOptions & {
@@ -40,10 +51,19 @@ type BulkInsertOptions = ParameterOptions & {
   updateOnDuplicate?: string[];
   ignoreDuplicates?: boolean;
   upsertKeys?: string[];
+  conflictWhere?: WhereOptions;
   returning?: boolean | Array<string | Literal | Col>;
 };
 
-type UpdateOptions = ParameterOptions;
+type UpdateOptions = ParameterOptions &
+  SearchPathable & {
+    returning?: boolean | Array<string | Literal | Col>;
+    hasTrigger?: boolean;
+    limit?: number | Literal | null;
+    omitNull?: boolean;
+  };
+
+type AddIndexQueryOptions = Omit<IndexOptions, 'fields'>;
 
 type ArithmeticQueryOptions = ParameterOptions & {
   returning?: boolean | Array<string | Literal | Col>;
@@ -97,6 +117,23 @@ export class AbstractQueryGenerator<
     columnDefinitions?: { [columnName: string]: NormalizedAttributeOptions },
   ): string;
 
+  /**
+   * @param tableName The table to add the index to
+   * @param attributes The columns to index. Can also be passed as `options.fields`
+   * @param options
+   * @param rawTablename The name of the table without its schema, used to generate the index name
+   */
+  addIndexQuery(
+    tableName: TableName,
+    attributes: NonNullable<IndexOptions['fields']>,
+    options?: AddIndexQueryOptions,
+    rawTablename?: string,
+  ): string;
+  addIndexQuery(
+    tableName: TableName,
+    options: AddIndexQueryOptions & Required<Pick<IndexOptions, 'fields'>>,
+  ): string;
+
   addColumnQuery(
     table: TableName,
     columnName: string,
@@ -127,9 +164,4 @@ export class AbstractQueryGenerator<
     columns: { [columnName: string]: string },
     options?: CreateTableQueryOptions,
   ): string;
-
-  attributesToSQL(
-    attributes: ColumnsDescription,
-    options?: AttributeToSqlOptions,
-  ): Record<string, string>;
 }

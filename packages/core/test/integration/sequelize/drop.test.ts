@@ -1,5 +1,6 @@
 import type { ReferentialAction } from '@sequelize/core';
 import { DataTypes, Deferrable } from '@sequelize/core';
+import { expect } from 'chai';
 import { sequelize } from '../support';
 
 const dialect = sequelize.dialect.name;
@@ -67,5 +68,44 @@ describe('Sequelize#drop', () => {
 
     // drop both tables
     await sequelize.drop({ cascade: true });
+  });
+
+  describe('drops each table only once', () => {
+    async function getDropTableQueries(options?: { cascade?: boolean }): Promise<string[]> {
+      const queries: string[] = [];
+      await sequelize.drop({
+        ...options,
+        logging: (sql: string) => {
+          if (/DROP TABLE/i.test(sql)) {
+            queries.push(sql);
+          }
+        },
+      });
+
+      return queries;
+    }
+
+    it('without cyclic associations', async () => {
+      const A = sequelize.define('A', {});
+      const B = sequelize.define('B', {});
+      B.belongsTo(A);
+
+      await sequelize.sync();
+
+      expect(await getDropTableQueries()).to.have.length(2);
+    });
+
+    if (sequelize.dialect.supports.dropTable.cascade) {
+      it('with { cascade: true }', async () => {
+        const A = sequelize.define('A', {});
+        const B = sequelize.define('B', {});
+        A.belongsTo(B);
+        B.belongsTo(A);
+
+        await sequelize.sync();
+
+        expect(await getDropTableQueries({ cascade: true })).to.have.length(2);
+      });
+    }
   });
 });

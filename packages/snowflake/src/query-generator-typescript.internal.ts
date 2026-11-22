@@ -9,17 +9,30 @@ import type {
   TruncateTableQueryOptions,
 } from '@sequelize/core';
 import { AbstractQueryGenerator, Op } from '@sequelize/core';
+import { attributeTypeToDataTypeId } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/data-types-utils.js';
 import {
   CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
   SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
   START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
   TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+  normalizeAttributeToSqlColumn,
 } from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator-typescript.js';
+import type {
+  AttributeToSqlInput,
+  AttributeToSqlOptions,
+} from '@sequelize/core/_non-semver-use-at-your-own-risk_/abstract-dialect/query-generator.internal-types.js';
 import { rejectInvalidOptions } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/check.js';
 import { joinSQLFragments } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/join-sql-fragments.js';
 import { EMPTY_SET } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/object.js';
+import { defaultValueSchemable } from '@sequelize/core/_non-semver-use-at-your-own-risk_/utils/query-builder-utils.js';
 import type { SnowflakeDialect } from './dialect.js';
 import { SnowflakeQueryGeneratorInternal } from './query-generator.internal.js';
+
+// Snowflake has no BLOB type at all: its binary types are BINARY and VARBINARY, and binary
+// literals are written TO_BINARY(..., 'HEX') rather than X'...'. Until DataTypes.BLOB maps to
+// one of those, a BLOB column cannot be created here, so there is nothing to default.
+// TODO [+snowflake]: map DataTypes.BLOB to BINARY and escape it with TO_BINARY
+const typeWithoutDefault = new Set(['BLOB']);
 
 const SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS = new Set<keyof ShowConstraintsQueryOptions>([
   'constraintName',
@@ -45,15 +58,13 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   createDatabaseQuery(database: string, options?: CreateDatabaseQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'createDatabaseQuery',
-        this.dialect,
-        CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'createDatabaseQuery',
+      this.dialect,
+      CREATE_DATABASE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return joinSQLFragments([`CREATE DATABASE IF NOT EXISTS ${this.quoteIdentifier(database)}`]);
   }
@@ -100,29 +111,25 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   truncateTableQuery(tableName: TableOrModel, options?: TruncateTableQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'truncateTableQuery',
-        this.dialect,
-        TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
-        EMPTY_SET,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'truncateTableQuery',
+      this.dialect,
+      TRUNCATE_TABLE_QUERY_SUPPORTABLE_OPTIONS,
+      EMPTY_SET,
+      options,
+    );
 
     return `TRUNCATE ${this.quoteTable(tableName)}`;
   }
 
   showConstraintsQuery(tableName: TableOrModel, options?: ShowConstraintsQueryOptions) {
-    if (options) {
-      rejectInvalidOptions(
-        'showConstraintsQuery',
-        this.dialect,
-        SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
-        SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'showConstraintsQuery',
+      this.dialect,
+      SHOW_CONSTRAINTS_QUERY_SUPPORTABLE_OPTIONS,
+      SHOW_CONSTRAINTS_QUERY_SUPPORTED_OPTIONS,
+      options,
+    );
 
     const table = this.extractTableDetails(tableName);
 
@@ -165,15 +172,13 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
   }
 
   startTransactionQuery(options?: StartTransactionQueryOptions): string {
-    if (options) {
-      rejectInvalidOptions(
-        'startTransactionQuery',
-        this.dialect,
-        START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
-        this.dialect.supports.startTransaction,
-        options,
-      );
-    }
+    rejectInvalidOptions(
+      'startTransactionQuery',
+      this.dialect,
+      START_TRANSACTION_QUERY_SUPPORTABLE_OPTIONS,
+      this.dialect.supports.startTransaction,
+      options,
+    );
 
     return options?.transactionName
       ? `START TRANSACTION NAME ${this.quoteIdentifier(options.transactionName)}`
@@ -182,5 +187,78 @@ export class SnowflakeQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
   getRandomFloatFunctionCall(): string {
     return 'RANDOM()';
+  }
+
+  attributeToSql(column: AttributeToSqlInput, options?: AttributeToSqlOptions): string {
+    const attribute = normalizeAttributeToSqlColumn(column);
+
+    // `toString` does not accept any argument, but this call has historically passed the dialect
+    const attributeString = (attribute.type as { toString(options: unknown): string }).toString({
+      dialect: this.dialect,
+    });
+    let template = attributeString;
+
+    if (attribute.allowNull === false) {
+      template += ' NOT NULL';
+    }
+
+    if (attribute.autoIncrement) {
+      template += ' AUTOINCREMENT';
+    }
+
+    if (
+      !typeWithoutDefault.has(attributeTypeToDataTypeId(attribute.type)) &&
+      defaultValueSchemable(attribute.defaultValue, this.dialect)
+    ) {
+      template += ` DEFAULT ${this.escape(attribute.defaultValue, { ...options, type: attribute.type })}`;
+    }
+
+    if (attribute.unique === true) {
+      template += ' UNIQUE';
+    }
+
+    if (attribute.primaryKey) {
+      template += ' PRIMARY KEY';
+    }
+
+    if (attribute.comment) {
+      template += ` COMMENT ${this.escape(attribute.comment)}`;
+    }
+
+    if (attribute.first) {
+      template += ' FIRST';
+    }
+
+    if (attribute.after) {
+      template += ` AFTER ${this.quoteIdentifier(attribute.after)}`;
+    }
+
+    if (!options?.withoutForeignKeyConstraints && attribute.references) {
+      if (options?.context === 'addColumn' && options.tableOrModel && attribute.field) {
+        const fkName = this.quoteIdentifier(
+          `${this.extractTableDetails(options.tableOrModel).tableName}_${attribute.field}_foreign_idx`,
+        );
+
+        template += `, ADD CONSTRAINT ${fkName} FOREIGN KEY (${this.quoteIdentifier(attribute.field)})`;
+      }
+
+      template += ` REFERENCES ${this.quoteTable(attribute.references.table)}`;
+
+      if (attribute.references.key) {
+        template += ` (${this.quoteIdentifier(attribute.references.key)})`;
+      } else {
+        template += ` (${this.quoteIdentifier('id')})`;
+      }
+
+      if (attribute.onDelete) {
+        template += ` ON DELETE ${attribute.onDelete.toUpperCase()}`;
+      }
+
+      if (attribute.onUpdate) {
+        template += ` ON UPDATE ${attribute.onUpdate.toUpperCase()}`;
+      }
+    }
+
+    return template;
   }
 }

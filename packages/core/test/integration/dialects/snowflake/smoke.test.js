@@ -1,5 +1,6 @@
 'use strict';
 
+const { expect } = require('chai');
 const Support = require('../../support');
 
 const dialect = Support.getTestDialect();
@@ -48,7 +49,7 @@ if (dialect === 'snowflake') {
             username: 'jeff',
           },
         });
-        user.id.should.equal(2);
+        expect(user.id).to.equal(2);
       });
 
       it('findOne with date attribute', async () => {
@@ -57,8 +58,8 @@ if (dialect === 'snowflake') {
             username: 'jeff',
           },
         });
-        // user.lastActivity.should.be.equalTime(new Date(Date.UTC(2021, 5, 22)));
-        user.lastActivity.should.equal(Date.UTC(2021, 5, 22));
+        // expect(user.lastActivity).to.be.equalTime(new Date(Date.UTC(2021, 5, 22)));
+        expect(user.lastActivity).to.equal(Date.UTC(2021, 5, 22));
       });
 
       it('findAll with orderby', async () => {
@@ -67,7 +68,7 @@ if (dialect === 'snowflake') {
         const users = await User.findAll({
           order: [['createdAt', 'ASC']],
         });
-        await users.at(-1).username.should.equal(username);
+        expect(users.at(-1).username).to.equal(username);
       });
 
       it('Update', async () => {
@@ -80,7 +81,7 @@ if (dialect === 'snowflake') {
           },
         );
         // https://github.com/sequelize/sequelize/issues/7184
-        await res[0].should.equal(1);
+        expect(res[0]).to.equal(1);
       });
     });
 
@@ -113,7 +114,7 @@ if (dialect === 'snowflake') {
             taskName: 'task2',
           },
         });
-        user.id.should.equal(2);
+        expect(user.id).to.equal(2);
       });
     });
   });

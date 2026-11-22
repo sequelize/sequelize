@@ -43,6 +43,7 @@ import type { AcquireConnectionOptions } from './abstract-dialect/replication-po
 import { ReplicationPool } from './abstract-dialect/replication-pool.js';
 import { initDecoratedAssociations } from './decorators/legacy/associations.js';
 import { initDecoratedModel } from './decorators/shared/model.js';
+import { ConnectionError } from './errors/connection-error.js';
 import { ConnectionAcquireTimeoutError } from './errors/connection/connection-acquire-timeout-error.js';
 import {
   legacyBuildAddAnyHook,
@@ -74,7 +75,10 @@ import { getIntersection } from './utils/array.js';
 import { normalizeReplicationConfig } from './utils/connection-options.js';
 import * as Deprecations from './utils/deprecations.js';
 import { showAllToListSchemas } from './utils/deprecations.js';
+import { logger } from './utils/logger.js';
 import { removeUndefined, untypedMultiSplitObject } from './utils/object.js';
+
+const debug = logger.debugContext('pool');
 
 export interface SequelizeHooks<Dialect extends AbstractDialect> extends ModelHooks {
   /**
@@ -606,10 +610,6 @@ Connection options can be used at the root of the option bag, in the "replicatio
       omitNull: false,
       // TODO [>7]: remove this option
       quoteIdentifiers: true,
-      retry: {
-        max: 5,
-        match: ['SQLITE_BUSY: database is locked'],
-      },
       transactionType: TransactionType.DEFERRED,
       isolationLevel: undefined,
       noTypeValidation: false,
@@ -621,6 +621,11 @@ Connection options can be used at the root of the option bag, in the "replicatio
       defaultTimestampPrecision: 6,
       nullJsonStringification: 'json',
       ...persistedSequelizeOptions,
+      retry: {
+        max: 5,
+        match: ['SQLITE_BUSY: database is locked'],
+        ...persistedSequelizeOptions.retry,
+      },
       replication: normalizeReplicationConfig(
         this.dialect,
         connectionOptions as RawConnectionOptions<Dialect>,
@@ -651,6 +656,14 @@ Connection options can be used at the root of the option bag, in the "replicatio
       );
     }
 
+    const validateConnection = (connection: Connection<Dialect>): boolean => {
+      if (options.pool?.validate) {
+        return options.pool.validate(connection);
+      }
+
+      return this.dialect.connectionManager.validate(connection);
+    };
+
     this.pool = new ReplicationPool<Connection<Dialect>, ConnectionOptions<Dialect>>({
       pool: {
         max: 5,
@@ -661,7 +674,10 @@ Connection options can be used at the root of the option bag, in the "replicatio
         maxUses: Infinity,
         ...(options.pool ? removeUndefined(options.pool) : undefined),
       },
-      connect: async (connectOptions: ConnectionOptions<Dialect>): Promise<Connection<Dialect>> => {
+      connect: async (
+        connectOptions: ConnectionOptions<Dialect>,
+        register: (connection: Connection<Dialect>) => void,
+      ): Promise<Connection<Dialect>> => {
         if (this.isClosed()) {
           throw new Error(
             'sequelize.close was called, new connections cannot be established. If you did not mean for the Sequelize instance to be closed permanently, prefer using sequelize.pool.destroyAllNow instead.',
@@ -672,10 +688,34 @@ Connection options can be used at the root of the option bag, in the "replicatio
         await this.hooks.runAsync('beforeConnect', clonedConnectOptions);
 
         const connection = await this.dialect.connectionManager.connect(clonedConnectOptions);
-        await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
 
-        if (!this.getDatabaseVersionIfExist()) {
-          await this.#initializeDatabaseVersion(connection);
+        register(connection);
+
+        let afterConnectDone = false;
+        try {
+          await this.dialect.connectionManager.initializeConnection(connection);
+          await this.hooks.runAsync('afterConnect', connection, clonedConnectOptions);
+          afterConnectDone = true;
+
+          if (!this.getDatabaseVersionIfExist()) {
+            await this.#initializeDatabaseVersion(connection);
+          }
+
+          // The pool does not validate new connections, and pool.destroy() cannot close a
+          // connection before the pool owns it, so a connection that broke during setup
+          // (e.g. its error handler fired) would otherwise be handed out.
+          if (!validateConnection(connection)) {
+            throw new ConnectionError(
+              new Error('The new connection failed validation after it was set up'),
+            );
+          }
+        } catch (error) {
+          // The pool only takes ownership of the connection once this function resolves,
+          // so a connection whose setup failed must be closed here or it would be leaked.
+          // The disconnect hooks only run if the afterConnect hook completed.
+          await this.#closeFailedConnection(connection, afterConnectDone);
+
+          throw error;
         }
 
         return connection;
@@ -685,13 +725,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
         await this.dialect.connectionManager.disconnect(connection);
         await this.hooks.runAsync('afterDisconnect', connection);
       },
-      validate: (connection: Connection<Dialect>): boolean => {
-        if (options.pool?.validate) {
-          return options.pool.validate(connection);
-        }
-
-        return this.dialect.connectionManager.validate(connection);
-      },
+      validate: validateConnection,
       beforeAcquire: async (acquireOptions: AcquireConnectionOptions): Promise<void> => {
         return this.hooks.runAsync('beforePoolAcquire', acquireOptions);
       },
@@ -715,6 +749,41 @@ Connection options can be used at the root of the option bag, in the "replicatio
   }
 
   #databaseVersionPromise: Promise<void> | null = null;
+  /**
+   * Closes a new connection whose setup failed. The pool never took ownership of it,
+   * so nothing else would close it.
+   * Errors are only logged, so that the caller gets the setup error instead.
+   *
+   * @param connection The connection to close
+   * @param runDisconnectHooks Whether to run the beforeDisconnect and afterDisconnect hooks
+   */
+  async #closeFailedConnection(connection: Connection<Dialect>, runDisconnectHooks: boolean) {
+    if (runDisconnectHooks) {
+      try {
+        await this.hooks.runAsync('beforeDisconnect', connection);
+      } catch (error) {
+        // Close the connection anyway
+        debug('beforeDisconnect failed for a connection whose setup failed: %O', error);
+      }
+    }
+
+    try {
+      await this.dialect.connectionManager.disconnect(connection);
+    } catch (error) {
+      debug('could not close a connection whose setup failed: %O', error);
+
+      return;
+    }
+
+    if (runDisconnectHooks) {
+      try {
+        await this.hooks.runAsync('afterDisconnect', connection);
+      } catch (error) {
+        debug('afterDisconnect failed for a connection whose setup failed: %O', error);
+      }
+    }
+  }
+
   async #initializeDatabaseVersion(connection: Connection<Dialect>) {
     if (this.#databaseVersion) {
       return;
@@ -793,7 +862,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
   /**
    * Escape value to be used in raw SQL.
    *
-   * If you are using this to use the value in a {@link sql.literal}, consider using {@link sql} instead, which automatically
+   * If you are using this to use the value in a {@link @sequelize/core!sql.literal}, consider using {@link @sequelize/core!sql} instead, which automatically
    * escapes interpolated values.
    *
    * @param value The value to escape
@@ -1063,7 +1132,7 @@ Connection options can be used at the root of the option bag, in the "replicatio
       options = { type: 'write', ...optionsOrCallback };
     }
 
-    const connection = await this.pool.acquire(options as GetConnectionOptions);
+    const connection = await this.pool.acquire(options);
 
     try {
       return await callback(connection);

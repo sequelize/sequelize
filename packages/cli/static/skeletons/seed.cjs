@@ -2,12 +2,12 @@
 
 module.exports = {
   /** @type {import('@sequelize/cli').MigrationFunction} */
-  async up(queryInterface, sequelize) {
+  async up({ sequelize }) {
     /**
      * Add seed commands here.
      *
      * Example:
-     * await queryInterface.bulkInsert('People', [{
+     * await sequelize.queryInterface.bulkInsert('People', [{
      *   name: 'John Doe',
      *   isBetaMember: false
      * }], {});
@@ -15,12 +15,12 @@ module.exports = {
   },
 
   /** @type {import('@sequelize/cli').MigrationFunction} */
-  async down(queryInterface, sequelize) {
+  async down({ sequelize }) {
     /**
      * Add commands to revert seed here.
      *
      * Example:
-     * await queryInterface.bulkDelete('People', null, {});
+     * await sequelize.queryInterface.bulkDelete('People', null, {});
      */
   },
 };

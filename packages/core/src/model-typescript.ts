@@ -552,42 +552,8 @@ export function initModel<M extends Model>(
   // @ts-expect-error -- TODO: type
   model._scopeNames = ['defaultScope'];
 
-  model.sequelize.hooks.runSync('afterDefine', model);
-
-  addAttributeGetterAndSetters(model);
-  model.hooks.addListener('afterDefinitionRefresh', () => {
-    addAttributeGetterAndSetters(model);
-  });
-}
-
-function addAttributeGetterAndSetters(model: ModelStatic) {
-  const modelDefinition = model.modelDefinition;
-
-  // TODO: temporary workaround due to cyclic import. Should not be necessary once Model is fully migrated to TypeScript.
-  const { Model: TmpModel } = require('./model.js');
-
-  // add attributes to the DAO prototype
-  for (const attribute of modelDefinition.attributes.values()) {
-    const attributeName = attribute.attributeName;
-
-    if (attributeName in TmpModel.prototype) {
-      model.sequelize.log(
-        `Attribute ${attributeName} in model ${model.name} is shadowing a built-in property of the Model prototype. This is not recommended. Consider renaming your attribute.`,
-      );
-
-      continue;
-    }
-
-    const attributeProperty: PropertyDescriptor = {
-      configurable: true,
-      get(this: Model) {
-        return this.get(attributeName);
-      },
-      set(this: Model, value: unknown) {
-        return this.set(attributeName, value);
-      },
-    };
-
-    Object.defineProperty(model.prototype, attributeName, attributeProperty);
+  // Model variants (withScope, withSchema, etc.) are not new models
+  if (model.getInitialModel() === model) {
+    model.sequelize.hooks.runSync('afterDefine', model);
   }
 }

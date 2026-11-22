@@ -295,82 +295,80 @@ describe(getTestDialectTeaser('DataTypes'), () => {
     });
   });
 
-  if (sequelize.dialect.name === 'postgres') {
-    describe('GEOGRAPHY(POLYGON, SRID)', () => {
-      const vars = beforeEach2(async () => {
-        return { User: await createUserModelWithGeography(GeoJsonType.Polygon, 4326) };
-      });
-
-      it('should create a geography object', async () => {
-        const point: GeoJsonPolygon = {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [100, 0],
-              [101, 0],
-              [101, 1],
-              [100, 1],
-              [100, 0],
-            ],
-          ],
-          crs: {
-            type: 'name',
-            properties: {
-              name: 'EPSG:4326',
-            },
-          },
-        };
-
-        const newUser = await vars.User.create({ geography: point });
-        expect(newUser).not.to.be.null;
-        expect(newUser.geography).to.deep.eq(point);
-      });
-
-      it('should update a geography object', async () => {
-        const polygon1: GeoJsonPolygon = {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [100, 0],
-              [101, 0],
-              [101, 1],
-              [100, 1],
-              [100, 0],
-            ],
-          ],
-          crs: {
-            type: 'name',
-            properties: {
-              name: 'EPSG:4326',
-            },
-          },
-        };
-
-        const polygon2: GeoJsonPolygon = {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [100, 0],
-              [102, 0],
-              [102, 1],
-              [100, 1],
-              [100, 0],
-            ],
-          ],
-          crs: {
-            type: 'name',
-            properties: {
-              name: 'EPSG:4326',
-            },
-          },
-        };
-
-        const user = await vars.User.create({ geography: polygon1 });
-        await vars.User.update({ geography: polygon2 }, { where: { id: user.id } });
-        await user.reload();
-
-        expect(user.geography).to.deep.eq(polygon2);
-      });
+  describe('GEOGRAPHY(POLYGON, SRID)', () => {
+    const vars = beforeEach2(async () => {
+      return { User: await createUserModelWithGeography(GeoJsonType.Polygon, 4326) };
     });
-  }
+
+    it('should create a geography object', async () => {
+      const point: GeoJsonPolygon = {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [100, 0],
+            [101, 0],
+            [101, 1],
+            [100, 1],
+            [100, 0],
+          ],
+        ],
+        crs: {
+          type: 'name',
+          properties: {
+            name: 'EPSG:4326',
+          },
+        },
+      };
+
+      const newUser = await vars.User.create({ geography: point });
+      expect(newUser).not.to.be.null;
+      expect(newUser.geography).to.deep.eq(point);
+    });
+
+    it('should update a geography object', async () => {
+      const polygon1: GeoJsonPolygon = {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [100, 0],
+            [101, 0],
+            [101, 1],
+            [100, 1],
+            [100, 0],
+          ],
+        ],
+        crs: {
+          type: 'name',
+          properties: {
+            name: 'EPSG:4326',
+          },
+        },
+      };
+
+      const polygon2: GeoJsonPolygon = {
+        type: 'Polygon',
+        coordinates: [
+          [
+            [100, 0],
+            [102, 0],
+            [102, 1],
+            [100, 1],
+            [100, 0],
+          ],
+        ],
+        crs: {
+          type: 'name',
+          properties: {
+            name: 'EPSG:4326',
+          },
+        },
+      };
+
+      const user = await vars.User.create({ geography: polygon1 });
+      await vars.User.update({ geography: polygon2 }, { where: { id: user.id } });
+      await user.reload();
+
+      expect(user.geography).to.deep.eq(polygon2);
+    });
+  });
 });

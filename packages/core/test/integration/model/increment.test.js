@@ -5,11 +5,10 @@ const chai = require('chai');
 const expect = chai.expect;
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
-const sinon = require('sinon');
 
 describe(Support.getTestDialectTeaser('Model'), () => {
   before(function () {
-    this.clock = sinon.useFakeTimers();
+    this.clock = Support.useFakeTimers();
   });
 
   after(function () {
@@ -82,6 +81,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         ]);
 
         const bUsers = await this.User.findAll();
+        expect(bUsers).to.have.length(4);
         for (const [i, bUser] of bUsers.entries()) {
           expect(bUser.aNumber).to.equal(this.assert(aUsers[i].aNumber + 6, aUsers[i].aNumber - 6));
         }
@@ -91,6 +91,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const aUsers = await this.User.findAll();
         await this.User[method](['aNumber'], { by: 2, where: {} });
         const bUsers = await this.User.findAll();
+        expect(bUsers).to.have.length(4);
         for (const [i, bUser] of bUsers.entries()) {
           expect(bUser.aNumber).to.equal(this.assert(aUsers[i].aNumber + 2, aUsers[i].aNumber - 2));
         }
@@ -100,6 +101,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const aUsers = await this.User.findAll();
         await this.User[method]('aNumber', { by: 2, where: {} });
         const bUsers = await this.User.findAll();
+        expect(bUsers).to.have.length(4);
         for (const [i, bUser] of bUsers.entries()) {
           expect(bUser.aNumber).to.equal(this.assert(aUsers[i].aNumber + 2, aUsers[i].aNumber - 2));
         }
@@ -109,6 +111,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const aUsers = await this.User.findAll();
         await this.User[method]('aNumber', { where: {} });
         const bUsers = await this.User.findAll();
+        expect(bUsers).to.have.length(4);
         for (const [i, bUser] of bUsers.entries()) {
           expect(bUser.aNumber).to.equal(this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1));
         }
@@ -118,6 +121,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         const aUsers = await this.User.findAll();
         await this.User[method]({ aNumber: 1, bNumber: 2 }, { where: {} });
         const bUsers = await this.User.findAll();
+        expect(bUsers).to.have.length(4);
         for (const [i, bUser] of bUsers.entries()) {
           expect(bUser.aNumber).to.equal(this.assert(aUsers[i].aNumber + 1, aUsers[i].aNumber - 1));
           expect(bUser.bNumber).to.equal(this.assert(aUsers[i].bNumber + 2, aUsers[i].bNumber - 2));
@@ -129,6 +133,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         await this.User.update({ aNumber: 2 }, { where: {} });
         await this.User[method](['aNumber'], { by: 2, where: {} });
         const bUsers = await this.User.findAll();
+        expect(bUsers).to.have.length(4);
         for (const [i, bUser] of bUsers.entries()) {
           // for decrement 2 - 2 = 0
           expect(bUser.aNumber).to.equal(this.assert(aUsers[i].aNumber + 4, aUsers[i].aNumber));

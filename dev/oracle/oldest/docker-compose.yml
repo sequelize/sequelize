@@ -9,10 +9,15 @@ services:
     ports:
       - 1521:1521
     healthcheck:
-      test: ['CMD-SHELL', 'sqlplus system/password@XEPDB1']
+      test:
+        [
+          'CMD-SHELL',
+          'echo "select 1 from dual;" | sqlplus -L -S system/password@localhost:1521/XEPDB1',
+        ]
       interval: 3s
-      timeout: 1s
+      timeout: 5s
       retries: 10
+      start_period: 120s
 
 networks:
   default:

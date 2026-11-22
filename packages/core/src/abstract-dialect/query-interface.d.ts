@@ -48,8 +48,7 @@ export interface QiArithmeticOptions extends QueryRawOptions, Replaceable {
 }
 
 export interface QiUpsertOptions<M extends Model>
-  extends QueryRawOptionsWithModel<M>,
-    Replaceable {}
+  extends QueryRawOptionsWithModel<M>, Replaceable {}
 
 export interface CreateFunctionOptions extends QueryRawOptions {
   force?: boolean;
@@ -174,12 +173,10 @@ export interface IndexOptions {
 }
 
 export interface QueryInterfaceIndexOptions
-  extends IndexOptions,
-    Omit<QiOptionsWithReplacements, 'type'> {}
+  extends IndexOptions, Omit<QiOptionsWithReplacements, 'type'> {}
 
 export interface QueryInterfaceRemoveIndexOptions
-  extends QueryInterfaceIndexOptions,
-    RemoveIndexQueryOptions {}
+  extends QueryInterfaceIndexOptions, RemoveIndexQueryOptions {}
 
 export interface FunctionParam {
   type: string;
@@ -264,6 +261,15 @@ export class AbstractQueryInterface<
 
   /**
    * Changes a column
+   *
+   * If the new definition sets "unique: true", a unique key is added to the column,
+   * unless the table already has a unique constraint, unique index or primary key on exactly that column,
+   * so calling this method again does not add another one.
+   * Named and composite unique keys must be added with {@link AbstractQueryInterface#addConstraint}.
+   * Setting "unique" to false does not remove existing unique keys.
+   *
+   * In SQLite (which cannot add constraints to existing tables), and in Db2 for nullable columns
+   * (Db2 only accepts unique constraints on NOT NULL columns), a unique index is added instead.
    */
   changeColumn(
     tableName: TableName,

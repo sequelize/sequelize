@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const sinon = require('sinon');
 const { DataTypes, Sequelize } = require('@sequelize/core');
 
 const expect = chai.expect;
@@ -49,10 +50,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
           this.Project.belongsToMany(this.User, { through: 'project_user' });
           this.User.belongsToMany(this.Project, { through: 'project_user' });
 
-          this.sqlAssert = function (sql) {
+          this.sqlAssert = sinon.spy(sql => {
             expect(sql).to.not.include('field1');
             expect(sql).to.not.include('field2');
-          };
+          });
 
           await this.sequelize.sync({ force: true });
         });
@@ -94,6 +95,7 @@ describe(Support.getTestDialectTeaser('Model'), () => {
               logging: this.sqlAssert,
             }),
           ]);
+          expect(this.sqlAssert).to.have.callCount(4);
         });
 
         it('should allow me to store selected values', async function () {
@@ -199,7 +201,10 @@ describe(Support.getTestDialectTeaser('Model'), () => {
         });
 
         it('should be able to include model with virtual attributes', async function () {
-          const user0 = await this.User.create(dialect === 'db2' ? { id: 1 } : {});
+          const { supports } = this.sequelize.dialect;
+          const user0 = await this.User.create(
+            supports['DEFAULT VALUES'] || supports['VALUES ()'] ? {} : { id: 1 },
+          );
           await user0.createTask();
 
           const tasks = await this.Task.findAll({

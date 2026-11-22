@@ -17,15 +17,13 @@ const {
 const sinon = require('sinon');
 
 const current = Support.sequelize;
-const delay = require('delay');
-const pSettle = require('p-settle');
+const { default: delay } = require('delay');
+const { default: pSettle } = require('p-settle');
 
 const fromQuery = () => {
-  if (dialect === 'oracle') {
-    return ' FROM DUAL';
-  }
+  const { dummyTable } = current.dialect.supports.select;
 
-  return '';
+  return dummyTable ? ` FROM ${dummyTable}` : '';
 };
 
 describe(Support.getTestDialectTeaser('Transaction'), () => {
@@ -44,7 +42,11 @@ describe(Support.getTestDialectTeaser('Transaction'), () => {
   describe('constructor', () => {
     it('stores options', function () {
       const transaction = new Transaction(this.sequelize);
-      expect(transaction.options).to.be.an.instanceOf(Object);
+      expect(transaction.options).to.deep.include({
+        readOnly: false,
+        isolationLevel: this.sequelize.options.isolationLevel ?? null,
+      });
+      expect(transaction.options).to.be.frozen;
     });
 
     it('generates an identifier', function () {

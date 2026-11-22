@@ -8,7 +8,6 @@ const dayjs = require('dayjs');
 const Support = require('../support');
 const { DataTypes } = require('@sequelize/core');
 
-const dialect = Support.getTestDialect();
 const current = Support.sequelize;
 
 describe(Support.getTestDialectTeaser('Instance'), () => {
@@ -390,14 +389,14 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       const ms = await MultiPrimary.findAll();
       expect(ms.length).to.equal(2);
 
-      await m2.destroy({
-        logging(sql) {
-          expect(sql).to.exist;
-          expect(sql.toUpperCase()).to.include('DELETE');
-          expect(sql).to.include('ru');
-          expect(sql).to.include('bl');
-        },
+      const logging = sinon.spy(sql => {
+        expect(sql).to.exist;
+        expect(sql.toUpperCase()).to.include('DELETE');
+        expect(sql).to.include('ru');
+        expect(sql).to.include('bl');
       });
+      await m2.destroy({ logging });
+      expect(logging).to.have.been.called;
 
       const ms0 = await MultiPrimary.findAll();
       expect(ms0.length).to.equal(1);
@@ -405,7 +404,7 @@ describe(Support.getTestDialectTeaser('Instance'), () => {
       expect(ms0[0].guruguru).to.equal('gu');
     });
 
-    if (dialect.startsWith('postgres')) {
+    if (current.dialect.supports.dataTypes.DATETIME.infinity) {
       it('converts Infinity in where clause to a timestamp', async function () {
         const Date = this.sequelize.define(
           'Date',

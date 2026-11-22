@@ -50,15 +50,8 @@ describe('QueryInterface#listTables', () => {
         }
       }
 
-      const fromQuery = () => {
-        if (['db2', 'ibmi'].includes(dialectName)) {
-          return 'FROM SYSIBM.SYSDUMMY1';
-        } else if (dialectName === 'oracle') {
-          return 'FROM DUAL';
-        }
-
-        return '';
-      };
+      const { dummyTable } = sequelize.dialect.supports.select;
+      const fromQuery = () => (dummyTable ? `FROM ${dummyTable}` : '');
 
       await queryInterface.createTable('my_test_table', { name: DataTypes.STRING });
       await cleanup();

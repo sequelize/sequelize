@@ -12,8 +12,7 @@ export interface UserPostAttributes {
 export interface UserPostCreationAttributes extends SetOptional<UserPostAttributes, 'id'> {}
 
 export interface UserPostInstance
-  extends Model<UserPostAttributes, UserPostCreationAttributes>,
-    UserPostAttributes {}
+  extends Model<UserPostAttributes, UserPostCreationAttributes>, UserPostAttributes {}
 
 /**
  * This is a component defined using `sequelize.define` to ensure that various

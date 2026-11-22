@@ -37,6 +37,7 @@ const CONNECTION_OPTION_NAMES = getSynchronizedTypeKeys<IBMiConnectionOptions>({
 
 export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnectionOptions> {
   static readonly supports = AbstractDialect.extendSupport({
+    maxTableAliasLength: 128,
     'VALUES ()': true,
     'ON DUPLICATE KEY': false,
     connectionTransactionMethods: true,
@@ -47,6 +48,9 @@ export class IBMiDialect extends AbstractDialect<IbmiDialectOptions, IBMiConnect
       functionBased: true,
       collate: false,
       include: false,
+    },
+    alterColumn: {
+      unique: false,
     },
     constraints: {
       onUpdate: false,

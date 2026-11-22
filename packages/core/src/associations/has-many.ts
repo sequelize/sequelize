@@ -58,9 +58,9 @@ import {
 export class HasManyAssociation<
   S extends Model = Model,
   T extends Model = Model,
-  SourceKey extends AttributeNames<S> = any,
-  TargetKey extends AttributeNames<T> = any,
-  TargetPrimaryKey extends AttributeNames<T> = any,
+  SourceKey extends AttributeNames<S> = AttributeNames<S>,
+  TargetKey extends AttributeNames<T> = AttributeNames<T>,
+  TargetPrimaryKey extends AttributeNames<T> = AttributeNames<T>,
 > extends MultiAssociation<
   S,
   T,
@@ -622,8 +622,10 @@ export type NormalizedHasManyOptions<
 /**
  * Options provided when associating models with hasMany relationship
  */
-export interface HasManyOptions<SourceKey extends string, TargetKey extends string>
-  extends MultiAssociationOptions<TargetKey> {
+export interface HasManyOptions<
+  SourceKey extends string,
+  TargetKey extends string,
+> extends MultiAssociationOptions<TargetKey> {
   /**
    * The name of the field to use as the key for the association in the source table. Defaults to the primary
    * key of the source table
@@ -666,8 +668,9 @@ function normalizeHasManyOptions<SourceKey extends string, TargetKey extends str
  *
  * @see HasManyGetAssociationsMixin
  */
-export interface HasManyGetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>> {
+export interface HasManyGetAssociationsMixinOptions<T extends Model> extends FindOptions<
+  Attributes<T>
+> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */
@@ -704,8 +707,7 @@ export type HasManyGetAssociationsMixin<T extends Model> = (
  * @see HasManySetAssociationsMixin
  */
 export interface HasManySetAssociationsMixinOptions<T extends Model>
-  extends FindOptions<Attributes<T>>,
-    InstanceUpdateOptions<Attributes<T>> {
+  extends FindOptions<Attributes<T>>, InstanceUpdateOptions<Attributes<T>> {
   /**
    * Delete the previous associated model. Default to false.
    *
@@ -742,8 +744,9 @@ export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
  *
  * @see HasManyAddAssociationsMixin
  */
-export interface HasManyAddAssociationsMixinOptions<T extends Model>
-  extends InstanceUpdateOptions<Attributes<T>> {}
+export interface HasManyAddAssociationsMixinOptions<T extends Model> extends InstanceUpdateOptions<
+  Attributes<T>
+> {}
 
 /**
  * The addAssociations mixin applied to models with hasMany.
@@ -769,8 +772,9 @@ export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
  *
  * @see HasManyAddAssociationMixin
  */
-export interface HasManyAddAssociationMixinOptions<T extends Model>
-  extends HasManyAddAssociationsMixinOptions<T> {}
+export interface HasManyAddAssociationMixinOptions<
+  T extends Model,
+> extends HasManyAddAssociationsMixinOptions<T> {}
 
 /**
  * The addAssociation mixin applied to models with hasMany.
@@ -796,8 +800,9 @@ export type HasManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
  *
  * @see HasManyCreateAssociationMixin
  */
-export interface HasManyCreateAssociationMixinOptions<T extends Model>
-  extends CreateOptions<Attributes<T>> {}
+export interface HasManyCreateAssociationMixinOptions<T extends Model> extends CreateOptions<
+  Attributes<T>
+> {}
 
 /**
  * The createAssociation mixin applied to models with hasMany.
@@ -826,8 +831,9 @@ export type HasManyCreateAssociationMixin<
  *
  * @see HasManyRemoveAssociationMixin
  */
-export interface HasManyRemoveAssociationMixinOptions<T extends Model>
-  extends HasManyRemoveAssociationsMixinOptions<T> {}
+export interface HasManyRemoveAssociationMixinOptions<
+  T extends Model,
+> extends HasManyRemoveAssociationsMixinOptions<T> {}
 
 /**
  * The removeAssociation mixin applied to models with hasMany.
@@ -853,8 +859,10 @@ export type HasManyRemoveAssociationMixin<T extends Model, TModelPrimaryKey> = (
  *
  * @see HasManyRemoveAssociationsMixin
  */
-export interface HasManyRemoveAssociationsMixinOptions<T extends Model>
-  extends Omit<InstanceUpdateOptions<Attributes<T>>, 'where'> {
+export interface HasManyRemoveAssociationsMixinOptions<T extends Model> extends Omit<
+  InstanceUpdateOptions<Attributes<T>>,
+  'where'
+> {
   /**
    * Delete the associated model. Default to false.
    *
@@ -891,8 +899,9 @@ export type HasManyRemoveAssociationsMixin<T extends Model, TModelPrimaryKey> = 
  *
  * @see HasManyHasAssociationMixin
  */
-export interface HasManyHasAssociationMixinOptions<T extends Model>
-  extends HasManyGetAssociationsMixinOptions<T> {}
+export interface HasManyHasAssociationMixinOptions<
+  T extends Model,
+> extends HasManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The hasAssociation mixin applied to models with hasMany.
@@ -918,8 +927,9 @@ export type HasManyHasAssociationMixin<TModel extends Model, TModelPrimaryKey> =
  *
  * @see HasManyHasAssociationsMixin
  */
-export interface HasManyHasAssociationsMixinOptions<T extends Model>
-  extends HasManyGetAssociationsMixinOptions<T> {}
+export interface HasManyHasAssociationsMixinOptions<
+  T extends Model,
+> extends HasManyGetAssociationsMixinOptions<T> {}
 
 /**
  * The removeAssociations mixin applied to models with hasMany.
@@ -949,8 +959,7 @@ export type HasManyHasAssociationsMixin<TModel extends Model, TModelPrimaryKey> 
  * @see HasManyCountAssociationsMixin
  */
 export interface HasManyCountAssociationsMixinOptions<T extends Model>
-  extends Transactionable,
-    Filterable<Attributes<T>> {
+  extends Transactionable, Filterable<Attributes<T>> {
   /**
    * Apply a scope on the related model, or remove its default scope by passing false.
    */

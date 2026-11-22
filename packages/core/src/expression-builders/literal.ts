@@ -1,7 +1,7 @@
 import { BaseSqlExpression, SQL_IDENTIFIER } from './base-sql-expression.js';
 
 /**
- * Do not use me directly. Use {@link sql.literal}
+ * Do not use me directly. Use {@link @sequelize/core!sql.literal}
  */
 export class Literal extends BaseSqlExpression {
   declare protected readonly [SQL_IDENTIFIER]: 'literal';
@@ -17,7 +17,7 @@ export class Literal extends BaseSqlExpression {
 
 /**
  * Creates an object representing a literal, i.e. something that will not be escaped.
- * We recommend using {@link sql} for a better DX.
+ * We recommend using {@link @sequelize/core!sql} for a better DX.
  *
  * @param val literal value
  */

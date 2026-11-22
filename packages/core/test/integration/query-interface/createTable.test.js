@@ -4,7 +4,7 @@ const chai = require('chai');
 
 const expect = chai.expect;
 const Support = require('../support');
-const { DataTypes } = require('@sequelize/core');
+const { DataTypes, UniqueConstraintError } = require('@sequelize/core');
 
 const dialect = Support.getTestDialect();
 
@@ -86,19 +86,98 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
       });
     }
 
+    const uniqueColumnTypes = {
+      STRING: { type: DataTypes.STRING, value: 'a' },
+      BOOLEAN: { type: DataTypes.BOOLEAN, value: true },
+      ENUM: { type: DataTypes.ENUM('a', 'b'), value: 'a' },
+    };
+
+    for (const [typeName, { type, value }] of Object.entries(uniqueColumnTypes)) {
+      // Snowflake does not enforce unique constraints.
+      // TODO: mssql ignores "unique" on ENUM columns
+      if (dialect === 'snowflake' || (typeName === 'ENUM' && dialect === 'mssql')) {
+        continue;
+      }
+
+      it(`adds a unique constraint to ${typeName} columns with the unique option`, async function () {
+        await this.queryInterface.createTable('unique_values', {
+          id: { type: DataTypes.INTEGER, primaryKey: true },
+          // Db2 does not accept unique constraints on nullable columns
+          value: { type, allowNull: false, unique: true },
+        });
+
+        await this.queryInterface.bulkInsert('unique_values', [{ id: 1, value }]);
+        await expect(
+          this.queryInterface.bulkInsert('unique_values', [{ id: 2, value }]),
+        ).to.be.rejectedWith(UniqueConstraintError);
+      });
+    }
+
+    const typesThatCannotBeUnique = {
+      TEXT: { type: DataTypes.TEXT, dialects: ['mysql', 'mssql', 'db2', 'ibmi', 'oracle'] },
+      BLOB: { type: DataTypes.BLOB, dialects: ['mysql', 'mssql', 'db2', 'ibmi', 'oracle'] },
+      JSON: { type: DataTypes.JSON, dialects: ['postgres', 'mysql', 'mssql', 'oracle'] },
+    };
+
+    for (const [typeName, { dialects, type }] of Object.entries(typesThatCannotBeUnique)) {
+      if (typeName === 'JSON' && !Support.sequelize.dialect.supports.dataTypes.JSON) {
+        continue;
+      }
+
+      if (!dialects.includes(dialect)) {
+        it(`creates unique ${typeName} columns`, async function () {
+          await this.queryInterface.createTable('unique_values', {
+            id: { type: DataTypes.INTEGER, primaryKey: true },
+            value: { type, allowNull: false, unique: true },
+          });
+
+          expect(await this.queryInterface.tableExists('unique_values')).to.equal(true);
+        });
+
+        continue;
+      }
+
+      it(`throws a clear error for unique ${typeName} columns`, async function () {
+        await expect(
+          this.queryInterface.createTable('unique_values', {
+            id: { type: DataTypes.INTEGER, primaryKey: true },
+            value: { type, allowNull: false, unique: true },
+          }),
+        ).to.be.rejectedWith(
+          Error,
+          `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+        );
+        expect(await this.queryInterface.tableExists('unique_values')).to.equal(false);
+      });
+
+      it(`throws a clear error for unique keys on ${typeName} columns`, async function () {
+        await expect(
+          this.queryInterface.createTable(
+            'unique_values',
+            {
+              id: { type: DataTypes.INTEGER, primaryKey: true },
+              value: { type, allowNull: false },
+            },
+            { uniqueKeys: { unique_values_value: { fields: ['value'] } } },
+          ),
+        ).to.be.rejectedWith(
+          Error,
+          `Column "value" cannot be unique: ${dialect} does not support unique constraints on`,
+        );
+        expect(await this.queryInterface.tableExists('unique_values')).to.equal(false);
+      });
+    }
+
     if (Support.sequelize.dialect.supports.schemas) {
       it('should work with schemas', async function () {
         await this.sequelize.createSchema('hero');
 
         await this.queryInterface.createTable(
-          'User',
+          { tableName: 'User', schema: 'hero' },
           {
             name: {
               type: DataTypes.STRING,
             },
-          },
-          {
-            schema: 'hero',
           },
         );
       });
@@ -148,14 +227,13 @@ describe(Support.getTestDialectTeaser('QueryInterface'), () => {
           await this.queryInterface.createSchema('archive');
 
           await this.queryInterface.createTable(
-            'SomeTable',
+            { tableName: 'SomeTable', schema: 'archive' },
             {
               someEnum: {
                 type: DataTypes.ENUM(['value1', 'value2', 'value3']),
                 field: 'otherName',
               },
             },
-            { schema: 'archive' },
           );
 
           const table = await this.queryInterface.describeTable({

@@ -2,7 +2,7 @@ import type { AbstractDialect } from '../abstract-dialect/dialect';
 import { DialectAwareFn } from './dialect-aware-fn';
 
 /**
- * Do not use me directly. Use {@link sql.random}
+ * Do not use me directly. Use {@link @sequelize/core!sql.random}
  */
 export class Random extends DialectAwareFn {
   get maxArgCount() {

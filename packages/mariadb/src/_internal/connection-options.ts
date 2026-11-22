@@ -57,6 +57,7 @@ const NUMBER_CONNECTION_OPTION_MAP = {
   socketTimeout: undefined,
   debugLen: undefined,
   maxAllowedPacket: undefined,
+  maxAllowedColumns: undefined,
   keepAliveDelay: undefined,
   prepareCacheLength: undefined,
   queryTimeout: undefined,

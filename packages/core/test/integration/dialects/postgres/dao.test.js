@@ -1,6 +1,7 @@
 'use strict';
 
 const chai = require('chai');
+const sinon = require('sinon');
 
 const expect = chai.expect;
 const Support = require('../../support');
@@ -39,17 +40,20 @@ describe('[POSTGRES Specific] DAO', () => {
   });
 
   it('should be able to search within an array', async function () {
+    const logging = sinon.spy(sql => {
+      expect(sql).to.equal(
+        'Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\'];',
+      );
+    });
+
     await this.User.findAll({
       where: {
         email: ['hello', 'world'],
       },
       attributes: ['id', 'username', 'email', 'settings', 'document', 'phones', 'friends'],
-      logging(sql) {
-        expect(sql).to.equal(
-          'Executing (default): SELECT "id", "username", "email", "settings", "document", "phones", "friends" FROM "Users" AS "User" WHERE "User"."email" = ARRAY[\'hello\',\'world\'];',
-        );
-      },
+      logging,
     });
+    expect(logging).to.have.been.called;
   });
 
   it('should be able to update a field with type ARRAY(JSON)', async function () {
@@ -98,22 +102,20 @@ describe('[POSTGRES Specific] DAO', () => {
       expect(table.document.type).to.equal('HSTORE');
     });
 
-    // TODO: move to select QueryGenerator unit tests
     it('should NOT stringify hstore with insert', async function () {
-      await this.User.create(
-        {
-          username: 'bob',
-          email: ['myemail@email.com'],
-          settings: { mailing: 'false', push: 'facebook', frequency: '3' },
-        },
-        {
-          logging(sql) {
-            const unexpected =
-              '\'"mailing"=>"false","push"=>"facebook","frequency"=>"3"\',\'"default"=>"\'\'value\'\'"\'';
-            expect(sql).not.to.include(unexpected);
-          },
-        },
-      );
+      const user = await this.User.create({
+        username: 'bob',
+        email: ['myemail@email.com'],
+        settings: { mailing: 'false', push: 'facebook', frequency: '3' },
+      });
+
+      const reloadedUser = await this.User.findByPk(user.id, { rejectOnEmpty: true });
+      expect(reloadedUser.settings).to.deep.equal({
+        mailing: 'false',
+        push: 'facebook',
+        frequency: '3',
+      });
+      expect(reloadedUser.document).to.deep.equal({ default: "'value'" });
     });
 
     // TODO: move to select QueryGenerator unit tests
@@ -130,18 +132,19 @@ describe('[POSTGRES Specific] DAO', () => {
 
       await Equipment.sync({ force: true });
 
+      const logging = sinon.spy(sql => {
+        expect(sql).to.contains(' WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';');
+      });
+
       await Equipment.findAll({
         where: {
           utilityBelt: {
             grapplingHook: 'true',
           },
         },
-        logging(sql) {
-          expect(sql).to.contains(
-            ' WHERE "Equipment"."utilityBelt" = \'"grapplingHook"=>"true"\';',
-          );
-        },
+        logging,
       });
+      expect(logging).to.have.been.called;
     });
   });
 
@@ -522,17 +525,19 @@ describe('[POSTGRES Specific] DAO', () => {
     });
 
     it('should use bind params instead of "TIMESTAMP WITH TIME ZONE"', async function () {
+      const logging = sinon.spy(sql => {
+        expect(sql).to.contain('INSERT INTO "Users"');
+        expect(sql).not.to.contain('TIMESTAMP WITH TIME ZONE');
+        expect(sql).not.to.contain('DATETIME');
+      });
+
       await this.User.create(
         {
           dates: [],
         },
-        {
-          logging(sql) {
-            expect(sql).not.to.contain('TIMESTAMP WITH TIME ZONE');
-            expect(sql).not.to.contain('DATETIME');
-          },
-        },
+        { logging },
       );
+      expect(logging).to.have.been.called;
     });
   });
 
