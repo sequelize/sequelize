@@ -61,10 +61,12 @@ export class SqliteQueryInterfaceInternal extends AbstractQueryInterfaceInternal
               continue;
             }
 
-            for (const field of index.fields) {
-              if (columns[field.attribute]) {
-                columns[field.attribute].unique = true;
-              }
+            if (index.fields.length !== 1) {
+              continue;
+            }
+
+            if (columns[index.fields[0].attribute]) {
+              columns[index.fields[0].attribute].unique = true;
             }
           }
 
