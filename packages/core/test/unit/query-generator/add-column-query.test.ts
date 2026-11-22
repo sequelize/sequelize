@@ -36,6 +36,24 @@ describe('QueryGenerator#addColumnQuery', () => {
     );
   });
 
+  it('generates a ADD COLUMN query for a nullable column', () => {
+    const { User } = vars;
+
+    expectsql(
+      () =>
+        queryGenerator.addColumnQuery(User.table, 'deletedAt', {
+          type: 'TIMESTAMP',
+          allowNull: true,
+        }),
+      {
+        default: `ALTER TABLE [Users] ADD [deletedAt] TIMESTAMP;`,
+        'mariadb mysql mssql': `ALTER TABLE [Users] ADD [deletedAt] TIMESTAMP NULL;`,
+        postgres: `ALTER TABLE "Users" ADD COLUMN "deletedAt" TIMESTAMP;`,
+        oracle: `ALTER TABLE "Users" ADD "deletedAt" TIMESTAMP NULL;`,
+      },
+    );
+  });
+
   it('accepts a bare data type', () => {
     const { User } = vars;
 

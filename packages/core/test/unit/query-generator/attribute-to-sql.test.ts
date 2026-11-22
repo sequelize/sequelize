@@ -153,7 +153,32 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'INTEGER', allowNull: true },
     {
       default: 'INTEGER',
-      'mssql oracle': 'INTEGER NULL',
+      'mariadb mssql mysql oracle': 'INTEGER NULL',
+    },
+  );
+
+  // TIMESTAMP columns are NOT NULL by default in MySQL & MariaDB (unless explicit_defaults_for_timestamp is enabled)
+  testSql(
+    { type: 'TIMESTAMP', allowNull: true },
+    {
+      default: 'TIMESTAMP',
+      'mariadb mssql mysql oracle': 'TIMESTAMP NULL',
+    },
+  );
+
+  testSql(
+    { type: 'INTEGER', allowNull: true, primaryKey: true },
+    {
+      default: 'INTEGER PRIMARY KEY',
+      db2: 'INTEGER NOT NULL PRIMARY KEY',
+    },
+  );
+
+  testSql(
+    { type: 'INTEGER PRIMARY KEY', allowNull: true },
+    {
+      default: 'INTEGER PRIMARY KEY',
+      'mssql oracle': 'INTEGER PRIMARY KEY NULL',
     },
   );
 
@@ -171,7 +196,7 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'INTEGER', allowNull: true },
     {
       default: 'INTEGER',
-      'mssql oracle': 'INTEGER NULL',
+      'mariadb mssql mysql oracle': 'INTEGER NULL',
       db2: 'DATA TYPE INTEGER',
     },
     { context: 'changeColumn' },
@@ -928,6 +953,7 @@ describe('QueryGenerator#attributeToSql', () => {
     { type: 'INTEGER', allowNull: true, comment: 'Test' },
     {
       default: "INTEGER COMMENT 'Test'",
+      'mariadb mysql': "INTEGER NULL COMMENT 'Test'",
       'sqlite3 ibmi': 'INTEGER',
       postgres: new Error('quoteIdentifier received a non-string identifier: undefined'),
       mssql: 'INTEGER NULL COMMENT Test',

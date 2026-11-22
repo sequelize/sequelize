@@ -270,7 +270,7 @@ describe('QueryGenerator#attributesToSql', () => {
         ),
       {
         default: { id: 'INTEGER' },
-        'mssql oracle': { id: 'INTEGER NULL' },
+        'mariadb mssql mysql oracle': { id: 'INTEGER NULL' },
         db2: { id: 'DATA TYPE INTEGER' },
       },
     );

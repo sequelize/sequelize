@@ -91,7 +91,7 @@ if (dialect === 'mariadb') {
         const User = this.sequelize.define(`User${Support.rand()}`, {}, { paranoid: true });
         expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          deletedAt: 'DATETIME(6)',
+          deletedAt: 'DATETIME(6) NULL',
           updatedAt: 'DATETIME(6) NOT NULL',
           createdAt: 'DATETIME(6) NOT NULL',
         });
@@ -105,7 +105,7 @@ if (dialect === 'mariadb') {
         );
         expect(this.sequelize.queryGenerator.attributesToSql(User.getAttributes())).to.deep.equal({
           id: 'INTEGER NOT NULL auto_increment PRIMARY KEY',
-          deleted_at: 'DATETIME(6)',
+          deleted_at: 'DATETIME(6) NULL',
           updated_at: 'DATETIME(6) NOT NULL',
           created_at: 'DATETIME(6) NOT NULL',
         });

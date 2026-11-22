@@ -203,6 +203,15 @@ export class MySqlQueryGeneratorTypeScript extends AbstractQueryGenerator {
 
     if (attribute.allowNull === false) {
       template += ' NOT NULL';
+    } else if (
+      attribute.allowNull === true &&
+      !attribute.primaryKey &&
+      !sqlType.includes('PRIMARY KEY')
+    ) {
+      // TIMESTAMP columns are NOT NULL by default unless explicit_defaults_for_timestamp is enabled,
+      // so nullability must be explicit for them to accept NULL.
+      // Primary keys (including ones declared in a raw type) cannot be NULL.
+      template += ' NULL';
     }
 
     if (attribute.autoIncrement) {
