@@ -64,6 +64,19 @@ describe(getTestDialectTeaser('hasMany'), () => {
     expect(Object.keys(User.associations)).to.deep.eq(['tasks']);
   });
 
+  it('auto-creates an index on the foreign key on the target model', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasMany(Task);
+
+    const indexes = Task.modelDefinition.getIndexes();
+    const fkIndex = indexes.find(idx =>
+      idx.fields?.some(f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId'),
+    );
+    expect(fkIndex).to.not.be.undefined;
+  });
+
   describe('optimizations using bulk create, destroy and update', () => {
     const vars = beforeAll2(() => {
       class User extends Model<InferAttributes<User>> {

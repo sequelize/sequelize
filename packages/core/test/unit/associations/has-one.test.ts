@@ -76,6 +76,19 @@ describe(getTestDialectTeaser('hasOne'), () => {
     expect(Object.keys(User.associations)).to.deep.eq(['task']);
   });
 
+  it('auto-creates an index on the foreign key on the target model', () => {
+    const User = sequelize.define('User');
+    const Task = sequelize.define('Task');
+
+    User.hasOne(Task);
+
+    const indexes = Task.modelDefinition.getIndexes();
+    const fkIndex = indexes.find(idx =>
+      idx.fields?.some(f => (typeof f === 'string' ? f : 'name' in f ? f.name : null) === 'userId'),
+    );
+    expect(fkIndex).to.not.be.undefined;
+  });
+
   it('does not use `as` option to generate foreign key name', () => {
     // See HasOne.inferForeignKey for explanations as to why "as" is not used when inferring the foreign key.
     const User = sequelize.define('User', { username: DataTypes.STRING });
