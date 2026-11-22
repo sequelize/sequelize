@@ -391,9 +391,12 @@ Use Sequelize#query if you wish to use replacements.`);
 
         return await query.run(sql, bindParameters);
       } finally {
-        await this.hooks.runAsync('afterQuery', options, query);
-        if (!options.transaction && !options.connection) {
-          this.pool.release(connection);
+        try {
+          await this.hooks.runAsync('afterQuery', options, query);
+        } finally {
+          if (!options.transaction && !options.connection) {
+            this.pool.release(connection);
+          }
         }
       }
     }, retryOptions);
