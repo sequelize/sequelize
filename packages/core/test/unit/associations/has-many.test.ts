@@ -421,5 +421,35 @@ describe(getTestDialectTeaser('hasMany'), () => {
         expect(afterAssociate).to.not.have.been.called;
       });
     });
+
+    it('uses SET NULL by default for nullable foreign keys', () => {
+      class User extends Model<InferAttributes<User>> {}
+
+      class Foo extends Model<InferAttributes<Foo>> {
+        declare userId: ForeignKey<number | null>;
+      }
+
+      User.init({
+        name: DataTypes.TEXT,
+      }, { sequelize });
+
+      Foo.init({
+        name: DataTypes.TEXT,
+        userId: {
+          type: DataTypes.INTEGER,
+          // allowNull is omitted on purpose; this should be treated as nullable.
+          references: {
+            model: User,
+            key: 'id',
+          },
+        },
+      }, { sequelize });
+
+      User.hasMany(Foo, { foreignKey: 'userId' });
+
+      const attribute = Foo.getAttributes().userId;
+      expect(attribute.allowNull).to.not.equal(false);
+      expect(attribute.onDelete).to.equal('SET NULL');
+    });
   });
 });
