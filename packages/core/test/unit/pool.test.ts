@@ -335,9 +335,11 @@ describe('sequelize.pool', () => {
       sandbox.stub(sequelize2.dialect.connectionManager, 'connect').resolves({});
       sandbox.stub(sequelize2.dialect.connectionManager, 'initializeConnection').resolves();
       sandbox.stub(sequelize2.dialect.connectionManager, 'validate').returns(true);
+      sandbox.stub(sequelize2.dialect.connectionManager, 'disconnect').resolves();
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+      await sequelize2.pool.destroyAllNow();
       sandbox.restore();
     });
 
