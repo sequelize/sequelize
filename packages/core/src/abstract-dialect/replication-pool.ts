@@ -180,7 +180,14 @@ export class ReplicationPool<Connection extends object, ConnectionOptions extend
       throw error;
     }
 
-    await this.#afterAcquire?.(connection, options);
+    try {
+      await this.#afterAcquire?.(connection, options);
+    } catch (error) {
+      // the caller never receives the connection, so nothing else would release it
+      pool.release(connection);
+
+      throw error;
+    }
 
     return connection;
   }

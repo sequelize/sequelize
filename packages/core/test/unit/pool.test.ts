@@ -322,6 +322,49 @@ describe('sequelize.pool', () => {
     });
   });
 
+  describe('hooks that throw', () => {
+    let sequelize2: Sequelize;
+    let sandbox: SinonSandbox;
+
+    beforeEach(() => {
+      sequelize2 = createSequelizeInstance({
+        databaseVersion: sequelize.dialect.minimumDatabaseVersion,
+        pool: { max: 1, acquire: 500 },
+      });
+      sandbox = sinon.createSandbox();
+      sandbox.stub(sequelize2.dialect.connectionManager, 'connect').resolves({});
+      sandbox.stub(sequelize2.dialect.connectionManager, 'initializeConnection').resolves();
+      sandbox.stub(sequelize2.dialect.connectionManager, 'validate').returns(true);
+      sandbox.stub(sequelize2.dialect.connectionManager, 'disconnect').resolves();
+    });
+
+    afterEach(async () => {
+      await sequelize2.pool.destroyAllNow();
+      sandbox.restore();
+    });
+
+    it('releases the connection if the afterPoolAcquire hook throws', async () => {
+      const hookError = new Error('hook failed');
+      sequelize2.hooks.addListener('afterPoolAcquire', () => {
+        throw hookError;
+      });
+
+      await expect(sequelize2.pool.acquire()).to.be.rejectedWith(hookError);
+      expect(sequelize2.pool.write.using).to.equal(0);
+    });
+
+    it('releases the connection if the afterQuery hook throws', async () => {
+      sandbox.stub(sequelize2.dialect.Query.prototype, 'run').resolves([]);
+      const hookError = new Error('hook failed');
+      sequelize2.hooks.addListener('afterQuery', () => {
+        throw hookError;
+      });
+
+      await expect(sequelize2.queryRaw('SELECT 1')).to.be.rejectedWith(hookError);
+      expect(sequelize2.pool.write.using).to.equal(0);
+    });
+  });
+
   describe('setup failure', () => {
     let sandbox: SinonSandbox;
 
