@@ -4005,9 +4005,32 @@ Instead of specifying a Model, either:
       );
     }
 
-    // Validate
-    if (options.validate) {
+    // persist attributes changed by validation hooks
+    const validateAndCollectFields = async () => {
+      if (!options.defaultFields || this.isNewRecord) {
+        return this.validate(options);
+      }
+
+      const attributes = Array.from(modelDefinition.physicalAttributes.keys());
+      const valuesBeforeValidation = attributes.map(key => {
+        const value = this.dataValues[key];
+
+        return value instanceof BaseSqlExpression ? value : cloneDeepLodash(value);
+      });
       await this.validate(options);
+
+      options.fields = union(
+        options.fields,
+        attributes.filter((key, i) => !isEqual(this.dataValues[key], valuesBeforeValidation[i])),
+      );
+
+      if (versionAttr && options.fields.length > 0 && !options.fields.includes(versionAttr)) {
+        options.fields.push(versionAttr);
+      }
+    };
+
+    if (options.validate) {
+      await validateAndCollectFields();
     }
 
     // Run before hook
@@ -4040,7 +4063,7 @@ Instead of specifying a Model, either:
         // Validate again
 
         options.skip = difference(Array.from(modelDefinition.attributes.keys()), hookChanged);
-        await this.validate(options);
+        await validateAndCollectFields();
         delete options.skip;
       }
     }
