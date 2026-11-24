@@ -452,7 +452,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     let destroy: SinonStub;
 
     // The foreign key each saved record was given, in order.
-    let savedForeignKeys: Array<unknown>;
+    let savedForeignKeys: unknown[];
 
     beforeEach(() => {
       const { Task } = rawVars;
@@ -476,7 +476,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     it('add() accepts a raw plain object and creates the record', async () => {
       const { user } = rawVars;
 
-      await user.addTask!({ title: 'raw task' });
+      await user.addTask({ title: 'raw task' });
 
       expect(save).to.have.been.calledOnce;
       // the new record must be linked to the source instance
@@ -487,7 +487,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     it('add() accepts an array of raw plain objects and creates each', async () => {
       const { user } = rawVars;
 
-      await user.addTasks!([{ title: 'task a' }, { title: 'task b' }]);
+      await user.addTasks([{ title: 'task a' }, { title: 'task b' }]);
 
       expect(save).to.have.been.calledTwice;
       expect(savedForeignKeys).to.deep.equal([1, 1]);
@@ -499,7 +499,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       const findAll = sinon.stub(Task, 'findAll').resolves([]);
       try {
-        await user.setTasks!([{ title: 'new task' }]);
+        await user.setTasks([{ title: 'new task' }]);
 
         expect(save).to.have.been.calledOnce;
         // the new record must be linked to the source instance
@@ -514,7 +514,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({ id: 10, title: 'old' })]);
       try {
-        await user.setTasks!([10]);
+        await user.setTasks([10]);
         // Should update, not create
         expect(save).to.not.have.been.called;
         expect(update).to.have.been.called;
@@ -528,7 +528,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({ id: 10, title: 'old' })]);
       try {
-        await user.setTasks!([{ id: 10 }]);
+        await user.setTasks([{ id: 10 }]);
         // Should update, not create
         expect(save).to.not.have.been.called;
         expect(update).to.have.been.called;

@@ -230,6 +230,9 @@ export abstract class MultiAssociation<
    * Normalize input
    *
    * @param input it may be array or single obj, instance or primary key
+   * @param options Options for the normalization.
+   * @param options.acceptPlainObjects If true, plain objects that do not carry the target's
+   * primary key are treated as record data for a new instance instead of as an object-valued key.
    *
    * @private
    * @returns built objects
@@ -276,6 +279,8 @@ export abstract class MultiAssociation<
   /**
    * Returns true if the provided plain object carries the target's primary key attribute,
    * which means it must be treated as an object-valued primary key, not as record data.
+   *
+   * @param element the plain object to check
    *
    * @private
    */
