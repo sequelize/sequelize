@@ -410,10 +410,10 @@ export class HasManyAssociation<
    */
   async set(
     sourceInstance: S,
-    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>> | null,
     options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
-    const normalizedTargets = this.toInstanceArray(targets);
+    const normalizedTargets = this.toInstanceArray(targets, { acceptPlainObjects: true });
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
@@ -423,30 +423,26 @@ export class HasManyAssociation<
     const newTargets = normalizedTargets.filter(instance => instance.isNewRecord);
     const existingTargets = normalizedTargets.filter(instance => !instance.isNewRecord);
 
-    // Collect primary keys of existing newTargets to exclude from obsolete check
-    const newTargetPks: Set<unknown> = new Set();
-    for (const t of newTargets) {
-      // @ts-expect-error -- TODO: what if the target has no primary key?
-      newTargetPks.add(t.get(this.target.primaryKeyAttribute));
-    }
-
     const obsoleteAssociations = oldAssociations.filter(old => {
       // @ts-expect-error -- old is a raw result
       const pk = old[this.target.primaryKeyAttribute];
-      if (newTargetPks.has(pk)) {
-        return false;
-      }
+
       return !existingTargets.some(obj => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === pk;
       });
     });
 
-    // Create new targets first so they get primary keys assigned.
-    if (newTargets.length > 0) {
-      for (const instance of newTargets) {
-        await instance.save({ transaction: (options as any).transaction });
-      }
+    // Create the new targets first so they get their primary keys assigned. The foreign key
+    // and the association scope are set before saving, so that the new rows are linked to
+    // the source instance.
+    for (const instance of newTargets) {
+      instance.set({
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+        ...this.scope,
+      } as any);
+      // eslint-disable-next-line no-await-in-loop -- the instances are created one after the other, to keep their creation order
+      await instance.save({ transaction: options?.transaction });
     }
 
     const unassociatedObjects = existingTargets.filter(obj => {
@@ -500,10 +496,12 @@ export class HasManyAssociation<
    */
   async add(
     sourceInstance: S,
-    rawTargetInstances: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    rawTargetInstances: AllowIterable<
+      T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>
+    >,
     options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
-    const targetInstances = this.toInstanceArray(rawTargetInstances);
+    const targetInstances = this.toInstanceArray(rawTargetInstances, { acceptPlainObjects: true });
 
     if (targetInstances.length === 0) {
       return;
@@ -514,20 +512,15 @@ export class HasManyAssociation<
     const newInstances = targetInstances.filter(instance => instance.isNewRecord);
     const existingInstances = targetInstances.filter(instance => !instance.isNewRecord);
 
-    // Create new instances first, then set their foreign key.
-    // If createOptions were passed, use them; otherwise use default.
-    if (newInstances.length > 0) {
-      for (const instance of newInstances) {
-        await instance.save({ transaction: (options as any).transaction });
-        const pkAttr = this.target.primaryKeyAttribute!;
-        await this.target.withoutScope().update(
-          { [this.foreignKey]: sourceInstance.get(this.sourceKey), ...this.scope } as UpdateValues<T>,
-          {
-            ...options,
-            where: { [pkAttr]: instance.get(pkAttr) } as any,
-          },
-        );
-      }
+    // Create the new instances first. The foreign key and the association scope are set
+    // before saving, so that the new rows are linked to the source instance.
+    for (const instance of newInstances) {
+      instance.set({
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+        ...this.scope,
+      } as any);
+      // eslint-disable-next-line no-await-in-loop -- the instances are created one after the other, to keep their creation order
+      await instance.save({ transaction: options.transaction });
     }
 
     if (existingInstances.length === 0) {
@@ -785,9 +778,18 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Iterable<T | TModelPrimaryKey> | null,
+  newAssociations?: Iterable<T | TModelPrimaryKey | HasManyPlainObject<T>> | null,
   options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
+
+/**
+ * A plain object describing the attributes of a record that the hasMany association
+ * creates when it is passed to `set` or `add`.
+ *
+ * The association sets the foreign key itself, and the record is created with the
+ * attributes provided here.
+ */
+export type HasManyPlainObject<T extends Model> = Partial<Attributes<T>> & Record<string, unknown>;
 
 /**
  * The options for the addAssociations mixin of the hasMany association.
@@ -813,7 +815,7 @@ export interface HasManyAddAssociationsMixinOptions<T extends Model> extends Ins
  * @see Model.hasMany
  */
 export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Iterable<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey | HasManyPlainObject<T>>,
   options?: HasManyAddAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -841,7 +843,7 @@ export interface HasManyAddAssociationMixinOptions<
  * @see Model.hasMany
  */
 export type HasManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociation?: T | TModelPrimaryKey,
+  newAssociation?: T | TModelPrimaryKey | HasManyPlainObject<T>,
   options?: HasManyAddAssociationMixinOptions<T>,
 ) => Promise<void>;
 

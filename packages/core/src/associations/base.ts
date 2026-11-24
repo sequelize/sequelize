@@ -234,8 +234,13 @@ export abstract class MultiAssociation<
    * @private
    * @returns built objects
    */
-  protected toInstanceArray(input: AllowIterable<T | Exclude<T[TargetKey], any[]>> | null): T[] {
-    const normalizedInput = this.toInstanceOrPkArray(input);
+  protected toInstanceArray(
+    input: AllowIterable<T | Exclude<T[TargetKey], any[]> | Record<string, unknown>> | null,
+    options: { acceptPlainObjects?: boolean } = {},
+  ): T[] {
+    const normalizedInput = this.toInstanceOrPkArray(
+      input as AllowIterable<T | Exclude<T[TargetKey], any[]>> | Nullish,
+    );
 
     // TODO: remove eslint-disable once we drop support for < 5.2
     // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
@@ -245,21 +250,39 @@ export abstract class MultiAssociation<
         return element;
       }
 
-      // If element is a plain object (not a primary key value), treat it as new data
-      // to be used for creating a new record. Spread its properties.
-      if (isPlainObject(element)) {
+      // If the element is a plain object that does not carry the target's primary key, it is
+      // treated as record data for a new instance instead of as an object-valued primary key.
+      // This is opt-in, as for most associations a plain object is a valid primary key.
+      if (
+        options.acceptPlainObjects &&
+        isPlainObject(element) &&
+        !this.isPrimaryKeyObject(element)
+      ) {
         const tmpInstance = Object.create(null);
         Object.assign(tmpInstance, element);
+
         return this.target.build(tmpInstance, { isNewRecord: true });
       }
 
-      // Otherwise element is a primary key value (number, string, etc.)
+      // Otherwise the element is a primary key value (number, string, object, etc.)
       const tmpInstance = Object.create(null);
       // @ts-expect-error -- TODO: what if the target has no primary key?
       tmpInstance[this.target.primaryKeyAttribute] = element;
 
       return this.target.build(tmpInstance, { isNewRecord: false });
     });
+  }
+
+  /**
+   * Returns true if the provided plain object carries the target's primary key attribute,
+   * which means it must be treated as an object-valued primary key, not as record data.
+   *
+   * @private
+   */
+  private isPrimaryKeyObject(element: Record<string, unknown>): boolean {
+    const primaryKeyAttribute = this.target.primaryKeyAttribute;
+
+    return primaryKeyAttribute != null && primaryKeyAttribute in element;
   }
 }
 

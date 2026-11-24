@@ -447,20 +447,28 @@ describe(getTestDialectTeaser('hasMany'), () => {
       return { User, Task, user };
     });
 
-    let create: SinonStub;
+    let save: SinonStub;
     let update: SinonStub;
     let destroy: SinonStub;
+
+    // The foreign key each saved record was given, in order.
+    let savedForeignKeys: Array<unknown>;
 
     beforeEach(() => {
       const { Task } = rawVars;
 
-      create = sinon.stub(Task, 'create').resolves(Task.build({ id: 999 }));
+      savedForeignKeys = [];
+      save = sinon.stub(Task.prototype, 'save').callsFake(async function (this: Task) {
+        savedForeignKeys.push(this.get('userId'));
+
+        return this;
+      });
       update = sinon.stub(Task, 'update').resolves([1]);
       destroy = sinon.stub(Task, 'destroy').resolves(1);
     });
 
     afterEach(() => {
-      create.restore();
+      save.restore();
       update.restore();
       destroy.restore();
     });
@@ -470,8 +478,10 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       await user.addTask!({ title: 'raw task' });
 
-      expect(create).to.have.been.calledOnce;
-      expect(update).to.have.been.calledOnce;
+      expect(save).to.have.been.calledOnce;
+      // the new record must be linked to the source instance
+      expect(savedForeignKeys).to.deep.equal([1]);
+      expect(update).to.not.have.been.called;
     });
 
     it('add() accepts an array of raw plain objects and creates each', async () => {
@@ -479,8 +489,9 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       await user.addTasks!([{ title: 'task a' }, { title: 'task b' }]);
 
-      expect(create).to.have.been.calledTwice;
-      expect(update).to.have.been.calledTwice;
+      expect(save).to.have.been.calledTwice;
+      expect(savedForeignKeys).to.deep.equal([1, 1]);
+      expect(update).to.not.have.been.called;
     });
 
     it('set() accepts a raw plain object and creates the record', async () => {
@@ -489,7 +500,10 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const findAll = sinon.stub(Task, 'findAll').resolves([]);
       try {
         await user.setTasks!([{ title: 'new task' }]);
-        expect(create).to.have.been.calledOnce;
+
+        expect(save).to.have.been.calledOnce;
+        // the new record must be linked to the source instance
+        expect(savedForeignKeys).to.deep.equal([1]);
       } finally {
         findAll.restore();
       }
@@ -502,7 +516,21 @@ describe(getTestDialectTeaser('hasMany'), () => {
       try {
         await user.setTasks!([10]);
         // Should update, not create
-        expect(create).to.not.have.been.called;
+        expect(save).to.not.have.been.called;
+        expect(update).to.have.been.called;
+      } finally {
+        findAll.restore();
+      }
+    });
+
+    it('set() treats a plain object that carries the primary key as a key', async () => {
+      const { Task, user } = rawVars;
+
+      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({ id: 10, title: 'old' })]);
+      try {
+        await user.setTasks!([{ id: 10 }]);
+        // Should update, not create
+        expect(save).to.not.have.been.called;
         expect(update).to.have.been.called;
       } finally {
         findAll.restore();
