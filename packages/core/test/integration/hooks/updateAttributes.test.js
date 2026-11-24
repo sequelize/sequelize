@@ -201,6 +201,80 @@ describe(Support.getTestDialectTeaser('Hooks'), () => {
         expect(user.settings).to.deep.equal({ status: 'happy' });
       });
 
+      describe('with scopes', () => {
+        beforeEach(function () {
+          this.User.beforeValidate(user => {
+            if (!user.isNewRecord) {
+              user.mood = 'happy';
+            }
+          });
+        });
+
+        it('persists changes on an instance loaded with a default scope that limits attributes', async function () {
+          this.User.addScope('defaultScope', { attributes: ['id', 'mood'] }, { override: true });
+
+          const { id } = await this.User.create({ username: 'fireninja', mood: 'sad' });
+          const user = await this.User.findByPk(id);
+          expect(user.get('username')).to.be.undefined;
+          await user.save();
+
+          const saved = await this.User.withoutScope().findByPk(id);
+          expect(saved.mood).to.equal('happy');
+          expect(saved.username).to.equal('fireninja');
+        });
+
+        it('persists changes on an instance loaded with a scope filtering rows', async function () {
+          this.User.addScope('sad', { where: { mood: 'sad' } });
+
+          const { id } = await this.User.create({ username: 'fireninja', mood: 'sad' });
+          const user = await this.User.withScope('sad').findByPk(id);
+          user.username = 'hero';
+          await user.save();
+
+          const saved = await this.User.withoutScope().findByPk(id);
+          expect(saved.username).to.equal('hero');
+          expect(saved.mood).to.equal('happy');
+          expect(await this.User.withScope('sad').findByPk(id)).to.be.null;
+        });
+
+        it('persists changes on an instance loaded with a default scope that includes an association', async function () {
+          const Task = this.sequelize.define('Task', { title: DataTypes.STRING });
+          this.User.hasMany(Task);
+          await this.sequelize.sync({ force: true });
+          this.User.addScope('defaultScope', { include: [Task] }, { override: true });
+
+          const { id } = await this.User.create({ username: 'fireninja', mood: 'sad' });
+          await Task.create({ title: 'a', userId: id });
+          const user = await this.User.findByPk(id);
+          expect(user.tasks).to.have.length(1);
+          await user.save();
+
+          const saved = await this.User.withoutScope().findByPk(id);
+          expect(saved.mood).to.equal('happy');
+          expect(await Task.count({ where: { userId: id } })).to.equal(1);
+        });
+      });
+
+      it('does not bump the version when beforeValidate only changes a virtual attribute', async function () {
+        const User = this.sequelize.define(
+          'VersionedUser',
+          { mood: DataTypes.STRING, note: DataTypes.VIRTUAL },
+          { version: true },
+        );
+        await User.sync({ force: true });
+
+        User.beforeValidate(user => {
+          if (!user.isNewRecord) {
+            user.note = 'checked';
+          }
+        });
+
+        const user = await User.create({ mood: 'sad' });
+        await user.save();
+        await user.reload();
+        expect(user.version).to.equal(0);
+      });
+
       it('afterValidate', async function () {
         this.User.afterValidate(user => {
           user.mood = 'sad';
