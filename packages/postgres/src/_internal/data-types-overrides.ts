@@ -392,6 +392,14 @@ export class ARRAY<T extends BaseTypes.AbstractDataType<any>> extends BaseTypes.
   }
 
   getBindParamSql(values: Array<AcceptableTypeOf<T>>, options: BindParamOptions) {
+    // Empty arrays cannot be bound as parameters because the driver has no element type
+    // information. Emit a typed empty array literal instead.
+    if (values.length === 0) {
+      const sqlType = isString(this.options.type) ? 'text' : attributeTypeToSql(this.options.type);
+
+      return `'{}'::${sqlType}[]`;
+    }
+
     if (isString(this.options.type)) {
       return options.bindParam(values);
     }
