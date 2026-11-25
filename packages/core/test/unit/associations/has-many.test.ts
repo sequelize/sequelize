@@ -67,6 +67,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
   describe('optimizations using bulk create, destroy and update', () => {
     const vars = beforeAll2(() => {
       class User extends Model<InferAttributes<User>> {
+        declare id: number;
         declare setTasks: HasManySetAssociationsMixin<Task, number>;
       }
 
@@ -426,6 +427,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
   describe('raw plain objects', () => {
     const rawVars = beforeAll2(() => {
       class User extends Model<InferAttributes<User>> {
+        declare id: number;
         declare setTasks: HasManySetAssociationsMixin<Task, number>;
         declare addTask: any;
         declare addTasks: any;
@@ -447,6 +449,10 @@ describe(getTestDialectTeaser('hasMany'), () => {
       return { User, Task, user };
     });
 
+    // The model class is only available once `beforeAll2` has run, so its instance type
+    // cannot be named directly.
+    type TaskInstance = InstanceType<(typeof rawVars)['Task']>;
+
     let save: SinonStub;
     let update: SinonStub;
     let destroy: SinonStub;
@@ -458,7 +464,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const { Task } = rawVars;
 
       savedForeignKeys = [];
-      save = sinon.stub(Task.prototype, 'save').callsFake(async function (this: Task) {
+      save = sinon.stub(Task.prototype, 'save').callsFake(async function (this: TaskInstance) {
         savedForeignKeys.push(this.get('userId'));
 
         return this;
