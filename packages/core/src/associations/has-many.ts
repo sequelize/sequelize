@@ -413,30 +413,23 @@ export class HasManyAssociation<
     targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>> | null,
     options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
-    const normalizedTargets = this.toInstanceArray(targets, { acceptPlainObjects: true });
+    const { newRecords, existingTargets } = this.splitPlainObjects(targets);
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
 
-    // Separate new (unsaved) instances from existing ones.
-    // New instances may result from passing raw plain objects.
-    const newTargets = normalizedTargets.filter(instance => instance.isNewRecord);
-    const existingTargets = normalizedTargets.filter(instance => !instance.isNewRecord);
-
     const obsoleteAssociations = oldAssociations.filter(old => {
-      // @ts-expect-error -- old is a raw result
-      const pk = old[this.target.primaryKeyAttribute];
-
       return !existingTargets.some(obj => {
         // @ts-expect-error -- old is a raw result
-        return obj.get(this.target.primaryKeyAttribute) === pk;
+        return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
     });
 
-    // Create the new targets first so they get their primary keys assigned. The foreign key
+    // Create the new records first so they get their primary keys assigned. The foreign key
     // and the association scope are set before saving, so that the new rows are linked to
     // the source instance.
-    for (const instance of newTargets) {
+    for (const record of newRecords) {
+      const instance = this.target.build(record as any, { isNewRecord: true });
       instance.set({
         [this.foreignKey]: sourceInstance.get(this.sourceKey),
         ...this.scope,
@@ -501,20 +494,16 @@ export class HasManyAssociation<
     >,
     options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
-    const targetInstances = this.toInstanceArray(rawTargetInstances, { acceptPlainObjects: true });
+    const { newRecords, existingTargets } = this.splitPlainObjects(rawTargetInstances);
 
-    if (targetInstances.length === 0) {
+    if (newRecords.length === 0 && existingTargets.length === 0) {
       return;
     }
 
-    // Separate new (unsaved) instances from existing ones.
-    // New instances may be created from raw plain objects passed to add().
-    const newInstances = targetInstances.filter(instance => instance.isNewRecord);
-    const existingInstances = targetInstances.filter(instance => !instance.isNewRecord);
-
-    // Create the new instances first. The foreign key and the association scope are set
+    // Create the new records first. The foreign key and the association scope are set
     // before saving, so that the new rows are linked to the source instance.
-    for (const instance of newInstances) {
+    for (const record of newRecords) {
+      const instance = this.target.build(record as any, { isNewRecord: true });
       instance.set({
         [this.foreignKey]: sourceInstance.get(this.sourceKey),
         ...this.scope,
@@ -523,7 +512,7 @@ export class HasManyAssociation<
       await instance.save({ transaction: options.transaction });
     }
 
-    if (existingInstances.length === 0) {
+    if (existingTargets.length === 0) {
       return;
     }
 
@@ -534,13 +523,60 @@ export class HasManyAssociation<
 
     const where = {
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: existingInstances.map(unassociatedObject => {
+      [this.target.primaryKeyAttribute]: existingTargets.map(unassociatedObject => {
         // @ts-expect-error -- TODO: what if the target has no primary key?
         return unassociatedObject.get(this.target.primaryKeyAttribute);
       }),
     };
 
     await this.target.withoutScope().update(update, { ...options, where });
+  }
+
+  /**
+   * Split the accepted input into the plain objects that describe a record to create, and the
+   * instances and primary keys that describe records that already exist.
+   *
+   * The split is made on the *shape* of what the caller passed, not on `isNewRecord`: an
+   * instance the caller built but did not save is still an instance they passed, and upstream
+   * links it like any other. Only a plain object — one that is not an instance and does not carry
+   * the target's primary key — describes a record that does not exist yet.
+   *
+   * @param targets the input accepted by `set` and `add`
+   *
+   * @returns the plain objects to create, and the instances/primary keys to link
+   */
+  private splitPlainObjects(
+    targets: AllowIterable<
+      T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>
+    > | null,
+  ): {
+    newRecords: Array<Record<string, unknown>>;
+    existingTargets: T[];
+  } {
+    const newRecords: Array<Record<string, unknown>> = [];
+    const existingTargets: T[] = [];
+
+    const elements = this.toInstanceOrPkArray(
+      targets as AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
+    );
+
+    for (const element of elements) {
+      if (isPlainObject(element)) {
+        const primaryKeyAttribute = this.target.primaryKeyAttribute;
+
+        // A plain object that carries the primary key is an object-valued primary key, which
+        // upstream supports: it is looked up, not created.
+        if (primaryKeyAttribute == null || !(primaryKeyAttribute in element)) {
+          newRecords.push(element as Record<string, unknown>);
+
+          continue;
+        }
+      }
+
+      existingTargets.push(this.toInstanceArray([element])[0]);
+    }
+
+    return { newRecords, existingTargets };
   }
 
   /**

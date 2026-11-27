@@ -431,7 +431,6 @@ describe(getTestDialectTeaser('hasMany'), () => {
         declare setTasks: HasManySetAssociationsMixin<Task, number>;
         declare addTask: any;
         declare addTasks: any;
-        declare getTasks: any;
       }
 
       class Task extends Model<InferAttributes<Task>> {
@@ -442,7 +441,8 @@ describe(getTestDialectTeaser('hasMany'), () => {
 
       User.init({ username: DataTypes.STRING }, { sequelize });
       Task.init({ title: DataTypes.STRING }, { sequelize });
-      User.hasMany(Task, { inverse: { as: 'tasks' } });
+      // The inverse is named `user`, so the foreign key on Task is `userId`.
+      User.hasMany(Task, { as: 'tasks', inverse: { as: 'user' } });
 
       const user = User.build({ id: 1 });
 
@@ -456,6 +456,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     let save: SinonStub;
     let update: SinonStub;
     let destroy: SinonStub;
+    let findAll: SinonStub;
 
     // The foreign key each saved record was given, in order.
     let savedForeignKeys: unknown[];
@@ -464,6 +465,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
       const { Task } = rawVars;
 
       savedForeignKeys = [];
+      findAll = sinon.stub(Task, 'findAll').resolves([]);
       save = sinon.stub(Task.prototype, 'save').callsFake(async function (this: TaskInstance) {
         savedForeignKeys.push(this.get('userId'));
 
@@ -474,6 +476,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     afterEach(() => {
+      findAll.restore();
       save.restore();
       update.restore();
       destroy.restore();
@@ -501,46 +504,46 @@ describe(getTestDialectTeaser('hasMany'), () => {
     });
 
     it('set() accepts a raw plain object and creates the record', async () => {
-      const { Task, user } = rawVars;
+      const { user } = rawVars;
 
-      const findAll = sinon.stub(Task, 'findAll').resolves([]);
-      try {
-        await user.setTasks([{ title: 'new task' }]);
+      await user.setTasks([{ title: 'new task' }]);
 
-        expect(save).to.have.been.calledOnce;
-        // the new record must be linked to the source instance
-        expect(savedForeignKeys).to.deep.equal([1]);
-      } finally {
-        findAll.restore();
-      }
+      expect(save).to.have.been.calledOnce;
+      // the new record must be linked to the source instance
+      expect(savedForeignKeys).to.deep.equal([1]);
     });
 
     it('set() still works with primary key values (existing behavior)', async () => {
-      const { Task, user } = rawVars;
+      const { user } = rawVars;
 
-      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({ id: 10, title: 'old' })]);
-      try {
-        await user.setTasks([10]);
-        // Should update, not create
-        expect(save).to.not.have.been.called;
-        expect(update).to.have.been.called;
-      } finally {
-        findAll.restore();
-      }
+      await user.setTasks([10]);
+
+      // Should update, not create
+      expect(save).to.not.have.been.called;
+      expect(update).to.have.been.called;
     });
 
     it('set() treats a plain object that carries the primary key as a key', async () => {
+      const { user } = rawVars;
+
+      await user.setTasks([{ id: 10 }]);
+
+      // Should update, not create
+      expect(save).to.not.have.been.called;
+      expect(update).to.have.been.called;
+    });
+
+    it('set() links an instance the caller built but did not save, like upstream does', async () => {
       const { Task, user } = rawVars;
 
-      const findAll = sinon.stub(Task, 'findAll').resolves([Task.build({ id: 10, title: 'old' })]);
-      try {
-        await user.setTasks([{ id: 10 }]);
-        // Should update, not create
-        expect(save).to.not.have.been.called;
-        expect(update).to.have.been.called;
-      } finally {
-        findAll.restore();
-      }
+      // An unsaved instance is still an instance: upstream links it by its primary key rather
+      // than creating a record for it.
+      const task = Task.build({ id: 10, title: 'unsaved' });
+
+      await user.setTasks([task]);
+
+      expect(save).to.not.have.been.called;
+      expect(update).to.have.been.called;
     });
   });
 });

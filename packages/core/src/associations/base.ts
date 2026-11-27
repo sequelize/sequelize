@@ -1,5 +1,5 @@
 import type { AllowIterable, Nullish, PartialBy } from '@sequelize/utils';
-import { isIterable, isPlainObject } from '@sequelize/utils';
+import { isIterable } from '@sequelize/utils';
 import isObject from 'lodash/isObject.js';
 import type { AttributeNames, AttributeOptions, Hookable, Model, ModelStatic } from '../model';
 import { cloneDeep } from '../utils/object.js';
@@ -230,20 +230,12 @@ export abstract class MultiAssociation<
    * Normalize input
    *
    * @param input it may be array or single obj, instance or primary key
-   * @param options Options for the normalization.
-   * @param options.acceptPlainObjects If true, plain objects that do not carry the target's
-   * primary key are treated as record data for a new instance instead of as an object-valued key.
    *
    * @private
    * @returns built objects
    */
-  protected toInstanceArray(
-    input: AllowIterable<T | Exclude<T[TargetKey], any[]> | Record<string, unknown>> | null,
-    options: { acceptPlainObjects?: boolean } = {},
-  ): T[] {
-    const normalizedInput = this.toInstanceOrPkArray(
-      input as AllowIterable<T | Exclude<T[TargetKey], any[]>> | Nullish,
-    );
+  protected toInstanceArray(input: AllowIterable<T | Exclude<T[TargetKey], any[]>> | null): T[] {
+    const normalizedInput = this.toInstanceOrPkArray(input);
 
     // TODO: remove eslint-disable once we drop support for < 5.2
     // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error -- TS 5.2 works, but < 5.2 does not
@@ -253,41 +245,12 @@ export abstract class MultiAssociation<
         return element;
       }
 
-      // If the element is a plain object that does not carry the target's primary key, it is
-      // treated as record data for a new instance instead of as an object-valued primary key.
-      // This is opt-in, as for most associations a plain object is a valid primary key.
-      if (
-        options.acceptPlainObjects &&
-        isPlainObject(element) &&
-        !this.isPrimaryKeyObject(element)
-      ) {
-        const tmpInstance = Object.create(null);
-        Object.assign(tmpInstance, element);
-
-        return this.target.build(tmpInstance, { isNewRecord: true });
-      }
-
-      // Otherwise the element is a primary key value (number, string, object, etc.)
       const tmpInstance = Object.create(null);
       // @ts-expect-error -- TODO: what if the target has no primary key?
       tmpInstance[this.target.primaryKeyAttribute] = element;
 
       return this.target.build(tmpInstance, { isNewRecord: false });
     });
-  }
-
-  /**
-   * Returns true if the provided plain object carries the target's primary key attribute,
-   * which means it must be treated as an object-valued primary key, not as record data.
-   *
-   * @param element the plain object to check
-   *
-   * @private
-   */
-  private isPrimaryKeyObject(element: Record<string, unknown>): boolean {
-    const primaryKeyAttribute = this.target.primaryKeyAttribute;
-
-    return primaryKeyAttribute != null && primaryKeyAttribute in element;
   }
 }
 
