@@ -410,21 +410,35 @@ export class HasManyAssociation<
    */
   async set(
     sourceInstance: S,
-    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>> | null,
     options?: HasManySetAssociationsMixinOptions<T>,
   ): Promise<void> {
-    const normalizedTargets = this.toInstanceArray(targets);
+    const { newRecords, existingTargets } = this.splitPlainObjects(targets);
 
     const oldAssociations = await this.get(sourceInstance, { ...options, scope: false, raw: true });
     const promises: Array<Promise<any>> = [];
+
     const obsoleteAssociations = oldAssociations.filter(old => {
-      return !normalizedTargets.some(obj => {
+      return !existingTargets.some(obj => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
       });
     });
 
-    const unassociatedObjects = normalizedTargets.filter(obj => {
+    // Create the new records first so they get their primary keys assigned. The foreign key
+    // and the association scope are set before saving, so that the new rows are linked to
+    // the source instance.
+    for (const record of newRecords) {
+      const instance = this.target.build(record as any, { isNewRecord: true });
+      instance.set({
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+        ...this.scope,
+      } as any);
+      // eslint-disable-next-line no-await-in-loop -- the instances are created one after the other, to keep their creation order
+      await instance.save({ transaction: options?.transaction });
+    }
+
+    const unassociatedObjects = existingTargets.filter(obj => {
       return !oldAssociations.some(old => {
         // @ts-expect-error -- old is a raw result
         return obj.get(this.target.primaryKeyAttribute) === old[this.target.primaryKeyAttribute];
@@ -475,12 +489,30 @@ export class HasManyAssociation<
    */
   async add(
     sourceInstance: S,
-    rawTargetInstances: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>>,
+    rawTargetInstances: AllowIterable<
+      T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>
+    >,
     options: HasManyAddAssociationsMixinOptions<T> = {},
   ): Promise<void> {
-    const targetInstances = this.toInstanceArray(rawTargetInstances);
+    const { newRecords, existingTargets } = this.splitPlainObjects(rawTargetInstances);
 
-    if (targetInstances.length === 0) {
+    if (newRecords.length === 0 && existingTargets.length === 0) {
+      return;
+    }
+
+    // Create the new records first. The foreign key and the association scope are set
+    // before saving, so that the new rows are linked to the source instance.
+    for (const record of newRecords) {
+      const instance = this.target.build(record as any, { isNewRecord: true });
+      instance.set({
+        [this.foreignKey]: sourceInstance.get(this.sourceKey),
+        ...this.scope,
+      } as any);
+      // eslint-disable-next-line no-await-in-loop -- the instances are created one after the other, to keep their creation order
+      await instance.save({ transaction: options.transaction });
+    }
+
+    if (existingTargets.length === 0) {
       return;
     }
 
@@ -491,13 +523,58 @@ export class HasManyAssociation<
 
     const where = {
       // @ts-expect-error -- TODO: what if the target has no primary key?
-      [this.target.primaryKeyAttribute]: targetInstances.map(unassociatedObject => {
+      [this.target.primaryKeyAttribute]: existingTargets.map(unassociatedObject => {
         // @ts-expect-error -- TODO: what if the target has no primary key?
         return unassociatedObject.get(this.target.primaryKeyAttribute);
       }),
     };
 
     await this.target.withoutScope().update(update, { ...options, where });
+  }
+
+  /**
+   * Split the accepted input into the plain objects that describe a record to create, and the
+   * instances and primary keys that describe records that already exist.
+   *
+   * The split is made on the *shape* of what the caller passed, not on `isNewRecord`: an
+   * instance the caller built but did not save is still an instance they passed, and upstream
+   * links it like any other. Only a plain object — one that is not an instance and does not carry
+   * the target's primary key — describes a record that does not exist yet.
+   *
+   * @param targets the input accepted by `set` and `add`
+   *
+   * @returns the plain objects to create, and the instances/primary keys to link
+   */
+  private splitPlainObjects(
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>> | null,
+  ): {
+    newRecords: Array<Record<string, unknown>>;
+    existingTargets: T[];
+  } {
+    const newRecords: Array<Record<string, unknown>> = [];
+    const existingTargets: T[] = [];
+
+    const elements = this.toInstanceOrPkArray(
+      targets as AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]>> | null,
+    );
+
+    for (const element of elements) {
+      if (isPlainObject(element)) {
+        const primaryKeyAttribute = this.target.primaryKeyAttribute;
+
+        // A plain object that carries the primary key is an object-valued primary key, which
+        // upstream supports: it is looked up, not created.
+        if (primaryKeyAttribute == null || !(primaryKeyAttribute in element)) {
+          newRecords.push(element as Record<string, unknown>);
+
+          continue;
+        }
+      }
+
+      existingTargets.push(this.toInstanceArray([element])[0]);
+    }
+
+    return { newRecords, existingTargets };
   }
 
   /**
@@ -735,9 +812,18 @@ export interface HasManySetAssociationsMixinOptions<T extends Model>
  * @see Model.hasMany
  */
 export type HasManySetAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Iterable<T | TModelPrimaryKey> | null,
+  newAssociations?: Iterable<T | TModelPrimaryKey | HasManyPlainObject<T>> | null,
   options?: HasManySetAssociationsMixinOptions<T>,
 ) => Promise<void>;
+
+/**
+ * A plain object describing the attributes of a record that the hasMany association
+ * creates when it is passed to `set` or `add`.
+ *
+ * The association sets the foreign key itself, and the record is created with the
+ * attributes provided here.
+ */
+export type HasManyPlainObject<T extends Model> = Partial<Attributes<T>> & Record<string, unknown>;
 
 /**
  * The options for the addAssociations mixin of the hasMany association.
@@ -763,7 +849,7 @@ export interface HasManyAddAssociationsMixinOptions<T extends Model> extends Ins
  * @see Model.hasMany
  */
 export type HasManyAddAssociationsMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociations?: Iterable<T | TModelPrimaryKey>,
+  newAssociations?: Iterable<T | TModelPrimaryKey | HasManyPlainObject<T>>,
   options?: HasManyAddAssociationsMixinOptions<T>,
 ) => Promise<void>;
 
@@ -791,7 +877,7 @@ export interface HasManyAddAssociationMixinOptions<
  * @see Model.hasMany
  */
 export type HasManyAddAssociationMixin<T extends Model, TModelPrimaryKey> = (
-  newAssociation?: T | TModelPrimaryKey,
+  newAssociation?: T | TModelPrimaryKey | HasManyPlainObject<T>,
   options?: HasManyAddAssociationMixinOptions<T>,
 ) => Promise<void>;
 

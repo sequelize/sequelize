@@ -67,6 +67,7 @@ describe(getTestDialectTeaser('hasMany'), () => {
   describe('optimizations using bulk create, destroy and update', () => {
     const vars = beforeAll2(() => {
       class User extends Model<InferAttributes<User>> {
+        declare id: number;
         declare setTasks: HasManySetAssociationsMixin<Task, number>;
       }
 
@@ -420,6 +421,129 @@ describe(getTestDialectTeaser('hasMany'), () => {
         Project.hasMany(Task, { hooks: false });
         expect(afterAssociate).to.not.have.been.called;
       });
+    });
+  });
+
+  describe('raw plain objects', () => {
+    const rawVars = beforeAll2(() => {
+      class User extends Model<InferAttributes<User>> {
+        declare id: number;
+        declare setTasks: HasManySetAssociationsMixin<Task, number>;
+        declare addTask: any;
+        declare addTasks: any;
+      }
+
+      class Task extends Model<InferAttributes<Task>> {
+        declare id: number;
+        declare title: string;
+        declare userId: ForeignKey<number> | null;
+      }
+
+      User.init({ username: DataTypes.STRING }, { sequelize });
+      Task.init({ title: DataTypes.STRING }, { sequelize });
+      // The inverse is named `user`, so the foreign key on Task is `userId`.
+      User.hasMany(Task, { as: 'tasks', inverse: { as: 'user' } });
+
+      const user = User.build({ id: 1 });
+
+      return { User, Task, user };
+    });
+
+    // The model class is only available once `beforeAll2` has run, so its instance type
+    // cannot be named directly.
+    type TaskInstance = InstanceType<(typeof rawVars)['Task']>;
+
+    let save: SinonStub;
+    let update: SinonStub;
+    let destroy: SinonStub;
+    let findAll: SinonStub;
+
+    // The foreign key each saved record was given, in order.
+    let savedForeignKeys: unknown[];
+
+    beforeEach(() => {
+      const { Task } = rawVars;
+
+      savedForeignKeys = [];
+      findAll = sinon.stub(Task, 'findAll').resolves([]);
+      save = sinon.stub(Task.prototype, 'save').callsFake(async function (this: TaskInstance) {
+        savedForeignKeys.push(this.get('userId'));
+
+        return this;
+      });
+      update = sinon.stub(Task, 'update').resolves([1]);
+      destroy = sinon.stub(Task, 'destroy').resolves(1);
+    });
+
+    afterEach(() => {
+      findAll.restore();
+      save.restore();
+      update.restore();
+      destroy.restore();
+    });
+
+    it('add() accepts a raw plain object and creates the record', async () => {
+      const { user } = rawVars;
+
+      await user.addTask({ title: 'raw task' });
+
+      expect(save).to.have.been.calledOnce;
+      // the new record must be linked to the source instance
+      expect(savedForeignKeys).to.deep.equal([1]);
+      expect(update).to.not.have.been.called;
+    });
+
+    it('add() accepts an array of raw plain objects and creates each', async () => {
+      const { user } = rawVars;
+
+      await user.addTasks([{ title: 'task a' }, { title: 'task b' }]);
+
+      expect(save).to.have.been.calledTwice;
+      expect(savedForeignKeys).to.deep.equal([1, 1]);
+      expect(update).to.not.have.been.called;
+    });
+
+    it('set() accepts a raw plain object and creates the record', async () => {
+      const { user } = rawVars;
+
+      await user.setTasks([{ title: 'new task' }]);
+
+      expect(save).to.have.been.calledOnce;
+      // the new record must be linked to the source instance
+      expect(savedForeignKeys).to.deep.equal([1]);
+    });
+
+    it('set() still works with primary key values (existing behavior)', async () => {
+      const { user } = rawVars;
+
+      await user.setTasks([10]);
+
+      // Should update, not create
+      expect(save).to.not.have.been.called;
+      expect(update).to.have.been.called;
+    });
+
+    it('set() treats a plain object that carries the primary key as a key', async () => {
+      const { user } = rawVars;
+
+      await user.setTasks([{ id: 10 }]);
+
+      // Should update, not create
+      expect(save).to.not.have.been.called;
+      expect(update).to.have.been.called;
+    });
+
+    it('set() links an instance the caller built but did not save, like upstream does', async () => {
+      const { Task, user } = rawVars;
+
+      // An unsaved instance is still an instance: upstream links it by its primary key rather
+      // than creating a record for it.
+      const task = Task.build({ id: 10, title: 'unsaved' });
+
+      await user.setTasks([task]);
+
+      expect(save).to.not.have.been.called;
+      expect(update).to.have.been.called;
     });
   });
 });
