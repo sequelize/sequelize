@@ -546,9 +546,7 @@ export class HasManyAssociation<
    * @returns the plain objects to create, and the instances/primary keys to link
    */
   private splitPlainObjects(
-    targets: AllowIterable<
-      T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>
-    > | null,
+    targets: AllowIterable<T | Exclude<T[TargetPrimaryKey], any[]> | HasManyPlainObject<T>> | null,
   ): {
     newRecords: Array<Record<string, unknown>>;
     existingTargets: T[];
